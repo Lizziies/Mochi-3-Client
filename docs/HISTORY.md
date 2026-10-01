@@ -31,3 +31,4 @@ Kurze Chronik, damit jede neue Session weiß, was schon passiert ist.
 - Phase 4: Inventory Lock, Modern Keybind Handling, Java Inventory Hotkeys, Item Physics, Nametag Modifier, TNT Timer, Nick, Skin Stealer, Subtitles, Movable Hotbar/Title/Bossbar, Light Overlay, Hotbar Animation, Pack Changer, Erwähnungs-Ton, Logger-Cleanfile.
 - Phase 5: Discord Rich Presence, Lua-Skripte mit Sandbox, Config Sharing, Skript-Liste von GitHub, `docs/SCRIPTING.md`.
 - Phase 6: Hotbar Armor, Fall Predictor, Inventory Viewer, Arrow Trail, Black Bars, Left Hand, Gamemode Hotkeys, Third Person Nametag.
+- Phase 7: Politur, Modul-Dump und Doku-Generator, `tools/cross.sh tour`, Nachträge in PARITY.md und FEATURES.md.

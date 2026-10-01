@@ -55,3 +55,9 @@ Bis dahin gilt: Mochi ist **Alpha**, gedacht als Ergänzung, nicht als Ersatz.
 - Realistisch ist ein **öffentlicher Alpha-Release** mit klarem Hinweis ("Alpha, Spiel-Module sind noch gesperrt, Overlay läuft"). Das bringt Rückmeldungen und das Log-Material, das wir brauchen.
 - Den Titel "bester PvP-Client" erst nach den fünf Punkten oben verwenden. Vorher schadet es dem Ruf.
 - Der zweite Account arbeitet Plan B ab. Du testest zuhause nach `docs/PC_TEST.md`. Claude Code am PC findet danach die ersten Signaturen.
+
+## Nachtrag Session B (Phasen 0 bis 7 abgearbeitet)
+
+- Gebaut seit der Bewertung oben: Lua-Skripte (Sandbox, `docs/SCRIPTING.md`), Config-Codes, Skript-Liste von GitHub, Discord Rich Presence, Hive Utils, Zeqa Utils, Hive Stats, Crystal-PvP-Geisterliste, gemeinsame HUD-Optik mit echtem Blur, Tab List, Kompassleiste, Debug Menu mit Graph und alle in `PLAN_B.md` genannten fehlenden Module. 171 Module insgesamt.
+- Ohne Demo-Daten und ohne Signaturen sind 67 von 171 Modulen nutzbar, 104 grau. Mit den Demo-Daten laufen alle 171 unter Wine ohne Absturz (`tools/cross.sh tour`).
+- Unverändert der entscheidende Punkt: Im echten Spiel ist nichts getestet. Die Signaturen und Offsets stehen in `docs/SDK.md`.

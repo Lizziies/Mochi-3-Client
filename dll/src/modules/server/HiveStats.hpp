@@ -31,6 +31,7 @@ public:
         : HudModule("Hive Stats", "Shows the stats of the players in your lobby from the public Hive API. Only on The Hive.", {"info-others"},
                     {0.01f, 0.30f}) {
         sub("The Hive");
+        moveTo(Category::Server);
         require(need::tab, need::sigs({"TabListData"}));
         mid_.visible = [this] { return thresholds_.b; };
         high_.visible = [this] { return thresholds_.b; };
@@ -279,6 +280,7 @@ public:
     HiveLeaderboard()
         : HudModule("Hive Leaderboard", "Shows the top players of a Hive game, all time or this month. Only on The Hive.", {"info-others"}, {0.80f, 0.30f}) {
         sub("The Hive");
+        moveTo(Category::Server);
     }
 
     void onRender(ImDrawList* dl) override {

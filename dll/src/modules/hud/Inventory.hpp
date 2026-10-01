@@ -33,10 +33,10 @@ protected:
     ImVec2 content(ImDrawList* dl, ImVec2 o, float s) override {
         auto& p = game::state().player;
         std::vector<std::pair<const game::Item*, const char*>> items;
-        static const char* names[] = {"K", "B", "H", "S"};
+        static const char* names[] = {"H", "C", "L", "B"};
         for (int i = 0; i < 4; i++) items.push_back({&p.armor[size_t(i)], names[i]});
-        if (held_.b) items.push_back({&p.held(), "R"});
-        if (offhand_.b) items.push_back({&p.offhand, "N"});
+        if (held_.b) items.push_back({&p.held(), "M"});
+        if (offhand_.b) items.push_back({&p.offhand, "O"});
 
         bool horizontal = layout_.i == 1;
         float size = iconSize_.f * s, gap = 4 * s, x = 0.f, y = 0.f, w = 0.f, h = 0.f;

@@ -103,7 +103,7 @@ private:
 
     Setting& hint_ = toggleSetting("hint", "Notice on low FPS", true);
     Setting& lowFps_ = slider("lowFps", "Low below (FPS)", 60.f, 20.f, 144.f, "%.0f");
-    std::string gpu_ = "unbekannt";
+    std::string gpu_ = "unknown";
     int cores_ = 0;
     float ramGb_ = 0.f;
     float vramGb_ = 0.f;

@@ -429,3 +429,17 @@ Lua 5.4, gratis (Onix: nur bezahlt). Module und HUD-Elemente per Script, Hot-Rel
 4. Spiel-Module nach Prioritäten aus diesem Dokument, sobald am PC Signaturen gefunden sind.
 5. Launcher, Auto-Update, Version-Switcher.
 6. Lua-Scripting, Server-Profile, Feinschliff.
+
+---
+
+## 16. Stand der Umsetzung (Session B, `docs/PLAN_B.md` Phasen 0 bis 7)
+
+Die Tabelle je Modul steht in `docs/MODULES.md` ("Umsetzungsstand", erzeugt mit `tools/modules_doc.py`). Hier nur die Abweichungen von dieser Spezifikation und die Sachen, die erst am PC prüfbar sind.
+
+- **Alle Module bauen und laufen mit Demo-Daten.** Im echten Spiel wirkt ein Modul, sobald seine Signaturen da sind. Fehlt eine, ist es grau (Regel 7 in `CLAUDE.md`). Die Liste aller Signaturen und Offsets steht in `docs/SDK.md`.
+- **Hitbox** zeichnet nicht selbst, sondern stellt den Zeichenweg des Spiels um (Boxform, Dicke, Deckkraft, Augen- und Blicklinie, Reichweite, eigene Box, Java-Größe). Eigene 2D-Boxen oder Boxen, die vom Abstand abhängen, würden durch Wände zeigen und sind deshalb nicht gebaut.
+- **Item Counter** hat farbige Symbole statt Item-Texturen, **Debug Menu** keinen Sound-Zähler (beides braucht Spieldateien beziehungsweise Engine-Daten).
+- **Crystal PvP:** Der getroffene Crystal verschwindet lokal sofort (Geisterliste, siehe `SDK.md`). Gemessen ist nichts, es gibt keine Zahlen zu versprechen, bevor das Latenz-Overlay am PC Klick bis Bild misst.
+- **Hive Utils, Zeqa Utils, Hive Stats:** Die Chat-Wortlisten und die Hive-API-Felder sind Annahmen und in den Einstellungen änderbar. Echte Zeilen mit dem Message Logger sammeln, dann die Standardwörter anpassen. Die Regelseiten von Hive, NetherGames und Mineville waren von der Cloud-Maschine aus nicht lesbar.
+- **Gemeinsame HUD-Optik:** Rand, Glow, Schatten, echter Blur, Rotation, Padding X und Y, Ausrichtung gelten für jedes HUD-Modul. Der Blur braucht einen DX11-Pass (`post::blur`) und ist unter Wine geprüft.
+- **Skripte:** Lua 5.4 mit Sandbox, siehe `docs/SCRIPTING.md`. Discord Rich Presence braucht eine eigene Discord-Anwendungs-ID.

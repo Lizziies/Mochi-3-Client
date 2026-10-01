@@ -193,190 +193,222 @@ Nicht gebaut: nur echte Cheats mit Kampfvorteil (siehe CLAUDE.md, Hard rules).
 
 ## Umsetzungsstand (Session B)
 
-Alle 138 Module sind in `dll/src/modules/Manager.cpp` registriert und mit MinGW syntaxgeprüft, im Spiel getestet ist noch keins. "Braucht" nennt die Signaturen, ohne die das Modul grau bleibt. Namen mit `fx.` sind Effekt-Kanäle, andere sind Daten-Signaturen, siehe `docs/SDK.md`. Mit Demo-Daten (Modul "Game Support") laufen alle.
+Alle 171 Module sind in `dll/src/modules/Manager.cpp` registriert, bauen mit MinGW und laufen unter Wine mit den Demo-Daten (Modul "Game Support") ohne Absturz. Im echten Spiel getestet ist noch keins. "Braucht" nennt die Signaturen, ohne die das Modul grau bleibt; bei "einer von" reicht eine. Namen mit `fx.` sind Effekt-Kanäle, andere sind Daten-Signaturen, siehe `docs/SDK.md`. "Stufe" ist die Einordnung in `Tiers.cpp`, "Einst." die Zahl der sichtbaren Einstellungen. Die Tabelle entsteht mit `tools/modules_doc.py` aus einem Modul-Dump.
 
-### HUD (56)
+### HUD (63)
 
-| Modul | Unterkategorie | Braucht |
-|---|---|---|
-| Toggle Sneak | Bewegung | nichts |
-| Toggle Sprint | Bewegung | nichts |
-| Chat Plus | Chat | `ChatEvents` |
-| Death Logger | Chat | `LocalPlayer` |
-| Background Load | Diagnose | nichts |
-| Memory | Diagnose | nichts |
-| Better Hunger Bar | Eigene Werte | `LocalPlayer`, `Inventory` |
-| CPS | Eigene Werte | nichts |
-| Clock | Eigene Werte | nichts |
-| Coordinates | Eigene Werte | `LocalPlayer` |
-| Day Counter | Eigene Werte | `Level` |
-| Debug Menu | Eigene Werte | nichts |
-| Direction HUD | Eigene Werte | `LocalPlayer` |
-| Experience Info | Eigene Werte | `LocalPlayer` |
-| FPS | Eigene Werte | nichts |
-| Health Display | Eigene Werte | `LocalPlayer` |
-| Held Item | Eigene Werte | `LocalPlayer`, `Inventory` |
-| IP Display | Eigene Werte | nichts |
-| Keystrokes | Eigene Werte | nichts |
-| Look Angles | Eigene Werte | `LocalPlayer` |
-| Low Health Indicator | Eigene Werte | `LocalPlayer` |
-| Mouse Strokes | Eigene Werte | nichts |
-| Pack Display | Eigene Werte | `Level`, `PackList` |
-| Paperdoll | Eigene Werte | `LocalPlayer`, `Inventory` |
-| Server Display | Eigene Werte | nichts |
-| Speed Display | Eigene Werte | `LocalPlayer` |
-| Stats HUD | Eigene Werte | nichts |
-| Watermark | Eigene Werte | nichts |
-| Scoreboard | HUD-Teile | `ScoreboardData` |
-| Tab List | HUD-Teile | `TabListData` |
-| Armor HUD | Inventar-Info | `LocalPlayer`, `Inventory` |
-| Arrow Counter | Inventar-Info | `LocalPlayer`, `Inventory` |
-| Durability Warning | Inventar-Info | `LocalPlayer`, `Inventory` |
-| Item Counter | Inventar-Info | `LocalPlayer`, `Inventory` |
-| Pot Counter | Inventar-Info | `LocalPlayer`, `Inventory` |
-| Potion HUD | Inventar-Info | `LocalPlayer`, `Effects` |
-| Totem Counter | Inventar-Info | `LocalPlayer`, `Inventory` |
-| Combo Counter | Kampf-Anzeigen | `LocalPlayer`, `AttackEntity` |
-| Cooldown Indicator | Kampf-Anzeigen | `LocalPlayer`, `ItemUseEvents` |
-| Entity Counter | Kampf-Anzeigen | `Level`, `EntityList` |
-| Hit Counter | Kampf-Anzeigen | `LocalPlayer`, `AttackEntity` |
-| Hit Info | Kampf-Anzeigen | `LocalPlayer`, `AttackEntity` |
-| Hit Ping | Kampf-Anzeigen | `LocalPlayer`, `AttackEntity` |
-| Opponent Reach | Kampf-Anzeigen | `LocalPlayer`, `AttackEntity` |
-| Reach Counter | Kampf-Anzeigen | `LocalPlayer`, `AttackEntity` |
-| Session Stats | Kampf-Anzeigen | `LocalPlayer`, `AttackEntity`, `ChatEvents` |
-| Target HUD | Kampf-Anzeigen | `LocalPlayer`, `Target` |
-| Waila | Kampf-Anzeigen | `LocalPlayer`, `Target` |
-| Latency | Netzwerk | nichts |
-| Latency Blame | Netzwerk | nichts |
-| Network | Netzwerk | nichts |
-| Ping Counter | Netzwerk | nichts |
-| Pet | Spiele | nichts |
-| Pomodoro | Timer | nichts |
-| Session Timer | Timer | nichts |
-| Stopwatch | Timer | nichts |
+| Modul | Unterkategorie | Stufe | Einst. | Braucht | Hinweis |
+|---|---|---|---|---|---|
+| Better Chat | Chat | Erwartet | 40 | `ChatEvents` | – |
+| Death Logger | Chat | Erwartet | 30 | `LocalPlayer` | – |
+| Combo Counter | Combat displays | Kern | 34 | `LocalPlayer`, `AttackEntity` | – |
+| Cooldown Indicator | Combat displays | Extras | 28 | `LocalPlayer`, `ItemUseEvents` | – |
+| Entity Counter | Combat displays | Erwartet | 27 | `Level`, `EntityList` | info-others |
+| Hit Counter | Combat displays | Weitere | 30 | `LocalPlayer`, `AttackEntity` | – |
+| Hit Info | Combat displays | Extras | 29 | `LocalPlayer`, `AttackEntity` | – |
+| Hit Ping | Combat displays | Erwartet | 30 | `LocalPlayer`, `AttackEntity`, `ActorEvent` | info-others |
+| Opponent Reach | Combat displays | Erwartet | 31 | `LocalPlayer`, `ActorList` | info-others |
+| Reach Counter | Combat displays | Kern | 38 | `LocalPlayer`, `AttackEntity` | – |
+| Session Stats | Combat displays | Extras | 31 | `LocalPlayer`, `AttackEntity`, `ChatEvents` | – |
+| Target HUD | Combat displays | Erwartet | 37 | `LocalPlayer`, `Target` | info-others |
+| Waila | Combat displays | Erwartet | 29 | `LocalPlayer`, `Target` | – |
+| Background Load | Diagnostics | Extras | 29 | nichts | – |
+| Memory | Diagnostics | Erwartet | 27 | nichts | – |
+| Pet | Games | Extras | 30 | nichts | – |
+| Movable Bossbar | HUD parts | Erwartet | 26 | `fx.bossbarOffset` | – |
+| Movable Hotbar | HUD parts | Erwartet | 26 | `fx.hotbarOffset` | – |
+| Movable Title | HUD parts | Erwartet | 26 | `fx.titleOffset` | – |
+| Scoreboard | HUD parts | Kern | 30 | `ScoreboardData` | – |
+| Subtitles | HUD parts | Erwartet | 38 | `LocalPlayer`, `SoundEvents` | – |
+| Tab List | HUD parts | Erwartet | 45 | `TabListData` | info-others |
+| Armor HUD | Inventory info | Kern | 38 | `LocalPlayer`, `Inventory` | – |
+| Arrow Counter | Inventory info | Erwartet | 31 | `LocalPlayer`, `Inventory` | – |
+| Durability Warning | Inventory info | Erwartet | 10 | `LocalPlayer`, `Inventory` | – |
+| Hotbar Armor | Inventory info | Erwartet | 14 | `LocalPlayer`, `Inventory` | – |
+| Inventory Viewer | Inventory info | Erwartet | 36 | `LocalPlayer`, `Inventory` | – |
+| Item Counter | Inventory info | Erwartet | 35 | `LocalPlayer`, `Inventory` | – |
+| Pot Counter | Inventory info | Erwartet | 33 | `LocalPlayer`, `Inventory` | – |
+| Potion HUD | Inventory info | Kern | 40 | `LocalPlayer`, `Effects` | – |
+| Totem Counter | Inventory info | Erwartet | 31 | `LocalPlayer`, `Inventory` | – |
+| Toggle Sneak | Movement | Kern | 29 | nichts | input |
+| Toggle Sprint | Movement | Kern | 31 | nichts | input |
+| Lag Analyzer | Network | Weitere | 33 | nichts | – |
+| Latency Meter | Network | Kern | 28 | nichts | – |
+| Network Monitor | Network | Kern | 52 | nichts | – |
+| Ping Counter | Network | Kern | 31 | nichts | – |
+| Better Hunger Bar | Own values | Erwartet | 33 | `LocalPlayer`, `Inventory` | – |
+| CPS | Own values | Kern | 27 | nichts | – |
+| Clock | Own values | Erwartet | 33 | nichts | – |
+| Coordinates | Own values | Kern | 43 | `LocalPlayer` | – |
+| Day Counter | Own values | Erwartet | 30 | `Level` | – |
+| Debug Menu | Own values | Erwartet | 25 | nichts | – |
+| Direction HUD | Own values | Erwartet | 43 | `LocalPlayer` | – |
+| Experience Info | Own values | Erwartet | 29 | `LocalPlayer` | – |
+| FPS | Own values | Kern | 28 | nichts | – |
+| Fall Predictor | Own values | Erwartet | 32 | `LocalPlayer` | – |
+| Health Display | Own values | Weitere | 32 | `LocalPlayer` | – |
+| Held Item | Own values | Weitere | 32 | `LocalPlayer`, `Inventory` | – |
+| IP Display | Own values | Erwartet | 30 | nichts | – |
+| Keystrokes | Own values | Kern | 62 | nichts | – |
+| Look Angles | Own values | Weitere | 29 | `LocalPlayer` | – |
+| Low Health Indicator | Own values | Erwartet | 6 | `LocalPlayer` | – |
+| Mouse Strokes | Own values | Erwartet | 28 | nichts | – |
+| Pack Display | Own values | Weitere | 26 | `Level`, `PackList` | – |
+| Paperdoll | Own values | Erwartet | 33 | `LocalPlayer`, `Inventory` | – |
+| Server Display | Own values | Erwartet | 28 | nichts | – |
+| Speed Display | Own values | Erwartet | 31 | `LocalPlayer` | – |
+| Stats HUD | Own values | Extras | 38 | nichts | – |
+| Watermark | Own values | Extras | 31 | nichts | – |
+| Pomodoro | Timer | Extras | 38 | nichts | – |
+| Session Timer | Timer | Erwartet | 27 | nichts | – |
+| Stopwatch | Timer | Erwartet | 28 | nichts | – |
 
-### Visuell (32)
+### Visuell (41)
 
-| Modul | Unterkategorie | Braucht |
-|---|---|---|
-| Custom Crosshair | Crosshair | nichts |
-| Auto Perspective | Kamera | `LocalPlayer`, `fx.perspective` |
-| Cinematic Camera | Kamera | `fx.lookDelta` |
-| FOV Changer | Kamera | `fx.fov` |
-| Freelook | Kamera | `LocalPlayer`, `fx.lookCamera`, `fx.lookTurn` |
-| Java Dynamic FOV | Kamera | `LocalPlayer`, `fx.fov` |
-| Minimal View Bobbing | Kamera | `fx.bobStrength` |
-| No Hurt Cam | Kamera | `fx.hurtCam` |
-| No View Bobbing | Kamera | `fx.viewBob` |
-| Smooth Sneak | Kamera | `fx.sneakCam` |
-| Zoom | Kamera | `fx.fov` |
-| Animations | Modell | `fx.handMatrix` |
-| Hide Hand | Modell | `fx.hideHand` |
-| View Model | Modell | `fx.handMatrix` |
-| Brightness / Contrast | Post-Effekte | nichts |
-| Color Filter | Post-Effekte | nichts |
-| Depth of Field | Post-Effekte | nichts |
-| Motion Blur | Post-Effekte | nichts |
-| Night Shift | Post-Effekte | nichts |
-| Saturation / Hue | Post-Effekte | nichts |
-| Screen Tint | Post-Effekte | nichts |
-| Sharpen | Post-Effekte | nichts |
-| Block Outline | Welt | `LocalPlayer`, `Target` |
-| Break Progress | Welt | `LocalPlayer`, `Target` |
-| Chunk Border | Welt | `LocalPlayer` |
-| Environment Changer | Welt | `fx.fog` |
-| Fog Color | Welt | `fx.fogColor` |
-| Fullbright | Welt | `fx.gamma` |
-| Time Changer | Welt | `fx.time` |
-| Water Color | Welt | `fx.waterColor` |
-| Waypoints | Welt | `LocalPlayer` |
-| Weather Changer | Welt | `fx.rain` |
+| Modul | Unterkategorie | Stufe | Einst. | Braucht | Hinweis |
+|---|---|---|---|---|---|
+| Auto Perspective | Camera | Erwartet | 6 | `fx.perspective`, `LocalPlayer` | – |
+| Black Bars | Camera | Erwartet | 6 | nichts | – |
+| Cinematic Camera | Camera | Erwartet | 4 | `fx.lookDelta` | – |
+| FOV Changer | Camera | Kern | 5 | `fx.fov` | – |
+| Freelook | Camera | Kern | 5 | `fx.lookCamera`, `fx.lookTurn`, `LocalPlayer` | – |
+| Java Dynamic FOV | Camera | Erwartet | 6 | `fx.fov`, `LocalPlayer` | – |
+| Minimal View Bobbing | Camera | Erwartet | 3 | `fx.bobStrength` | – |
+| No Hurt Cam | Camera | Kern | 2 | `fx.hurtCam` | – |
+| No View Bobbing | Camera | Kern | 4 | `fx.viewBob` | – |
+| Smooth Sneak | Camera | Weitere | 2 | `fx.sneakCam` | – |
+| Zoom | Camera | Kern | 15 | `fx.fov` | – |
+| Custom Crosshair | Crosshair | Kern | 37 | nichts | – |
+| Hotbar Animation | HUD parts | Erwartet | 12 | `LocalPlayer`, `Inventory` | – |
+| Animations | Model | Kern | 7 | einer von `fx.handMatrix`, `fx.swingSpeed` | – |
+| Hide Hand | Model | Erwartet | 4 | `fx.hideHand` | – |
+| Left Hand | Model | Erwartet | 5 | `fx.handMatrix` | – |
+| View Model | Model | Erwartet | 14 | einer von `fx.handMatrix`, `fx.itemFov`, `fx.handMatrixThird` | – |
+| Brightness / Contrast | Post effects | Extras | 5 | nichts | – |
+| Color Filter | Post effects | Extras | 3 | nichts | – |
+| Depth of Field | Post effects | Extras | 2 | nichts | – |
+| Motion Blur | Post effects | Erwartet | 6 | nichts | – |
+| Night Shift | Post effects | Extras | 6 | nichts | – |
+| Saturation / Hue | Post effects | Erwartet | 6 | nichts | – |
+| Screen Tint | Post effects | Extras | 7 | nichts | – |
+| Sharpen | Post effects | Extras | 2 | nichts | – |
+| Arrow Trail | World | Erwartet | 15 | `LocalPlayer`, `ProjectileList` | info-others |
+| Block Outline | World | Kern | 10 | `LocalPlayer`, `Target` | – |
+| Break Progress | World | Erwartet | 9 | `LocalPlayer`, `Target` | – |
+| Chunk Border | World | Erwartet | 10 | `LocalPlayer` | – |
+| Environment Changer | World | Erwartet | 5 | `fx.fog` | – |
+| Fog Color | World | Weitere | 4 | `fx.fogColor` | – |
+| Fullbright | World | Kern | 4 | `fx.gamma` | – |
+| Item Physics | World | Erwartet | 5 | `fx.itemPhysics` | – |
+| Light Overlay | World | Erwartet | 12 | `LocalPlayer`, `LightLevels` | info-others |
+| Nametag Modifier | World | Erwartet | 4 | einer von `fx.nametagText`, `fx.nametagBackground` | – |
+| TNT Timer | World | Erwartet | 13 | `Target`, `TargetFuse` | – |
+| Third Person Nametag | World | Erwartet | 2 | `fx.selfNametag`, `LocalPlayer` | – |
+| Time Changer | World | Erwartet | 4 | `fx.time` | – |
+| Water Color | World | Weitere | 4 | `fx.waterColor` | – |
+| Waypoints | World | Erwartet | 12 | `LocalPlayer` | – |
+| Weather Changer | World | Erwartet | 3 | `fx.rain` | – |
 
-### PvP (21)
+### PvP (24)
 
-| Modul | Unterkategorie | Braucht |
-|---|---|---|
-| Bow Sensitivity | Eingabe | `LocalPlayer`, `fx.sensitivity` |
-| CPS Limiter | Eingabe | nichts |
-| Faster Inventory (SR) | Eingabe | `fx.inventoryDelay` |
-| Insta Hurt Animation (SR) | Eingabe | `fx.hurtAnim` |
-| Instant Input (SR) | Eingabe | nichts |
-| Item Use Delay Fix (SR) | Eingabe | `fx.useDelay` |
-| Null Movement (SR) | Eingabe | nichts |
-| Sens Multiplier | Eingabe | `fx.sensitivity` |
-| Snap Look | Eingabe | `LocalPlayer`, `fx.lookCamera` |
-| Bow Charge | Kampf-Anzeigen | `LocalPlayer`, `UseState` |
-| Damage Indicator | Kampf-Anzeigen | `LocalPlayer`, `AttackEntity` |
-| Glint Color | Treffer-Visuals | `fx.glintColor` |
-| Hit Effects | Treffer-Visuals | `LocalPlayer`, `AttackEntity` |
-| Hit Marker | Treffer-Visuals | nichts |
-| Hit Sound | Treffer-Visuals | `LocalPlayer`, `AttackEntity` |
-| Hitbox | Treffer-Visuals | `fx.hitbox` |
-| Hurt Color | Treffer-Visuals | `fx.hurtColor` |
-| Kill Effects | Treffer-Visuals | `LocalPlayer`, `KillEvents` |
-| Low Fire | Treffer-Visuals | `fx.fire` |
-| Particle Multiplier | Treffer-Visuals | `fx.particleScale` |
-| Totem Pop | Treffer-Visuals | `LocalPlayer`, `TotemEvents` |
+| Modul | Unterkategorie | Stufe | Einst. | Braucht | Hinweis |
+|---|---|---|---|---|---|
+| Bow Charge | Combat displays | Extras | 9 | `LocalPlayer`, `UseState` | – |
+| Damage Indicator | Combat displays | Extras | 11 | `LocalPlayer`, `AttackEntity` | info-others |
+| Crystal Optimizer | Crystal PvP | Erwartet | 7 | einer von `fx.crystalSimple`, `fx.crystalNoBase`, `fx.crystalHide`, `fx.ghostRender` | Warnhinweis, info-others, timing |
+| Instant Hit | Crystal PvP | Kern | 4 | nichts | Warnhinweis, input, timing |
+| Block Hit | Hit feedback | Kern | 3 | `fx.handMatrix` | – |
+| Insta Hurt Animation | Hit feedback | Weitere | 3 | `fx.hurtAnim` | Warnhinweis, timing |
+| Kill Cleanup | Hit feedback | Erwartet | 6 | `fx.ghostRender`, `KillEvents` | Warnhinweis, info-others, timing |
+| Particle Multiplier | Hit feedback | Erwartet | 3 | einer von `fx.particleScale`, `fx.critParticle` | – |
+| Glint Color | Hit visuals | Weitere | 4 | `fx.glintColor` | – |
+| Hit Effects | Hit visuals | Extras | 13 | `LocalPlayer`, `AttackEntity` | – |
+| Hit Marker | Hit visuals | Extras | 11 | nichts | – |
+| Hit Sound | Hit visuals | Extras | 5 | `LocalPlayer`, `AttackEntity` | – |
+| Hitbox | Hit visuals | Erwartet | 15 | `fx.hitbox` | info-others |
+| Hurt Color | Hit visuals | Kern | 5 | `fx.hurtColor` | – |
+| Kill Effects | Hit visuals | Extras | 5 | `LocalPlayer`, `KillEvents` | – |
+| Low Fire | Hit visuals | Weitere | 2 | `fx.fire` | – |
+| Totem Pop | Hit visuals | Extras | 7 | `LocalPlayer`, `TotemEvents` | – |
+| Bow Sensitivity | Input | Erwartet | 3 | `fx.sensitivity`, `LocalPlayer` | input |
+| CPS Limiter | Input | Weitere | 3 | nichts | input |
+| Faster Inventory | Input | Weitere | 2 | `fx.inventoryDelay` | Warnhinweis, timing |
+| Item Use Delay Fix | Input | Weitere | 2 | `fx.useDelay` | Warnhinweis, timing |
+| Null Movement | Input | Weitere | 8 | nichts | Warnhinweis, input |
+| Sens Multiplier | Input | Erwartet | 7 | `fx.sensitivity` | input |
+| Snap Look | Input | Erwartet | 5 | `fx.lookCamera`, `LocalPlayer` | – |
 
-### Komfort (12)
+### Komfort (19)
 
-| Modul | Unterkategorie | Braucht |
-|---|---|---|
-| Command Hotkey | – | nichts |
-| Text Hotkey | – | nichts |
-| Mumble Link | Audio | `LocalPlayer` |
-| Screenshot+ | Aufnahme | nichts |
-| Hotbar Keys | Bewegung | nichts |
-| Auto GG | Chat | `ChatEvents` |
-| Message Logger | Chat | `ChatEvents` |
-| Player Notifier | Chat | `TabListData` |
-| Disable Mouse Wheel | Eingabe | nichts |
-| GUI Scale | HUD-Teile | `fx.guiScale` |
-| Profile Hotkeys | Profile | nichts |
-| Streamer Mode | Profile | nichts |
+| Modul | Unterkategorie | Stufe | Einst. | Braucht | Hinweis |
+|---|---|---|---|---|---|
+| Mumble Link | Audio | Weitere | 3 | `LocalPlayer` | – |
+| Screenshot+ | Capture | Erwartet | 11 | nichts | – |
+| Auto GG | Chat | Kern | 10 | `ChatEvents` | chat |
+| Command Hotkey | Chat | Erwartet | 14 | nichts | chat |
+| Gamemode Hotkeys | Chat | Erwartet | 8 | nichts | chat |
+| Message Logger | Chat | Weitere | 6 | `ChatEvents` | – |
+| Nick | Chat | Erwartet | 6 | nichts | – |
+| Player Notifier | Chat | Erwartet | 4 | `TabListData` | info-others |
+| Text Hotkey | Chat | Erwartet | 14 | nichts | chat |
+| GUI Scale | HUD parts | Kern | 2 | `fx.guiScale` | – |
+| Disable Mouse Wheel | Input | Erwartet | 3 | nichts | input |
+| Inventory Lock | Inventory | Erwartet | 7 | `Inventory` | input |
+| Java Inventory Hotkeys | Inventory | Erwartet | 1 | nichts | input |
+| Hotbar Keys | Movement | Weitere | 10 | nichts | input |
+| Modern Keybind Handling | Movement | Erwartet | 9 | nichts | input |
+| Pack Changer | Packs | Erwartet | 1 | nichts | – |
+| Skin Stealer | Packs | Erwartet | 3 | `Target`, `TargetSkin` | – |
+| Profile Hotkeys | Profiles | Weitere | 9 | nichts | – |
+| Streamer Mode | Profiles | Erwartet | 4 | nichts | – |
 
 ### Performance (6)
 
-| Modul | Unterkategorie | Braucht |
-|---|---|---|
-| Auto Profile | Diagnose | nichts |
-| Sig Status | Diagnose | nichts |
-| Frame Limiter | Frame-Timing | nichts |
-| Low Latency | Frame-Timing | nichts |
-| System Boost | Frame-Timing | nichts |
-| Render Options | Grafik | `fx.clouds`, `fx.particles`, `fx.blockEntities`, `fx.shadows`, `fx.sky`, `fx.fog`, `fx.vignette`, `fx.rain` |
+| Modul | Unterkategorie | Stufe | Einst. | Braucht | Hinweis |
+|---|---|---|---|---|---|
+| Auto Profile | Diagnostics | Extras | 3 | nichts | – |
+| Game Support | Diagnostics | Weitere | 3 | nichts | – |
+| Frame Limiter | Frame timing | Kern | 8 | nichts | – |
+| Low Latency | Frame timing | Kern | 5 | nichts | – |
+| System Boost | Frame timing | Weitere | 4 | nichts | – |
+| Render Options | Graphics | Kern | 14 | einer von `fx.clouds`, `fx.particles`, `fx.blockEntities`, `fx.shadows`, `fx.sky`, `fx.fog`, `fx.vignette`, `fx.rain`, `fx.renderEntities`, `fx.renderTerrain`, `fx.hideHand`, `fx.hideHud` | – |
 
-### Server (2)
+### Server (6)
 
-| Modul | Unterkategorie | Braucht |
-|---|---|---|
-| Server Profiles | Profile | nichts |
-| Match Summary | Statistik | `LocalPlayer`, `AttackEntity` |
+| Modul | Unterkategorie | Stufe | Einst. | Braucht | Hinweis |
+|---|---|---|---|---|---|
+| Server Profiles | Profiles | Erwartet | 4 | nichts | – |
+| Match Summary | Statistics | Extras | 5 | `LocalPlayer`, `AttackEntity` | – |
+| Hive Leaderboard | The Hive | Erwartet | 32 | nichts | info-others |
+| Hive Stats | The Hive | Erwartet | 59 | `TabListData` | info-others |
+| Hive Utils | The Hive | Kern | 67 | `ChatEvents`, `ScoreboardData` | timing, chat |
+| Zeqa Utils | Zeqa | Erwartet | 25 | `ChatEvents` | timing, chat |
 
 ### Spaß (8)
 
-| Modul | Unterkategorie | Braucht |
-|---|---|---|
-| Deepfry | Post-Effekte | nichts |
-| Upside Down | Post-Effekte | nichts |
-| 20-20-20 | Spiele | nichts |
-| Block Game | Spiele | nichts |
-| DVD Screen | Spiele | nichts |
-| Flappy Heart | Spiele | nichts |
-| Petals | Spiele | nichts |
-| Snake | Spiele | nichts |
+| Modul | Unterkategorie | Stufe | Einst. | Braucht | Hinweis |
+|---|---|---|---|---|---|
+| 20-20-20 | Games | Extras | 2 | nichts | – |
+| Block Game | Games | Extras | 6 | nichts | – |
+| DVD Screen | Games | Extras | 3 | nichts | – |
+| Flappy Heart | Games | Extras | 1 | nichts | – |
+| Petals | Games | Extras | 8 | nichts | – |
+| Snake | Games | Extras | 1 | nichts | – |
+| Deepfry | Post effects | Extras | 4 | nichts | – |
+| Upside Down | Post effects | Extras | 3 | nichts | – |
 
-### Client (1)
+### Client (4)
 
-| Modul | Unterkategorie | Braucht |
-|---|---|---|
-| ClickGUI | – | nichts |
+| Modul | Unterkategorie | Stufe | Einst. | Braucht | Hinweis |
+|---|---|---|---|---|---|
+| ClickGUI | – | Weitere | 1 | nichts | – |
+| Config Sharing | Platform | Erwartet | 2 | nichts | – |
+| Discord Rich Presence | Platform | Erwartet | 10 | nichts | – |
+| Lua Scripts | Platform | Erwartet | 3 | nichts | – |
 
 ### Bewusst nicht gebaut
 
-- Reach, Killaura, Aim Assist, Autoclicker, Velocity, Scaffold, ESP, Fake Lag und Paket-Manipulation (siehe `CLAUDE.md`).
-- Skin Stealer, Replay-Clip, Paperdoll, Cape/Cosmetics: brauchen Zugriff auf Skin- und Render-Daten, der sich erst am PC prüfen lässt.
-- Java Inventory Hotkeys, Inventory Lock/Sort, Modern Keybind Handling, Movable Hotbar/Bossbar/Title, Item Physics, Light Overlay, Subtitles, Doom, Hive Utils/Statistics, Zeqa/CubeCraft Utils, Reconnect, Server-Liste: Prio 3 oder hängen an Spielstrukturen, kommen nach den ersten echten Signaturen.
+- Reach, Killaura, Aim Assist, Autoclicker, Velocity, Scaffold, ESP, Fake Lag, Paket-Manipulation, FPS- und Ping-Spoof (siehe `CLAUDE.md`).
+- Eigene 2D-Hitboxen und eigene Boxen über den Bildschirm: sie würden durch Wände zeigen. Hitbox nutzt deshalb nur den Zeichenweg des Spiels.
+- Item-Texturen in Zählern und Replay-Clip: brauchen Spieldateien beziehungsweise Render-Zugriff, den der Client nicht hat.
 - DSCP/QoS-Markierung und Bandbreiten-Hinweis pro Programm im Netzwerk-Modul: brauchen Admin-Rechte beziehungsweise ETW, nur nach ausdrücklicher Zustimmung, später.
-

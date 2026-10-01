@@ -11,6 +11,7 @@
 #include "sdk/Effects.hpp"
 #include "sdk/Game.hpp"
 #include "sdk/Inject.hpp"
+#include "Tiers.hpp"
 #include "sig/Sigs.hpp"
 
 #include "camera/Camera.hpp"
@@ -91,6 +92,9 @@
 #include "world/World.hpp"
 
 #include <windows.h>
+
+#include <cstdlib>
+#include <fstream>
 
 namespace modules {
 
@@ -292,6 +296,25 @@ void init() {
     for (auto& m : list)
         if (m->alwaysOn()) m->setEnabled(true);
 
+    if (const char* dump = std::getenv("MOCHI_DUMP_MODULES")) {
+        nlohmann::json out = nlohmann::json::array();
+        for (auto& m : list) {
+            int visible = 0;
+            for (auto& st : m->settings()) visible += !st.hidden;
+            out.push_back({{"name", m->name()},
+                           {"category", int(m->category())},
+                           {"sub", m->sub()},
+                           {"description", m->description()},
+                           {"tags", m->tags()},
+                           {"sigs", m->sigs()},
+                           {"anySig", m->anySigs()},
+                           {"tier", tierOf(m->name())},
+                           {"settings", visible},
+                           {"risky", m->risky()},
+                           {"hud", m->isHud()}});
+        }
+        std::ofstream(dump) << out.dump(1);
+    }
     logger::info("{} modules registered", list.size());
     std::string locked, open;
     for (auto& m : list) (m->available() ? open : locked) += m->name() + "; ";
