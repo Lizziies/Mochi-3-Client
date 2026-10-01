@@ -1,6 +1,9 @@
 #include "HudModule.hpp"
 #include "core/Config.hpp"
+#include "gui/Gui.hpp"
 #include "gui/Theme.hpp"
+#include "modules/common/Context.hpp"
+#include "modules/post/PostFx.hpp"
 #include "render/Fonts.hpp"
 
 #include <algorithm>
@@ -13,20 +16,52 @@ HudModule::HudModule(std::string name, std::string description, std::vector<std:
       textColor_(colorSetting("textColor", "Text color", {1.f, 0.95f, 0.97f, 1.f})),
       useAccent_(toggleSetting("accent", "Accent color for labels", true)),
       rounding_(slider("rounding", "Corner radius", 8.f, 0.f, 20.f, "%.0f")),
-      padding_(slider("padding", "Padding", 6.f, 0.f, 20.f, "%.0f")),
+      padding_(slider("padding", "Padding X", 6.f, 0.f, 30.f, "%.0f")),
       shadow_(toggleSetting("shadow", "Text shadow", true)),
+      padY_(slider("padY", "Padding Y", 6.f, 0.f, 30.f, "%.0f")),
+      shadowOffset_(slider("shadowOffset", "Text shadow offset", 1.f, 0.f, 4.f, "%.1f")),
+      align_(choice("align", "Text alignment", {"Left", "Center", "Right"})),
+      minWidth_(slider("minWidth", "Minimum width", 0.f, 0.f, 400.f, "%.0f")),
+      border_(toggleSetting("border", "Border", false)),
+      borderColor_(colorSetting("borderColor", "Border color", {1.f, 0.49f, 0.71f, 0.9f})),
+      borderWidth_(slider("borderWidth", "Border thickness", 1.5f, 0.5f, 6.f, "%.1f")),
+      glow_(toggleSetting("glow", "Glow", false)),
+      glowColor_(colorSetting("glowColor", "Glow color", {1.f, 0.49f, 0.71f, 0.8f})),
+      glowSize_(slider("glowSize", "Glow size", 10.f, 2.f, 30.f, "%.0f")),
+      dropShadow_(toggleSetting("dropShadow", "Box shadow", false)),
+      dropShadowColor_(colorSetting("dropShadowColor", "Box shadow color", {0.f, 0.f, 0.f, 0.6f})),
+      dropShadowSize_(slider("dropShadowSize", "Box shadow size", 8.f, 2.f, 30.f, "%.0f")),
+      blur_(toggleSetting("blur", "Background blur", false)),
+      blurRadius_(slider("blurRadius", "Blur strength", 8.f, 2.f, 24.f, "%.0f")),
+      rotation_(slider("rotation", "Rotation", 0.f, -180.f, 180.f, "%.0f")),
       x_(slider("x", "x", defaultPos.x, 0.f, 1.f)),
       y_(slider("y", "y", defaultPos.y, 0.f, 1.f)),
       scale_(slider("scale", "Size", 1.f, 0.4f, 3.f, "%.2fx")) {
     x_.hidden = true;
     y_.hidden = true;
+    for (Setting* st : {&background_, &bgColor_, &textColor_, &useAccent_, &rounding_, &padding_, &shadow_, &padY_, &shadowOffset_, &align_, &minWidth_,
+                        &border_, &borderColor_, &borderWidth_, &glow_, &glowColor_, &glowSize_, &dropShadow_, &dropShadowColor_, &dropShadowSize_,
+                        &blur_, &blurRadius_, &rotation_, &scale_})
+        st->style = true;
     bgColor_.visible = [this] { return background_.b; };
-    rounding_.visible = [this] { return background_.b; };
+    rounding_.visible = [this] { return background_.b || border_.b || glow_.b || dropShadow_.b || blur_.b; };
+    shadowOffset_.visible = [this] { return shadow_.b; };
+    borderColor_.visible = [this] { return border_.b; };
+    borderWidth_.visible = [this] { return border_.b; };
+    glowColor_.visible = [this] { return glow_.b; };
+    glowSize_.visible = [this] { return glow_.b; };
+    dropShadowColor_.visible = [this] { return dropShadow_.b; };
+    dropShadowSize_.visible = [this] { return dropShadow_.b; };
+    blurRadius_.visible = [this] { return blur_.b; };
 }
 
 ImVec2 HudModule::position() const {
     auto ds = ImGui::GetIO().DisplaySize;
-    return {x_.f * ds.x, y_.f * ds.y - (growsUp() ? lastSize_.y : 0.f)};
+    ImVec2 pv = pivot();
+    ImVec2 p{x_.f * ds.x - pv.x * lastSize_.x, y_.f * ds.y - pv.y * lastSize_.y};
+    p.x = std::clamp(p.x, 0.f, std::max(0.f, ds.x - lastSize_.x));
+    p.y = std::clamp(p.y, 0.f, std::max(0.f, ds.y - lastSize_.y));
+    return p;
 }
 
 void HudModule::setPosition(ImVec2 p) {
@@ -34,14 +69,27 @@ void HudModule::setPosition(ImVec2 p) {
     if (ds.x <= 0 || ds.y <= 0) return;
     p.x = std::clamp(p.x, 0.f, std::max(0.f, ds.x - lastSize_.x));
     p.y = std::clamp(p.y, 0.f, std::max(0.f, ds.y - lastSize_.y));
-    x_.f = p.x / ds.x;
-    y_.f = (p.y + (growsUp() ? lastSize_.y : 0.f)) / ds.y;
+    ImVec2 pv = pivot();
+    x_.f = (p.x + pv.x * lastSize_.x) / ds.x;
+    y_.f = (p.y + pv.y * lastSize_.y) / ds.y;
     config::markDirty();
 }
 
 void HudModule::setScale(float s) {
     scale_.f = std::clamp(s, scale_.fmin, scale_.fmax);
     config::markDirty();
+}
+
+static void ringGlow(ImDrawList* dl, ImVec2 min, ImVec2 max, float rounding, ImVec4 c, float spread, ImVec2 offset) {
+    const int steps = 8;
+    for (int i = steps; i >= 1; i--) {
+        float t = float(i) / steps;
+        float grow = spread * t;
+        ImVec4 cc = c;
+        cc.w *= (1.f - t) * (1.f - t) * 0.9f;
+        dl->AddRect(min - ImVec2(grow, grow) + offset, max + ImVec2(grow, grow) + offset, ImGui::ColorConvertFloat4ToU32(cc), rounding + grow, 0,
+                    spread / steps * 1.6f);
+    }
 }
 
 namespace hud {
@@ -55,23 +103,38 @@ void setGlobalScale(float s) { global = s; }
 }
 
 void HudModule::onRender(ImDrawList* dl) {
+    if (ctx::hideModules && !gui::editingHud()) return;
     float s = scale_.f * hud::globalScale();
     ImVec2 pos = position();
-    float pad = padding_.f * s;
+    ImVec2 pad{padding_.f * s, padY_.f * s};
 
     int firstVtx = dl->VtxBuffer.Size;
     dl->ChannelsSplit(2);
     dl->ChannelsSetCurrent(1);
-    ImVec2 inner = content(dl, pos + ImVec2(pad, pad), s);
-    ImVec2 size = inner + ImVec2(pad * 2, pad * 2);
+    ImVec2 inner = content(dl, pos + pad, s);
+    ImVec2 size = inner + pad * 2;
 
     dl->ChannelsSetCurrent(0);
-    if (background_.b) dl->AddRectFilled(pos, pos + size, ImGui::GetColorU32(bgColor_.color), rounding_.f * s);
+    ImVec2 end = pos + size;
+    float r = rounding_.f * s;
+    if (dropShadow_.b) ringGlow(dl, pos, end, r, dropShadowColor_.color, dropShadowSize_.f * s, {0.f, 3.f * s});
+    if (glow_.b) ringGlow(dl, pos, end, r, glowColor_.color, glowSize_.f * s, {0.f, 0.f});
+    if (blur_.b && rotation_.f == 0.f) post::blur(dl, pos, end, r, blurRadius_.f * s, {0.f, 0.f, 0.f, 0.f});
+    if (background_.b) dl->AddRectFilled(pos, end, ImGui::GetColorU32(bgColor_.color), r);
+    if (border_.b) dl->AddRect(pos, end, ImGui::GetColorU32(borderColor_.color), r, 0, borderWidth_.f * s);
     dl->ChannelsMerge();
 
-    if (growsUp() && size.y != lastSize_.y) {
-        float dy = lastSize_.y - size.y;
-        for (int i = firstVtx; i < dl->VtxBuffer.Size; i++) dl->VtxBuffer[i].pos.y += dy;
+    ImVec2 pv = pivot();
+    ImVec2 shift{(lastSize_.x - size.x) * pv.x, (lastSize_.y - size.y) * pv.y};
+    if (shift.x != 0.f || shift.y != 0.f)
+        for (int i = firstVtx; i < dl->VtxBuffer.Size; i++) dl->VtxBuffer[i].pos = dl->VtxBuffer[i].pos + shift;
+    if (rotation_.f != 0.f) {
+        ImVec2 center = pos + shift + size * 0.5f;
+        float rad = rotation_.f * 0.0174533f, c = std::cos(rad), sn = std::sin(rad);
+        for (int i = firstVtx; i < dl->VtxBuffer.Size; i++) {
+            ImVec2 d = dl->VtxBuffer[i].pos - center;
+            dl->VtxBuffer[i].pos = center + ImVec2(d.x * c - d.y * sn, d.x * sn + d.y * c);
+        }
     }
     lastSize_ = size;
 }
@@ -84,7 +147,7 @@ ImVec2 HudModule::textSize(float scale, const std::string& text) const {
 ImVec2 HudModule::drawText(ImDrawList* dl, ImVec2 at, float scale, const std::string& text, ImU32 color) {
     ImFont* f = fonts::hud();
     float size = fonts::hudSize() * scale;
-    if (shadow_.b) dl->AddText(f, size, at + ImVec2(1.f * scale, 1.f * scale), IM_COL32(0, 0, 0, 140), text.c_str());
+    if (shadow_.b) dl->AddText(f, size, at + ImVec2(shadowOffset_.f * scale, shadowOffset_.f * scale), IM_COL32(0, 0, 0, 140), text.c_str());
     dl->AddText(f, size, at, color, text.c_str());
     return f->CalcTextSizeA(size, FLT_MAX, 0.f, text.c_str());
 }
@@ -99,20 +162,27 @@ ImVec2 TextHud::content(ImDrawList* dl, ImVec2 origin, float scale) {
     std::string l = label();
     std::string v = value();
     if (!format_.text.empty()) {
+        std::vector<std::pair<std::string, std::string>> map{{"{label}", l}, {"{value}", v}};
+        tokens(map);
         std::string out = format_.text;
-        for (auto& [key, val] : {std::pair<const char*, std::string&>{"{label}", l}, {"{value}", v}})
+        for (auto& [key, val] : map)
             for (size_t at = out.find(key); at != std::string::npos; at = out.find(key, at + val.size()))
-                out.replace(at, std::strlen(key), val);
-        auto sz = drawText(dl, origin, scale, out, valueColor());
-        return sz;
+                out.replace(at, key.size(), val);
+        ImVec2 sz = textSize(scale, out);
+        float width = std::max(sz.x, minWidth(scale));
+        drawText(dl, origin + ImVec2((width - sz.x) * textAlign(), 0.f), scale, out, valueColor());
+        return {width, sz.y};
     }
-    ImVec2 at = origin;
-    float h = 0;
+    float lw = l.empty() ? 0.f : textSize(scale, l + " ").x;
+    ImVec2 vs = textSize(scale, v);
+    float width = std::max(lw + vs.x, minWidth(scale));
+    ImVec2 at = origin + ImVec2((width - lw - vs.x) * textAlign(), 0.f);
+    float h = vs.y;
     if (!l.empty()) {
         auto sz = drawText(dl, at, scale, l + " ", accentColor());
         at.x += sz.x;
-        h = sz.y;
+        h = std::max(h, sz.y);
     }
-    auto sz = drawText(dl, at, scale, v, valueColor());
-    return {at.x + sz.x - origin.x, std::max(h, sz.y)};
+    drawText(dl, at, scale, v, valueColor());
+    return {width, h};
 }

@@ -24,3 +24,14 @@ Kurze Chronik, damit jede neue Session weiß, was schon passiert ist.
 - Phase 0 (Teil 1): Module-Texte auf Englisch umgestellt, deutsche Tabelle in `Lang_B.cpp`, `Module::ruleNote()` übersetzt den Standardhinweis zur Laufzeit.
 - Phase 0 (Teil 2): Counter-Module angeglichen (Combo, Reach, Hit Ping, Opponent Reach, Potion HUD, Arrow/Totem/Pot Counter, Insta Hurt Animation). `HudModule` kann jetzt nach oben wachsen (`growsUp`), `Module::wants` leiht Daten, ohne das Modul bei fehlenden Daten grau zu machen.
 - Phase 1 (Teil 1): Hive Utils und Zeqa Utils, gemeinsame Chat-Hilfen in `modules/server/ServerChat.hpp`, Demo-Server mit Skript-Chat, `tools/testhost` kann per `TESTHOST_SCRIPT` Tasten und Klicks ausführen.
+- Phase 1 (Teil 2): Hive Stats, Hive Leaderboard (`modules/server/HiveApi.*`), Auto-GG-Endwörter pro Server, NetherGames und Mineville in `servers.json`, Pivot für HUD-Module.
+- Phase 2: Crystal Optimizer mit Geisterliste, Kill Cleanup, Crit-Partikel im Particle Multiplier, `Hit`-Ereignisse tragen Actor-Zeiger und Crystal-Flag.
+- Phase 3 (Teil 1): Hitbox-Kanäle und -Einstellungen, gemeinsame HUD-Optik mit Blur-Pass, Keystrokes und Coordinates in die Tiefe, Platzhalter.
+- Phase 3 (Teil 2): Tab List, Direction HUD, Debug Menu, Zoom, Cinematic Camera, Auto Perspective, View Model, Animations, Render Options, Crosshair-PNG, Clock, Experience Info, Hunger Bar, Item Counter, Break Progress auf Original-Tiefe gebracht.
+- Phase 4: Inventory Lock, Modern Keybind Handling, Java Inventory Hotkeys, Item Physics, Nametag Modifier, TNT Timer, Nick, Skin Stealer, Subtitles, Movable Hotbar/Title/Bossbar, Light Overlay, Hotbar Animation, Pack Changer, Erwähnungs-Ton, Logger-Cleanfile.
+- Phase 5: Discord Rich Presence, Lua-Skripte mit Sandbox, Config Sharing, Skript-Liste von GitHub, `docs/SCRIPTING.md`.
+- Phase 6: Hotbar Armor, Fall Predictor, Inventory Viewer, Arrow Trail, Black Bars, Left Hand, Gamemode Hotkeys, Third Person Nametag.
+- Phase 7: Politur, Modul-Dump und Doku-Generator, `tools/cross.sh tour`, Nachträge in PARITY.md und FEATURES.md.
+- Merge von main in modules-b (Client Settings, HUD-Editor-Einrasten, Self-Test, "Info displays"), Konflikte in Chat/Clock/Compose/Cps/GameInfo/Keystrokes aufgelöst, Self-Test grün, fehlende deutsche Texte ergänzt, MODULES.md neu erzeugt.
+- Mochi Online: Client-Modul mit Herz, Namensstilen und Tags in Tab-Liste und Chat, Dienst in `server/` mit Tests, Strg+L-Fix in `hook/Input.cpp`.
+- Merge des neuen Menüs, Cosmetics-Modul entfernt, Mochi Online ohne freien Text, HD-Cosmetics-Generator nach tools/cosmetics_hd.

@@ -72,6 +72,7 @@ public:
     void resetSettings(const std::function<bool(const Setting&)>& which);
 
     bool risky() const { return risky_; }
+    bool anySigs() const { return anySig_; }
     bool favorite() const { return favorite_; }
     void setFavorite(bool on);
 
@@ -96,6 +97,7 @@ protected:
         riskNote_ = std::move(note);
     }
     void sub(std::string name) { sub_ = std::move(name); }
+    void moveTo(Category c) { category_ = c; }
     void needs(unsigned mask) { needs_ = mask; }
     void wants(unsigned mask) { wants_ = mask; }
     void needs(game::Domain d) { needs_ = unsigned(d); }

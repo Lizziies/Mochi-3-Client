@@ -33,10 +33,10 @@ protected:
     ImVec2 content(ImDrawList* dl, ImVec2 o, float s) override {
         auto& p = game::state().player;
         std::vector<std::pair<const game::Item*, const char*>> items;
-        static const char* names[] = {"K", "B", "H", "S"};
+        static const char* names[] = {"H", "C", "L", "B"};
         for (int i = 0; i < 4; i++) items.push_back({&p.armor[size_t(i)], names[i]});
-        if (held_.b) items.push_back({&p.held(), "R"});
-        if (offhand_.b) items.push_back({&p.offhand, "N"});
+        if (held_.b) items.push_back({&p.held(), "M"});
+        if (offhand_.b) items.push_back({&p.offhand, "O"});
 
         bool horizontal = layout_.i == 1;
         float size = iconSize_.f * s, gap = 4 * s, x = 0.f, y = 0.f, w = 0.f, h = 0.f;
@@ -113,7 +113,7 @@ public:
     }
 
 protected:
-    bool growsUp() const override { return bottomUp_.b; }
+    ImVec2 pivot() const override { return {0.f, bottomUp_.b ? 1.f : 0.f}; }
 
     ImVec2 content(ImDrawList* dl, ImVec2 o, float s) override {
         std::vector<game::Effect> list = game::state().player.effects;
@@ -278,18 +278,75 @@ protected:
     std::string title() const override { return "Totems"; }
 };
 
-class ItemCounter : public CountHud {
+class ItemCounter : public GameList {
 public:
-    ItemCounter() : CountHud("Item Counter", "Counts any item that you choose.", "golden_apple", -1, {0.01f, 0.82f}) {}
+    ItemCounter()
+        : GameList("Item Counter", "Counts any items you choose. Several items at once, sorting, format, hide at 0 or 1 and colored icons.", need::inventory,
+                   need::sigs({"LocalPlayer", "Inventory"}), {"hud-self"}, {0.01f, 0.82f}) {
+        sub("Inventory info");
+        lowColor_.visible = [this] { return lowAt_.i > 0; };
+    }
 
 protected:
-    std::string itemName() const override { return name_.text; }
-    int itemAux() const override { return aux_.i; }
-    std::string title() const override { return text::pretty(name_.text); }
+    ImVec2 content(ImDrawList* dl, ImVec2 o, float s) override {
+        struct Row {
+            std::string id;
+            std::string name;
+            int count;
+        };
+        std::vector<Row> rows;
+        for (auto& entry : text::split(items_.text, ',')) {
+            std::string id = entry;
+            int aux = -1;
+            if (auto colon = id.rfind(':'); colon != std::string::npos && colon + 1 < id.size() && std::isdigit((unsigned char)id[colon + 1])) {
+                aux = std::atoi(id.c_str() + colon + 1);
+                id = id.substr(0, colon);
+            }
+            if (id.rfind("minecraft:", 0) == 0) id = id.substr(10);
+            int n = countItems(id, aux, hotbarOnly_.b);
+            if (n == 0 && hideZero_.b) continue;
+            rows.push_back({id, text::pretty(id), n});
+        }
+        if (sort_.i == 1) std::stable_sort(rows.begin(), rows.end(), [](const Row& a, const Row& b) { return a.count > b.count; });
+        else if (sort_.i == 2) std::stable_sort(rows.begin(), rows.end(), [](const Row& a, const Row& b) { return a.name < b.name; });
+        if (rows.empty()) return gui::editingHud() ? drawText(dl, o, s, i18n::tr("No items"), ImGui::GetColorU32(theme::current().textDim)) : ImVec2(0.f, 0.f);
+
+        float lineH = textSize(s, "Ag").y, icon = lineH - 2 * s, x = 0.f, y = 0.f, w = 0.f;
+        for (auto& r : rows) {
+            std::string value = r.count == 1 && hideOne_.b ? "" : std::to_string(r.count);
+            std::string line = format_.text.empty() ? "{name} {value}" : format_.text;
+            for (auto& [key, val] : {std::pair<const char*, std::string>{"{name}", r.name}, {"{id}", r.id}, {"{value}", value}})
+                for (size_t at = line.find(key); at != std::string::npos; at = line.find(key, at + val.size())) line.replace(at, std::strlen(key), val);
+            while (!line.empty() && line.back() == ' ') line.pop_back();
+            ImU32 col = lowAt_.i > 0 && r.count <= lowAt_.i ? ImGui::GetColorU32(lowColor_.color) : textColor();
+            float iw = icons_.i == 1 ? icon + 4 * s : 0.f;
+            if (icons_.i == 1) {
+                dl->AddRectFilled(o + ImVec2(x, y + 1 * s), o + ImVec2(x + icon, y + 1 * s + icon), materialColor(r.id), icon * 0.22f);
+                dl->AddRect(o + ImVec2(x, y + 1 * s), o + ImVec2(x + icon, y + 1 * s + icon), IM_COL32(0, 0, 0, 90), icon * 0.22f);
+            }
+            auto sz = drawText(dl, o + ImVec2(x + iw, y), s, line, col);
+            if (layout_.i == 0) {
+                w = std::max(w, iw + sz.x);
+                y += lineH + 2 * s;
+            } else {
+                x += iw + sz.x + 12 * s;
+                w = x;
+            }
+        }
+        return {layout_.i == 0 ? w : w - 12 * s, layout_.i == 0 ? y - 2 * s : lineH};
+    }
 
 private:
-    Setting& name_ = textSetting("item", "Item name (e.g. golden_apple)", "golden_apple");
-    Setting& aux_ = intSlider("aux", "Variant (-1 = any)", -1, -1, 120);
+    Setting& items_ = textSetting("items", "Items (comma, name or name:variant)", "golden_apple, ender_pearl, splash_potion");
+    Setting& format_ = textSetting("format", "Format ({name} {value} {id})", "{name} {value}");
+    Setting& sort_ = choice("sort", "Order", {"As listed", "Most first", "By name"});
+    Setting& layout_ = choice("layout", "Layout", {"Stacked", "In a row"});
+    Setting& icons_ = choice("icons", "Icons", {"None", "Colored badge"}, 1);
+    Setting& hideZero_ = toggleSetting("hideZero", "Hide items you do not have", false);
+    Setting& hideOne_ = toggleSetting("hideOne", "Hide the number when it is 1", false);
+    Setting& hotbarOnly_ = toggleSetting("hotbarOnly", "Count hotbar only", false);
+    Setting& lowAt_ = intSlider("lowAt", "Warning color at most (0 = off)", 0, 0, 64);
+    Setting& lowColor_ = colorSetting("lowColor", "Warning color", {1.f, 0.4f, 0.45f, 1.f});
 };
 
 class DurabilityWarning : public Module {
@@ -411,10 +468,18 @@ protected:
         }
         float sat = std::clamp(p.saturation / 20.f, 0.f, 1.f);
         dl->AddRectFilled(b0 + ImVec2(0, h - 3 * s), b0 + ImVec2(w * std::min(sat, hunger), h), ImGui::GetColorU32(satColor_.color), 1.5f * s);
+        if (preview_.b && satPreview_.b && food) {
+            float nextHunger = std::clamp((p.hunger + gain) / 20.f, 0.f, 1.f);
+            float nextSat = std::clamp(std::min(p.saturation + satGain, p.hunger + gain) / 20.f, 0.f, 1.f);
+            dl->AddRectFilled(b0 + ImVec2(w * std::min(sat, hunger), h - 3 * s), b0 + ImVec2(w * std::min(nextSat, nextHunger), h), ImGui::GetColorU32(withAlpha(satColor_.color, 0.45f)), 1.5f * s);
+        }
+        bool waste = food && waste_.b && p.hunger + gain > 20.f;
+        if (waste) dl->AddRect(b0 - ImVec2(1, 1), b0 + ImVec2(w + 1, h + 1), ImGui::GetColorU32(wasteColor_.color), h * 0.5f, 0, 1.5f * s);
         float y = h + 3 * s;
         if (numbers_.b) {
             std::string t = i18n::fmt("Hunger {:.0f}  ·  Saturation {:.1f}", p.hunger, p.saturation);
             if (preview_.b && food) t += std::format("  ·  +{:.0f} / +{:.1f}", gain, satGain);
+            if (waste) t += "  ·  " + i18n::fmt("{:.0f} points wasted", p.hunger + gain - 20.f);
             y += drawText(dl, o + ImVec2(0, y), s, t, textColor()).y;
         }
         return {std::max(w, 140.f * s), y};
@@ -447,6 +512,9 @@ private:
     Setting& width_ = slider("width", "Width", 140.f, 60.f, 300.f, "%.0f");
     Setting& numbers_ = toggleSetting("numbers", "Numbers", true);
     Setting& preview_ = toggleSetting("preview", "Preview for food in hand", true);
+    Setting& satPreview_ = toggleSetting("satPreview", "Also preview the saturation", true);
+    Setting& waste_ = toggleSetting("waste", "Warn when food would be wasted", true);
+    Setting& wasteColor_ = colorSetting("wasteColor", "Waste warning", {1.f, 0.4f, 0.45f, 1.f});
     Setting& hungerColor_ = colorSetting("hunger", "Hunger color", {0.85f, 0.6f, 0.3f, 1.f});
     Setting& satColor_ = colorSetting("sat", "Saturation color", {1.f, 0.9f, 0.4f, 1.f});
 };

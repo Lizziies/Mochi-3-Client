@@ -62,7 +62,7 @@ public:
                 bool have = sigs::address(fx::info(id).sig) != 0;
                 ImGui::TextColored(have ? t.ok : t.textDim, "%s %s", have ? "●" : "○", fx::info(id).sig);
                 ImGui::SameLine();
-                ImGui::TextDisabled("%s%s", fx::info(id).label, r.requested ? i18n::tr("  ·  requested") : "");
+                ImGui::TextDisabled("%s%s", i18n::tr(fx::info(id).label), r.requested ? i18n::tr("  ·  requested") : "");
             }
         }
     }

@@ -7,13 +7,16 @@
 #include "gui/Notify.hpp"
 #include "gui/Widgets.hpp"
 #include "hook/Input.hpp"
+#include "server/HiveApi.hpp"
 #include "server/Rules.hpp"
 #include "sdk/Effects.hpp"
 #include "sdk/Game.hpp"
 #include "sdk/Inject.hpp"
+#include "Tiers.hpp"
 #include "sig/Sigs.hpp"
 
 #include "camera/Camera.hpp"
+#include "camera/Hand.hpp"
 #include "client/ClickGui.hpp"
 #include "client/ClientSettings.hpp"
 #include "client/SigStatus.hpp"
@@ -25,6 +28,10 @@
 #include "comfort/Chat.hpp"
 #include "comfort/Music.hpp"
 #include "comfort/Link.hpp"
+#include "comfort/Lock.hpp"
+#include "comfort/Nick.hpp"
+#include "comfort/Skin.hpp"
+#include "comfort/Packs.hpp"
 #include "comfort/Screenshot.hpp"
 #include "comfort/Streamer.hpp"
 #include "comfort/Toggles.hpp"
@@ -35,6 +42,10 @@
 #include "fun/Pets.hpp"
 #include "fun/Snake.hpp"
 #include "hud/Clock.hpp"
+#include "hud/Extras.hpp"
+#include "hud/HotbarAnim.hpp"
+#include "hud/Movable.hpp"
+#include "hud/Subtitles.hpp"
 #include "hud/Cps.hpp"
 #include "hud/Compose.hpp"
 #include "hud/Fps.hpp"
@@ -50,6 +61,7 @@
 #include "hud/SessionTimer.hpp"
 #include "hud/Stopwatch.hpp"
 #include "input/CpsLimiter.hpp"
+#include "input/Gamemode.hpp"
 #include "input/HotbarKeys.hpp"
 #include "input/InstantInput.hpp"
 #include "input/NoScroll.hpp"
@@ -57,12 +69,16 @@
 #include "network/Network.hpp"
 #include "network/PingCounter.hpp"
 #include "network/Probe.hpp"
+#include "online/MochiOnline.hpp"
 #include "perf/Auto.hpp"
 #include "perf/FrameLimiter.hpp"
 #include "perf/LowLatency.hpp"
 #include "perf/MouseSync.hpp"
 #include "perf/PerformanceLock.hpp"
 #include "perf/Tuning.hpp"
+#include "platform/Presence.hpp"
+#include "platform/Scripts.hpp"
+#include "platform/Share.hpp"
 #include "post/Capture.hpp"
 #include "post/Effects.hpp"
 #include "post/FunEffects.hpp"
@@ -70,14 +86,21 @@
 #include "perf/RenderOptions.hpp"
 #include "perf/SystemBoost.hpp"
 #include "server/Hive.hpp"
+#include "server/HiveStats.hpp"
 #include "server/MatchSummary.hpp"
 #include "server/ServerProfiles.hpp"
 #include "server/Zeqa.hpp"
 #include "visual/Crosshair.hpp"
+#include "visual/Trail.hpp"
+#include "world/Entities.hpp"
+#include "world/LightOverlay.hpp"
 #include "world/Waypoints.hpp"
 #include "world/World.hpp"
 
 #include <windows.h>
+
+#include <cstdlib>
+#include <fstream>
 
 namespace modules {
 
@@ -201,6 +224,7 @@ void init() {
     add<NullMovement>();
     add<BlockHit>();
     add<CrystalOptimizer>();
+    add<KillCleanup>();
     add<ItemUseDelayFix>();
     add<FasterInventory>();
     add<InstaHurtAnimation>();
@@ -226,8 +250,37 @@ void init() {
 
     add<ServerProfiles>();
     add<MatchSummary>();
+    add<InventoryLock>();
+    add<ModernKeybinds>();
+    add<JavaInventoryHotkeys>();
+    add<PackChanger>();
+    add<Nick>();
+    add<HotbarAnimation>();
+    add<ItemPhysics>();
+    add<NametagModifier>();
+    add<TntTimer>();
+    add<LightOverlay>();
+    add<Subtitles>();
+    add<MovableHotbar>();
+    add<MovableTitle>();
+    add<MovableBossbar>();
+    add<SkinStealer>();
+    add<DiscordPresence>();
+    add<LuaScripts>();
+    add<ConfigSharing>();
+    add<MochiOnline>();
+    add<HotbarArmor>();
+    add<FallPredictor>();
+    add<InventoryView>();
+    add<ArrowTrail>();
+    add<BlackBars>();
+    add<LeftHand>();
+    add<GamemodeHotkeys>();
+    add<ThirdPersonNametag>();
     add<HiveUtils>();
     add<ZeqaUtils>();
+    add<HiveStats>();
+    add<HiveLeaderboard>();
     add<InstantInput>();
 
     add<Screenshot>();
@@ -256,6 +309,25 @@ void init() {
     for (auto& m : list)
         if (m->alwaysOn()) m->setEnabled(true);
 
+    if (const char* dump = std::getenv("MOCHI_DUMP_MODULES")) {
+        nlohmann::json out = nlohmann::json::array();
+        for (auto& m : list) {
+            int visible = 0;
+            for (auto& st : m->settings()) visible += !st.hidden;
+            out.push_back({{"name", m->name()},
+                           {"category", int(m->category())},
+                           {"sub", m->sub()},
+                           {"description", m->description()},
+                           {"tags", m->tags()},
+                           {"sigs", m->sigs()},
+                           {"anySig", m->anySigs()},
+                           {"tier", tierOf(m->name())},
+                           {"settings", visible},
+                           {"risky", m->risky()},
+                           {"hud", m->isHud()}});
+        }
+        std::ofstream(dump) << out.dump(1);
+    }
     logger::info("{} modules registered", list.size());
     std::string locked, open;
     for (auto& m : list) (m->available() ? open : locked) += m->name() + "; ";
@@ -270,6 +342,9 @@ void shutdown() {
     fx::shutdown();
     inject::shutdown();
     probe::shutdown();
+    hive::shutdown();
+    online::shutdown();
+    discord::stop();
     post::shutdown();
     capture::shutdown();
     game::shutdown();

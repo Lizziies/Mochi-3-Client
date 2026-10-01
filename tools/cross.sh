@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Cross-build the DLL/launcher with MinGW and run the DLL in the Wine test host.
-# usage: tools/cross.sh setup | build | shots [outdir]
+# usage: tools/cross.sh setup | build | shots [outdir] | tour [outdir]
 set -euo pipefail
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
@@ -50,4 +50,33 @@ shots() {
     cat "$dir/log.txt"
 }
 
-"${1:?usage: cross.sh setup|build|shots}" "${@:2}"
+tour() {
+    local dir="${1:-$out/tour}"
+    mkdir -p "$dir"
+    (Xvfb :77 -screen 0 1280x720x24 >/dev/null 2>&1 &)
+    sleep 2
+    export DISPLAY=:77
+    cd "$out"
+    local data
+    data="$(ls -d "$WINEPREFIX"/drive_c/users/*/AppData/Local/Mochi | head -1)"
+    rm -rf "$data/configs"
+    wine64 testhost.exe dll/Mochi.dll 3 >/dev/null 2>&1 || true
+    python3 - "$data" <<'PY'
+import json, os, re, sys
+data = sys.argv[1]
+log = open(os.path.join(data, "logs", "latest.log")).read()
+names = [n.strip() for k in ("usable", "locked") for n in re.search(r"\] \[info\] %s: (.*)" % k, log).group(1).split(";") if n.strip()]
+os.makedirs(os.path.join(data, "configs"), exist_ok=True)
+mods = {n: {"enabled": n != "Lua Scripts", "settings": {}} for n in names}
+mods["Game Support"]["settings"]["demo"] = True
+json.dump({"modules": mods}, open(os.path.join(data, "configs", "default.json"), "w"))
+PY
+    (TESTHOST_MANUAL=1 wine64 testhost.exe dll/Mochi.dll 16 > "$dir/log.txt" 2>&1 &)
+    sleep 12
+    import -window root "$dir/all.png"
+    sleep 6
+    grep -E "\[(error|warn)\]" "$data/logs/latest.log" | grep -v "power throttling" || echo "no errors in the log"
+    rm -rf "$data/configs"
+}
+
+"${1:?usage: cross.sh setup|build|shots|tour}" "${@:2}"

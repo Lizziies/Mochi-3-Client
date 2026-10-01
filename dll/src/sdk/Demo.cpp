@@ -11,7 +11,7 @@ namespace {
 
 constexpr unsigned all = unsigned(Domain::Player) | unsigned(Domain::Inventory) | unsigned(Domain::Effects) | unsigned(Domain::Target) |
                          unsigned(Domain::World) | unsigned(Domain::Combat) | unsigned(Domain::Chat) | unsigned(Domain::Scoreboard) |
-                         unsigned(Domain::Tab) | unsigned(Domain::Camera) | unsigned(Domain::Others);
+                         unsigned(Domain::Tab) | unsigned(Domain::Camera) | unsigned(Domain::Others) | unsigned(Domain::Light);
 
 class Demo : public Provider {
 public:
@@ -31,7 +31,10 @@ public:
         target(s);
         chatter(s, ev);
         uses(ev);
+        sounds(s, ev);
         nearby(s);
+        shots(s);
+        light(s);
         confirms(ev);
         effects(s, dt);
         scoreboard(s);
@@ -81,19 +84,39 @@ private:
         s.world.players = 11;
         s.world.entities = 41;
         s.world.biome = "plains";
+        s.world.name = "Mochi Lobby";
         s.world.time = 1000;
         s.world.day = 12;
         s.player.maxHealth = 20.f;
         s.scoreboard.title = "Mochi Wars";
         for (int i = 0; i < 12; i++) {
-            static const char* names[] = {"Luna", "Max", "Kiki", "Noah", "Mia", "Finn", "Lea", "Tim", "Emma", "Ben", "Zoe", "Paul"};
+            static const char* names[] = {"Teammate", "Opponent", "Bystander", "Luna", "Max", "Kiki", "Noah", "Mia", "Finn", "Lea", "Tim", "Emma"};
             TabEntry e;
             e.name = names[i];
             e.ping = 20 + (i * 17) % 90;
+            e.platform = Platform(1 + i % 3);
+            e.hasHead = true;
+            face(e);
             s.tab.push_back(e);
         }
         s.tab.push_back({"MochiPlayer", 32});
         opponentHp_ = 20.f;
+    }
+
+    static void face(TabEntry& e) {
+        unsigned h = 2166136261u;
+        for (unsigned char c : e.name) h = (h ^ c) * 16777619u;
+        auto channel = [&](int shift, unsigned lo, unsigned span) { return lo + ((h >> shift) % span); };
+        uint32_t hair = 0xFF000000u | (channel(0, 30, 120) << 16) | (channel(8, 20, 90) << 8) | channel(16, 10, 80);
+        uint32_t skin = 0xFF000000u | (channel(4, 150, 80) << 16) | (channel(12, 100, 70) << 8) | channel(20, 70, 60);
+        for (int y = 0; y < 8; y++)
+            for (int x = 0; x < 8; x++) {
+                uint32_t c = y < 2 ? hair : skin;
+                if (y == 4 && (x == 2 || x == 5)) c = 0xFFFFFFFFu;
+                if (y == 4 && (x == 1 || x == 6)) c = 0xFF402010u;
+                if (y == 6 && x >= 3 && x <= 4) c = 0xFF5A3030u;
+                e.head[size_t(y * 8 + x)] = c;
+            }
     }
 
     void movement(State& s, double dt) {
@@ -163,6 +186,7 @@ private:
                 e.crit = dist_(rng_) < 0.2;
                 e.value = e.crit ? 9.f : 6.f;
                 e.text = "Opponent";
+                e.actor = 0x7000;
                 ev.push_back(e);
                 float ms = float(s.world.ping) + float(dist_(rng_)) * 12.f;
                 acks_.push_back({t_ + ms / 1000.0, ms, e.reach});
@@ -172,10 +196,22 @@ private:
                 if (opponentHp_ <= 0.f) {
                     Event k{EventKind::Kill};
                     k.text = "Opponent";
+                    k.actor = 0x7000;
                     ev.push_back(k);
                     opponentHp_ = 20.f;
                 }
             }
+        }
+
+        crystalTimer_ -= dt;
+        if (crystalTimer_ <= 0.0) {
+            crystalTimer_ = 2.5 + dist_(rng_) * 3.0;
+            Event c{EventKind::Hit};
+            c.crystal = true;
+            c.reach = 3.1f + float(dist_(rng_)) * 0.8f;
+            c.text = "End Crystal";
+            c.actor = 0x5000 + uintptr_t(crystalIdx_++ % 6) * 0x40;
+            ev.push_back(c);
         }
 
         hurtTimer_ -= dt;
@@ -203,6 +239,83 @@ private:
             }
         }
         p.blocking = std::fmod(t_, 3.0) < 0.5;
+    }
+
+    void sounds(State& s, std::vector<Event>& ev) {
+        if (t_ < nextSound_) return;
+        nextSound_ = t_ + 0.5 + dist_(rng_) * 1.4;
+        static const char* ids[] = {"step.stone", "random.hurt", "random.door_open", "random.explode", "random.bow", "random.chestopen", "random.levelup", "mob.zombie.say"};
+        Event e{EventKind::Sound};
+        e.text = ids[soundIdx_++ % 8];
+        double a = dist_(rng_) * 6.2832;
+        float d = 3.f + float(dist_(rng_)) * 12.f;
+        e.hasPos = true;
+        e.pos = {s.player.pos.x + std::cos(float(a)) * d, s.player.pos.y, s.player.pos.z + std::sin(float(a)) * d};
+        e.value = d;
+        ev.push_back(std::move(e));
+    }
+
+    struct Flight {
+        uintptr_t id;
+        int kind;
+        bool mine;
+        Vec3 from;
+        Vec3 dir;
+        double born;
+        double life;
+        float speed;
+    };
+
+    void shots(State& s) {
+        if (t_ >= nextShot_) {
+            nextShot_ = t_ + 3.5;
+            auto& p = s.player;
+            float yaw = p.yaw * 0.0174533f, pitch = (p.pitch - 12.f) * 0.0174533f;
+            Vec3 dir{-std::sin(yaw) * std::cos(pitch), -std::sin(pitch), std::cos(yaw) * std::cos(pitch)};
+            bool pearl = flights_.size() % 3 == 2;
+            flights_.push_back({uintptr_t(0x9000 + shotId_++), pearl ? 1 : 0, !pearl, p.eye(), dir, t_, pearl ? 1.4 : 1.1, pearl ? 22.f : 30.f});
+        }
+        s.shots.clear();
+        for (size_t i = 0; i < flights_.size();) {
+            auto& f = flights_[i];
+            double age = t_ - f.born;
+            if (age > f.life) {
+                flights_.erase(flights_.begin() + long(i));
+                continue;
+            }
+            float a = float(age);
+            Projectile pr;
+            pr.id = f.id;
+            pr.kind = f.kind;
+            pr.mine = f.mine;
+            pr.pos = {f.from.x + f.dir.x * f.speed * a, f.from.y + f.dir.y * f.speed * a - 4.9f * a * a, f.from.z + f.dir.z * f.speed * a};
+            pr.vel = {f.dir.x * f.speed, f.dir.y * f.speed - 9.8f * a, f.dir.z * f.speed};
+            s.shots.push_back(pr);
+            i++;
+        }
+    }
+
+    void light(State& s) {
+        auto& g = s.light;
+        const int r = 8;
+        if (g.radius != r) {
+            g.radius = r;
+            g.level.assign(size_t((2 * r + 1) * (2 * r + 1)), 0);
+        }
+        g.baseX = int(std::floor(s.player.pos.x));
+        g.baseY = int(std::floor(s.player.pos.y)) - 1;
+        g.baseZ = int(std::floor(s.player.pos.z));
+        static const int torches[][2] = {{-5, -4}, {3, 5}, {6, -2}, {-2, 2}};
+        for (int dz = -r; dz <= r; dz++)
+            for (int dx = -r; dx <= r; dx++) {
+                int wx = g.baseX + dx, wz = g.baseZ + dz;
+                int best = ((wx * 7 + wz * 13) % 5 == 0) ? 3 : 0;
+                for (auto& t : torches) {
+                    int d = std::abs(dx - t[0]) + std::abs(dz - t[1]);
+                    best = std::max(best, 14 - d);
+                }
+                g.level[size_t((dz + r) * (2 * r + 1) + dx + r)] = uint8_t(std::clamp(best, 0, 15));
+            }
     }
 
     void nearby(State& s) {
@@ -258,6 +371,7 @@ private:
         w.raining = std::fmod(t_, 90.0) > 60.0;
         w.thundering = std::fmod(t_, 180.0) > 150.0;
         w.ping = 38 + int(10.0 * std::sin(t_ * 0.8) + 4.0 * std::sin(t_ * 3.1));
+        w.tps = 20.f - float(0.4 * (1.0 + std::sin(t_ * 0.35)));
         w.entities = 41 + int(6.0 * std::sin(t_ * 0.2));
         static const char* biomes[] = {"plains", "forest", "desert", "taiga"};
         w.biome = biomes[int(t_ / 45.0) % 4];
@@ -271,11 +385,23 @@ private:
             t.name = "Opponent";
             t.isPlayer = true;
             t.distance = std::max(0.5f, oppDist_ - 0.3f);
+            t.skinSize = 64;
+            t.skin.assign(64 * 64, 0u);
+            for (int y = 0; y < 16; y++)
+                for (int x = 0; x < 32; x++) t.skin[size_t(y * 64 + x)] = (y < 8 ? 0xFF3A2A1Au : 0xFFC89A78u) | (x % 8 == 3 && y % 8 == 4 ? 0x00FFFFFFu : 0u);
             t.team = 2;
             t.armor = std::fmod(t_, 32.0) < 24.0 ? 4 : 3;
             t.health = std::max(0.f, opponentHp_);
             t.maxHealth = 20.f;
             t.pos = {s.player.pos.x + 2.f, s.player.pos.y, s.player.pos.z};
+        } else if (phase > 12.2 && phase < 13.9) {
+            t.kind = Target::Kind::Entity;
+            t.name = "tnt";
+            t.isPlayer = false;
+            t.distance = 4.f;
+            t.fuse = float(std::max(0.0, 4.0 - (phase - 12.2) * 2.4));
+            float yaw = s.player.yaw * 0.0174533f;
+            t.pos = {s.player.pos.x - std::sin(yaw) * 4.f, s.player.pos.y + 0.5f, s.player.pos.z + std::cos(yaw) * 4.f};
         } else if (phase > 14.5) {
             t.kind = Target::Kind::Block;
             t.name = "stone";
@@ -417,6 +543,13 @@ private:
     double nextUse_ = 5.0;
     int chatIdx_ = 0;
     double scriptPhase_ = -1.0;
+    double nextShot_ = 2.0;
+    int shotId_ = 0;
+    std::vector<Flight> flights_;
+    double nextSound_ = 1.0;
+    int soundIdx_ = 0;
+    double crystalTimer_ = 3.0;
+    int crystalIdx_ = 0;
     float opponentHp_ = 20.f;
     bool fighting_ = false;
     bool drawing_ = false;

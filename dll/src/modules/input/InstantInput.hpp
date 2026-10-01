@@ -15,7 +15,7 @@ public:
         : Module("Instant Hit",
                  "Shortens the local chain from click to frame. Creates no clicks. Banned on some servers.",
                  Category::Pvp, {"input", "timing"}) {
-        sub("Input");
+        sub("Crystal PvP");
         markRisky();
         tearing_.visible = [this] { return queue_.b; };
     }

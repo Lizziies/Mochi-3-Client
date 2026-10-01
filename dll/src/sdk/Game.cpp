@@ -15,7 +15,7 @@ static std::vector<Event> frameEvents;
 static std::unique_ptr<Provider> demoProvider;
 static std::unique_ptr<Provider> liveProvider;
 static bool demoOn = false;
-static std::array<int, 11> leases{};
+static std::array<int, 12> leases{};
 static int64_t seenClick = 0;
 static float lastHealth = -1.f;
 static bool dead = false;
@@ -117,8 +117,10 @@ static void absorb(const Event& e) {
     auto& c = cur.combat;
     switch (e.kind) {
     case EventKind::Hit:
+        if (e.crystal) break;
         if (e.time - c.lastHitAt < hitGap && e.text == c.lastTarget) break;
         c.lastTarget = e.text;
+        c.lastActor = e.actor;
         c.combo++;
         c.bestCombo = std::max(c.bestCombo, c.combo);
         c.hits++;

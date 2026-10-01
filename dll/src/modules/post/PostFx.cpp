@@ -11,6 +11,7 @@
 
 #include <cmath>
 #include <cstring>
+#include <deque>
 #include <filesystem>
 #include <fstream>
 #include <map>
@@ -76,6 +77,39 @@ float3 blindMatrix(int mode, float3 v)
     float3 err = v - sim;
     if (kind == 2) return v + float3(err.r + 0.7 * err.b, err.g + 0.7 * err.b, 0.0);
     return v + float3(0.0, 0.7 * err.r + err.g, 0.7 * err.r + err.b);
+}
+
+cbuffer Bl : register(b1)
+{
+    float4 rectPx;
+    float4 shape;
+    float4 tintCol;
+    float4 texel2;
+};
+
+float4 psBlur(VOut i) : SV_Target
+{
+    float2 px = i.pos.xy;
+    float2 mid = (rectPx.xy + rectPx.zw) * 0.5;
+    float2 ext = (rectPx.zw - rectPx.xy) * 0.5;
+    float2 q = abs(px - mid) - (ext - shape.y);
+    float dist = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - shape.y;
+    float mask = saturate(0.5 - dist);
+    if (mask <= 0.0) discard;
+
+    float3 acc = 0;
+    float wsum = 0;
+    float sigma = max(shape.x * 0.5, 0.5);
+    [unroll] for (int k = 0; k < 28; k++)
+    {
+        float ang = k * 2.399963;
+        float rad = sqrt((k + 0.5) / 28.0) * shape.x;
+        float w = exp(-(rad * rad) / (2.0 * sigma * sigma));
+        acc += src.SampleLevel(smp, (px + float2(cos(ang), sin(ang)) * rad) * texel2.xy, 0).rgb * w;
+        wsum += w;
+    }
+    float3 col = lerp(acc / wsum, tintCol.rgb, tintCol.a);
+    return float4(col, mask * shape.z);
 }
 
 float4 ps(VOut i) : SV_Target
@@ -178,11 +212,22 @@ struct Constants {
     float a[4], b[4], tint[4], c[4], d[4], e[4], night[4], f[4];
 };
 
+struct BlurJob {
+    float rect[4];
+    float rounding;
+    float radius;
+    float tint[4];
+};
+
 struct Gpu {
     ID3D11Device* dev = nullptr;
     ID3D11VertexShader* vs = nullptr;
     ID3D11PixelShader* ps = nullptr;
+    ID3D11PixelShader* psBlur = nullptr;
     ID3D11Buffer* cb = nullptr;
+    ID3D11Buffer* cbBlur = nullptr;
+    ID3D11BlendState* alpha = nullptr;
+    ID3D11RasterizerState* scissor = nullptr;
     ID3D11Buffer* ccb = nullptr;
     std::map<int, ID3D11PixelShader*> custom;
     std::map<int, std::string> customError;
@@ -198,9 +243,11 @@ struct Gpu {
     DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN;
     bool lastValid = false;
     bool failed = false;
+    bool blurCopied = false;
 };
 
 static Gpu gpu;
+static std::deque<BlurJob> blurJobs;
 static Params current;
 static Params frameParams;
 static float clock = 0.f;
@@ -224,7 +271,11 @@ static void dropAll() {
     dropTextures();
     release(gpu.vs);
     release(gpu.ps);
+    release(gpu.psBlur);
     release(gpu.cb);
+    release(gpu.cbBlur);
+    release(gpu.alpha);
+    release(gpu.scissor);
     release(gpu.ccb);
     for (auto& [k, p] : gpu.custom) release(p);
     gpu.custom.clear();
@@ -238,22 +289,26 @@ static void dropAll() {
 }
 
 static bool buildShaders(ID3D11Device* dev) {
-    ID3DBlob *vsBlob = nullptr, *psBlob = nullptr, *err = nullptr;
+    ID3DBlob *vsBlob = nullptr, *psBlob = nullptr, *blurBlob = nullptr, *err = nullptr;
     UINT flags = D3DCOMPILE_OPTIMIZATION_LEVEL3;
     HRESULT hr = D3DCompile(shaderSource, strlen(shaderSource), "postfx", nullptr, nullptr, "vs", "vs_5_0", flags, 0, &vsBlob, &err);
     if (SUCCEEDED(hr)) hr = D3DCompile(shaderSource, strlen(shaderSource), "postfx", nullptr, nullptr, "ps", "ps_5_0", flags, 0, &psBlob, &err);
+    if (SUCCEEDED(hr)) hr = D3DCompile(shaderSource, strlen(shaderSource), "postfx", nullptr, nullptr, "psBlur", "ps_5_0", flags, 0, &blurBlob, &err);
     if (FAILED(hr)) {
         logger::error("postfx shader: {}", err ? (const char*)err->GetBufferPointer() : "compile failed");
         release(err);
         release(vsBlob);
         release(psBlob);
+        release(blurBlob);
         return false;
     }
 
     bool ok = SUCCEEDED(dev->CreateVertexShader(vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), nullptr, &gpu.vs)) &&
-              SUCCEEDED(dev->CreatePixelShader(psBlob->GetBufferPointer(), psBlob->GetBufferSize(), nullptr, &gpu.ps));
+              SUCCEEDED(dev->CreatePixelShader(psBlob->GetBufferPointer(), psBlob->GetBufferSize(), nullptr, &gpu.ps)) &&
+              SUCCEEDED(dev->CreatePixelShader(blurBlob->GetBufferPointer(), blurBlob->GetBufferSize(), nullptr, &gpu.psBlur));
     release(vsBlob);
     release(psBlob);
+    release(blurBlob);
     if (!ok) return false;
 
     D3D11_BUFFER_DESC bd{};
@@ -262,6 +317,8 @@ static bool buildShaders(ID3D11Device* dev) {
     bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
     bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
     if (FAILED(dev->CreateBuffer(&bd, nullptr, &gpu.cb))) return false;
+    bd.ByteWidth = sizeof(float) * 16;
+    if (FAILED(dev->CreateBuffer(&bd, nullptr, &gpu.cbBlur))) return false;
     bd.ByteWidth = 32;
     if (FAILED(dev->CreateBuffer(&bd, nullptr, &gpu.ccb))) return false;
 
@@ -275,11 +332,24 @@ static bool buildShaders(ID3D11Device* dev) {
     bl.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
     if (FAILED(dev->CreateBlendState(&bl, &gpu.blend))) return false;
 
+    D3D11_BLEND_DESC ab{};
+    ab.RenderTarget[0].BlendEnable = TRUE;
+    ab.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+    ab.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+    ab.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+    ab.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+    ab.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
+    ab.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+    ab.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+    if (FAILED(dev->CreateBlendState(&ab, &gpu.alpha))) return false;
+
     D3D11_RASTERIZER_DESC rd{};
     rd.FillMode = D3D11_FILL_SOLID;
     rd.CullMode = D3D11_CULL_NONE;
     rd.DepthClipEnable = TRUE;
     if (FAILED(dev->CreateRasterizerState(&rd, &gpu.raster))) return false;
+    rd.ScissorEnable = TRUE;
+    if (FAILED(dev->CreateRasterizerState(&rd, &gpu.scissor))) return false;
 
     D3D11_DEPTH_STENCIL_DESC dd{};
     return SUCCEEDED(dev->CreateDepthStencilState(&dd, &gpu.depth));
@@ -506,8 +576,68 @@ static void pass(ID3D11Device* dev, ID3D11DeviceContext* ctx) {
     if (bd.SampleDesc.Count == 1 && ensure(dev, bd, wantLast)) {
         if (p.basic()) basicPass(ctx, back, bd, wantLast);
         if (p.shader >= 0) customPass(dev, ctx, back, bd);
+        gpu.blurCopied = false;
     }
     back->Release();
+}
+
+static void blurPass(ID3D11Device* dev, ID3D11DeviceContext* ctx, const BlurJob& job) {
+    ID3D11RenderTargetView* rtv = nullptr;
+    ctx->OMGetRenderTargets(1, &rtv, nullptr);
+    if (!rtv) return;
+    ID3D11Resource* res = nullptr;
+    rtv->GetResource(&res);
+    rtv->Release();
+    ID3D11Texture2D* back = nullptr;
+    if (!res || FAILED(res->QueryInterface(IID_PPV_ARGS(&back)))) {
+        release(res);
+        return;
+    }
+    res->Release();
+
+    D3D11_TEXTURE2D_DESC bd{};
+    back->GetDesc(&bd);
+    if (bd.SampleDesc.Count == 1 && ensure(dev, bd, gpu.last != nullptr)) {
+        if (!gpu.blurCopied) {
+            ctx->CopyResource(gpu.copy, back);
+            gpu.blurCopied = true;
+        }
+        D3D11_MAPPED_SUBRESOURCE m{};
+        if (SUCCEEDED(ctx->Map(gpu.cbBlur, 0, D3D11_MAP_WRITE_DISCARD, 0, &m))) {
+            float k[16] = {job.rect[0], job.rect[1], job.rect[2], job.rect[3], job.radius, job.rounding, 1.f, 0.f,
+                           job.tint[0], job.tint[1], job.tint[2], job.tint[3], 1.f / bd.Width, 1.f / bd.Height, 0.f, 0.f};
+            std::memcpy(m.pData, k, sizeof(k));
+            ctx->Unmap(gpu.cbBlur, 0);
+        }
+        D3D11_VIEWPORT vp{0.f, 0.f, (float)bd.Width, (float)bd.Height, 0.f, 1.f};
+        ctx->RSSetViewports(1, &vp);
+        D3D11_RECT sc{LONG(job.rect[0]) - 1, LONG(job.rect[1]) - 1, LONG(job.rect[2]) + 1, LONG(job.rect[3]) + 1};
+        ctx->RSSetScissorRects(1, &sc);
+        ctx->RSSetState(gpu.scissor);
+        ctx->OMSetBlendState(gpu.alpha, nullptr, 0xffffffff);
+        ctx->OMSetDepthStencilState(gpu.depth, 0);
+        ctx->IASetInputLayout(nullptr);
+        ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+        ctx->VSSetShader(gpu.vs, nullptr, 0);
+        ctx->GSSetShader(nullptr, nullptr, 0);
+        ctx->PSSetShader(gpu.psBlur, nullptr, 0);
+        ID3D11Buffer* bufs[2] = {gpu.cb, gpu.cbBlur};
+        ctx->PSSetConstantBuffers(0, 2, bufs);
+        ID3D11ShaderResourceView* views[2] = {gpu.copyView, gpu.copyView};
+        ctx->PSSetShaderResources(0, 2, views);
+        ctx->PSSetSamplers(0, 1, &gpu.sampler);
+        ctx->Draw(3, 0);
+        ID3D11ShaderResourceView* none[2] = {};
+        ctx->PSSetShaderResources(0, 2, none);
+    }
+    back->Release();
+}
+
+static void blurCallback(const ImDrawList*, const ImDrawCmd* cmd) {
+    auto* state = static_cast<ImGui_ImplDX11_RenderState*>(ImGui::GetPlatformIO().Renderer_RenderState);
+    if (!state || !state->Device || !state->DeviceContext || !cmd->UserCallbackData) return;
+    const auto& job = *static_cast<const BlurJob*>(cmd->UserCallbackData);
+    guard::call("blur", [&] { blurPass(state->Device, state->DeviceContext, job); });
 }
 
 static void callback(const ImDrawList*, const ImDrawCmd*) {
@@ -526,7 +656,18 @@ bool Params::basic() const {
 
 Params& params() { return frameParams; }
 
-void begin() { frameParams = Params{}; }
+void blur(ImDrawList* dl, ImVec2 min, ImVec2 max, float rounding, float radius, ImVec4 tint) {
+    if (max.x - min.x < 2.f || max.y - min.y < 2.f) return;
+    blurJobs.push_back({{min.x, min.y, max.x, max.y}, rounding, radius, {tint.x, tint.y, tint.z, tint.w}});
+    dl->AddCallback(blurCallback, &blurJobs.back());
+    dl->AddCallback(ImGui::GetPlatformIO().DrawCallback_ResetRenderState, nullptr);
+}
+
+void begin() {
+    frameParams = Params{};
+    blurJobs.clear();
+    gpu.blurCopied = false;
+}
 
 void submit(ImDrawList* dl) {
     clock = std::fmod(clock + ui::dt(), 1000.f);

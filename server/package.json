@@ -1,0 +1,9 @@
+{
+  "name": "mochi-online",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node dev.js",
+    "test": "node --test test/*.test.js && STORE=d1 node --test test/*.test.js"
+  }
+}

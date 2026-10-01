@@ -31,6 +31,7 @@ enum class Domain : unsigned {
     Tab = 256,
     Camera = 512,
     Others = 1024,
+    Light = 2048,
 };
 
 constexpr unsigned operator|(Domain a, Domain b) { return unsigned(a) | unsigned(b); }
@@ -89,6 +90,7 @@ struct Player {
     bool sneaking = false;
     bool swimming = false;
     bool gliding = false;
+    bool emoting = false;
     bool flying = false;
     bool inWater = false;
     bool onFire = false;
@@ -120,6 +122,9 @@ struct Target {
     float health = 0.f;
     float maxHealth = 20.f;
     float breakProgress = 0.f;
+    float fuse = 0.f;
+    int skinSize = 0;
+    std::vector<uint32_t> skin;
 };
 
 struct World {
@@ -131,6 +136,8 @@ struct World {
     int entities = 0;
     int players = 0;
     int ping = 0;
+    float tps = 0.f;
+    std::string name;
     std::vector<std::string> packs;
 };
 
@@ -144,10 +151,15 @@ struct Scoreboard {
     std::vector<std::pair<std::string, int>> lines;
 };
 
+enum class Platform { Unknown, Desktop, Mobile, Console };
+
 struct TabEntry {
     std::string name;
     int ping = 0;
     Mode mode = Mode::Survival;
+    Platform platform = Platform::Unknown;
+    bool hasHead = false;
+    std::array<uint32_t, 64> head{};
 };
 
 struct Combat {
@@ -166,6 +178,7 @@ struct Combat {
     float lastReach = 0.f;
     float bestReach = 0.f;
     std::string lastTarget;
+    uintptr_t lastActor = 0;
     double lastHitAt = -100.0;
     double lastHurtAt = -100.0;
     bool lastCrit = false;
@@ -176,10 +189,31 @@ struct Combat {
 };
 
 struct Other {
+    uintptr_t id = 0;
     std::string name;
     Vec3 pos;
     float health = 20.f;
     int team = 0;
+};
+
+struct Projectile {
+    uintptr_t id = 0;
+    int kind = 0;
+    bool mine = false;
+    Vec3 pos;
+    Vec3 vel;
+};
+
+struct LightGrid {
+    int radius = 0;
+    int baseX = 0;
+    int baseY = 0;
+    int baseZ = 0;
+    std::vector<uint8_t> level;
+
+    int size() const { return radius * 2 + 1; }
+    bool valid() const { return radius > 0 && level.size() == size_t(size() * size()); }
+    int at(int dx, int dz) const { return level[size_t((dz + radius) * size() + dx + radius)]; }
 };
 
 struct Camera {
@@ -190,7 +224,7 @@ struct Camera {
     float aspect = 16.f / 9.f;
 };
 
-enum class EventKind { Hit, Hurt, Kill, Death, TotemPop, Swing, BowRelease, ItemUse, Chat, Respawn, Confirm };
+enum class EventKind { Hit, Hurt, Kill, Death, TotemPop, Swing, BowRelease, ItemUse, Chat, Respawn, Confirm, Sound };
 
 struct Event {
     EventKind kind = EventKind::Hit;
@@ -198,6 +232,10 @@ struct Event {
     float value = 0.f;
     float reach = 0.f;
     bool crit = false;
+    bool crystal = false;
+    uintptr_t actor = 0;
+    bool hasPos = false;
+    Vec3 pos;
     std::string text;
     std::string item;
 };
@@ -213,6 +251,8 @@ struct State {
     Scoreboard scoreboard;
     std::vector<TabEntry> tab;
     std::vector<Other> others;
+    std::vector<Projectile> shots;
+    LightGrid light;
     std::string server;
     unsigned have = 0;
     bool inWorld = false;

@@ -159,6 +159,7 @@ public:
         double now = game::state().time;
         for (auto& e : game::events()) {
             if (e.kind == game::EventKind::Hit) {
+                if (e.crystal) continue;
                 if (e.time - lastHit_ < gap_.f / 1000.f && e.text == target_) continue;
                 lastHit_ = e.time;
                 target_ = e.text;

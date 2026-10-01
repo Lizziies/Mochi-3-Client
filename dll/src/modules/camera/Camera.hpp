@@ -4,6 +4,7 @@
 #include "hook/Input.hpp"
 #include "modules/Manager.hpp"
 #include "modules/Module.hpp"
+#include "modules/common/Bars.hpp"
 #include "modules/common/Context.hpp"
 #include "modules/common/Keys.hpp"
 #include "modules/common/Needs.hpp"
@@ -94,6 +95,7 @@ public:
         sub("Camera");
         require(0, {fx::sig(fx::Id::Fov)});
         step_.visible = [this] { return scroll_.b; };
+        hideHand_.visible = [] { return fx::available(fx::Id::HideHand); };
     }
 
     void onKey(KeyEvent& ev) override {
@@ -106,16 +108,21 @@ public:
         if (scroll_.b && active_ && ev.wheel != 0) {
             level_ *= std::pow(step_.f, ev.wheel > 0 ? 1.f : -1.f);
             level_ = std::clamp(level_, 1.2f, 40.f);
+            snap_ = !always_.b;
             ev.cancel = true;
         }
     }
 
     void onFrame() override {
         float target = active_ ? level_ : 1.f;
+        if (snap_ && active_) current_ = target;
+        snap_ = false;
         current_ = std::fabs(current_ - target) < 0.002f ? target : current_ + (target - current_) * std::min(1.f, ui::dt() * smooth_.f);
         ctx::zooming = current_ > 1.02f;
         ctx::zoomLevel = current_;
+        ctx::hideModules = ctx::zooming && hideModules_.b;
         if (current_ <= 1.001f) return;
+        if (hideHand_.b) fx::skip(fx::Id::HideHand);
         float base = ctx::fovBase > 0.f ? ctx::fovBase : base_.f;
         float fov = 2.f * std::atan(std::tan(base * 0.0174533f * 0.5f) / current_) * 57.2958f;
         fx::set(fx::Id::Fov, fov);
@@ -124,6 +131,7 @@ public:
     }
 
     void onRender(ImDrawList* dl) override {
+        if (bars_.f > 0.f && current_ > 1.02f) bars::draw(dl, bars_.f * std::clamp((current_ - 1.f) / 1.5f, 0.f, 1.f));
         if (vignette_.f <= 0.f || current_ <= 1.02f) return;
         float k = std::clamp((current_ - 1.f) / 3.f, 0.f, 1.f) * vignette_.f;
         auto ds = ImGui::GetIO().DisplaySize;
@@ -138,6 +146,7 @@ public:
     void onDisable() override {
         active_ = false;
         ctx::zooming = false;
+        ctx::hideModules = false;
         current_ = 1.f;
     }
 
@@ -161,6 +170,11 @@ private:
     Setting& remember_ = toggleSetting("remember", "Remember level", true);
     Setting& sens_ = toggleSetting("sens", "Adjust sensitivity while zooming", true);
     Setting& vignette_ = slider("vignette", "Dark edge while zooming", 0.f, 0.f, 1.f, "%.2f");
+    Setting& bars_ = slider("bars", "Cinematic bars", 0.f, 0.f, 0.2f, "%.2f");
+    Setting& hideHand_ = toggleSetting("hideHand", "Hide the hand while zooming", false);
+    Setting& hideModules_ = toggleSetting("hideModules", "Hide the HUD modules while zooming", false);
+    Setting& always_ = toggleSetting("always", "Always animate (also when scrolling)", true);
+    bool snap_ = false;
     bool active_ = false;
     float level_ = 4.f;
     float current_ = 1.f;
@@ -309,7 +323,9 @@ public:
     void onFrame() override {
         auto& p = game::state().player;
         int want = -1;
-        if (p.gliding && glide_.i > 0) want = glide_.i - 1;
+        if (p.emoting && emote_.i > 0) want = emote_.i - 1;
+        else if (p.swimming && swim_.i > 0) want = swim_.i - 1;
+        else if (p.gliding && glide_.i > 0) want = glide_.i - 1;
         else if (p.usingItem && p.held().name == "bow" && bow_.i > 0) want = bow_.i - 1;
         if (want >= 0) {
             fx::setInt(fx::Id::Perspective, want);
@@ -321,6 +337,8 @@ public:
     }
 
 private:
+    Setting& swim_ = choice("swim", "While swimming", {"Do not change", "First person", "Third person back", "Third person front"});
+    Setting& emote_ = choice("emote", "While emoting", {"Do not change", "First person", "Third person back", "Third person front"}, 2);
     Setting& glide_ = choice("glide", "While gliding", {"Do not change", "First person", "Third person back", "Third person front"}, 2);
     Setting& bow_ = choice("bow", "While drawing a bow", {"Do not change", "First person", "Third person back", "Third person front"}, 1);
     Setting& restore_ = toggleSetting("restore", "Switch back afterwards", true);
@@ -355,17 +373,24 @@ private:
 class CinematicCamera : public Module {
 public:
     CinematicCamera()
-        : Module("Cinematic Camera", "Soft, gliding camera movement like in film shots. Optionally only while zooming.", Category::Visual, {"camera"}) {
+        : Module("Cinematic Camera", "Soft, gliding camera movement like in film shots, with black bars. Optionally only while zooming.", Category::Visual, {"camera"}) {
         sub("Camera");
         require(0, {fx::sig(fx::Id::LookDelta)});
     }
 
     void onFrame() override {
-        if (onlyZoom_.b && !ctx::zooming) return;
-        fx::smooth(fx::Id::LookDelta, 1.f - smoothing_.f);
+        bool on = !onlyZoom_.b || ctx::zooming;
+        shown_ += ((on ? 1.f : 0.f) - shown_) * std::min(1.f, ui::dt() * 6.f);
+        if (on) fx::smooth(fx::Id::LookDelta, 1.f - smoothing_.f);
     }
+
+    void onRender(ImDrawList* dl) override { bars::draw(dl, bars_.f * shown_); }
+
+    void onDisable() override { shown_ = 0.f; }
 
 private:
     Setting& smoothing_ = slider("smoothing", "Smoothing", 0.7f, 0.f, 0.95f, "%.2f");
     Setting& onlyZoom_ = toggleSetting("onlyZoom", "Only while zooming", false);
+    Setting& bars_ = slider("bars", "Cinematic bars", 0.08f, 0.f, 0.2f, "%.2f");
+    float shown_ = 0.f;
 };

@@ -23,7 +23,10 @@ constexpr std::string_view expected[] = {
     "Player Notifier", "Chunk Border", "Break Progress", "Cinematic Camera", "Snap Look", "Auto Perspective",
     "Sens Multiplier", "Bow Sensitivity", "Stopwatch", "Memory", "Experience Info", "Durability Warning",
     "Streamer Mode", "Server Profiles", "Crystal Optimizer", "Better Chat", "View Model", "Saturation / Hue", "Screenshot+", "Target HUD",
-    "Session Timer", "Day Counter", "Hide Hand", "Entity Counter", "Zeqa Utils", "Music",
+    "Session Timer", "Day Counter", "Hide Hand", "Entity Counter", "Zeqa Utils", "Kill Cleanup", "Inventory Lock", "Modern Keybind Handling", "Java Inventory Hotkeys", "Pack Changer", "Nick", "Hotbar Animation", "Item Physics",
+    "Nametag Modifier", "TNT Timer", "Light Overlay", "Subtitles", "Movable Hotbar", "Movable Title", "Movable Bossbar", "Skin Stealer", "Discord Rich Presence", "Lua Scripts", "Config Sharing", "Mochi Online", "Hotbar Armor", "Fall Predictor", "Inventory Viewer", "Arrow Trail", "Black Bars",
+    "Left Hand", "Gamemode Hotkeys", "Third Person Nametag", "Hive Stats", "Hive Leaderboard",
+    "Music",
 };
 
 constexpr std::string_view extras[] = {
@@ -38,7 +41,7 @@ constexpr std::string_view pvp[] = {
     "Combo Counter", "Reach Counter", "Opponent Reach", "Hit Ping",
     "Pot Counter", "Arrow Counter", "Totem Counter", "Target HUD", "Hitbox", "Hurt Color", "Animations",
     "Low Health Indicator", "Auto GG", "Toggle Sprint", "Toggle Sneak", "Snap Look", "Block Hit", "Crystal Optimizer", "Instant Hit", "CPS Limiter",
-    "Hit Counter", "Null Movement", "Faster Inventory", "Item Use Delay Fix", "Insta Hurt Animation",
+    "Hit Counter", "Null Movement", "Faster Inventory", "Item Use Delay Fix", "Insta Hurt Animation", "Kill Cleanup",
 };
 
 const std::unordered_map<std::string_view, int>& table() {

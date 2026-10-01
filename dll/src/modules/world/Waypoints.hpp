@@ -79,6 +79,20 @@ public:
         }
     }
 
+    struct Mark {
+        std::string name;
+        float x, y, z;
+        float color[3];
+    };
+
+    std::vector<Mark> marks(int dimension) {
+        sync();
+        std::vector<Mark> out;
+        for (auto& w : list_)
+            if (w.dim == dimension) out.push_back({w.name, w.x, w.y, w.z, {w.color[0], w.color[1], w.color[2]}});
+        return out;
+    }
+
     void drawSettings() override {
         sync();
         ImGui::Spacing();

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/Log.hpp"
 #include "core/Paths.hpp"
 #include "gui/Gui.hpp"
 #include "gui/Notify.hpp"
@@ -9,9 +10,13 @@
 #include "modules/Manager.hpp"
 #include "modules/client/ClientSettings.hpp"
 #include "modules/common/Colors.hpp"
+#include "modules/common/Icons.hpp"
+#include "modules/common/Nick.hpp"
 #include "modules/common/GameHud.hpp"
 #include "modules/common/Needs.hpp"
 #include "modules/common/Text.hpp"
+#include "modules/online/MochiOnline.hpp"
+#include "modules/server/ServerChat.hpp"
 #include "render/Fonts.hpp"
 #include "render/Ui.hpp"
 #include "sdk/Effects.hpp"
@@ -19,6 +24,7 @@
 #include "sdk/Inject.hpp"
 
 #include <windows.h>
+#include <mmsystem.h>
 
 #include <algorithm>
 #include <ctime>
@@ -69,16 +75,7 @@ public:
 private:
     bool endMatches(const std::string& raw) const {
         std::string line = text::lower(text::strip(raw));
-        std::vector<std::string> list;
-        if (preset_.i == 1) {
-            list = splitList(text::lower(triggers_.text), ',');
-        } else {
-            auto& srv = game::state().server;
-            if (srv == "The Hive") list = {"game over", "victory"};
-            else if (srv == "Zeqa") list = {"has won", "winner"};
-            else if (srv == "CubeCraft") list = {"won the game", "game over"};
-            else list = {"game over", "you won", "victory"};
-        }
+        std::vector<std::string> list = preset_.i == 1 ? splitList(text::lower(triggers_.text), ',') : srv::endWords(game::state().server);
         for (auto& t : list)
             if (line.find(t) != std::string::npos) return true;
         return false;
@@ -137,6 +134,10 @@ public:
             if (stamp_.b) out << std::format("[{:02}:{:02}:{:02}] ", t.wHour, t.wMinute, t.wSecond);
             if (server_.b && !game::state().server.empty()) out << "[" << game::state().server << "] ";
             out << line << "\n";
+            if (clean_.b) {
+                std::ofstream cleanOut(dir / std::filesystem::path(std::format("chat-{:04}-{:02}-{:02}.clean.txt", t.wYear, t.wMonth, t.wDay)), std::ios::app);
+                cleanOut << text::strip(e.text) << "\n";
+            }
         }
     }
 
@@ -144,6 +145,7 @@ private:
     Setting& colors_ = toggleSetting("strip", "Remove color codes", true);
     Setting& stamp_ = toggleSetting("stamp", "Timestamp", true);
     Setting& server_ = toggleSetting("server", "Prefix the server name", false);
+    Setting& clean_ = toggleSetting("clean", "Also write a clean file (no colors, no time)", false);
     Setting& filter_ = textSetting("filter", "Only lines containing (empty = all)", "");
 };
 
@@ -218,12 +220,30 @@ public:
         background_.b = false;
         highlightWords_.visible = [this] { return highlight_.b; };
         highlightColor_.visible = [this] { return highlight_.b; };
+        mentionWords_.visible = [this] { return mention_.b; };
+        mentionSound_.visible = [this] { return mention_.b; };
+        mentionFile_.visible = [this] { return mention_.b && mentionSound_.i == 2; };
     }
 
     bool defaultEnabled() const override { return false; }
 
     void onFrame() override {
         if (hideVanilla_.b) fx::skip(fx::Id::HideChat);
+        if (!mention_.b) return;
+        for (auto& e : game::events()) {
+            if (e.kind != game::EventKind::Chat) continue;
+            std::string line = text::lower(text::strip(e.text));
+            auto& me = game::state().player.name;
+            std::string name = text::lower(me);
+            if (!name.empty() && (line.rfind("<" + name + ">", 0) == 0 || line.rfind(name + ":", 0) == 0)) continue;
+            bool hit = !name.empty() && line.find(name) != std::string::npos;
+            for (auto& w : srv::words(mentionWords_.text))
+                if (line.find(w) != std::string::npos) hit = true;
+            if (hit && ui::time() - lastMention_ > 1.0) {
+                lastMention_ = ui::time();
+                ping();
+            }
+        }
     }
 
     void onRender(ImDrawList* dl) override {
@@ -281,15 +301,23 @@ protected:
             if (hit) dl->AddRectFilled(o + ImVec2(0, y), o + ImVec2(w, y + lineH), ImGui::GetColorU32(withAlpha(highlightColor_.color, 0.25f * a)), 3 * s);
 
             dl->PushClipRect(o + ImVec2(0, y), o + ImVec2(w, y + lineH + 2), true);
+            std::string shownText = nick::replaceIn(l->text);
+            if (auto* mo = modules::get<MochiOnline>(); mo && mo->enabled()) shownText = online::tagLine(shownText, mo->colors(), mo->hearts());
             if (colors_.b) {
                 auto* cs = modules::get<ClientSettings>();
-                for (auto& seg : text::colored(cs ? cs->tagged(l->text, true) : l->text, base)) {
+                for (auto& seg : text::colored(cs ? cs->tagged(shownText, true) : shownText, base)) {
                     ImVec4 c = ImGui::ColorConvertU32ToFloat4(seg.color);
                     c.w *= a;
+                    if (seg.text == "\x01") {
+                        float hs = lineH * 0.75f;
+                        online::heartIcon(dl, o + ImVec2(x + hs * 0.5f, y + lineH * 0.5f), hs, ImGui::GetColorU32(c));
+                        x += hs + 2 * s;
+                        continue;
+                    }
                     x += drawText(dl, o + ImVec2(x, y), s, seg.text, ImGui::GetColorU32(c)).x;
                 }
             } else {
-                x += drawText(dl, o + ImVec2(x, y), s, text::strip(l->text), base).x;
+                x += drawText(dl, o + ImVec2(x, y), s, text::strip(shownText), base).x;
             }
             if (count > 1) drawText(dl, o + ImVec2(x + 4 * s, y), s, std::format("x{}", count), ImGui::GetColorU32(withAlpha(theme::current().accent, a)));
             dl->PopClipRect();
@@ -299,7 +327,24 @@ protected:
     }
 
 private:
+    void ping() const {
+        if (mentionSound_.i == 2) {
+            std::wstring file = logger::widen(mentionFile_.text);
+            if (!file.empty() && PlaySoundW(file.c_str(), nullptr, SND_FILENAME | SND_ASYNC)) return;
+        }
+        if (mentionSound_.i == 1) {
+            PlaySoundA("SystemExclamation", nullptr, SND_ALIAS | SND_ASYNC);
+            return;
+        }
+        MessageBeep(MB_ICONASTERISK);
+    }
+
     Setting& width_ = slider("width", "Width", 420.f, 200.f, 900.f, "%.0f");
+    Setting& mention_ = toggleSetting("mention", "Sound when someone mentions you", false);
+    Setting& mentionWords_ = textSetting("mentionWords", "More words ( @here, comma)", "@here, @everyone");
+    Setting& mentionSound_ = choice("mentionSound", "Mention sound", {"System ding", "System alert", "Own WAV file"});
+    Setting& mentionFile_ = textSetting("mentionFile", "WAV file path", "");
+    double lastMention_ = -100.0;
     Setting& lines_ = intSlider("lines", "Visible lines", 10, 3, 30);
     Setting& fade_ = slider("fade", "Visible for (s)", 10.f, 3.f, 60.f, "%.0f s");
     Setting& stamp_ = toggleSetting("stamp", "Timestamp", false);
@@ -409,74 +454,158 @@ private:
 class TabList : public HudModule {
 public:
     TabList()
-        : HudModule("Tab List", "Java-style player list with columns, ping and sorting.",
+        : HudModule("Tab List", "Java-style player list with heads, platform icons, ping, world name, columns, sorting and highlights.",
                     {"info-others"}, {0.30f, 0.05f}) {
         sub("HUD parts");
         require(need::tab, need::sigs({"TabListData"}));
         rows_.visible = [this] { return columns_.i == 0; };
+        worldName_.visible = [this] { return header_.b; };
+        count_.visible = [this] { return header_.b; };
+        serverPing_.visible = [this] { return header_.b; };
+        pingBars_.visible = [this] { return ping_.b; };
+        toggleKey_.visible = [this] { return !onHold_.b; };
+        highlightWords_.visible = [this] { return highlight_.b; };
+        highlightColor_.visible = [this] { return highlight_.b; };
+    }
+
+    void onKey(KeyEvent& ev) override {
+        if (ev.down && !ev.repeat && toggleKey_.i && ev.vk == toggleKey_.i) shown_ = !shown_;
     }
 
     void onRender(ImDrawList* dl) override {
         if (!game::state().inWorld && !gui::editingHud()) return;
-        if (onHold_.b && !input::down(VK_TAB) && !gui::editingHud()) return;
+        bool visible = onHold_.b ? input::down(VK_TAB) : shown_ || !toggleKey_.i;
+        if (!visible && !gui::editingHud()) return;
         HudModule::onRender(dl);
     }
 
 protected:
     ImVec2 content(ImDrawList* dl, ImVec2 o, float s) override {
-        std::vector<game::TabEntry> list = game::state().tab;
+        auto& st = game::state();
+        std::vector<game::TabEntry> list = st.tab;
         if (sort_.i == 0) std::sort(list.begin(), list.end(), [](auto& a, auto& b) { return text::lower(a.name) < text::lower(b.name); });
         else if (sort_.i == 1) std::sort(list.begin(), list.end(), [](auto& a, auto& b) { return a.ping < b.ping; });
         auto* cs = modules::get<ClientSettings>();
+        auto* mo = modules::get<MochiOnline>();
+        if (mo && !mo->enabled()) mo = nullptr;
         int per = columns_.i > 0 ? int((list.size() + size_t(columns_.i) - 1) / size_t(columns_.i)) : rows_.i;
         per = std::max(per, 1);
-        int cols = int((list.size() + size_t(per) - 1) / size_t(per));
-        float rowH = fonts::hudSize() * s * 1.15f, x = 0.f, total = 0.f;
+        int cols = std::max(1, int((list.size() + size_t(per) - 1) / size_t(per)));
+        float rowH = fonts::hudSize() * s * 1.15f + spacing_.f * s;
+        float icon = rowH - spacing_.f * s - 2 * s;
+        auto marks = srv::words(highlightWords_.text);
+
+        float head = 0.f, y0 = 0.f, headerW = 0.f;
+        if (header_.b) {
+            std::string title;
+            if (worldName_.b) title = st.world.name.empty() ? st.server : st.world.name;
+            if (count_.b) title += (title.empty() ? "" : "  ·  ") + i18n::fmt("{} players", list.size());
+            float x = 0.f;
+            if (!title.empty()) x += drawText(dl, o, s, title, accentColor()).x;
+            if (serverPing_.b) {
+                ImVec4 c4 = rampColor(float(st.world.ping), 40.f, 200.f, good_.color, mid_.color, bad_.color);
+                std::string t = std::format("{} ms", st.world.ping);
+                float dot = 4.f * s;
+                x += title.empty() ? 0.f : 10.f * s;
+                dl->AddCircleFilled(o + ImVec2(x + dot, rowH * 0.5f), dot, ImGui::GetColorU32(c4));
+                x += dot * 2 + 4 * s;
+                x += drawText(dl, o + ImVec2(x, 0), s, t, ImGui::GetColorU32(c4)).x;
+            }
+            headerW = x;
+            y0 = rowH + 2 * s;
+        }
+
+        float x = 0.f, total = 0.f;
         for (int c = 0; c < cols; c++) {
             float colW = 60.f * s;
             for (int r = 0; r < per; r++) {
                 size_t i = size_t(c * per + r);
                 if (i >= list.size()) break;
-                std::string extra = list[i].name == game::state().player.name && cs ? cs->tabTag() : "";
-                colW = std::max(colW, textSize(s, list[i].name).x + (extra.empty() ? 0.f : textSize(s, extra).x + 6 * s) + (ping_.b ? 56.f * s : 8.f * s));
+                std::string extra = list[i].name == st.player.name && cs ? cs->tabTag() : "";
+                online::User peer;
+                bool mochi = mo && online::find(list[i].name, peer);
+                if (mochi && mo->hearts() && peer.style.heart) extra += "    ";
+                float w = textSize(s, list[i].name).x + (extra.empty() ? 0.f : textSize(s, extra).x + 6 * s) + (heads_.b ? rowH : 0.f) + (platform_.b ? rowH : 0.f) + (ping_.b ? 56.f * s : 8.f * s);
+                colW = std::max(colW, w);
             }
             for (int r = 0; r < per; r++) {
                 size_t i = size_t(c * per + r);
                 if (i >= list.size()) break;
                 auto& e = list[i];
-                bool me = e.name == game::state().player.name;
+                bool me = e.name == st.player.name;
+                bool marked = highlight_.b && std::find(marks.begin(), marks.end(), text::lower(e.name)) != marks.end();
+                ImVec2 row = o + ImVec2(x, y0 + r * rowH);
+                if (marked) dl->AddRectFilled(row - ImVec2(3 * s, 0), row + ImVec2(colW + 3 * s, rowH), ImGui::GetColorU32(withAlpha(highlightColor_.color, 0.3f)), 3 * s);
+                float cx = 0.f;
+                if (heads_.b) {
+                    if (e.hasHead) icons::head(dl, e, row + ImVec2(0, (rowH - icon) * 0.5f), icon);
+                    else icons::initial(dl, e.name, row + ImVec2(0, (rowH - icon) * 0.5f), icon, textColor());
+                    cx += rowH;
+                }
+                if (platform_.b) {
+                    icons::platform(dl, e.platform, row + ImVec2(cx, (rowH - icon) * 0.5f), icon, ImGui::GetColorU32(theme::current().textDim));
+                    cx += rowH;
+                }
+                ImU32 nameColor = marked ? ImGui::GetColorU32(highlightColor_.color) : me ? accentColor() : textColor();
+                if (nick::mine(e.name)) nameColor = nick::colorOf(nick::color, nameColor);
+                std::string shownName = nick::show(e.name);
+                online::User peer;
+                bool mochi = mo && online::find(e.name, peer);
+                ImVec2 namePos = row + ImVec2(cx, spacing_.f * s * 0.5f);
+                if (mochi && mo->colors() && !marked) online::paint(shownName, peer.style, ui::time(), [&](const std::string& piece, ImU32 col, float x) { return drawText(dl, namePos + ImVec2(x, 0), s, piece, col).x; });
+                else drawText(dl, namePos, s, shownName, nameColor);
+                float after = namePos.x + textSize(s, shownName).x + 6 * s;
                 std::string tabTag = me && cs ? cs->tabTag() : "";
-                drawText(dl, o + ImVec2(x, r * rowH), s, e.name, me ? accentColor() : textColor());
-                if (!tabTag.empty()) drawText(dl, o + ImVec2(x + textSize(s, e.name).x + 6 * s, r * rowH), s, tabTag, ImGui::GetColorU32(cs->tagColor()));
+                if (!tabTag.empty()) {
+                    drawText(dl, {after, namePos.y}, s, tabTag, ImGui::GetColorU32(cs->tagColor()));
+                    after += textSize(s, tabTag).x + 6 * s;
+                }
+                if (mochi && mo->hearts() && peer.style.heart) {
+                    float hs = icon * 0.8f;
+                    online::heartIcon(dl, {after + hs * 0.5f - 3 * s, row.y + rowH * 0.5f}, hs, online::rgb(peer.style.heartColor));
+                }
                 if (ping_.b) {
-                    std::string t = pingBars_.b ? "" : std::format("{}", e.ping);
                     ImVec4 c4 = rampColor(float(e.ping), 40.f, 200.f, good_.color, mid_.color, bad_.color);
                     if (pingBars_.b) {
                         int lit = e.ping < 60 ? 4 : e.ping < 110 ? 3 : e.ping < 180 ? 2 : 1;
                         for (int b = 0; b < 4; b++) {
                             float bh = (3 + b * 2) * s;
-                            ImVec2 base{o.x + x + colW - 26 * s + b * 5 * s, o.y + r * rowH + rowH - 3 * s};
+                            ImVec2 base{row.x + colW - 26 * s + b * 5 * s, row.y + rowH - 3 * s};
                             dl->AddRectFilled(base - ImVec2(0, bh), base + ImVec2(3 * s, 0), b < lit ? ImGui::GetColorU32(c4) : IM_COL32(255, 255, 255, 40));
                         }
                     } else {
-                        drawText(dl, o + ImVec2(x + colW - textSize(s, t).x - 6 * s, r * rowH), s, t, ImGui::GetColorU32(c4));
+                        std::string t = std::format("{}", e.ping);
+                        drawText(dl, row + ImVec2(colW - textSize(s, t).x - 6 * s, spacing_.f * s * 0.5f), s, t, ImGui::GetColorU32(c4));
                     }
                 }
             }
             x += colW + 12 * s;
             total = x;
         }
-        return {std::max(total - 12 * s, 60.f * s), std::min(per, int(list.size())) * rowH};
+        (void)head;
+        return {std::max({total - 12 * s, 60.f * s, headerW}), y0 + std::min(per, int(list.size())) * rowH};
     }
 
 private:
     Setting& columns_ = intSlider("columns", "Columns (0 = by rows)", 0, 0, 6);
     Setting& rows_ = intSlider("rows", "Rows per column", 20, 5, 40);
     Setting& sort_ = choice("sort", "Sorting", {"Name", "Ping", "As sent by the server"}, 2);
+    Setting& spacing_ = slider("spacing", "Row spacing", 0.f, 0.f, 8.f, "%.0f");
+    Setting& heads_ = toggleSetting("heads", "Player heads", true);
+    Setting& platform_ = toggleSetting("platform", "Platform icons", true);
+    Setting& header_ = toggleSetting("header", "Header", true);
+    Setting& worldName_ = toggleSetting("worldName", "World name", true);
+    Setting& count_ = toggleSetting("count", "Player count", true);
+    Setting& serverPing_ = toggleSetting("serverPing", "Server ping with color dot", true);
     Setting& ping_ = toggleSetting("ping", "Show ping", true);
     Setting& pingBars_ = toggleSetting("pingBars", "Ping as bars", true);
+    Setting& highlight_ = toggleSetting("highlight", "Highlight players", false);
+    Setting& highlightWords_ = textSetting("highlightWords", "Players (comma)", "");
     Setting& onHold_ = toggleSetting("onHold", "Only while Tab is held", true);
+    Setting& toggleKey_ = keySetting("toggleKey", "Toggle key", 0);
     Setting& good_ = colorSetting("good", "Ping good", {0.55f, 0.91f, 0.69f, 1.f});
     Setting& mid_ = colorSetting("mid", "Ping medium", {1.f, 0.82f, 0.49f, 1.f});
     Setting& bad_ = colorSetting("bad", "Ping bad", {1.f, 0.4f, 0.45f, 1.f});
+    Setting& highlightColor_ = colorSetting("highlightColor", "Highlight", {1.f, 0.82f, 0.49f, 1.f});
+    bool shown_ = false;
 };

@@ -41,7 +41,9 @@
         "Damage Indicator",
         "Target HUD",
         "Hotbar Keys",
-        "Hive Utils"
+        "Hive Utils",
+        "Kill Cleanup",
+        "Light Overlay"
       ]
     },
     {
@@ -59,7 +61,9 @@
         "Instant Hit",
         "Snap Look",
         "Command Hotkey",
-        "Text Hotkey"
+        "Text Hotkey",
+        "Kill Cleanup",
+        "Light Overlay"
       ]
     },
     {
@@ -107,6 +111,37 @@
       "warn": [
         "Crystal Optimizer"
       ]
+    },
+    {
+      "name": "NetherGames",
+      "match": [
+        "nethergames.org"
+      ],
+      "rules": "https://support.nethergames.org/terms-of-service",
+      "warn": [
+        "Toggle Sprint",
+        "Bow Charge",
+        "Instant Hit",
+        "Null Movement",
+        "Faster Inventory",
+        "Item Use Delay Fix"
+      ],
+      "notice": "Mochi has not checked the NetherGames mod list in detail. Reports say Toggle Sprint and bow indicators are blocked there."
+    },
+    {
+      "name": "Mineville",
+      "match": [
+        "mineville.org"
+      ],
+      "rules": "https://mineville.org/support/what-are-the-rules/",
+      "warn": [
+        "Instant Hit",
+        "Null Movement",
+        "Faster Inventory",
+        "Item Use Delay Fix",
+        "Insta Hurt Animation"
+      ],
+      "notice": "Mineville bans mods that give an advantage but has no public list. Stay with display modules."
     }
   ]
 }

@@ -39,6 +39,7 @@ struct ShaderInfo {
     bool builtin = false;
 };
 
+void blur(ImDrawList* dl, ImVec2 min, ImVec2 max, float rounding, float radius, ImVec4 tint);
 const std::vector<ShaderInfo>& shaders();
 void reloadShaders();
 std::string shaderError(int index);
