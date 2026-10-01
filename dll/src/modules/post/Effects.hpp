@@ -1,11 +1,14 @@
 #pragma once
 
 #include "PostFx.hpp"
+#include "core/Paths.hpp"
+#include "gui/Gui.hpp"
 #include "modules/Manager.hpp"
 #include "modules/Module.hpp"
 #include "render/Ui.hpp"
 
 #include <windows.h>
+#include <shellapi.h>
 
 #include <algorithm>
 #include <cmath>
@@ -132,6 +135,76 @@ public:
 
 private:
     Setting& amount_ = slider("amount", "Strength", 0.5f, 0.f, 1.f, "%.2f");
+};
+
+class Blur : public Module {
+public:
+    Blur()
+        : Module("Blur", "Blurs the game image, always or only while a menu, the inventory or the chat is open.",
+                 Category::Visual, {"cosmetic"}) {
+        sub("Post effects");
+    }
+
+    void onFrame() override {
+        bool menu = gui::open() || game::state().screen != game::Screen::None;
+        if (when_.i == 1 && !menu) return;
+        float px = amount_.f * 24.f * ui::scale();
+        post::params().blur = std::max(post::params().blur, px);
+    }
+
+private:
+    Setting& amount_ = slider("amount", "Strength", 0.5f, 0.05f, 1.f, "%.2f");
+    Setting& when_ = choice("when", "When", {"Always", "Only in menus"}, 1);
+};
+
+class ShaderPacks : public Module {
+public:
+    ShaderPacks()
+        : Module("Shader Packs",
+                 "Loads shaders on top of the game image, also on servers. Four looks are built in, your own .hlsl files go into the shaders folder. Only changes what you see.",
+                 Category::Visual, {"cosmetic"}) {
+        sub("Post effects");
+        rebuild();
+    }
+
+    void onEnable() override { rebuild(); }
+
+    void onFrame() override {
+        int index = pickIndex();
+        if (index < 0) return;
+        auto& p = post::params();
+        p.shader = index;
+        p.shaderMix = amount_.f;
+    }
+
+    void drawSettings() override {
+        ImGui::Spacing();
+        int index = pickIndex();
+        if (index >= 0) {
+            std::string err = post::shaderError(index);
+            if (!err.empty()) ImGui::TextWrapped("%s", err.c_str());
+        }
+        if (ImGui::SmallButton(i18n::tr("Reload shaders"))) {
+            post::reloadShaders();
+            rebuild();
+        }
+        ImGui::SameLine();
+        if (ImGui::SmallButton(i18n::tr("Open folder"))) ShellExecuteW(nullptr, L"open", (paths::root() / L"shaders").c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+    }
+
+private:
+    void rebuild() {
+        names_.clear();
+        for (auto& s : post::shaders()) names_.push_back(s.name);
+        pack_.choices = names_;
+        pack_.i = std::clamp(pack_.i, 0, std::max(0, (int)names_.size() - 1));
+    }
+
+    int pickIndex() const { return pack_.i >= 0 && pack_.i < (int)names_.size() ? pack_.i : -1; }
+
+    std::vector<std::string> names_;
+    Setting& pack_ = choice("pack", "Shader", {"Soft Glow"});
+    Setting& amount_ = slider("amount", "Strength", 1.f, 0.f, 1.f, "%.2f");
 };
 
 class ColorFilter : public Module {

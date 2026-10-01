@@ -26,6 +26,7 @@
 #include "combat/Pvp.hpp"
 #include "combat/Tweaks.hpp"
 #include "comfort/Chat.hpp"
+#include "comfort/Music.hpp"
 #include "comfort/Link.hpp"
 #include "comfort/Lock.hpp"
 #include "comfort/Nick.hpp"
@@ -68,11 +69,11 @@
 #include "network/Network.hpp"
 #include "network/PingCounter.hpp"
 #include "network/Probe.hpp"
-#include "cosmetics/CosmeticsModule.hpp"
 #include "online/MochiOnline.hpp"
 #include "perf/Auto.hpp"
 #include "perf/FrameLimiter.hpp"
 #include "perf/LowLatency.hpp"
+#include "perf/MouseSync.hpp"
 #include "perf/PerformanceLock.hpp"
 #include "perf/Tuning.hpp"
 #include "platform/Presence.hpp"
@@ -162,6 +163,8 @@ void init() {
     add<ScreenTint>();
     add<Sharpen>();
     add<DepthOfField>();
+    add<Blur>();
+    add<ShaderPacks>();
     add<ColorFilter>();
     add<NightShift>();
     add<MotionBlur>();
@@ -236,6 +239,7 @@ void init() {
     add<AutoGG>();
     add<MessageLogger>();
     add<ChatPlus>();
+    add<MusicControl>();
     add<DeathLogger>();
     add<PlayerNotifier>();
     add<ScoreboardPlus>();
@@ -265,7 +269,6 @@ void init() {
     add<LuaScripts>();
     add<ConfigSharing>();
     add<MochiOnline>();
-    add<CosmeticsModule>();
     add<HotbarArmor>();
     add<FallPredictor>();
     add<InventoryView>();
@@ -289,6 +292,7 @@ void init() {
     add<BackgroundLoad>();
     add<SystemBoost>();
     add<PerformanceLock>();
+    add<MouseSync>();
     add<SigStatus>();
 
     add<Snake>();
@@ -374,18 +378,36 @@ void frame(ImDrawList* hud) {
     input::consumeMotion(motion.x, motion.y);
 
     bool editing = gui::editingHud();
-    for (auto& m : list) {
+    static std::vector<float> spent;
+    spent.assign(list.size(), 0.f);
+    auto elapsed = [&](LARGE_INTEGER from) {
+        LARGE_INTEGER to, f;
+        QueryPerformanceCounter(&to);
+        QueryPerformanceFrequency(&f);
+        return float(double(to.QuadPart - from.QuadPart) * 1000.0 / double(f.QuadPart));
+    };
+    for (size_t i = 0; i < list.size(); i++) {
+        auto& m = list[i];
         if (!m->enabled()) continue;
+        LARGE_INTEGER from;
+        QueryPerformanceCounter(&from);
         if (!guard::call(m->name().c_str(), [&] { m->onFrame(); })) fault(*m);
+        spent[i] += elapsed(from);
     }
 
+    post::params().blur = std::max(post::params().blur, gui::menuBlurPx());
     post::submit(hud);
     capture::submit(hud, capture::Stage::Game);
-    for (auto& m : list) {
+    for (size_t i = 0; i < list.size(); i++) {
+        auto& m = list[i];
         if (!m->enabled()) continue;
         if (m->isHud() && (hudHidden && !editing)) continue;
+        LARGE_INTEGER from;
+        QueryPerformanceCounter(&from);
         if (!guard::call(m->name().c_str(), [&] { m->onRender(hud); })) fault(*m);
+        spent[i] += elapsed(from);
     }
+    for (size_t i = 0; i < list.size(); i++) list[i]->costMs += (spent[i] - list[i]->costMs) * 0.05f;
 
     capture::submit(hud, capture::Stage::Overlay);
     perf::apply();
@@ -396,6 +418,13 @@ void frame(ImDrawList* hud) {
 }
 
 float costMs() { return cost; }
+
+const Module* slowest() {
+    const Module* worst = nullptr;
+    for (auto& m : list)
+        if (m->enabled() && (!worst || m->costMs > worst->costMs)) worst = m.get();
+    return worst;
+}
 
 Motion mouseDelta() { return motion; }
 

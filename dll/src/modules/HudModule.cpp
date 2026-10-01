@@ -92,9 +92,19 @@ static void ringGlow(ImDrawList* dl, ImVec2 min, ImVec2 max, float rounding, ImV
     }
 }
 
+namespace hud {
+
+static float global = 1.f;
+
+float globalScale() { return global; }
+
+void setGlobalScale(float s) { global = s; }
+
+}
+
 void HudModule::onRender(ImDrawList* dl) {
     if (ctx::hideModules && !gui::editingHud()) return;
-    float s = scale_.f;
+    float s = scale_.f * hud::globalScale();
     ImVec2 pos = position();
     ImVec2 pad{padding_.f * s, padY_.f * s};
 

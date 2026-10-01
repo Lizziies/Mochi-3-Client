@@ -1,6 +1,12 @@
 #pragma once
 
 #include "gui/Notify.hpp"
+#include "gui/Theme.hpp"
+#include "modules/HudModule.hpp"
+#include "render/Draw.hpp"
+#include "render/Fonts.hpp"
+#include "render/Ui.hpp"
+#include "core/Build.hpp"
 #include "modules/Manager.hpp"
 #include "modules/Module.hpp"
 #include "sdk/Game.hpp"
@@ -14,6 +20,7 @@ public:
     ClientSettings()
         : Module("Client Settings", "Name tag behind your name in chat, notifications and other global options.", Category::Client) {
         sub("Client");
+        cosmetics_.hidden = true;
         tagText_.visible = [this] { return tag_.b; };
         tagColor_.visible = [this] { return tag_.b; };
         tagPos_.visible = [this] { return tag_.b; };
@@ -23,7 +30,25 @@ public:
 
     bool alwaysOn() const override { return true; }
 
-    void onFrame() override { notify::setMuted(!notifications_.b); }
+    void onFrame() override {
+        notify::setMuted(!notifications_.b);
+        draw::setMotion(motion_.b);
+        hud::setGlobalScale(hudScale_.f);
+    }
+
+    void onRender(ImDrawList* dl) override {
+        if (!invMark_.b || game::state().screen != game::Screen::Inventory) return;
+        auto& t = theme::current();
+        float s = ui::scale();
+        auto ds = ImGui::GetIO().DisplaySize;
+        float size = 22.f * s;
+        ImVec2 ts = fonts::bold()->CalcTextSizeA(size, FLT_MAX, 0.f, build::name);
+        ImVec2 max{ds.x - 24 * s, ds.y - 24 * s};
+        ImVec2 min{max.x - ts.x - 56 * s, max.y - 40 * s};
+        dl->AddRectFilled(min, max, theme::col(t.surface, 0.8f), 20 * s);
+        draw::heart(dl, {min.x + 22 * s, min.y + 20 * s}, 18 * s, theme::col(t.accent));
+        dl->AddText(fonts::bold(), size, {min.x + 40 * s, min.y + (40 * s - size) * 0.5f}, theme::col(t.text), build::name);
+    }
 
     std::string tagged(const std::string& line, bool chat) const {
         if (!tag_.b || (!chat && !tabTag_.b)) return line;
@@ -47,6 +72,8 @@ public:
     }
 
     ImVec4 tagColor() const { return tagColor_.color; }
+    Setting& equipped() { return cosmetics_; }
+    float menuBlur() const { return menuBlur_.f; }
 
 private:
     static size_t nameEnd(const std::string& line, const std::string& me) {
@@ -66,4 +93,9 @@ private:
     Setting& brackets_ = toggleSetting("brackets", "Tag in brackets", true);
     Setting& tabTag_ = toggleSetting("tabTag", "Also in the Tab List", true);
     Setting& notifications_ = toggleSetting("notifications", "Notifications", true);
+    Setting& invMark_ = toggleSetting("invMark", "Watermark in the inventory", true);
+    Setting& motion_ = toggleSetting("motion", "Animations", true);
+    Setting& menuBlur_ = slider("menuBlur", "Menu background blur", 0.7f, 0.f, 1.f, "%.2f");
+    Setting& hudScale_ = slider("hudScale", "Default HUD size", 1.f, 0.6f, 1.6f, "%.2fx");
+    Setting& cosmetics_ = textSetting("cosmetics", "Equipped cosmetics", "");
 };

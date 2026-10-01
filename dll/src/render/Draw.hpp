@@ -5,6 +5,8 @@
 namespace draw {
 
 float approach(float current, float target, float speed);
+void setMotion(bool on);
+bool motion();
 float easeOutBack(float t);
 float easeOutCubic(float t);
 

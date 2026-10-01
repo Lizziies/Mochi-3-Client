@@ -34,3 +34,4 @@ Kurze Chronik, damit jede neue Session weiß, was schon passiert ist.
 - Phase 7: Politur, Modul-Dump und Doku-Generator, `tools/cross.sh tour`, Nachträge in PARITY.md und FEATURES.md.
 - Merge von main in modules-b (Client Settings, HUD-Editor-Einrasten, Self-Test, "Info displays"), Konflikte in Chat/Clock/Compose/Cps/GameInfo/Keystrokes aufgelöst, Self-Test grün, fehlende deutsche Texte ergänzt, MODULES.md neu erzeugt.
 - Mochi Online: Client-Modul mit Herz, Namensstilen und Tags in Tab-Liste und Chat, Dienst in `server/` mit Tests, Strg+L-Fix in `hook/Input.cpp`.
+- Merge des neuen Menüs, Cosmetics-Modul entfernt, Mochi Online ohne freien Text, HD-Cosmetics-Generator nach tools/cosmetics_hd.

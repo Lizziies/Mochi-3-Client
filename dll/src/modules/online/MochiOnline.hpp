@@ -2,6 +2,9 @@
 
 #include "Online.hpp"
 #include "gui/Notify.hpp"
+#include "modules/Manager.hpp"
+#include "modules/client/ClientSettings.hpp"
+#include "cosmetics/Cosmetics.hpp"
 #include "gui/Theme.hpp"
 #include "modules/Module.hpp"
 #include "sdk/Game.hpp"
@@ -13,13 +16,13 @@ class MochiOnline : public Module {
 public:
     MochiOnline()
         : Module("Mochi Online",
-                 "Shows other Mochi users with a red heart, name color and tag in the Tab List and chat, and lets them see yours. Sends only your gamertag, the server name and your style to the Mochi service.",
+                 "Shows other Mochi users with a heart and a colored name in the Tab List and chat, and lets them see yours. Sends only your gamertag, the server name, your style and your cosmetics to the Mochi service.",
                  Category::Client, {"cosmetic"}) {
         sub("Online");
         informed_.hidden = true;
         colorB_.visible = [this] { return mode_.i == 1 || mode_.i == 3; };
         speed_.visible = [this] { return mode_.i >= 2; };
-        tagColor_.visible = [this] { return !tag_.text.empty(); };
+        heartColor_.visible = [this] { return heart_.b; };
         url_.visible = [this] { return !demo_.b; };
     }
 
@@ -37,10 +40,10 @@ public:
         s.a = rgb(colorA_.color);
         s.b = rgb(colorB_.color);
         s.speed = speed_.f;
-        s.tag = online::cleanTag(tag_.text);
-        s.tagColor = rgb(tagColor_.color);
+        s.heartColor = rgb(heartColor_.color);
         s.heart = heart_.b;
         online::setStyle(s);
+        online::setWorn(equipped());
         push(true);
     }
 
@@ -55,11 +58,6 @@ public:
         int shown = 0;
         for (auto& u : list) {
             if (shown++ >= 12) break;
-            ImVec2 p = ImGui::GetCursorScreenPos();
-            float h = ImGui::GetTextLineHeight();
-            if (u.style.heart) online::heartIcon(ImGui::GetWindowDrawList(), {p.x + h * 0.5f, p.y + h * 0.5f}, h * 0.8f, IM_COL32(255, 59, 92, 255));
-            ImGui::Dummy({h, h});
-            ImGui::SameLine();
             int idx = 0, total = 0;
             for (unsigned char ch : u.name)
                 if ((ch & 0xC0) != 0x80) total++;
@@ -76,9 +74,11 @@ public:
                 ImGui::SameLine(0, 0);
                 i += n;
             }
-            if (!u.style.tag.empty()) {
-                ImGui::SameLine(0, 6);
-                ImGui::TextColored(ImGui::ColorConvertU32ToFloat4(online::rgb(u.style.tagColor)), "[%s]", u.style.tag.c_str());
+            if (u.style.heart) {
+                ImVec2 p = ImGui::GetCursorScreenPos();
+                float h = ImGui::GetTextLineHeight();
+                online::heartIcon(ImGui::GetWindowDrawList(), {p.x + h * 0.7f, p.y + h * 0.5f}, h * 0.8f, online::rgb(u.style.heartColor));
+                ImGui::Dummy({h * 1.2f, h});
             }
             ImGui::NewLine();
         }
@@ -92,11 +92,29 @@ public:
 
     bool hearts() const { return enabled() && showHearts_.b; }
     bool colors() const { return enabled() && showColors_.b; }
-    bool tags() const { return enabled() && showTags_.b; }
 
 private:
     static uint32_t rgb(ImVec4 c) {
         return (uint32_t(c.x * 255.f + 0.5f) << 16) | (uint32_t(c.y * 255.f + 0.5f) << 8) | uint32_t(c.z * 255.f + 0.5f);
+    }
+
+    static std::vector<online::Worn> equipped() {
+        std::vector<online::Worn> out;
+        auto* cs = modules::get<ClientSettings>();
+        if (!cs) return out;
+        const std::string& list = cs->equipped().text;
+        for (size_t from = 0; from <= list.size();) {
+            size_t to = list.find(',', from);
+            std::string id = list.substr(from, to == std::string::npos ? std::string::npos : to - from);
+            if (auto* item = cosmetics::find(id)) {
+                online::Worn w{item->id, {}};
+                for (auto& t : item->tints) w.tint.push_back(rgb(t.color));
+                out.push_back(std::move(w));
+            }
+            if (to == std::string::npos) break;
+            from = to + 1;
+        }
+        return out;
     }
 
     void push(bool on) {
@@ -116,12 +134,10 @@ private:
     Setting& colorA_ = colorSetting("colorA", "Name color", {1.f, 0.49f, 0.71f, 1.f});
     Setting& colorB_ = colorSetting("colorB", "Second color", {1.f, 1.f, 1.f, 1.f});
     Setting& speed_ = slider("speed", "Speed", 1.f, 0.2f, 4.f, "%.1fx");
-    Setting& tag_ = textSetting("tag", "Tag (max 16 characters)", "");
-    Setting& tagColor_ = colorSetting("tagColor", "Tag color", {1.f, 0.49f, 0.71f, 1.f});
-    Setting& heart_ = toggleSetting("heart", "Red heart before my name", true);
+    Setting& heart_ = toggleSetting("heart", "Heart behind my name", true);
+    Setting& heartColor_ = colorSetting("heartColor", "Heart color", {1.f, 0.23f, 0.36f, 1.f});
     Setting& showHearts_ = toggleSetting("showHearts", "Show hearts of other users", true);
     Setting& showColors_ = toggleSetting("showColors", "Show name colors of other users", true);
-    Setting& showTags_ = toggleSetting("showTags", "Show tags of other users", true);
     Setting& url_ = textSetting("url", "Service address", "");
     Setting& demo_ = toggleSetting("demo", "Made-up users, no network", false);
     Setting& informed_ = toggleSetting("informed", "Informed", false);

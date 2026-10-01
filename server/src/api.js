@@ -1,4 +1,3 @@
-import { tagAllowed } from './filter.js';
 import { cleanServer, cleanStyle, cleanWorn, keyOf, nameOk } from './validate.js';
 
 const online = 150;
@@ -57,7 +56,7 @@ async function hello(body, ip, store, now) {
   const existing = await store.player(key);
   if (existing && existing.secret !== secret && now - existing.seen < reclaimAfter) return fail(403, 'claimed');
 
-  const { style, filtered } = cleanStyle(body.style, tagAllowed);
+  const style = cleanStyle(body.style);
   const player = {
     key,
     name: body.name,
@@ -74,11 +73,11 @@ async function hello(body, ip, store, now) {
 
   const token = randomToken();
   await store.saveSession(await sha256(token), key, now + sessionTtl);
-  return json({ token, ttl: sessionTtl, style, worn: player.worn, filtered });
+  return json({ token, ttl: sessionTtl, style, worn: player.worn });
 }
 
 async function profile(body, auth, store, now) {
-  const { style, filtered } = cleanStyle(body.style ?? auth.player.style, tagAllowed);
+  const style = cleanStyle(body.style ?? auth.player.style);
   const player = {
     ...auth.player,
     style,
@@ -87,7 +86,7 @@ async function profile(body, auth, store, now) {
     seen: now,
   };
   await store.savePlayer(player);
-  return json({ style, worn: player.worn, filtered });
+  return json({ style, worn: player.worn });
 }
 
 async function presence(body, auth, store, now) {

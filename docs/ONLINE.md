@@ -1,6 +1,6 @@
 # Mochi Online: Nutzer erkennen, Tags, Namensfarben, Cosmetics für alle
 
-Ziel: Jeder Spieler, der Mochi benutzt, ist für andere Mochi-Nutzer erkennbar und sichtbar. Rotes Herz vor dem Namen in der Tab-Liste, Tag im Chat, eigene Namensfarbe oder Regenbogen, und später Cosmetics an der Figur. Mockup: `docs/ui_proposals/l_players.png`.
+Ziel: Jeder Spieler, der Mochi benutzt, ist für andere Mochi-Nutzer erkennbar und sichtbar. Mochi-Logo hinter dem Namen in der Tab-Liste und im Chat, eigene Namensfarbe oder Regenbogen, und später Cosmetics an der Figur. Mockup: `docs/ui_proposals/l_players.png`.
 
 ## Warum es einen Server braucht
 
@@ -16,9 +16,8 @@ Es gehen keine zusätzlichen Pakete an den Minecraft-Server. Nicht-Mochi-Spieler
 
 ## Was Nutzer einstellen können
 
-- Namensfarbe: einfarbig, Verlauf, Regenbogen (langsam, mittel, schnell), Puls.
-- Tag-Text und Tag-Farbe (mit Filter für Beleidigungen).
-- Rotes Herz vor dem Namen an/aus.
+- Namensfarbe: nur der echte Xbox-Name wird eingefärbt (einfarbig, Verlauf, Regenbogen, Puls). Man kann keinen anderen Namen dazuschreiben, es gibt keinen freien Text.
+- Das Mochi-Logo (Herz) steht fest hinter dem Xbox-Namen. Es lässt sich nur ein- und ausschalten und in der Farbe wählen.
 - Ausgerüstete Cosmetics (Flügel, Cape, Kopf, Rücken ...).
 - Sichtbarkeit: "Für andere Mochi-Nutzer sichtbar" an/aus (Standard: an, steht beim ersten Start gut sichtbar zur Wahl).
 
@@ -44,7 +43,7 @@ Cloudflare Workers mit D1 (Datenbank) und KV (Zwischenspeicher). Der kostenlose 
 
 - **Namens-Diebstahl:** Ohne Prüfung könnte jemand behaupten, "Luna" zu sein, und deren Stil überschreiben. Gegenmaßnahme erste Version: Der Dienst gibt jedem Gamertag nur einen Sitzungs-Token und akzeptiert nur Änderungen mit dem Token. Zweite Version: Beweis über den Xbox-Login (XSTS-Token), der im Spiel schon existiert. Das muss am PC erforscht werden.
 - **Datenschutz:** Der Dienst speichert nur Gamertag, Servername, Stil, Cosmetics, letzten Kontakt. Nichts über Chat, Standort, IP-Dauerspeicherung oder Welten. Vor dem ersten Senden fragt der Client beim ersten Start, löschen geht mit einem Knopf. Eine Datenschutz-Seite muss vor dem Release stehen.
-- **Missbrauch:** Tag-Texte filtern, melden, Sperrliste. Die Anzahl der Aufrufe pro Nutzer begrenzen.
+- **Missbrauch:** Es gibt keine freien Texte, nur Farben und feste Logos, deshalb kein Filter nötig. Aufrufe pro Nutzer begrenzen, Sperrliste für Namens-Diebstahl.
 - **Server-Regeln:** Manche Server mögen keine Fremd-Clients. Der Dienst meldet keine Serverdaten, wenn die Server-Regeln es für diesen Server sperren: dafür gibt es keinen neuen Mechanismus, das Modul "Mochi Online" kommt einfach in die `block`-Liste des Servers in `servers.json`. Dann lässt es sich dort nicht einschalten.
 - **Cosmetics an fremden Figuren:** Wir sehen sie nur, wenn der Client Position und Haltung fremder Spieler lesen kann (Signaturen). Bis dahin zeigen wir Herz, Farbe und Tag in Tab-Liste und Chat.
 
@@ -52,7 +51,7 @@ Cloudflare Workers mit D1 (Datenbank) und KV (Zwischenspeicher). Der kostenlose 
 
 | Schritt | Stand |
 |---|---|
-| 1. Client mit Demo-Daten | gebaut: Modul "Mochi Online" (`dll/src/modules/online/`), rotes Herz, Namensfarbe (einfarbig, Verlauf, Regenbogen, Puls) und Tag in Tab-Liste und Better Chat, Einstellungen für alles, erfundene Nutzer ohne Netzwerk |
+| 1. Client mit Demo-Daten | gebaut: Modul "Mochi Online" (`dll/src/modules/online/`), Herz hinter dem Namen (Farbe wählbar) und Namensfarbe (einfarbig, Verlauf, Regenbogen, Puls) in Tab-Liste und Better Chat, ausgerüstete Cosmetics gehen als `worn` mit, Einstellungen für alles, erfundene Nutzer ohne Netzwerk |
 | 2. `server/` bauen und lokal testen | gebaut: Worker mit D1 und KV, 18 Tests laufen gegen den Speicher und gegen die echte SQL-Datenbank (`node:sqlite`) |
 | 3. Client mit dem Dienst verbinden | gebaut und unter Wine gegen den lokalen Server geprüft: hello, presence, lookup, profile, bye, forget. Hinweis beim ersten Einschalten, Knopf "Meine Daten im Dienst löschen" |
 | 4. Veröffentlichen | **offen, Felix:** Cloudflare-Konto, `wrangler deploy`, Adresse in den Client eintragen. Datenschutz-Seite schreiben. Xbox-Beweis erforschen |
@@ -63,4 +62,4 @@ Entscheidungen beim Bauen:
 - **Namens-Diebstahl, erste Version:** Jede Installation erzeugt einmal ein zufälliges Geheimnis (`online.key`). Wer einen Gamertag zuerst benutzt, besitzt ihn. Andere bekommen 403, bis er 30 Tage still war. Das ist nur ein Anfang, der Xbox-Beweis ersetzt es.
 - **Einwilligung:** Das Modul ist standardmäßig aus. Wer es einschaltet, stimmt zu und bekommt dabei eine Meldung, was gesendet wird. "Für andere sichtbar" ist getrennt einstellbar: wer es ausschaltet, sieht andere, wird aber selbst nicht aufgelistet.
 - **Ohne Adresse:** Im Demo-Modus zeigt der Client erfundene Nutzer. Ohne Demo und ohne Adresse passiert nichts und das Modul sagt es.
-- **Tags:** Der Client entfernt Steuerzeichen und `§`, kürzt auf 16 Zeichen. Der Dienst filtert zusätzlich Beleidigungen und Rollen wie "Admin" und leert den Tag, wenn er durchfällt.
+- **Kein freier Text:** Der Dienst kennt nur Modus, Farben, Tempo, Herz an/aus und Herzfarbe. Alles andere im Profil wird verworfen.

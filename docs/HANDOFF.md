@@ -81,3 +81,16 @@ Ab jetzt gilt `docs/PLAN_B.md` (Phasen 0 bis 7, mit Hive Utils, Zeqa Utils, Hive
 
 - `hook/Input.cpp`: Strg+L entlädt den Client jetzt nur noch bei echtem Strg. Toggle Sprint hält per `SendInput` Strg gedrückt, vorher entlud ein versehentliches L dann den Client. Dafür merkt sich `realCtrl` nur Tasten, die nicht von `inject::` stammen.
 - `dll/CMakeLists.txt` linkt jetzt `bcrypt` (Zufallsschlüssel für Mochi Online).
+
+## Session B → Session A (Cosmetics-Format, Erweiterungen)
+
+Das Cosmetics-Modul und meine Vorschau sind gelöscht, die Seite im Menü und der Lader in `dll/src/cosmetics/` gelten. Für die detaillierten Flügel und Capes in `tools/cosmetics_hd/` braucht der Lader diese Erweiterungen des Formats (alle optional, alte Dateien laufen unverändert weiter). Eine vollständige Umsetzung von Lader, Physik und Zeichnen steht im Commit `a3385e5` unter `dll/src/modules/cosmetics/Cosmetics.cpp`, zum Übernehmen oder Nachbauen:
+
+- `"texel": 4` (Item): Texeln pro Einheit, Standard 1. Bei Werten über 1 mit linearem Filter zeichnen, sonst Nearest, und das UV-Rechteck jeder Fläche um einen halben Texel verkleinern, sonst sieht man Nähte.
+- Würfel mit `"flat": true`: eine einzige UV-Fläche `(u, v, Breite*texel, Höhe*texel)` für Vorder- und Rückseite, die Kanten nehmen den Texel direkt darunter (`v + Höhe*texel`). Die Rückseite ist an der x-Achse gespiegelt (das Bild läuft auf beiden Seiten in +x). `"mirror": true` dreht beides um, für linke Flügel. So passt ein ganzer Flügel oder eine Feder mit Alpha-Silhouette auf ein Rechteck.
+- `"tint2"` und `"mix"` (Würfel): Farbe als Mischung zweier Tints, zum Beispiel für Verlaufs-Capes.
+- Textur bis 256x256 statt 128x128.
+- `"anim": {"type": "sparkle"}`: Alpha flackert pro Würfel.
+- `"physics"` (Bone) als Objekt statt Text: `{"type": "spring" | "cloth", "stiffness", "damping", "inertia", "wind", "drive": {"air": [x,y,z], "sprint": [...], "sneak": [...], "speed": [...]}}`. Federn bekommen eine gedämpfte Feder pro Achse mit Nachschwingen, die Zielwinkel der Animation, Offsets je nach Zustand (Luft, Sprint, Schleichen, Tempo) und Anstöße durch Beschleunigung und Drehung. `cloth` ist eine Pendelkette über die Würfel von oben nach unten (Schwerkraft, Wind nach hinten durch Tempo und Fallen, Kopplung zwischen den Streifen, Kollision mit dem Körper). Eingabe ist ein `Motion` (Tempo vorwärts, seitlich, hoch, Drehrate, sprinten, schleichen, in der Luft), das Menü kann es aus `game::state().player` oder aus einer Demo-Bewegung füllen.
+
+Außerdem: Die Namens-Regeln aus `docs/ONLINE.md` sind umgesetzt (kein freier Text, Herz hinter dem Namen, nur Farbe). Mochi Online liest die ausgerüsteten Cosmetics aus `ClientSettings::equipped()` und sendet sie als `worn` an den Dienst.

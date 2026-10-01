@@ -11,12 +11,12 @@ constexpr std::string_view core[] = {
     "CPS", "FPS", "Ping Counter", "Keystrokes", "Armor HUD", "Potion HUD", "Coordinates", "Toggle Sprint",
     "Toggle Sneak", "Reach Counter", "Combo Counter", "Zoom", "Fullbright", "Freelook", "FOV Changer", "Hurt Color",
     "No Hurt Cam", "No View Bobbing", "Custom Crosshair", "Block Outline", "Animations", "Block Hit", "Render Options", "Auto GG",
-    "Scoreboard", "GUI Scale", "Instant Hit", "Low Latency", "Latency Meter", "Network Monitor", "Frame Limiter", "Performance Lock", "Hive Utils",
+    "Scoreboard", "GUI Scale", "Instant Hit", "Low Latency", "Latency Meter", "Network Monitor", "Frame Limiter", "Performance Lock", "Mouse Sync", "Hive Utils",
 };
 
 constexpr std::string_view expected[] = {
     "Clock", "Direction HUD", "Speed Display", "Server Display", "IP Display", "Paperdoll", "Tab List", "Hitbox",
-    "Motion Blur", "Waypoints", "Debug Menu", "Mouse Strokes", "Arrow Counter", "Pot Counter", "Totem Counter",
+    "Motion Blur", "Blur", "Shader Packs", "Waypoints", "Debug Menu", "Mouse Strokes", "Arrow Counter", "Pot Counter", "Totem Counter",
     "Item Counter", "Opponent Reach", "Hit Ping", "Low Health Indicator", "Better Hunger Bar", "Waila",
     "Command Hotkey", "Text Hotkey", "Disable Mouse Wheel", "Java Dynamic FOV", "Minimal View Bobbing",
     "Particle Multiplier", "Time Changer", "Weather Changer", "Environment Changer", "Death Logger",
@@ -24,8 +24,9 @@ constexpr std::string_view expected[] = {
     "Sens Multiplier", "Bow Sensitivity", "Stopwatch", "Memory", "Experience Info", "Durability Warning",
     "Streamer Mode", "Server Profiles", "Crystal Optimizer", "Better Chat", "View Model", "Saturation / Hue", "Screenshot+", "Target HUD",
     "Session Timer", "Day Counter", "Hide Hand", "Entity Counter", "Zeqa Utils", "Kill Cleanup", "Inventory Lock", "Modern Keybind Handling", "Java Inventory Hotkeys", "Pack Changer", "Nick", "Hotbar Animation", "Item Physics",
-    "Nametag Modifier", "TNT Timer", "Light Overlay", "Subtitles", "Movable Hotbar", "Movable Title", "Movable Bossbar", "Skin Stealer", "Discord Rich Presence", "Lua Scripts", "Config Sharing", "Mochi Online", "Cosmetics", "Hotbar Armor", "Fall Predictor", "Inventory Viewer", "Arrow Trail", "Black Bars",
+    "Nametag Modifier", "TNT Timer", "Light Overlay", "Subtitles", "Movable Hotbar", "Movable Title", "Movable Bossbar", "Skin Stealer", "Discord Rich Presence", "Lua Scripts", "Config Sharing", "Mochi Online", "Hotbar Armor", "Fall Predictor", "Inventory Viewer", "Arrow Trail", "Black Bars",
     "Left Hand", "Gamemode Hotkeys", "Third Person Nametag", "Hive Stats", "Hive Leaderboard",
+    "Music",
 };
 
 constexpr std::string_view extras[] = {
@@ -37,8 +38,8 @@ constexpr std::string_view extras[] = {
 };
 
 constexpr std::string_view pvp[] = {
-    "CPS", "Keystrokes", "Mouse Strokes", "Combo Counter", "Reach Counter", "Opponent Reach", "Hit Ping", "Armor HUD",
-    "Potion HUD", "Pot Counter", "Arrow Counter", "Totem Counter", "Target HUD", "Hitbox", "Hurt Color", "Animations",
+    "Combo Counter", "Reach Counter", "Opponent Reach", "Hit Ping",
+    "Pot Counter", "Arrow Counter", "Totem Counter", "Target HUD", "Hitbox", "Hurt Color", "Animations",
     "Low Health Indicator", "Auto GG", "Toggle Sprint", "Toggle Sneak", "Snap Look", "Block Hit", "Crystal Optimizer", "Instant Hit", "CPS Limiter",
     "Hit Counter", "Null Movement", "Faster Inventory", "Item Use Delay Fix", "Insta Hurt Animation", "Kill Cleanup",
 };

@@ -15,8 +15,7 @@ struct Style {
     uint32_t a = 0xff7eb6;
     uint32_t b = 0xffffff;
     float speed = 1.f;
-    std::string tag;
-    uint32_t tagColor = 0xff7eb6;
+    uint32_t heartColor = 0xff3b5c;
     bool heart = true;
 
     bool operator==(const Style&) const = default;
@@ -61,7 +60,6 @@ void shutdown();
 
 ImU32 color(const Style& s, double t, int index, int total);
 ImU32 rgb(uint32_t c, float alpha = 1.f);
-std::string cleanTag(const std::string& in);
 std::string hex(uint32_t c);
 uint32_t parseHex(const std::string& s, uint32_t fallback);
 const char* modeId(Mode m);
@@ -87,6 +85,6 @@ float paint(const std::string& text, const Style& s, double t, Draw&& draw) {
     return x;
 }
 
-std::string tagLine(const std::string& line, bool names, bool tags, bool hearts);
+std::string tagLine(const std::string& line, bool names, bool hearts);
 
 }

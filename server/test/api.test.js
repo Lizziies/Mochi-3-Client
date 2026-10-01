@@ -2,7 +2,6 @@ import assert from 'node:assert/strict';
 import { beforeEach, test } from 'node:test';
 import { handle } from '../src/api.js';
 import { memoryStore } from '../src/store_memory.js';
-import { tagAllowed } from '../src/filter.js';
 import { d1Store } from '../src/store_d1.js';
 import { fakeEnv } from './d1shim.js';
 
@@ -38,7 +37,8 @@ test('hello returns a token and cleaned style', async () => {
   assert.equal(r.data.style.mode, 'rainbow');
   assert.equal(r.data.style.a, '#ff0000');
   assert.equal(r.data.style.speed, 5);
-  assert.equal(r.data.style.tag, 'Prok');
+  assert.equal(r.data.style.heartColor, '#ff3b5c');
+  assert.equal(r.data.style.tag, undefined);
 });
 
 test('bad names and secrets are rejected', async () => {
@@ -63,13 +63,13 @@ test('an abandoned gamertag can be reclaimed after 30 days', async () => {
 
 test('lookup returns only visible users that were seen recently', async () => {
   const luna = await login('Luna');
-  await login('Kiki', secretB, { style: { tag: 'Ace', heart: false } });
+  await login('Kiki', secretB, { style: { heartColor: '#00ff00', heart: false } });
   await login('Hidden', 'c'.repeat(48), { visible: false });
   const r = await call('/v1/lookup', { names: ['kiki', 'Hidden', 'Nobody', 'Luna'] }, luna);
   assert.equal(r.status, 200);
   assert.deepEqual(r.data.users.map((u) => u.name).sort(), ['Kiki', 'Luna']);
   assert.equal(r.data.users.find((u) => u.name === 'Kiki').style.heart, false);
-  assert.equal(r.data.users.find((u) => u.name === 'Kiki').style.tag, 'Ace');
+  assert.equal(r.data.users.find((u) => u.name === 'Kiki').style.heartColor, '#00ff00');
   assert.equal(r.data.online, 2);
 
   clock += 400;
@@ -87,13 +87,12 @@ test('lookup keeps seen fresh and drops silent users', async () => {
   assert.deepEqual(r.data.users.map((u) => u.name), ['Luna']);
 });
 
-test('profile updates style and worn items, filtered tags are blanked', async () => {
+test('profile updates style and worn items', async () => {
   const token = await login('Luna');
-  const r = await call('/v1/profile', { style: { mode: 'pulse', tag: 'N4zi' }, worn: [{ id: 'sakura_wings', tint: ['#ff7eb6', 'bad'] }, { id: 'No Good' }] }, token);
+  const r = await call('/v1/profile', { style: { mode: 'pulse', tag: 'free text is ignored' }, worn: [{ id: 'sakura_wings', tint: ['#ff7eb6', 'bad'] }, { id: 'No Good' }] }, token);
   assert.equal(r.status, 200);
   assert.equal(r.data.style.mode, 'pulse');
-  assert.equal(r.data.style.tag, '');
-  assert.equal(r.data.filtered, true);
+  assert.equal(r.data.style.tag, undefined);
   assert.deepEqual(r.data.worn, [{ id: 'sakura_wings', tint: ['#ff7eb6', '#ffffff'] }]);
 });
 
@@ -167,13 +166,4 @@ test('health and unknown routes', async () => {
   assert.equal(get.status, 405);
   const token = await login('Luna');
   assert.equal((await call('/v1/nope', {}, token)).status, 404);
-});
-
-test('tag filter catches simple evasions', () => {
-  assert.equal(tagAllowed('Pro'), true);
-  assert.equal(tagAllowed('Mochi <3'), true);
-  assert.equal(tagAllowed('n.4.z.i'), false);
-  assert.equal(tagAllowed('Admin'), false);
-  assert.equal(tagAllowed('Sch31ss3'), false);
-  assert.equal(tagAllowed(''), true);
 });

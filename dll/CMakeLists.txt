@@ -39,6 +39,7 @@ target_include_directories(Mochi PRIVATE
     lib/imgui
     lib/imgui/backends
     lib/json
+    lib/stb
 )
 
 target_compile_definitions(Mochi PRIVATE
@@ -50,7 +51,7 @@ target_compile_definitions(Mochi PRIVATE
     IMGUI_DEFINE_MATH_OPERATORS
 )
 
-target_link_libraries(Mochi PRIVATE d3d11 d3d12 dxgi d3dcompiler ws2_32 winhttp version psapi winmm dwmapi bcrypt)
+target_link_libraries(Mochi PRIVATE d3d11 d3d12 dxgi d3dcompiler ws2_32 winhttp version psapi winmm dwmapi bcrypt ole32)
 
 if(MSVC)
     set_property(TARGET Mochi PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")

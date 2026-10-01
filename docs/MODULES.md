@@ -193,9 +193,9 @@ Nicht gebaut: nur echte Cheats mit Kampfvorteil (siehe CLAUDE.md, Hard rules).
 
 ## Umsetzungsstand (Session B)
 
-Alle 173 Module sind in `dll/src/modules/Manager.cpp` registriert, bauen mit MinGW und laufen unter Wine mit den Demo-Daten (Modul "Game Support") ohne Absturz. Im echten Spiel getestet ist noch keins. "Braucht" nennt die Signaturen, ohne die das Modul grau bleibt; bei "einer von" reicht eine. Namen mit `fx.` sind Effekt-Kanäle, andere sind Daten-Signaturen, siehe `docs/SDK.md`. "Stufe" ist die Einordnung in `Tiers.cpp`, "Einst." die Zahl der sichtbaren Einstellungen. Die Tabelle entsteht mit `tools/modules_doc.py` aus einem Modul-Dump.
+Alle 178 Module sind in `dll/src/modules/Manager.cpp` registriert, bauen mit MinGW und laufen unter Wine mit den Demo-Daten (Modul "Game Support") ohne Absturz. Im echten Spiel getestet ist noch keins. "Braucht" nennt die Signaturen, ohne die das Modul grau bleibt; bei "einer von" reicht eine. Namen mit `fx.` sind Effekt-Kanäle, andere sind Daten-Signaturen, siehe `docs/SDK.md`. "Stufe" ist die Einordnung in `Tiers.cpp`, "Einst." die Zahl der sichtbaren Einstellungen. Die Tabelle entsteht mit `tools/modules_doc.py` aus einem Modul-Dump.
 
-### HUD (63)
+### HUD (64)
 
 | Modul | Unterkategorie | Stufe | Einst. | Braucht | Hinweis |
 |---|---|---|---|---|---|
@@ -255,6 +255,7 @@ Alle 173 Module sind in `dll/src/modules/Manager.cpp` registriert, bauen mit Min
 | Totem Counter | Inventory info | Erwartet | 31 | `LocalPlayer`, `Inventory` | – |
 | Toggle Sneak | Movement | Kern | 29 | nichts | input |
 | Toggle Sprint | Movement | Kern | 31 | nichts | input |
+| Music | Music | Erwartet | 32 | nichts | – |
 | Lag Analyzer | Network | Weitere | 33 | nichts | – |
 | Latency Meter | Network | Kern | 28 | nichts | – |
 | Network Monitor | Network | Kern | 52 | nichts | – |
@@ -263,7 +264,7 @@ Alle 173 Module sind in `dll/src/modules/Manager.cpp` registriert, bauen mit Min
 | Session Timer | Timer | Erwartet | 27 | nichts | – |
 | Stopwatch | Timer | Erwartet | 28 | nichts | – |
 
-### Visuell (41)
+### Visuell (43)
 
 | Modul | Unterkategorie | Stufe | Einst. | Braucht | Hinweis |
 |---|---|---|---|---|---|
@@ -284,6 +285,7 @@ Alle 173 Module sind in `dll/src/modules/Manager.cpp` registriert, bauen mit Min
 | Hide Hand | Model | Erwartet | 4 | `fx.hideHand` | – |
 | Left Hand | Model | Erwartet | 5 | `fx.handMatrix` | – |
 | View Model | Model | Erwartet | 14 | einer von `fx.handMatrix`, `fx.itemFov`, `fx.handMatrixThird` | – |
+| Blur | Post effects | Erwartet | 3 | nichts | – |
 | Brightness / Contrast | Post effects | Extras | 5 | nichts | – |
 | Color Filter | Post effects | Extras | 3 | nichts | – |
 | Depth of Field | Post effects | Extras | 2 | nichts | – |
@@ -291,6 +293,7 @@ Alle 173 Module sind in `dll/src/modules/Manager.cpp` registriert, bauen mit Min
 | Night Shift | Post effects | Extras | 6 | nichts | – |
 | Saturation / Hue | Post effects | Erwartet | 6 | nichts | – |
 | Screen Tint | Post effects | Extras | 7 | nichts | – |
+| Shader Packs | Post effects | Erwartet | 3 | nichts | – |
 | Sharpen | Post effects | Extras | 2 | nichts | – |
 | Arrow Trail | World | Erwartet | 15 | `LocalPlayer`, `ProjectileList` | info-others |
 | Block Outline | World | Kern | 10 | `LocalPlayer`, `Target` | – |
@@ -362,7 +365,7 @@ Alle 173 Module sind in `dll/src/modules/Manager.cpp` registriert, bauen mit Min
 | Profile Hotkeys | Profiles | Weitere | 9 | nichts | – |
 | Streamer Mode | Profiles | Erwartet | 4 | nichts | – |
 
-### Performance (7)
+### Performance (8)
 
 | Modul | Unterkategorie | Stufe | Einst. | Braucht | Hinweis |
 |---|---|---|---|---|---|
@@ -371,8 +374,9 @@ Alle 173 Module sind in `dll/src/modules/Manager.cpp` registriert, bauen mit Min
 | Frame Limiter | Frame timing | Kern | 8 | nichts | – |
 | Low Latency | Frame timing | Kern | 5 | nichts | – |
 | Performance Lock | Frame timing | Kern | 3 | nichts | – |
-| System Boost | Frame timing | Weitere | 4 | nichts | – |
+| System Boost | Frame timing | Weitere | 5 | nichts | – |
 | Render Options | Graphics | Kern | 14 | einer von `fx.clouds`, `fx.particles`, `fx.blockEntities`, `fx.shadows`, `fx.sky`, `fx.fog`, `fx.vignette`, `fx.rain`, `fx.renderEntities`, `fx.renderTerrain`, `fx.hideHand`, `fx.hideHud` | – |
+| Mouse Sync | Input | Kern | 4 | nichts | input |
 
 ### Server (6)
 
@@ -398,12 +402,13 @@ Alle 173 Module sind in `dll/src/modules/Manager.cpp` registriert, bauen mit Min
 | Deepfry | Post effects | Extras | 4 | nichts | – |
 | Upside Down | Post effects | Extras | 3 | nichts | – |
 
-### Client (5)
+### Client (6)
 
 | Modul | Unterkategorie | Stufe | Einst. | Braucht | Hinweis |
 |---|---|---|---|---|---|
 | ClickGUI | – | Weitere | 1 | nichts | – |
-| Client Settings | Client | Weitere | 8 | nichts | – |
+| Client Settings | Client | Weitere | 12 | nichts | – |
+| Mochi Online | Online | Erwartet | 12 | nichts | – |
 | Config Sharing | Platform | Erwartet | 2 | nichts | – |
 | Discord Rich Presence | Platform | Erwartet | 10 | nichts | – |
 | Lua Scripts | Platform | Erwartet | 3 | nichts | – |

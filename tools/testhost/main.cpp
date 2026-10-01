@@ -155,6 +155,15 @@ int wmain(int argc, wchar_t** argv) {
     ID3D11RenderTargetView* rtv = nullptr;
     dev->CreateRenderTargetView(back, nullptr, &rtv);
 
+    constexpr int tileSize = 48;
+    std::vector<unsigned> tilePixels(tileSize * tileSize);
+    for (int y = 0; y < tileSize; y++)
+        for (int x = 0; x < tileSize; x++) tilePixels[size_t(y * tileSize + x)] = ((x / 8 + y / 8) & 1) ? 0xff2a7a3a : 0xff358f45;
+    D3D11_TEXTURE2D_DESC tileDesc{tileSize, tileSize, 1, 1, DXGI_FORMAT_R8G8B8A8_UNORM, {1, 0}, D3D11_USAGE_DEFAULT, 0, 0, 0};
+    D3D11_SUBRESOURCE_DATA tileData{tilePixels.data(), tileSize * 4, 0};
+    ID3D11Texture2D* tile = nullptr;
+    dev->CreateTexture2D(&tileDesc, &tileData, &tile);
+
     HMODULE mochi = LoadLibraryW(argv[1]);
     std::printf("LoadLibrary -> %p (err %lu)\n", (void*)mochi, mochi ? 0 : GetLastError());
     std::fflush(stdout);
@@ -179,6 +188,13 @@ int wmain(int argc, wchar_t** argv) {
         ctx->RSSetViewports(1, &vp);
         ctx->ClearRenderTargetView(rtv, color);
         if (pattern) ctx->CopyResource(back, pattern);
+        else if (tile) {
+            ID3D11Texture2D* bb = nullptr;
+            sc->GetBuffer(0, IID_PPV_ARGS(&bb));
+            for (int y = viewH * 11 / 20; y + tileSize <= viewH; y += tileSize)
+                for (int x = 0; x + tileSize <= viewW; x += tileSize) ctx->CopySubresourceRegion(bb, 0, x, y, 0, tile, 0, nullptr);
+            bb->Release();
+        }
 
         sc->Present(0, 0);
         frames++;

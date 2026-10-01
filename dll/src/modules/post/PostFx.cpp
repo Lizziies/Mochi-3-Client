@@ -1,6 +1,8 @@
 #include "PostFx.hpp"
 #include "core/Guard.hpp"
 #include "core/Log.hpp"
+#include "ShaderPresets.hpp"
+#include "core/Paths.hpp"
 #include "render/Ui.hpp"
 
 #include <d3d11.h>
@@ -10,6 +12,10 @@
 #include <cmath>
 #include <cstring>
 #include <deque>
+#include <filesystem>
+#include <fstream>
+#include <map>
+#include <sstream>
 
 namespace post {
 
@@ -23,6 +29,7 @@ cbuffer P : register(b0)
     float4 d;
     float4 e;
     float4 night;
+    float4 f;
 };
 
 Texture2D src : register(t0);
@@ -113,6 +120,19 @@ float4 ps(VOut i) : SV_Target
     float aspect = texel.y / texel.x;
 
     float3 col = tap(uv);
+    if (f.x > 0.5)
+    {
+        float2 px = e.xy;
+        float jitter = frac(52.9829189 * frac(dot(i.pos.xy, float2(0.06711056, 0.00583715))));
+        float3 acc = 0;
+        [loop] for (int k = 0; k < 40; k++)
+        {
+            float rad = sqrt((k + 0.5) / 40.0) * f.x;
+            float ang = k * 2.399963 + jitter * 6.2831853;
+            acc += tap(uv + float2(cos(ang), sin(ang)) * rad * px);
+        }
+        col = acc / 40.0;
+    }
 
     if (b.y > 0.0)
     {
@@ -189,7 +209,7 @@ float4 ps(VOut i) : SV_Target
 )";
 
 struct Constants {
-    float a[4], b[4], tint[4], c[4], d[4], e[4], night[4];
+    float a[4], b[4], tint[4], c[4], d[4], e[4], night[4], f[4];
 };
 
 struct BlurJob {
@@ -208,6 +228,9 @@ struct Gpu {
     ID3D11Buffer* cbBlur = nullptr;
     ID3D11BlendState* alpha = nullptr;
     ID3D11RasterizerState* scissor = nullptr;
+    ID3D11Buffer* ccb = nullptr;
+    std::map<int, ID3D11PixelShader*> custom;
+    std::map<int, std::string> customError;
     ID3D11SamplerState* sampler = nullptr;
     ID3D11BlendState* blend = nullptr;
     ID3D11RasterizerState* raster = nullptr;
@@ -253,6 +276,10 @@ static void dropAll() {
     release(gpu.cbBlur);
     release(gpu.alpha);
     release(gpu.scissor);
+    release(gpu.ccb);
+    for (auto& [k, p] : gpu.custom) release(p);
+    gpu.custom.clear();
+    gpu.customError.clear();
     release(gpu.sampler);
     release(gpu.blend);
     release(gpu.raster);
@@ -292,6 +319,8 @@ static bool buildShaders(ID3D11Device* dev) {
     if (FAILED(dev->CreateBuffer(&bd, nullptr, &gpu.cb))) return false;
     bd.ByteWidth = sizeof(float) * 16;
     if (FAILED(dev->CreateBuffer(&bd, nullptr, &gpu.cbBlur))) return false;
+    bd.ByteWidth = 32;
+    if (FAILED(dev->CreateBuffer(&bd, nullptr, &gpu.ccb))) return false;
 
     D3D11_SAMPLER_DESC sd{};
     sd.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
@@ -391,6 +420,139 @@ static bool ensure(ID3D11Device* dev, const D3D11_TEXTURE2D_DESC& back, bool wan
     return true;
 }
 
+static std::vector<ShaderInfo> shaderList;
+static bool shadersLoaded = false;
+
+static std::filesystem::path shaderDir() { return paths::root() / L"shaders"; }
+
+void reloadShaders() {
+    shaderList.clear();
+    for (auto& p : presets) shaderList.push_back({p.name, p.body, true});
+    std::error_code ec;
+    std::filesystem::create_directories(shaderDir(), ec);
+    if (!std::filesystem::exists(shaderDir() / L"README.txt", ec)) std::ofstream(shaderDir() / L"README.txt") << userReadme;
+    if (!std::filesystem::exists(shaderDir() / L"example.hlsl", ec)) std::ofstream(shaderDir() / L"example.hlsl") << exampleShader;
+    for (auto& e : std::filesystem::directory_iterator(shaderDir(), ec)) {
+        if (e.path().extension() != L".hlsl") continue;
+        std::ifstream in(e.path());
+        std::stringstream ss;
+        ss << in.rdbuf();
+        shaderList.push_back({e.path().stem().string(), ss.str(), false});
+    }
+    for (auto& [k, p] : gpu.custom) release(p);
+    gpu.custom.clear();
+    gpu.customError.clear();
+    shadersLoaded = true;
+}
+
+const std::vector<ShaderInfo>& shaders() {
+    if (!shadersLoaded) reloadShaders();
+    return shaderList;
+}
+
+std::string shaderError(int index) {
+    auto it = gpu.customError.find(index);
+    return it == gpu.customError.end() ? std::string() : it->second;
+}
+
+static ID3D11PixelShader* customShader(ID3D11Device* dev, int index) {
+    if (auto it = gpu.custom.find(index); it != gpu.custom.end()) return it->second;
+    if (gpu.customError.count(index) || index < 0 || index >= (int)shaderList.size()) return nullptr;
+    std::string code = std::string(prelude) + shaderList[size_t(index)].source;
+    ID3DBlob *blob = nullptr, *err = nullptr;
+    HRESULT hr = D3DCompile(code.c_str(), code.size(), shaderList[size_t(index)].name.c_str(), nullptr, nullptr, "ps", "ps_5_0",
+                            D3DCOMPILE_OPTIMIZATION_LEVEL3, 0, &blob, &err);
+    ID3D11PixelShader* ps = nullptr;
+    if (SUCCEEDED(hr)) hr = dev->CreatePixelShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, &ps);
+    if (FAILED(hr)) {
+        std::string msg = err ? (const char*)err->GetBufferPointer() : "compile failed";
+        logger::error("shader {}: {}", shaderList[size_t(index)].name, msg);
+        gpu.customError[index] = msg;
+    }
+    release(blob);
+    release(err);
+    gpu.custom[index] = ps;
+    return ps;
+}
+
+static void customPass(ID3D11Device* dev, ID3D11DeviceContext* ctx, ID3D11Texture2D* back, const D3D11_TEXTURE2D_DESC& bd) {
+    ID3D11PixelShader* ps = customShader(dev, current.shader);
+    if (!ps) return;
+    ctx->CopyResource(gpu.copy, back);
+
+    D3D11_MAPPED_SUBRESOURCE m{};
+    if (FAILED(ctx->Map(gpu.ccb, 0, D3D11_MAP_WRITE_DISCARD, 0, &m))) return;
+    float k[8] = {(float)bd.Width, (float)bd.Height, 1.f / bd.Width, 1.f / bd.Height, clock, current.shaderMix, 0.f, 0.f};
+    std::memcpy(m.pData, k, sizeof(k));
+    ctx->Unmap(gpu.ccb, 0);
+
+    D3D11_VIEWPORT vp{0.f, 0.f, (float)bd.Width, (float)bd.Height, 0.f, 1.f};
+    ctx->RSSetViewports(1, &vp);
+    ctx->RSSetState(gpu.raster);
+    ctx->OMSetBlendState(gpu.blend, nullptr, 0xffffffff);
+    ctx->OMSetDepthStencilState(gpu.depth, 0);
+    ctx->IASetInputLayout(nullptr);
+    ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    ctx->VSSetShader(gpu.vs, nullptr, 0);
+    ctx->GSSetShader(nullptr, nullptr, 0);
+    ctx->PSSetShader(ps, nullptr, 0);
+    ctx->PSSetConstantBuffers(0, 1, &gpu.ccb);
+    ctx->PSSetShaderResources(0, 1, &gpu.copyView);
+    ctx->PSSetSamplers(0, 1, &gpu.sampler);
+    ctx->Draw(3, 0);
+    ID3D11ShaderResourceView* none[1] = {};
+    ctx->PSSetShaderResources(0, 1, none);
+}
+
+static void basicPass(ID3D11DeviceContext* ctx, ID3D11Texture2D* back, const D3D11_TEXTURE2D_DESC& bd, bool wantLast) {
+    const Params& p = current;
+    ctx->CopyResource(gpu.copy, back);
+
+    D3D11_MAPPED_SUBRESOURCE m{};
+    if (SUCCEEDED(ctx->Map(gpu.cb, 0, D3D11_MAP_WRITE_DISCARD, 0, &m))) {
+        Constants k{};
+        float a[4] = {p.saturation, p.hue * 0.0174533f, p.brightness, p.contrast};
+        float b[4] = {p.gamma, p.sharpen, p.fry, p.flip};
+        float c[4] = {(float)p.tintMode, 0.f, p.vignette, (float)p.colorMode};
+        float d[4] = {p.dof, p.dir[0], p.dir[1], gpu.lastValid ? p.blend : 0.f};
+        float e[4] = {1.f / bd.Width, 1.f / bd.Height, clock, (float)p.dirSamples};
+        std::memcpy(k.a, a, sizeof(a));
+        std::memcpy(k.b, b, sizeof(b));
+        std::memcpy(k.tint, p.tint, sizeof(k.tint));
+        std::memcpy(k.c, c, sizeof(c));
+        std::memcpy(k.d, d, sizeof(d));
+        std::memcpy(k.e, e, sizeof(e));
+        std::memcpy(k.night, p.night, sizeof(k.night));
+        k.f[0] = p.blur;
+        std::memcpy(m.pData, &k, sizeof(k));
+        ctx->Unmap(gpu.cb, 0);
+    }
+
+    D3D11_VIEWPORT vp{0.f, 0.f, (float)bd.Width, (float)bd.Height, 0.f, 1.f};
+    ctx->RSSetViewports(1, &vp);
+    ctx->RSSetState(gpu.raster);
+    ctx->OMSetBlendState(gpu.blend, nullptr, 0xffffffff);
+    ctx->OMSetDepthStencilState(gpu.depth, 0);
+    ctx->IASetInputLayout(nullptr);
+    ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    ctx->VSSetShader(gpu.vs, nullptr, 0);
+    ctx->GSSetShader(nullptr, nullptr, 0);
+    ctx->PSSetShader(gpu.ps, nullptr, 0);
+    ctx->PSSetConstantBuffers(0, 1, &gpu.cb);
+    ID3D11ShaderResourceView* views[2] = {gpu.copyView, gpu.lastValid ? gpu.lastView : gpu.copyView};
+    ctx->PSSetShaderResources(0, 2, views);
+    ctx->PSSetSamplers(0, 1, &gpu.sampler);
+    ctx->Draw(3, 0);
+
+    ID3D11ShaderResourceView* none[2] = {};
+    ctx->PSSetShaderResources(0, 2, none);
+
+    if (wantLast) {
+        ctx->CopyResource(gpu.last, back);
+        gpu.lastValid = true;
+    }
+}
+
 static void pass(ID3D11Device* dev, ID3D11DeviceContext* ctx) {
     ID3D11RenderTargetView* rtv = nullptr;
     ctx->OMGetRenderTargets(1, &rtv, nullptr);
@@ -409,53 +571,11 @@ static void pass(ID3D11Device* dev, ID3D11DeviceContext* ctx) {
     D3D11_TEXTURE2D_DESC bd{};
     back->GetDesc(&bd);
     const Params& p = current;
-    bool wantLast = p.blend > 0.f;
+    bool wantLast = p.blend > 0.f && p.basic();
 
     if (bd.SampleDesc.Count == 1 && ensure(dev, bd, wantLast)) {
-        ctx->CopyResource(gpu.copy, back);
-
-        D3D11_MAPPED_SUBRESOURCE m{};
-        if (SUCCEEDED(ctx->Map(gpu.cb, 0, D3D11_MAP_WRITE_DISCARD, 0, &m))) {
-            Constants k{};
-            float a[4] = {p.saturation, p.hue * 0.0174533f, p.brightness, p.contrast};
-            float b[4] = {p.gamma, p.sharpen, p.fry, p.flip};
-            float c[4] = {(float)p.tintMode, 0.f, p.vignette, (float)p.colorMode};
-            float d[4] = {p.dof, p.dir[0], p.dir[1], gpu.lastValid ? p.blend : 0.f};
-            float e[4] = {1.f / bd.Width, 1.f / bd.Height, clock, (float)p.dirSamples};
-            std::memcpy(k.a, a, sizeof(a));
-            std::memcpy(k.b, b, sizeof(b));
-            std::memcpy(k.tint, p.tint, sizeof(k.tint));
-            std::memcpy(k.c, c, sizeof(c));
-            std::memcpy(k.d, d, sizeof(d));
-            std::memcpy(k.e, e, sizeof(e));
-            std::memcpy(k.night, p.night, sizeof(k.night));
-            std::memcpy(m.pData, &k, sizeof(k));
-            ctx->Unmap(gpu.cb, 0);
-        }
-
-        D3D11_VIEWPORT vp{0.f, 0.f, (float)bd.Width, (float)bd.Height, 0.f, 1.f};
-        ctx->RSSetViewports(1, &vp);
-        ctx->RSSetState(gpu.raster);
-        ctx->OMSetBlendState(gpu.blend, nullptr, 0xffffffff);
-        ctx->OMSetDepthStencilState(gpu.depth, 0);
-        ctx->IASetInputLayout(nullptr);
-        ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-        ctx->VSSetShader(gpu.vs, nullptr, 0);
-        ctx->GSSetShader(nullptr, nullptr, 0);
-        ctx->PSSetShader(gpu.ps, nullptr, 0);
-        ctx->PSSetConstantBuffers(0, 1, &gpu.cb);
-        ID3D11ShaderResourceView* views[2] = {gpu.copyView, gpu.lastValid ? gpu.lastView : gpu.copyView};
-        ctx->PSSetShaderResources(0, 2, views);
-        ctx->PSSetSamplers(0, 1, &gpu.sampler);
-        ctx->Draw(3, 0);
-
-        ID3D11ShaderResourceView* none[2] = {};
-        ctx->PSSetShaderResources(0, 2, none);
-
-        if (wantLast) {
-            ctx->CopyResource(gpu.last, back);
-            gpu.lastValid = true;
-        }
+        if (p.basic()) basicPass(ctx, back, bd, wantLast);
+        if (p.shader >= 0) customPass(dev, ctx, back, bd);
         gpu.blurCopied = false;
     }
     back->Release();
@@ -526,10 +646,12 @@ static void callback(const ImDrawList*, const ImDrawCmd*) {
     guard::call("postfx", [&] { pass(state->Device, state->DeviceContext); });
 }
 
-bool Params::active() const {
+bool Params::active() const { return basic() || shader >= 0; }
+
+bool Params::basic() const {
     return saturation != 1.f || hue != 0.f || brightness != 0.f || contrast != 1.f || gamma != 1.f || sharpen > 0.f ||
            fry > 0.f || flip > 0.5f || tint[3] > 0.f || night[3] > 0.f || vignette > 0.f || colorMode != 0 ||
-           dof > 0.f || (dirSamples > 1 && (dir[0] != 0.f || dir[1] != 0.f)) || blend > 0.f;
+           dof > 0.f || blur > 0.5f || (dirSamples > 1 && (dir[0] != 0.f || dir[1] != 0.f)) || blend > 0.f;
 }
 
 Params& params() { return frameParams; }

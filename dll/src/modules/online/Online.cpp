@@ -142,7 +142,7 @@ Reply post(const std::string& base, const std::string& path, const json& body, c
 const char* const modeNames[] = {"solid", "gradient", "rainbow", "pulse"};
 
 json styleJson(const Style& s) {
-    return {{"mode", modeNames[(int)s.mode]}, {"a", hex(s.a)}, {"b", hex(s.b)}, {"speed", s.speed}, {"tag", s.tag}, {"tagColor", hex(s.tagColor)}, {"heart", s.heart}};
+    return {{"mode", modeNames[(int)s.mode]}, {"a", hex(s.a)}, {"b", hex(s.b)}, {"speed", s.speed}, {"heartColor", hex(s.heartColor)}, {"heart", s.heart}};
 }
 
 json wornJson(const std::vector<Worn>& list) {
@@ -168,8 +168,7 @@ Style styleFrom(const json& j) {
     s.a = parseHex(j.value("a", ""), s.a);
     s.b = parseHex(j.value("b", ""), s.b);
     s.speed = std::clamp(j.value("speed", 1.f), 0.1f, 5.f);
-    s.tag = cleanTag(j.value("tag", ""));
-    s.tagColor = parseHex(j.value("tagColor", ""), s.tagColor);
+    s.heartColor = parseHex(j.value("heartColor", ""), s.heartColor);
     s.heart = j.value("heart", true);
     return s;
 }
@@ -198,7 +197,6 @@ User userFrom(const json& j) {
     return u;
 }
 
-const char* const demoTags[] = {"", "Dev", "Pro", "Nova", "Mochi", "Sakura", "", "Ace"};
 const uint32_t demoColors[] = {0xff7eb6, 0x7ec8ff, 0xffd27e, 0x8be8b0, 0xc77dff, 0xff6b6b};
 
 bool demoMember(const std::string& name) {
@@ -215,8 +213,6 @@ User demoUser(const std::string& name) {
     u.style.a = demoColors[(h >> 3) % 6];
     u.style.b = demoColors[(h >> 7) % 6];
     u.style.speed = 0.6f + float((h >> 11) % 8) * 0.2f;
-    u.style.tag = demoTags[(h >> 5) % 8];
-    u.style.tagColor = u.style.a;
     u.style.heart = (h >> 9) % 7 != 0;
     if (h % 3 == 0) u.worn.push_back({"sakura_wings", {u.style.a, 0xffffff}});
     return u;
@@ -404,24 +400,6 @@ uint32_t parseHex(const std::string& s, uint32_t fallback) {
 
 const char* modeId(Mode m) { return modeNames[(int)m]; }
 
-std::string cleanTag(const std::string& in) {
-    std::string out;
-    int points = 0;
-    for (size_t i = 0; i < in.size() && points < 16; i++) {
-        unsigned char c = (unsigned char)in[i];
-        if (c < 0x20 || c == 0x7f) continue;
-        if (c == 0xC2 && i + 1 < in.size() && (unsigned char)in[i + 1] == 0xA7) {
-            i++;
-            continue;
-        }
-        out += (char)c;
-        if ((c & 0xC0) != 0x80) points++;
-    }
-    while (!out.empty() && out.back() == ' ') out.pop_back();
-    while (!out.empty() && out.front() == ' ') out.erase(out.begin());
-    return out;
-}
-
 ImU32 rgb(uint32_t c, float alpha) { return IM_COL32((c >> 16) & 255, (c >> 8) & 255, c & 255, int(std::clamp(alpha, 0.f, 1.f) * 255.f)); }
 
 ImU32 color(const Style& s, double t, int index, int total) {
@@ -548,8 +526,8 @@ void shutdown() {
     if (worker.joinable()) worker.join();
 }
 
-std::string tagLine(const std::string& line, bool names, bool tags, bool hearts) {
-    if (!names && !tags && !hearts) return line;
+std::string tagLine(const std::string& line, bool names, bool hearts) {
+    if (!names && !hearts) return line;
     std::string plain = text::strip(line);
     size_t end = plain.find_first_of(">:");
     size_t guillemet = plain.find("\xC2\xBB");
@@ -588,7 +566,6 @@ std::string tagLine(const std::string& line, bool names, bool tags, bool hearts)
     size_t to = from + hit->name.size();
 
     std::string out = line.substr(0, from);
-    if (hearts && hit->style.heart) out += "§#FF3B5C;\x01§r ";
     if (names) {
         double t = ImGui::GetTime();
         int total = 0;
@@ -609,7 +586,7 @@ std::string tagLine(const std::string& line, bool names, bool tags, bool hearts)
     } else {
         out += hit->name;
     }
-    if (tags && !hit->style.tag.empty()) out += std::format(" §#{:06X};[{}]§r", hit->style.tagColor & 0xffffff, hit->style.tag);
+    if (hearts && hit->style.heart) out += std::format(" §#{:06X};\x01§r", hit->style.heartColor & 0xffffff);
     return out + line.substr(to);
 }
 

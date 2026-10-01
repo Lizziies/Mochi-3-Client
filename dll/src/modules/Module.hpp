@@ -73,12 +73,15 @@ public:
 
     bool risky() const { return risky_; }
     bool anySigs() const { return anySig_; }
+    bool favorite() const { return favorite_; }
+    void setFavorite(bool on);
 
     nlohmann::json save() const;
     void load(const nlohmann::json& j);
 
     float anim = 0.f;
     float hover = 0.f;
+    float costMs = 0.f;
 
 protected:
     Setting& toggleSetting(std::string id, std::string label, bool def);
@@ -128,6 +131,7 @@ private:
     bool enabled_ = false;
     bool wanted_ = false;
     bool risky_ = false;
+    bool favorite_ = false;
     RuleLevel rule_ = RuleLevel::Allowed;
     std::string ruleNote_;
     std::string riskNote_;

@@ -27,6 +27,8 @@ int frame = 0;
 bool started = false;
 std::vector<std::string> failed;
 std::vector<std::string> stalled;
+std::vector<std::string> slow;
+constexpr float costBudgetMs = 1.0f;
 double lastTick = 0.0;
 std::vector<std::string> skipped;
 int tested = 0;
@@ -79,7 +81,7 @@ const char* sameInGerman[] = {"Client", "Timer", "Ring", "Minecraft (MB)", "Syst
                               "km/h", "Yaw", "Absorption", "FPS", "Frametime", "CPS", "Ping", "Jitter", "Position", "Hunger", "Combo", "Reach",
                               "RAM", "Server", "Version", "ICMP ping", "UDP port", "Warm", "Retro", "Gamma", "Vignette", "Position X",
                               "Position Y", "Position Z", "Crosshair", "Kills", "Plus", "Chat", "Audio", "Format", "PNG", "JPEG", "Limit",
-                              "ICMP-Ping", "RakNet-Ping (UDP)", "UDP-Port", "PvP Max FPS", "Wind", "The Hive", "Zeqa", "BedWars", "SkyWars", "Treasure Wars", "Ground Wars", "Capture the Flag", "/hub"};
+                              "ICMP-Ping", "RakNet-Ping (UDP)", "UDP-Port", "PvP Max FPS", "Soft Glow", "Vibrant", "Cinematic", "Crisp", "example", "Wind", "The Hive", "Zeqa", "BedWars", "SkyWars", "Treasure Wars", "Ground Wars", "Capture the Flag", "/hub"};
 
 void audit() {
     int missing = 0;
@@ -106,7 +108,8 @@ void audit() {
 void finish() {
     audit();
     for (auto& n : stalled) logger::error("selftest STALL: {}", n);
-    logger::info("selftest: tested {} modules, {} skipped (locked), {} failed, {} stalled", tested, skipped.size(), failed.size(), stalled.size());
+    for (auto& n : slow) logger::error("selftest SLOW: {}", n);
+    logger::info("selftest: tested {} modules, {} skipped (locked), {} failed, {} stalled, {} slow", tested, skipped.size(), failed.size(), stalled.size(), slow.size());
     for (auto& n : failed) logger::error("selftest FAIL: {}", n);
     logger::info("selftest done");
     client::requestUnload();
@@ -172,6 +175,10 @@ void tick() {
 
     if (++frame >= framesPerModule) {
         tested++;
+        if (m.costMs > costBudgetMs) {
+            slow.push_back(m.name());
+            logger::warn("selftest: {} takes {:.2f} ms per frame", m.name(), m.costMs);
+        }
         if (!m.userEnabled()) {
             failed.push_back(m.name());
             logger::error("selftest: {} was disabled by an error", m.name());
