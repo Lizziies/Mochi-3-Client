@@ -23,7 +23,9 @@ constexpr Info table[count] = {
     {"fx.gamma", "Helligkeit", Kind::Value},
     {"fx.viewBob", "Kamera-Wackeln", Kind::Skip},
     {"fx.handBob", "Hand-Wackeln", Kind::Skip},
-    {"fx.hurtCam", "Treffer-Wackeln", Kind::Skip},
+    {"fx.hurtCam", "Treffer-Wackeln", Kind::Value},
+    {"fx.bobStrength", "Wackel-Stärke", Kind::Value},
+    {"fx.perspective", "Perspektive", Kind::Int},
     {"fx.sneakCam", "Schleich-Kamera", Kind::Value},
     {"fx.sensitivity", "Empfindlichkeit", Kind::Value},
     {"fx.time", "Tageszeit", Kind::Value},
@@ -138,6 +140,13 @@ struct Detour {
     static uintptr_t flag(uintptr_t a, uintptr_t b, uintptr_t c, uintptr_t d) {
         auto& sl = slots[N];
         if (sl.mode == Force) return sl.v[0] > 0.5f ? 1 : 0;
+        if (sl.mode == Skipped) return 0;
+        return reinterpret_cast<Fn>(sl.orig)(a, b, c, d);
+    }
+
+    static uintptr_t integer(uintptr_t a, uintptr_t b, uintptr_t c, uintptr_t d) {
+        auto& sl = slots[N];
+        if (sl.mode == Force) return uintptr_t(int(sl.v[0]));
         return reinterpret_cast<Fn>(sl.orig)(a, b, c, d);
     }
 
@@ -154,6 +163,7 @@ struct Detour {
         case Set: return sl.v[0];
         case Scale: return r * sl.v[0];
         case Add: return r + sl.v[0];
+        case Skipped: return 0.f;
         default: return r;
         }
     }
@@ -176,11 +186,12 @@ template <size_t... I>
 constexpr auto makeTable(std::index_sequence<I...>) {
     struct Row {
         void* flag;
+        void* integer;
         void* skip;
         void* value;
         void* out;
     };
-    return std::array<Row, sizeof...(I)>{Row{reinterpret_cast<void*>(&Detour<I>::flag), reinterpret_cast<void*>(&Detour<I>::skip),
+    return std::array<Row, sizeof...(I)>{Row{reinterpret_cast<void*>(&Detour<I>::flag), reinterpret_cast<void*>(&Detour<I>::integer), reinterpret_cast<void*>(&Detour<I>::skip),
                                               reinterpret_cast<void*>(&Detour<I>::value), reinterpret_cast<void*>(&Detour<I>::out)}...};
 }
 
@@ -206,6 +217,7 @@ void install(size_t i, Slot& sl, uintptr_t address) {
     void* detour = nullptr;
     switch (kindOf(i)) {
     case Kind::Flag: detour = row.flag; break;
+    case Kind::Int: detour = row.integer; break;
     case Kind::Skip: detour = row.skip; break;
     case Kind::Value: detour = row.value; break;
     case Kind::Out: detour = row.out; break;
@@ -264,6 +276,12 @@ void force(Id id, bool on) {
     auto& r = req(id);
     r.mode = Force;
     r.v[0] = on ? 1.f : 0.f;
+}
+
+void setInt(Id id, int v) {
+    auto& r = req(id);
+    r.mode = Force;
+    r.v[0] = float(v);
 }
 
 void skip(Id id) { req(id).mode = Skipped; }

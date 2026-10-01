@@ -36,5 +36,6 @@ void lease(unsigned mask, int delta);
 void resetCombat();
 void resetCombo();
 std::optional<ImVec2> project(const Vec3& p);
+bool projectLine(const Vec3& a, const Vec3& b, ImVec2& out0, ImVec2& out1);
 
 }

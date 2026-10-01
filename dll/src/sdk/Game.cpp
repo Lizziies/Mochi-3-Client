@@ -168,23 +168,60 @@ void resetCombat() { cur.combat = Combat{}; }
 
 void resetCombo() { cur.combat.combo = 0; }
 
-std::optional<ImVec2> project(const Vec3& p) {
+namespace {
+
+struct Basis {
+    Vec3 fwd, right, up;
+    float tanHalf;
+};
+
+Basis basis() {
     const auto& c = cur.camera;
     float yaw = c.yaw * 0.0174533f, pitch = c.pitch * 0.0174533f;
     float cp = std::cos(pitch), sp = std::sin(pitch), cy = std::cos(yaw), sy = std::sin(yaw);
-    Vec3 fwd{-sy * cp, -sp, cy * cp};
-    Vec3 right{-cy, 0.f, -sy};
-    Vec3 up{fwd.y * right.z - fwd.z * right.y, fwd.z * right.x - fwd.x * right.z, fwd.x * right.y - fwd.y * right.x};
-    up = {-up.x, -up.y, -up.z};
+    Basis b;
+    b.fwd = {-sy * cp, -sp, cy * cp};
+    b.right = {-cy, 0.f, -sy};
+    b.up = {-(b.fwd.y * b.right.z - b.fwd.z * b.right.y), -(b.fwd.z * b.right.x - b.fwd.x * b.right.z), -(b.fwd.x * b.right.y - b.fwd.y * b.right.x)};
+    b.tanHalf = std::tan(c.fov * 0.0174533f * 0.5f);
+    return b;
+}
 
+Vec3 toCamera(const Basis& b, const Vec3& p) {
+    const auto& c = cur.camera;
     Vec3 d{p.x - c.pos.x, p.y - c.pos.y, p.z - c.pos.z};
-    float z = d.x * fwd.x + d.y * fwd.y + d.z * fwd.z;
-    if (z < 0.05f) return std::nullopt;
-    float x = d.x * right.x + d.y * right.y + d.z * right.z;
-    float y = d.x * up.x + d.y * up.y + d.z * up.z;
-    float t = std::tan(c.fov * 0.0174533f * 0.5f);
+    return {d.x * b.right.x + d.y * b.right.y + d.z * b.right.z, d.x * b.up.x + d.y * b.up.y + d.z * b.up.z,
+            d.x * b.fwd.x + d.y * b.fwd.y + d.z * b.fwd.z};
+}
+
+ImVec2 toScreen(const Basis& b, const Vec3& v) {
     auto ds = ImGui::GetIO().DisplaySize;
-    return ImVec2{ds.x * 0.5f + x / (z * t * c.aspect) * ds.x * 0.5f, ds.y * 0.5f - y / (z * t) * ds.y * 0.5f};
+    return {ds.x * 0.5f + v.x / (v.z * b.tanHalf * cur.camera.aspect) * ds.x * 0.5f, ds.y * 0.5f - v.y / (v.z * b.tanHalf) * ds.y * 0.5f};
+}
+
+}
+
+std::optional<ImVec2> project(const Vec3& p) {
+    Basis b = basis();
+    Vec3 v = toCamera(b, p);
+    if (v.z < 0.05f) return std::nullopt;
+    return toScreen(b, v);
+}
+
+bool projectLine(const Vec3& a, const Vec3& b2, ImVec2& out0, ImVec2& out1) {
+    Basis b = basis();
+    Vec3 p = toCamera(b, a), q = toCamera(b, b2);
+    constexpr float cut = 0.05f;
+    if (p.z < cut && q.z < cut) return false;
+    auto clip = [&](Vec3& from, const Vec3& to) {
+        float t = (cut - from.z) / (to.z - from.z);
+        from = {from.x + (to.x - from.x) * t, from.y + (to.y - from.y) * t, cut};
+    };
+    if (p.z < cut) clip(p, q);
+    if (q.z < cut) clip(q, p);
+    out0 = toScreen(b, p);
+    out1 = toScreen(b, q);
+    return true;
 }
 
 }

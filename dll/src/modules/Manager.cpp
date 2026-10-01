@@ -11,6 +11,7 @@
 #include "sdk/Inject.hpp"
 #include "sig/Sigs.hpp"
 
+#include "camera/Camera.hpp"
 #include "client/ClickGui.hpp"
 #include "client/SigStatus.hpp"
 #include "combat/Counters.hpp"
@@ -52,6 +53,8 @@
 #include "post/PostFx.hpp"
 #include "perf/SystemBoost.hpp"
 #include "visual/Crosshair.hpp"
+#include "world/Waypoints.hpp"
+#include "world/World.hpp"
 
 #include <windows.h>
 
@@ -113,6 +116,28 @@ void init() {
     add<ColorFilter>();
     add<NightShift>();
     add<MotionBlur>();
+
+    add<FovChanger>();
+    add<JavaDynamicFov>();
+    add<Zoom>();
+    add<Freelook>();
+    add<NoViewBobbing>();
+    add<MinimalViewBobbing>();
+    add<NoHurtCam>();
+    add<SmoothSneak>();
+    add<AutoPerspective>();
+    add<Fullbright>();
+    add<BlockOutline>();
+    add<TimeChanger>();
+    add<WeatherChanger>();
+    add<EnvironmentChanger>();
+    add<FogColor>();
+    add<WaterColor>();
+    add<ChunkBorder>();
+    add<Waypoints>();
+    add<HideHand>();
+    add<ViewModel>();
+    add<Animations>();
 
     add<BreakProgress>();
     add<Crosshair>();
