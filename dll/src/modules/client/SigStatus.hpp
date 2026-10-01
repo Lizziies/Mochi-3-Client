@@ -11,9 +11,9 @@ class SigStatus : public Module {
 public:
     SigStatus()
         : Module("Game Support",
-                 "Zeigt, welche Module auf dieser Version laufen. Hier gibt es auch Demo-Daten.",
+                 "Shows which modules run on this version. Also home of the demo data switch.",
                  Category::Performance, {"performance"}) {
-        sub("Diagnose");
+        sub("Diagnostics");
     }
 
     bool alwaysOn() const override { return true; }
@@ -28,8 +28,8 @@ public:
         auto& t = theme::current();
         auto st = sigs::stats();
         ImGui::Spacing();
-        ImGui::TextDisabled("Version %s  ·  %d von %d Signaturen  ·  Quelle %s", st.gameVersion.c_str(), st.found, st.total, st.source.c_str());
-        if (demo_.b) ImGui::TextColored(t.warn, "Demo-Daten aktiv: alle Spiel-Module zeigen simulierte Werte.");
+        ImGui::TextDisabled(i18n::tr("Version %s  ·  %d of %d signatures  ·  Source %s"), st.gameVersion.c_str(), st.found, st.total, st.source.c_str());
+        if (demo_.b) ImGui::TextColored(t.warn, i18n::tr("Demo data on: all game modules show simulated values."));
 
         int missing = 0, ok = 0;
         for (auto& m : modules::all()) {
@@ -37,9 +37,9 @@ public:
             if (m->missingSigs().empty()) ok++;
             else missing++;
         }
-        ImGui::Text("%d Spiel-Module bereit, %d warten auf Signaturen", ok, missing);
+        ImGui::Text(i18n::tr("%d game modules ready, %d waiting for signatures"), ok, missing);
 
-        if (ImGui::CollapsingHeader("Module und ihre Signaturen")) {
+        if (ImGui::CollapsingHeader(i18n::tr("Modules and their signatures"))) {
             for (auto& m : modules::all()) {
                 if (m->sigs().empty()) continue;
                 bool good = m->missingSigs().empty();
@@ -48,22 +48,22 @@ public:
                     std::string list;
                     for (auto& s : m->missingSigs()) list += (list.empty() ? "" : ", ") + s;
                     ImGui::SameLine();
-                    ImGui::TextDisabled("fehlt: %s", list.c_str());
+                    ImGui::TextDisabled(i18n::tr("missing: %s"), list.c_str());
                 }
             }
         }
-        if (ImGui::CollapsingHeader("Effekt-Kanäle")) {
+        if (ImGui::CollapsingHeader(i18n::tr("Effect channels"))) {
             for (int i = 0; i < int(fx::Id::Count); i++) {
                 auto id = fx::Id(i);
                 auto r = fx::report(id);
                 bool have = sigs::address(fx::info(id).sig) != 0;
                 ImGui::TextColored(have ? t.ok : t.textDim, "%s %s", have ? "●" : "○", fx::info(id).sig);
                 ImGui::SameLine();
-                ImGui::TextDisabled("%s%s", fx::info(id).label, r.requested ? "  ·  angefordert" : "");
+                ImGui::TextDisabled("%s%s", fx::info(id).label, r.requested ? i18n::tr("  ·  requested") : "");
             }
         }
     }
 
 private:
-    Setting& demo_ = toggleSetting("demo", "Demo-Daten (simulierte Spielwerte)", false);
+    Setting& demo_ = toggleSetting("demo", "Demo data (simulated game values)", false);
 };

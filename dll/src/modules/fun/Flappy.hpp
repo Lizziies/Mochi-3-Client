@@ -16,7 +16,7 @@
 class Flappy : public Module {
 public:
     Flappy() : Module("Flappy Heart", "Flappy Bird with a heart. Space flies, ESC quits.", Category::Fun, {"cosmetic"}) {
-        sub("Spiele");
+        sub("Games");
     }
 
     bool persistent() const override { return false; }

@@ -13,9 +13,9 @@ class InstantInput : public Module {
 public:
     InstantInput()
         : Module("Instant Hit",
-                 "Kürzt die lokale Kette Klick bis Bild. Erzeugt keine Klicks. Auf manchen Servern verboten.",
+                 "Shortens the local chain from click to frame. Creates no clicks. Banned on some servers.",
                  Category::Pvp, {"input", "timing"}) {
-        sub("Eingabe");
+        sub("Input");
         markRisky();
         tearing_.visible = [this] { return queue_.b; };
     }
@@ -32,9 +32,9 @@ public:
 
     void drawSettings() override {
         ImGui::Spacing();
-        if (count_) ImGui::TextDisabled("Klick bis Bild: %.1f ms im Schnitt (%d Klicks)", sum_ / count_, count_);
-        else ImGui::TextDisabled("Klicke, um die Latenz zu messen.");
-        if (ImGui::SmallButton("Messung zurücksetzen")) sum_ = 0, count_ = 0;
+        if (count_) ImGui::TextDisabled(i18n::tr("Click to frame: %.1f ms on average (%d clicks)"), sum_ / count_, count_);
+        else ImGui::TextDisabled(i18n::tr("Click to measure the latency."));
+        if (ImGui::SmallButton(i18n::tr("Reset measurement"))) sum_ = 0, count_ = 0;
     }
 
 private:
@@ -69,9 +69,9 @@ private:
         }
     }
 
-    Setting& queue_ = toggleSetting("queue", "Kurze Bild-Warteschlange", true);
-    Setting& tearing_ = toggleSetting("tearing", "Tearing erlauben (VSync aus)", false);
-    Setting& priority_ = toggleSetting("priority", "Render-Thread mit höherer Priorität", true);
+    Setting& queue_ = toggleSetting("queue", "Short frame queue", true);
+    Setting& tearing_ = toggleSetting("tearing", "Allow tearing (VSync off)", false);
+    Setting& priority_ = toggleSetting("priority", "Render thread with higher priority", true);
     HANDLE thread_ = nullptr;
     int base_ = 0;
     int64_t seen_ = 0;

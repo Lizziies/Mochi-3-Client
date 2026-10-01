@@ -11,7 +11,7 @@
 class Memory : public TextHud {
 public:
     Memory() : TextHud("Memory", "Shows how much RAM Minecraft is using.", {"hud-self"}, {0.01f, 0.22f}) {
-        sub("Diagnose");
+        sub("Diagnostics");
     }
 
 protected:
@@ -26,7 +26,7 @@ protected:
             MEMORYSTATUSEX ms{sizeof(ms)};
             if (GlobalMemoryStatusEx(&ms)) load_ = ms.dwMemoryLoad;
         }
-        if (mode_.i == 1) return std::format("{}% System", load_);
+        if (mode_.i == 1) return i18n::fmt("{}% system", load_);
         return std::format("{:.0f} MB", mb_);
     }
 

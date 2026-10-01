@@ -40,7 +40,7 @@ inline std::vector<std::string> splitList(const std::string& in, char sep) {
 class AutoGG : public Module {
 public:
     AutoGG()
-        : Module("Auto GG", "Schreibt am Spielende automatisch gg. Beim Kill ist es auf manchen Servern verboten.",
+        : Module("Auto GG", "Automatically writes gg at the end of a game. On a kill it is banned on some servers.",
                  Category::Comfort, {"chat"}) {
         sub("Chat");
         require(need::chat, need::sigs({"ChatEvents"}));
@@ -61,7 +61,7 @@ public:
     }
 
     void drawSettings() override {
-        if (optionBlocked("onKill")) ImGui::TextColored(theme::current().warn, "Auf diesem Server ist die Nachricht beim Kill verboten und deaktiviert.");
+        if (optionBlocked("onKill")) ImGui::TextColored(theme::current().warn, i18n::tr("On this server the message on a kill is banned and disabled."));
     }
 
 private:
@@ -97,15 +97,15 @@ private:
         pending_ = true;
     }
 
-    Setting& onEnd_ = toggleSetting("onEnd", "Am Spielende", true);
-    Setting& onKill_ = toggleSetting("onKill", "Nach einem Kill", false);
-    Setting& preset_ = choice("preset", "Spielende erkennen", {"Automatisch nach Server", "Eigene Wörter"});
-    Setting& triggers_ = textSetting("triggers", "Wörter im Chat (Komma)", "game over, victory");
-    Setting& messages_ = textSetting("messages", "Nachrichten (zufällig, mit | trennen)", "gg|gg wp|good game");
-    Setting& killMessage_ = textSetting("killMessage", "Nachricht nach Kill", "gg");
-    Setting& delay_ = slider("delay", "Verzögerung (s)", 1.5f, 0.3f, 8.f, "%.1f s");
-    Setting& cooldown_ = slider("cooldown", "Mindestabstand (s)", 12.f, 3.f, 60.f, "%.0f s");
-    Setting& chatKey_ = keySetting("chatKey", "Chat-Taste im Spiel", 'T');
+    Setting& onEnd_ = toggleSetting("onEnd", "At the end of a game", true);
+    Setting& onKill_ = toggleSetting("onKill", "After a kill", false);
+    Setting& preset_ = choice("preset", "Detect game end", {"Automatic by server", "Own words"});
+    Setting& triggers_ = textSetting("triggers", "Words in chat (comma)", "game over, victory");
+    Setting& messages_ = textSetting("messages", "Messages (random, separate with |)", "gg|gg wp|good game");
+    Setting& killMessage_ = textSetting("killMessage", "Message after kill", "gg");
+    Setting& delay_ = slider("delay", "Delay (s)", 1.5f, 0.3f, 8.f, "%.1f s");
+    Setting& cooldown_ = slider("cooldown", "Minimum gap (s)", 12.f, 3.f, 60.f, "%.0f s");
+    Setting& chatKey_ = keySetting("chatKey", "Chat key in game", 'T');
     std::mt19937 rng_{std::random_device{}()};
     std::string message_;
     double due_ = 0.0;
@@ -116,7 +116,7 @@ private:
 class MessageLogger : public Module {
 public:
     MessageLogger()
-        : Module("Message Logger", "Speichert den Chat in einer Textdatei pro Tag, mit Zeitstempel und Filter.", Category::Comfort, {"hud-self"}) {
+        : Module("Message Logger", "Saves the chat to a text file per day, with timestamps and filter.", Category::Comfort, {"hud-self"}) {
         sub("Chat");
         require(need::chat, need::sigs({"ChatEvents"}));
     }
@@ -139,16 +139,16 @@ public:
     }
 
 private:
-    Setting& colors_ = toggleSetting("strip", "Farbcodes entfernen", true);
-    Setting& stamp_ = toggleSetting("stamp", "Zeitstempel", true);
-    Setting& server_ = toggleSetting("server", "Servername davorsetzen", false);
-    Setting& filter_ = textSetting("filter", "Nur Zeilen mit (leer = alle)", "");
+    Setting& colors_ = toggleSetting("strip", "Remove color codes", true);
+    Setting& stamp_ = toggleSetting("stamp", "Timestamp", true);
+    Setting& server_ = toggleSetting("server", "Prefix the server name", false);
+    Setting& filter_ = textSetting("filter", "Only lines containing (empty = all)", "");
 };
 
 class DeathLogger : public GameList {
 public:
     DeathLogger()
-        : GameList("Death Logger", "Merkt sich, wo du gestorben bist, und zeigt die letzten Todespunkte mit Koordinaten.", need::player,
+        : GameList("Death Logger", "Remembers where you died and shows the last death points with coordinates.", need::player,
                    need::sigs({"LocalPlayer"}), {"hud-self"}, {0.01f, 0.20f}) {
         sub("Chat");
     }
@@ -157,7 +157,7 @@ public:
         if (ev.down && !ev.repeat && ev.vk == copyKey_.i && copyKey_.i && !list_.empty()) {
             auto& d = list_.back();
             ImGui::SetClipboardText(std::format("{} {} {}", int(d.x), int(d.y), int(d.z)).c_str());
-            notify::push("Kopiert", "Todespunkt in der Zwischenablage.", notify::Kind::Ok);
+            notify::push(i18n::tr("Copied"), i18n::tr("Death point is on the clipboard."), notify::Kind::Ok);
         }
     }
 
@@ -167,7 +167,7 @@ public:
             auto& p = game::state().player;
             list_.push_back({p.pos.x, p.pos.y, p.pos.z, p.dimension, ui::time()});
             while ((int)list_.size() > keep_.i) list_.erase(list_.begin());
-            if (toast_.b) notify::push("Du bist gestorben", std::format("{} {} {}", int(p.pos.x), int(p.pos.y), int(p.pos.z)), notify::Kind::Info);
+            if (toast_.b) notify::push(i18n::tr("You died"), std::format("{} {} {}", int(p.pos.x), int(p.pos.y), int(p.pos.z)), notify::Kind::Info);
         }
     }
 
@@ -179,11 +179,11 @@ public:
 protected:
     ImVec2 content(ImDrawList* dl, ImVec2 o, float s) override {
         float y = 0.f, w = 0.f;
-        if (list_.empty()) return drawText(dl, o, s, "Noch kein Tod", textColor());
+        if (list_.empty()) return drawText(dl, o, s, i18n::tr("No death yet"), textColor());
         int shown = 0;
         for (auto it = list_.rbegin(); it != list_.rend() && shown < show_.i; ++it, ++shown) {
             std::string t = std::format("{} {} {}", int(it->x), int(it->y), int(it->z));
-            if (age_.b) t += "  ·  vor " + text::clock(float(ui::time() - it->at));
+            if (age_.b) t += "  ·  " + text::clock(float(ui::time() - it->at));
             auto sz = drawText(dl, o + ImVec2(0, y), s, t, shown == 0 ? accentColor() : textColor());
             w = std::max(w, sz.x);
             y += sz.y;
@@ -198,18 +198,18 @@ private:
         double at;
     };
 
-    Setting& keep_ = intSlider("keep", "Gemerkte Todespunkte", 5, 1, 20);
-    Setting& show_ = intSlider("show", "Angezeigte Todespunkte", 3, 1, 10);
-    Setting& age_ = toggleSetting("age", "Zeit seit dem Tod", true);
-    Setting& toast_ = toggleSetting("toast", "Hinweis beim Tod", true);
-    Setting& copyKey_ = keySetting("copyKey", "Letzten Punkt kopieren", 0);
+    Setting& keep_ = intSlider("keep", "Remembered death points", 5, 1, 20);
+    Setting& show_ = intSlider("show", "Shown death points", 3, 1, 10);
+    Setting& age_ = toggleSetting("age", "Time since death", true);
+    Setting& toast_ = toggleSetting("toast", "Notice on death", true);
+    Setting& copyKey_ = keySetting("copyKey", "Copy last point", 0);
     std::vector<Death> list_;
 };
 
 class ChatPlus : public HudModule {
 public:
     ChatPlus()
-        : HudModule("Better Chat", "Eigener, verschiebbarer Chat mit Zeitstempeln, Filter und Hervorhebung.",
+        : HudModule("Better Chat", "Your own movable chat with timestamps, filter and highlighting.",
                     {"hud-self"}, {0.01f, 0.55f}) {
         sub("Chat");
         require(need::chat, need::sigs({"ChatEvents"}));
@@ -296,23 +296,23 @@ protected:
     }
 
 private:
-    Setting& width_ = slider("width", "Breite", 420.f, 200.f, 900.f, "%.0f");
-    Setting& lines_ = intSlider("lines", "Sichtbare Zeilen", 10, 3, 30);
-    Setting& fade_ = slider("fade", "Sichtbar für (s)", 10.f, 3.f, 60.f, "%.0f s");
-    Setting& stamp_ = toggleSetting("stamp", "Zeitstempel", false);
-    Setting& compact_ = toggleSetting("compact", "Gleiche Zeilen zusammenfassen", true);
-    Setting& colors_ = toggleSetting("colors", "Farbcodes darstellen", true);
-    Setting& highlight_ = toggleSetting("highlight", "Wörter hervorheben", false);
-    Setting& highlightWords_ = textSetting("highlightWords", "Wörter (Komma)", "");
-    Setting& highlightColor_ = colorSetting("highlightColor", "Hervorhebung", {1.f, 0.82f, 0.49f, 1.f});
-    Setting& filter_ = textSetting("filter", "Nur Zeilen mit (leer = alle)", "");
-    Setting& hideVanilla_ = toggleSetting("hideVanilla", "Original-Chat ausblenden", true);
+    Setting& width_ = slider("width", "Width", 420.f, 200.f, 900.f, "%.0f");
+    Setting& lines_ = intSlider("lines", "Visible lines", 10, 3, 30);
+    Setting& fade_ = slider("fade", "Visible for (s)", 10.f, 3.f, 60.f, "%.0f s");
+    Setting& stamp_ = toggleSetting("stamp", "Timestamp", false);
+    Setting& compact_ = toggleSetting("compact", "Merge identical lines", true);
+    Setting& colors_ = toggleSetting("colors", "Show color codes", true);
+    Setting& highlight_ = toggleSetting("highlight", "Highlight words", false);
+    Setting& highlightWords_ = textSetting("highlightWords", "Words (comma)", "");
+    Setting& highlightColor_ = colorSetting("highlightColor", "Highlight", {1.f, 0.82f, 0.49f, 1.f});
+    Setting& filter_ = textSetting("filter", "Only lines containing (empty = all)", "");
+    Setting& hideVanilla_ = toggleSetting("hideVanilla", "Hide the original chat", true);
 };
 
 class PlayerNotifier : public Module {
 public:
     PlayerNotifier()
-        : Module("Player Notifier", "Meldet, wenn ein Spieler aus deiner Liste auf den Server kommt, zum Beispiel Freunde.", Category::Comfort, {"info-others"}) {
+        : Module("Player Notifier", "Tells you when a player from your list joins the server, for example friends.", Category::Comfort, {"info-others"}) {
         sub("Chat");
         require(need::tab, need::sigs({"TabListData"}));
     }
@@ -327,13 +327,13 @@ public:
             std::string n = text::lower(e.name);
             present.insert(n);
             if (std::find(names.begin(), names.end(), n) != names.end() && !seen_.count(n) && primed_) {
-                notify::push("Spieler online", e.name, notify::Kind::Info, 6.f);
+                notify::push(i18n::tr("Player online"), e.name, notify::Kind::Info, 6.f);
                 if (sound_.b) MessageBeep(MB_ICONASTERISK);
             }
         }
         if (leave_.b)
             for (auto& n : seen_)
-                if (!present.count(n) && std::find(names.begin(), names.end(), n) != names.end()) notify::push("Spieler weg", n, notify::Kind::Info, 4.f);
+                if (!present.count(n) && std::find(names.begin(), names.end(), n) != names.end()) notify::push(i18n::tr("Player left"), n, notify::Kind::Info, 4.f);
         seen_ = present;
         primed_ = true;
     }
@@ -344,9 +344,9 @@ public:
     }
 
 private:
-    Setting& list_ = textSetting("list", "Namen (Komma)", "");
-    Setting& sound_ = toggleSetting("sound", "Ton", true);
-    Setting& leave_ = toggleSetting("leave", "Auch beim Verlassen melden", false);
+    Setting& list_ = textSetting("list", "Names (comma)", "");
+    Setting& sound_ = toggleSetting("sound", "Sound", true);
+    Setting& leave_ = toggleSetting("leave", "Also report when they leave", false);
     std::set<std::string> seen_;
     bool primed_ = false;
     double last_ = 0.0;
@@ -355,9 +355,9 @@ private:
 class ScoreboardPlus : public HudModule {
 public:
     ScoreboardPlus()
-        : HudModule("Scoreboard", "Eigenes, verschiebbares Scoreboard ohne rote Zahlen.",
+        : HudModule("Scoreboard", "Your own movable scoreboard without red numbers.",
                     {"hud-self"}, {0.84f, 0.30f}) {
-        sub("HUD-Teile");
+        sub("HUD parts");
         require(need::board, need::sigs({"ScoreboardData"}));
     }
 
@@ -396,19 +396,19 @@ protected:
     }
 
 private:
-    Setting& titleOn_ = toggleSetting("title", "Titel", true);
-    Setting& numbers_ = toggleSetting("numbers", "Zahlen rechts", false);
-    Setting& numberColor_ = colorSetting("numberColor", "Zahlenfarbe", {1.f, 0.4f, 0.45f, 1.f});
-    Setting& max_ = intSlider("max", "Maximale Zeilen", 15, 3, 20);
-    Setting& hideVanilla_ = toggleSetting("hideVanilla", "Original-Scoreboard ausblenden", true);
+    Setting& titleOn_ = toggleSetting("title", "Title", true);
+    Setting& numbers_ = toggleSetting("numbers", "Numbers on the right", false);
+    Setting& numberColor_ = colorSetting("numberColor", "Number color", {1.f, 0.4f, 0.45f, 1.f});
+    Setting& max_ = intSlider("max", "Maximum lines", 15, 3, 20);
+    Setting& hideVanilla_ = toggleSetting("hideVanilla", "Hide the original scoreboard", true);
 };
 
 class TabList : public HudModule {
 public:
     TabList()
-        : HudModule("Tab List", "Spielerliste im Java-Stil mit Spalten, Ping und Sortierung.",
+        : HudModule("Tab List", "Java-style player list with columns, ping and sorting.",
                     {"info-others"}, {0.30f, 0.05f}) {
-        sub("HUD-Teile");
+        sub("HUD parts");
         require(need::tab, need::sigs({"TabListData"}));
         rows_.visible = [this] { return columns_.i == 0; };
     }
@@ -463,13 +463,13 @@ protected:
     }
 
 private:
-    Setting& columns_ = intSlider("columns", "Spalten (0 = nach Zeilen)", 0, 0, 6);
-    Setting& rows_ = intSlider("rows", "Zeilen pro Spalte", 20, 5, 40);
-    Setting& sort_ = choice("sort", "Sortierung", {"Name", "Ping", "Wie vom Server"}, 2);
-    Setting& ping_ = toggleSetting("ping", "Ping anzeigen", true);
-    Setting& pingBars_ = toggleSetting("pingBars", "Ping als Balken", true);
-    Setting& onHold_ = toggleSetting("onHold", "Nur solange Tab gehalten wird", true);
-    Setting& good_ = colorSetting("good", "Ping gut", {0.55f, 0.91f, 0.69f, 1.f});
-    Setting& mid_ = colorSetting("mid", "Ping mittel", {1.f, 0.82f, 0.49f, 1.f});
-    Setting& bad_ = colorSetting("bad", "Ping schlecht", {1.f, 0.4f, 0.45f, 1.f});
+    Setting& columns_ = intSlider("columns", "Columns (0 = by rows)", 0, 0, 6);
+    Setting& rows_ = intSlider("rows", "Rows per column", 20, 5, 40);
+    Setting& sort_ = choice("sort", "Sorting", {"Name", "Ping", "As sent by the server"}, 2);
+    Setting& ping_ = toggleSetting("ping", "Show ping", true);
+    Setting& pingBars_ = toggleSetting("pingBars", "Ping as bars", true);
+    Setting& onHold_ = toggleSetting("onHold", "Only while Tab is held", true);
+    Setting& good_ = colorSetting("good", "Ping good", {0.55f, 0.91f, 0.69f, 1.f});
+    Setting& mid_ = colorSetting("mid", "Ping medium", {1.f, 0.82f, 0.49f, 1.f});
+    Setting& bad_ = colorSetting("bad", "Ping bad", {1.f, 0.4f, 0.45f, 1.f});
 };

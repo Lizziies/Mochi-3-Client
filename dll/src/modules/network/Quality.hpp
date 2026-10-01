@@ -20,7 +20,7 @@ struct Limits {
 
 struct Verdict {
     Grade grade = Grade::Unknown;
-    std::string label = "Keine Messung";
+    std::string label = i18n::tr("No measurement");
     std::string reason;
     std::vector<std::string> tips;
 };
@@ -28,7 +28,7 @@ struct Verdict {
 inline Verdict judge(const probe::Snapshot& s, const Limits& l) {
     Verdict v;
     if (!s.running || !s.resolved || s.received == 0) {
-        v.reason = s.sent > 0 ? "Keine Antwort vom Server. Blockiert die Firewall ICMP?" : "";
+        v.reason = s.sent > 0 ? i18n::tr("No reply from the server. Is the firewall blocking ICMP?") : "";
         return v;
     }
 
@@ -41,29 +41,29 @@ inline Verdict judge(const probe::Snapshot& s, const Limits& l) {
     if (lossy || jittery || slow) v.grade = Grade::Poor;
     else if (s.avg >= l.pingFair || s.jitter >= l.jitterFair || s.loss >= 0.5f) v.grade = Grade::Fair;
     else v.grade = Grade::Good;
-    v.label = v.grade == Grade::Good ? "Stabil" : v.grade == Grade::Fair ? "Wackelig" : "Schlecht";
+    v.label = i18n::tr(v.grade == Grade::Good ? "Stable" : v.grade == Grade::Fair ? "Shaky" : "Poor");
 
     if (v.grade != Grade::Good) {
-        if (weakWifi) v.reason = std::format("WLAN-Signal schwach ({} %)", s.link.signal);
-        else if (lossy && wifi) v.reason = std::format("{:.1f} % Paketverlust, vermutlich Funk-Störung", s.loss);
-        else if (lossy) v.reason = std::format("{:.1f} % Paketverlust auf der Strecke", s.loss);
-        else if (jittery && wifi) v.reason = "Jitter hoch, vermutlich Funk-Störung";
-        else if (jittery) v.reason = "Jitter hoch, die Leitung schwankt";
-        else if (slow) v.reason = std::format("Ping hoch ({:.0f} ms), Server weit weg oder Route schlecht", s.avg);
-        else v.reason = "Leichte Schwankungen";
+        if (weakWifi) v.reason = i18n::fmt("Weak Wi-Fi signal ({} %)", s.link.signal);
+        else if (lossy && wifi) v.reason = i18n::fmt("{:.1f} % packet loss, probably radio interference", s.loss);
+        else if (lossy) v.reason = i18n::fmt("{:.1f} % packet loss on the route", s.loss);
+        else if (jittery && wifi) v.reason = i18n::tr("High jitter, probably radio interference");
+        else if (jittery) v.reason = i18n::tr("High jitter, the line fluctuates");
+        else if (slow) v.reason = i18n::fmt("High ping ({:.0f} ms), server far away or poor route", s.avg);
+        else v.reason = i18n::tr("Slight fluctuations");
     }
     if (s.spikePeriod > 0.f)
-        v.reason = std::format("Ping-Spitzen alle {:.0f} s, vermutlich WLAN-Scan im Hintergrund", s.spikePeriod);
+        v.reason = i18n::fmt("Ping spikes every {:.0f} s, probably a Wi-Fi scan in the background", s.spikePeriod);
 
     if (wifi) {
-        if (s.link.band == "2,4 GHz") v.tips.push_back("Auf das 5-GHz-Band wechseln, 2,4 GHz ist überlaufen");
-        if (weakWifi) v.tips.push_back("Näher an den Router oder LAN-Kabel nutzen");
-        if (v.grade != Grade::Good) v.tips.push_back("LAN-Kabel ist die sicherste Lösung gegen Jitter");
-        if (s.link.powerSaving == 1) v.tips.push_back("Energiesparen des WLAN-Adapters im Geräte-Manager abschalten");
-        if (s.spikePeriod > 0.f) v.tips.push_back("Automatische WLAN-Suche des Treibers abschalten");
+        if (s.link.band == i18n::tr("2.4 GHz")) v.tips.push_back(i18n::tr("Switch to the 5 GHz band, 2.4 GHz is crowded"));
+        if (weakWifi) v.tips.push_back(i18n::tr("Move closer to the router or use a LAN cable"));
+        if (v.grade != Grade::Good) v.tips.push_back(i18n::tr("A LAN cable is the surest fix for jitter"));
+        if (s.link.powerSaving == 1) v.tips.push_back(i18n::tr("Turn off power saving of the Wi-Fi adapter in the Device Manager"));
+        if (s.spikePeriod > 0.f) v.tips.push_back(i18n::tr("Turn off the driver's automatic Wi-Fi scan"));
     } else if (v.grade != Grade::Good) {
-        v.tips.push_back("Hintergrund-Downloads und Cloud-Sync pausieren");
-        if (lossy) v.tips.push_back("Kabel und Router prüfen, Router-QoS für Spiele aktivieren");
+        v.tips.push_back(i18n::tr("Pause background downloads and cloud sync"));
+        if (lossy) v.tips.push_back(i18n::tr("Check cable and router, enable router QoS for games"));
     }
     return v;
 }

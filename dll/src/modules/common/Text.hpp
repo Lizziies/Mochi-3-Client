@@ -1,5 +1,7 @@
 #pragma once
 
+#include "I18n.hpp"
+
 #include <imgui.h>
 
 #include <algorithm>
@@ -52,18 +54,18 @@ inline std::string effect(const std::string& id) {
         const char* name;
     };
     static const Pair names[] = {
-        {"speed", "Schnelligkeit"},       {"slowness", "Langsamkeit"},       {"haste", "Eile"},
-        {"mining_fatigue", "Abbaulähmung"}, {"strength", "Stärke"},          {"instant_health", "Sofortheilung"},
-        {"instant_damage", "Sofortschaden"}, {"jump_boost", "Sprungkraft"},  {"nausea", "Übelkeit"},
-        {"regeneration", "Regeneration"}, {"resistance", "Resistenz"},       {"fire_resistance", "Feuerresistenz"},
-        {"water_breathing", "Wasseratmung"}, {"invisibility", "Unsichtbarkeit"}, {"blindness", "Blindheit"},
-        {"night_vision", "Nachtsicht"},   {"hunger", "Hunger"},              {"weakness", "Schwäche"},
-        {"poison", "Vergiftung"},         {"wither", "Wither"},              {"health_boost", "Lebensschub"},
-        {"absorption", "Absorption"},     {"saturation", "Sättigung"},       {"levitation", "Schwebekraft"},
-        {"slow_falling", "Sanftes Fallen"}, {"darkness", "Dunkelheit"},
+        {"speed", "Speed"},       {"slowness", "Slowness"},       {"haste", "Haste"},
+        {"mining_fatigue", "Mining Fatigue"}, {"strength", "Strength"},          {"instant_health", "Instant Health"},
+        {"instant_damage", "Instant Damage"}, {"jump_boost", "Jump Boost"},  {"nausea", "Nausea"},
+        {"regeneration", "Regeneration"}, {"resistance", "Resistance"},       {"fire_resistance", "Fire Resistance"},
+        {"water_breathing", "Water Breathing"}, {"invisibility", "Invisibility"}, {"blindness", "Blindness"},
+        {"night_vision", "Night Vision"},   {"hunger", "Hunger"},              {"weakness", "Weakness"},
+        {"poison", "Poison"},         {"wither", "Wither"},              {"health_boost", "Health Boost"},
+        {"absorption", "Absorption"},     {"saturation", "Saturation"},       {"levitation", "Levitation"},
+        {"slow_falling", "Slow Falling"}, {"darkness", "Darkness"},
     };
     for (auto& p : names)
-        if (id == p.id) return p.name;
+        if (id == p.id) return i18n::tr(p.name);
     return pretty(id);
 }
 

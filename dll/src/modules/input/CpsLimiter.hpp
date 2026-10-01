@@ -11,7 +11,7 @@ public:
     CpsLimiter()
         : Module("CPS Limiter", "Limits your clicks per second, for example for servers with a CPS limit.", Category::Pvp,
                  {"input"}) {
-        sub("Eingabe");
+        sub("Input");
         LARGE_INTEGER f;
         QueryPerformanceFrequency(&f);
         qpf_ = f.QuadPart;

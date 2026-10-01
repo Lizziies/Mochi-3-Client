@@ -14,7 +14,7 @@
 class Pomodoro : public HudModule {
 public:
     Pomodoro()
-        : HudModule("Pomodoro", "Lern- und Pausen-Timer: Arbeitsphase, kurze und lange Pause, mit Hinweis beim Wechsel.", {"hud-self"}, {0.01f, 0.18f}) {
+        : HudModule("Pomodoro", "Study and break timer: work phase, short and long break, with a notice on every change.", {"hud-self"}, {0.01f, 0.18f}) {
         sub("Timer");
         long_.visible = [this] { return rounds_.i > 0; };
         ring_.visible = [this] { return style_.i == 0; };
@@ -58,8 +58,8 @@ protected:
         ImVec4 col = phase_ == 0 ? t.accent : t.ok;
         int m = int(rem) / 60, sec = int(rem) % 60;
         std::string clock = std::format("{:02}:{:02}", m, sec);
-        const char* names[] = {"Arbeiten", "Pause", "Lange Pause"};
-        std::string label = std::string(names[phase_]) + (running_ ? "" : "  (Pause)");
+        const char* names[] = {"Work", "Break", "Long break"};
+        std::string label = std::string(i18n::tr(names[phase_])) + (running_ ? "" : i18n::tr("  (paused)"));
 
         float lineH = fonts::hudSize() * s * 1.1f;
         if (style_.i == 0) {
@@ -79,7 +79,7 @@ protected:
         dl->AddRectFilled(b0, b0 + ImVec2(w, 6 * s), IM_COL32(0, 0, 0, 70), 3 * s);
         dl->AddRectFilled(b0, b0 + ImVec2(w * frac, 6 * s), ImGui::GetColorU32(col), 3 * s);
         float h = y + 9 * s;
-        if (cycles_.b) h += drawText(dl, o + ImVec2(0, h), s, std::format("Runde {}", round_ + 1), ImGui::GetColorU32(t.textDim)).y;
+        if (cycles_.b) h += drawText(dl, o + ImVec2(0, h), s, i18n::fmt("Round {}", round_ + 1), ImGui::GetColorU32(t.textDim)).y;
         return {w, h};
     }
 
@@ -98,10 +98,10 @@ private:
             round_++;
             bool big = rounds_.i > 0 && round_ % rounds_.i == 0;
             phase_ = big ? 2 : 1;
-            title = big ? "Lange Pause" : "Kurze Pause";
+            title = i18n::tr(big ? "Long break" : "Short break");
         } else {
             phase_ = 0;
-            title = "Zurück an die Arbeit";
+            title = i18n::tr("Back to work");
         }
         remaining_ = phaseLength();
         start_ = ui::time();
@@ -110,19 +110,19 @@ private:
         if (beep_.b) MessageBeep(MB_ICONASTERISK);
     }
 
-    Setting& work_ = slider("work", "Arbeit (min)", 25.f, 5.f, 90.f, "%.0f");
-    Setting& short_ = slider("short", "Kurze Pause (min)", 5.f, 1.f, 30.f, "%.0f");
-    Setting& long_ = slider("long", "Lange Pause (min)", 15.f, 5.f, 60.f, "%.0f");
-    Setting& rounds_ = intSlider("rounds", "Runden bis zur langen Pause", 4, 0, 8);
-    Setting& auto_ = toggleSetting("auto", "Nächste Phase automatisch starten", true);
-    Setting& style_ = choice("style", "Darstellung", {"Ring", "Balken"});
-    Setting& ring_ = toggleSetting("phaseColor", "Ringfarbe nach Phase", true);
-    Setting& cycles_ = toggleSetting("cycles", "Rundenzähler", true);
-    Setting& toast_ = toggleSetting("toast", "Hinweis beim Wechsel", true);
-    Setting& beep_ = toggleSetting("beep", "Signalton", true);
-    Setting& startKey_ = keySetting("startKey", "Start / Pause", VK_F10);
-    Setting& skipKey_ = keySetting("skipKey", "Phase überspringen", 0);
-    Setting& resetKey_ = keySetting("resetKey", "Zurücksetzen", 0);
+    Setting& work_ = slider("work", "Work (min)", 25.f, 5.f, 90.f, "%.0f");
+    Setting& short_ = slider("short", "Short break (min)", 5.f, 1.f, 30.f, "%.0f");
+    Setting& long_ = slider("long", "Long break (min)", 15.f, 5.f, 60.f, "%.0f");
+    Setting& rounds_ = intSlider("rounds", "Rounds until the long break", 4, 0, 8);
+    Setting& auto_ = toggleSetting("auto", "Start the next phase automatically", true);
+    Setting& style_ = choice("style", "Display style", {"Ring", "Bar"});
+    Setting& ring_ = toggleSetting("phaseColor", "Ring color by phase", true);
+    Setting& cycles_ = toggleSetting("cycles", "Round counter", true);
+    Setting& toast_ = toggleSetting("toast", "Notice on change", true);
+    Setting& beep_ = toggleSetting("beep", "Beep", true);
+    Setting& startKey_ = keySetting("startKey", "Start / pause", VK_F10);
+    Setting& skipKey_ = keySetting("skipKey", "Skip phase", 0);
+    Setting& resetKey_ = keySetting("resetKey", "Reset", 0);
     bool running_ = false;
     int phase_ = 0;
     int round_ = 0;

@@ -9,7 +9,7 @@
 class Clock : public TextHud {
 public:
     Clock() : TextHud("Clock", "Shows the current time.", {"hud-self"}, {0.01f, 0.10f}) {
-        sub("Eigene Werte");
+        sub("Own values");
     }
 
 protected:

@@ -12,7 +12,7 @@
 class DvdScreen : public Module {
 public:
     DvdScreen() : Module("DVD Screen", "A bouncing logo like the DVD screensaver.", Category::Fun, {"cosmetic"}) {
-        sub("Spiele");
+        sub("Games");
     }
 
     void onRender(ImDrawList* dl) override {

@@ -133,3 +133,4 @@ Das hier ist der Anfang, nicht das Ende. Die Basis steht, der große Rest (Modul
 
 - Nachtrag: Cinematic Camera (Blickbewegung glätten über `fx.lookDelta`), Paperdoll (2D-Figur mit Rüstung). Target HUD und Waila zeigen Leben von Spielern nur, wenn man es ausdrücklich einschaltet. Module jetzt 137.
 - Nachtrag: Hotbar Keys (Tasten für Hotbar-Plätze, per Injection), Zoom mit dunklem Rand, Coordinates kopiert die Position per Taste. Module jetzt 138.
+- Phase 0 (Teil 1): alle Texte der Module, des SDK und der Server-Hilfen sind jetzt Englisch im Code, die deutsche Tabelle liegt in `dll/src/modules/Lang_B.cpp` (881 Einträge). Laufzeit-Texte gehen über `i18n::tr` und `i18n::fmt`. `tools/cross.sh build` und `shots` laufen sauber, auf Deutsch (lang.txt im Wine-Profil) sind Karten und Menü übersetzt.

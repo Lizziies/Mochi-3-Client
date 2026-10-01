@@ -13,9 +13,9 @@
 class Deepfry : public Module {
 public:
     Deepfry()
-        : Module("Deepfry", "Frittiert das Spielbild: übersättigt, körnig und hart abgestuft. Reiner Spaß.", Category::Fun,
+        : Module("Deepfry", "Deep-fries the game image: oversaturated, grainy and harshly stepped. Pure fun.", Category::Fun,
                  {"cosmetic"}) {
-        sub("Post-Effekte");
+        sub("Post effects");
         speed_.visible = [this] { return mode_.i == 1; };
     }
 
@@ -32,9 +32,9 @@ public:
     }
 
 private:
-    Setting& amount_ = slider("amount", "Stärke", 0.5f, 0.05f, 1.f, "%.2f");
-    Setting& mode_ = choice("mode", "Verlauf", {"Dauerhaft", "Pulsierend", "Bei Klick"});
-    Setting& speed_ = slider("speed", "Puls-Tempo (Hz)", 0.6f, 0.1f, 4.f, "%.2f");
+    Setting& amount_ = slider("amount", "Strength", 0.5f, 0.05f, 1.f, "%.2f");
+    Setting& mode_ = choice("mode", "Gradient", {"Permanent", "Pulsing", "On click"});
+    Setting& speed_ = slider("speed", "Pulse speed (Hz)", 0.6f, 0.1f, 4.f, "%.2f");
     float phase_ = 0.f;
     float pulse_ = 0.f;
 };
@@ -42,9 +42,9 @@ private:
 class UpsideDown : public Module {
 public:
     UpsideDown()
-        : Module("Upside Down", "Dreht das Spielbild auf den Kopf. Die Steuerung bleibt normal, das ist Absicht.", Category::Fun,
+        : Module("Upside Down", "Turns the game image upside down. Controls stay normal, on purpose.", Category::Fun,
                  {"cosmetic"}) {
-        sub("Post-Effekte");
+        sub("Post effects");
         hold_.visible = [this] { return holdMode_.b; };
     }
 
@@ -54,6 +54,6 @@ public:
     }
 
 private:
-    Setting& holdMode_ = toggleSetting("holdMode", "Nur solange eine Taste gehalten wird", false);
-    Setting& hold_ = keySetting("hold", "Halte-Taste", VK_F8);
+    Setting& holdMode_ = toggleSetting("holdMode", "Only while a key is held", false);
+    Setting& hold_ = keySetting("hold", "Hold key", VK_F8);
 };

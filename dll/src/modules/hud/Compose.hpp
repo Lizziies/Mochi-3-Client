@@ -26,9 +26,9 @@
 class StatsHud : public HudModule {
 public:
     StatsHud()
-        : HudModule("Stats HUD", "Ein Block mit wählbaren Zeilen: FPS, CPS, Ping, Position, Leben, Uhr, RAM.",
+        : HudModule("Stats HUD", "One block with selectable lines: FPS, CPS, Ping, position, health, clock, RAM.",
                     {"hud-self"}, {0.01f, 0.36f}) {
-        sub("Eigene Werte");
+        sub("Own values");
     }
 
     void onDisable() override {
@@ -63,15 +63,15 @@ protected:
         if (game::has(game::Domain::Player)) {
             auto& pl = st.player;
             if (coords_.b) rows.push_back({"XYZ", std::format("{:.0f} {:.0f} {:.0f}", pl.pos.x, pl.pos.y, pl.pos.z)});
-            if (health_.b) rows.push_back({"Leben", std::format("{:.1f}", pl.health)});
+            if (health_.b) rows.push_back({"Health", std::format("{:.1f}", pl.health)});
             if (hunger_.b) rows.push_back({"Hunger", std::format("{:.0f}", pl.hunger)});
         }
-        if (combo_.b && game::has(game::Domain::Combat)) rows.push_back({"Combo", std::format("{} (Best {})", st.combat.combo, st.combat.bestCombo)});
+        if (combo_.b && game::has(game::Domain::Combat)) rows.push_back({"Combo", i18n::fmt("{} (best {})", st.combat.combo, st.combat.bestCombo)});
         if (reach_.b && game::has(game::Domain::Combat)) rows.push_back({"Reach", st.combat.reachCount ? text::num(st.combat.lastReach, 2) : "–"});
         if (clock_.b) {
             SYSTEMTIME t;
             GetLocalTime(&t);
-            rows.push_back({"Uhr", std::format("{:02}:{:02}", t.wHour, t.wMinute)});
+            rows.push_back({"Clock", std::format("{:02}:{:02}", t.wHour, t.wMinute)});
         }
         if (ram_.b) {
             PROCESS_MEMORY_COUNTERS pmc{};
@@ -85,16 +85,16 @@ protected:
 
         float kw = 0.f, vw = 0.f, y = 0.f;
         for (auto& r : rows) {
-            kw = std::max(kw, textSize(s, r.k).x);
+            kw = std::max(kw, textSize(s, i18n::tr(r.k.c_str())).x);
             vw = std::max(vw, textSize(s, r.v).x);
         }
         float gap = 10.f * s;
         for (auto& r : rows) {
-            auto a = drawText(dl, o + ImVec2(0, y), s, r.k, accentColor());
+            auto a = drawText(dl, o + ImVec2(0, y), s, i18n::tr(r.k.c_str()), accentColor());
             drawText(dl, o + ImVec2(kw + gap, y), s, r.v, textColor());
             y += a.y;
         }
-        if (rows.empty()) return drawText(dl, o, s, "Keine Zeile gewählt", textColor());
+        if (rows.empty()) return drawText(dl, o, s, i18n::tr("No line selected"), textColor());
         return {kw + gap + vw, y};
     }
 
@@ -105,11 +105,11 @@ private:
     Setting& ping_ = toggleSetting("ping", "Ping", true);
     Setting& jitter_ = toggleSetting("jitter", "Jitter", false);
     Setting& coords_ = toggleSetting("coords", "Position", false);
-    Setting& health_ = toggleSetting("health", "Leben", false);
+    Setting& health_ = toggleSetting("health", "Health", false);
     Setting& hunger_ = toggleSetting("hunger", "Hunger", false);
     Setting& combo_ = toggleSetting("combo", "Combo", false);
     Setting& reach_ = toggleSetting("reach", "Reach", false);
-    Setting& clock_ = toggleSetting("clock", "Uhrzeit", false);
+    Setting& clock_ = toggleSetting("clock", "Time of day", false);
     Setting& ram_ = toggleSetting("ram", "RAM", false);
     Setting& server_ = toggleSetting("server", "Server", false);
     double frameMs_ = 0.0;
@@ -119,9 +119,9 @@ private:
 class Watermark : public HudModule {
 public:
     Watermark()
-        : HudModule("Watermark", "Client-Logo mit Herz und Version als Text, Pille oder Verlauf.", {"cosmetic"},
+        : HudModule("Watermark", "Client logo with heart and version as text, pill or gradient.", {"cosmetic"},
                     {0.005f, 0.005f}) {
-        sub("Eigene Werte");
+        sub("Own values");
         background_.b = false;
         text_.visible = [this] { return custom_.b; };
     }
@@ -172,21 +172,21 @@ protected:
     }
 
 private:
-    Setting& style_ = choice("style", "Stil", {"Text", "Pille", "Verlauf"}, 2);
-    Setting& heart_ = toggleSetting("heart", "Herz", true);
-    Setting& custom_ = toggleSetting("custom", "Eigener Text", false);
+    Setting& style_ = choice("style", "Style", {"Text", "Pill", "Gradient"}, 2);
+    Setting& heart_ = toggleSetting("heart", "Heart", true);
+    Setting& custom_ = toggleSetting("custom", "Custom text", false);
     Setting& text_ = textSetting("text", "Text", "Mochi");
     Setting& version_ = toggleSetting("version", "Version", true);
-    Setting& fps_ = toggleSetting("fps", "FPS dahinter", false);
+    Setting& fps_ = toggleSetting("fps", "FPS behind it", false);
     double frameMs_ = 0.0;
 };
 
 class DebugMenu : public Module {
 public:
     DebugMenu()
-        : Module("Debug Menu", "Debug-Anzeige im Java-Stil: FPS, Position, Chunk, Biom, Speicher, Renderer.",
+        : Module("Debug Menu", "Java-style debug display: FPS, position, chunk, biome, memory, renderer.",
                  Category::Hud, {"hud-self"}) {
-        sub("Eigene Werte");
+        sub("Own values");
     }
 
     void onKey(KeyEvent& ev) override {
@@ -208,36 +208,36 @@ public:
         if (game::has(game::Domain::Player)) {
             left.push_back("");
             left.push_back(std::format("XYZ: {:.3f} / {:.5f} / {:.3f}", pl.pos.x, pl.pos.y, pl.pos.z));
-            left.push_back(std::format("Block: {} {} {}", int(std::floor(pl.pos.x)), int(std::floor(pl.pos.y)), int(std::floor(pl.pos.z))));
-            left.push_back(std::format("Chunk: {} {} in {} {}", int(std::floor(pl.pos.x)) & 15, int(std::floor(pl.pos.z)) & 15, int(std::floor(pl.pos.x / 16.f)), int(std::floor(pl.pos.z / 16.f))));
-            left.push_back(std::format("Blick: yaw {:.1f} pitch {:.1f}", pl.yaw, pl.pitch));
-            left.push_back(std::format("Tempo: {:.2f} b/s", std::sqrt(pl.vel.x * pl.vel.x + pl.vel.z * pl.vel.z)));
-            left.push_back(std::format("Leben {:.1f}  Hunger {:.0f}  Level {}", pl.health, pl.hunger, pl.level));
+            left.push_back(i18n::fmt("Block: {} {} {}", int(std::floor(pl.pos.x)), int(std::floor(pl.pos.y)), int(std::floor(pl.pos.z))));
+            left.push_back(i18n::fmt("Chunk: {} {} in {} {}", int(std::floor(pl.pos.x)) & 15, int(std::floor(pl.pos.z)) & 15, int(std::floor(pl.pos.x / 16.f)), int(std::floor(pl.pos.z / 16.f))));
+            left.push_back(i18n::fmt("Facing: yaw {:.1f} pitch {:.1f}", pl.yaw, pl.pitch));
+            left.push_back(i18n::fmt("Speed: {:.2f} b/s", std::sqrt(pl.vel.x * pl.vel.x + pl.vel.z * pl.vel.z)));
+            left.push_back(i18n::fmt("Health {:.1f}  Hunger {:.0f}  Level {}", pl.health, pl.hunger, pl.level));
         }
         if (game::has(game::Domain::World)) {
             auto& w = st.world;
-            left.push_back(std::format("Biom: {}", w.biome));
-            left.push_back(std::format("Zeit: {} (Tag {})  {}", w.time, w.day, w.raining ? "Regen" : "klar"));
-            left.push_back(std::format("Entities: {}  Spieler: {}", w.entities, w.players));
+            left.push_back(i18n::fmt("Biome: {}", w.biome));
+            left.push_back(i18n::fmt("Time: {} (day {})  {}", w.time, w.day, w.raining ? i18n::tr("Rain") : i18n::tr("clear")));
+            left.push_back(i18n::fmt("Entities: {}  Players: {}", w.entities, w.players));
         }
 
         PROCESS_MEMORY_COUNTERS pmc{};
         GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc));
         auto stats = sigs::stats();
         right.push_back(std::format("Renderer: {}", dx::api() == dx::Api::Dx12 ? "DirectX 12" : dx::api() == dx::Api::Dx11 ? "DirectX 11" : "–"));
-        right.push_back(std::format("Fenster: {:.0f}x{:.0f}", ds.x, ds.y));
+        right.push_back(i18n::fmt("Window: {:.0f}x{:.0f}", ds.x, ds.y));
         right.push_back(std::format("RAM: {:.0f} MB", pmc.WorkingSetSize / (1024.0 * 1024.0)));
         right.push_back(std::format("Minecraft {}", stats.gameVersion));
-        right.push_back(std::format("Signaturen: {}/{} ({})", stats.found, stats.total, stats.source));
+        right.push_back(i18n::fmt("Signatures: {}/{} ({})", stats.found, stats.total, stats.source));
         auto r = rules::status();
         right.push_back(std::format("Server: {}", r.server.empty() ? "–" : r.server));
-        if (game::demo()) right.push_back("Demo-Daten aktiv");
+        if (game::demo()) right.push_back(i18n::tr("Demo data on"));
         if (channels_.b) {
             right.push_back("");
-            right.push_back("Effekt-Kanäle:");
+            right.push_back(i18n::tr("Effect channels:"));
             for (int i = 0; i < int(fx::Id::Count); i++) {
                 auto rep = fx::report(fx::Id(i));
-                if (rep.requested) right.push_back(std::format("  {} {}", fx::info(fx::Id(i)).sig, rep.installed ? "aktiv" : "angefordert"));
+                if (rep.requested) right.push_back(std::format("  {} {}", fx::info(fx::Id(i)).sig, rep.installed ? i18n::tr("active") : i18n::tr("requested")));
             }
         }
 
@@ -262,14 +262,14 @@ public:
     }
 
 private:
-    Setting& key_ = keySetting("toggle", "Ein/Aus-Taste", VK_F3);
-    Setting& left_ = toggleSetting("left", "Linke Spalte", true);
-    Setting& right_ = toggleSetting("right", "Rechte Spalte", true);
-    Setting& channels_ = toggleSetting("channels", "Aktive Effekt-Kanäle zeigen", true);
-    Setting& scale_ = slider("scale", "Größe", 1.f, 0.6f, 2.f, "%.2fx");
-    Setting& bg_ = toggleSetting("bg", "Zeilen-Hintergrund", true);
-    Setting& bgColor_ = colorSetting("bgColor", "Hintergrundfarbe", {0.f, 0.f, 0.f, 0.4f});
-    Setting& textColor_ = colorSetting("textColor", "Textfarbe", {1.f, 1.f, 1.f, 1.f});
+    Setting& key_ = keySetting("toggle", "On/off key", VK_F3);
+    Setting& left_ = toggleSetting("left", "Left column", true);
+    Setting& right_ = toggleSetting("right", "Right column", true);
+    Setting& channels_ = toggleSetting("channels", "Show active effect channels", true);
+    Setting& scale_ = slider("scale", "Size", 1.f, 0.6f, 2.f, "%.2fx");
+    Setting& bg_ = toggleSetting("bg", "Line background", true);
+    Setting& bgColor_ = colorSetting("bgColor", "Background color", {0.f, 0.f, 0.f, 0.4f});
+    Setting& textColor_ = colorSetting("textColor", "Text color", {1.f, 1.f, 1.f, 1.f});
     bool visible_ = false;
     double smooth_ = 0.0;
 };

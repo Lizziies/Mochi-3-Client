@@ -21,9 +21,9 @@
 class AutoProfile : public Module {
 public:
     AutoProfile()
-        : Module("Auto Profile", "Erkennt deine Hardware, empfiehlt ein Performance-Profil und wendet es an.",
+        : Module("Auto Profile", "Detects your hardware, recommends a performance profile and applies it.",
                  Category::Performance, {"performance"}) {
-        sub("Diagnose");
+        sub("Diagnostics");
         lowFps_.visible = [this] { return hint_.b; };
         detect();
     }
@@ -39,24 +39,24 @@ public:
         frames_ = 0;
         if (fps < lowFps_.f && !hinted_) {
             hinted_ = true;
-            notify::push("Niedrige FPS", std::format("Im Schnitt {:.0f} FPS. Aktiviere im Modul \"Auto Profile\" das Performance-Profil.", fps), notify::Kind::Warn, 8.f);
+            notify::push(i18n::tr("Low FPS"), i18n::fmt("{:.0f} FPS on average. Turn on the performance profile in the \"Auto Profile\" module.", fps), notify::Kind::Warn, 8.f);
         }
     }
 
     void drawSettings() override {
         auto& t = theme::current();
         ImGui::Spacing();
-        ImGui::Text("Grafikkarte: %s", gpu_.c_str());
-        ImGui::Text("Prozessor: %d Kerne  ·  Arbeitsspeicher: %.0f GB  ·  Grafikspeicher: %.0f GB", cores_, ramGb_, vramGb_);
-        const char* names[] = {"Niedrig (maximale FPS)", "Mittel", "Hoch (schöne Grafik)"};
-        ImGui::TextColored(t.accent, "Empfehlung: %s", names[tier()]);
-        if (ImGui::Button("Empfehlung anwenden")) apply(tier());
+        ImGui::Text(i18n::tr("Graphics card: %s"), gpu_.c_str());
+        ImGui::Text(i18n::tr("Processor: %d cores  ·  Memory: %.0f GB  ·  Video memory: %.0f GB"), cores_, ramGb_, vramGb_);
+        const char* names[] = {"Low (maximum FPS)", "Medium", "High (nice graphics)"};
+        ImGui::TextColored(t.accent, i18n::tr("Recommendation: %s"), i18n::tr(names[tier()]));
+        if (ImGui::Button(i18n::tr("Apply recommendation"))) apply(tier());
         ImGui::SameLine();
-        if (ImGui::Button("Niedrig")) apply(0);
+        if (ImGui::Button(i18n::tr("Low"))) apply(0);
         ImGui::SameLine();
-        if (ImGui::Button("Mittel")) apply(1);
+        if (ImGui::Button(i18n::tr("Medium"))) apply(1);
         ImGui::SameLine();
-        if (ImGui::Button("Hoch")) apply(2);
+        if (ImGui::Button(i18n::tr("High"))) apply(2);
     }
 
 private:
@@ -98,11 +98,11 @@ private:
         set("Motion Blur", level == 2);
         set("Depth of Field", false);
         set("Sharpen", level == 2);
-        notify::push("Profil angewendet", level == 0 ? "Niedrig" : level == 1 ? "Mittel" : "Hoch", notify::Kind::Ok);
+        notify::push(i18n::tr("Profile applied"), level == 0 ? i18n::tr("Low") : level == 1 ? i18n::tr("Medium") : i18n::tr("High"), notify::Kind::Ok);
     }
 
-    Setting& hint_ = toggleSetting("hint", "Hinweis bei niedrigen FPS", true);
-    Setting& lowFps_ = slider("lowFps", "Niedrig ab (FPS)", 60.f, 20.f, 144.f, "%.0f");
+    Setting& hint_ = toggleSetting("hint", "Notice on low FPS", true);
+    Setting& lowFps_ = slider("lowFps", "Low below (FPS)", 60.f, 20.f, 144.f, "%.0f");
     std::string gpu_ = "unbekannt";
     int cores_ = 0;
     float ramGb_ = 0.f;
@@ -115,9 +115,9 @@ private:
 class BackgroundLoad : public HudModule {
 public:
     BackgroundLoad()
-        : HudModule("Background Load", "Zeigt Programme, die viel CPU ziehen und FPS oder Ping stören.",
+        : HudModule("Background Load", "Shows programs that use a lot of CPU and hurt FPS or ping.",
                     {"hud-self"}, {0.70f, 0.86f}) {
-        sub("Diagnose");
+        sub("Diagnostics");
         cores_ = std::max(1, int(std::thread::hardware_concurrency()));
     }
 
@@ -131,7 +131,7 @@ public:
 protected:
     ImVec2 content(ImDrawList* dl, ImVec2 o, float s) override {
         float y = 0.f, w = 140.f * s;
-        auto sz = drawText(dl, o, s, std::format("Hintergrund {:.0f}%", total_), total_ > warn_.f ? ImGui::GetColorU32(theme::current().warn) : textColor());
+        auto sz = drawText(dl, o, s, i18n::fmt("Background {:.0f}%", total_), total_ > warn_.f ? ImGui::GetColorU32(theme::current().warn) : textColor());
         y += sz.y;
         w = std::max(w, sz.x);
         for (auto& r : top_) {
@@ -192,17 +192,17 @@ private:
             top_ = rows;
             if (toast_.b && total_ > warn_.f && now - lastToast_ > 120.0) {
                 lastToast_ = now;
-                notify::push("Hintergrundlast hoch", std::format("Andere Programme nutzen {:.0f}% der CPU.", total_), notify::Kind::Warn, 6.f);
+                notify::push(i18n::tr("High background load"), i18n::fmt("Other programs use {:.0f}% of the CPU.", total_), notify::Kind::Warn, 6.f);
             }
         }
         prev_ = times;
         prevAt_ = now;
     }
 
-    Setting& interval_ = slider("interval", "Messabstand (s)", 3.f, 1.f, 10.f, "%.0f s");
-    Setting& count_ = intSlider("count", "Angezeigte Programme", 3, 1, 6);
-    Setting& warn_ = slider("warn", "Warnen ab (% CPU)", 25.f, 5.f, 80.f, "%.0f");
-    Setting& toast_ = toggleSetting("toast", "Hinweis bei hoher Last", true);
+    Setting& interval_ = slider("interval", "Measurement interval (s)", 3.f, 1.f, 10.f, "%.0f s");
+    Setting& count_ = intSlider("count", "Shown programs", 3, 1, 6);
+    Setting& warn_ = slider("warn", "Warn from (% CPU)", 25.f, 5.f, 80.f, "%.0f");
+    Setting& toast_ = toggleSetting("toast", "Notice on high load", true);
     std::vector<Row> top_;
     std::map<DWORD, uint64_t> prev_;
     double prevAt_ = 0.0;

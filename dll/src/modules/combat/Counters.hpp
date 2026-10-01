@@ -13,9 +13,9 @@
 class ReachCounter : public GameText {
 public:
     ReachCounter()
-        : GameText("Reach Counter", "Zeigt die Distanz deines letzten Treffers, als Durchschnitt oder Bestwert.", need::combat,
+        : GameText("Reach Counter", "Shows the distance of your last hit, as average or best value.", need::combat,
                    need::sigs({"LocalPlayer", "AttackEntity"}), {"hud-self"}, {0.01f, 0.40f}) {
-        sub("Kampf-Anzeigen");
+        sub("Combat displays");
         window_.visible = [this] { return mode_.i == 1; };
         warn_.visible = [this] { return colored_.b; };
     }
@@ -42,7 +42,7 @@ protected:
             v = c.bestReach;
         }
         shown_ = v;
-        return text::num(v, decimals_.i) + (unit_.b ? " Blöcke" : "");
+        return text::num(v, decimals_.i) + (unit_.b ? i18n::tr(" blocks") : "");
     }
 
     ImU32 valueColor() const override {
@@ -51,30 +51,30 @@ protected:
     }
 
 private:
-    Setting& mode_ = choice("mode", "Wert", {"Letzter Treffer", "Durchschnitt", "Bestwert"});
-    Setting& window_ = intSlider("window", "Treffer im Durchschnitt", 5, 2, 10);
-    Setting& decimals_ = intSlider("decimals", "Nachkommastellen", 2, 0, 3);
-    Setting& unit_ = toggleSetting("unit", "Einheit anzeigen", false);
-    Setting& showLabel_ = toggleSetting("label", "Beschriftung", true);
-    Setting& idle_ = slider("idle", "Ausblenden nach (s, 0 = nie)", 0.f, 0.f, 30.f, "%.0f s");
-    Setting& colored_ = toggleSetting("colored", "Farbe nach Wert", false);
-    Setting& warn_ = slider("warn", "Rot ab (Blöcke)", 3.2f, 2.6f, 4.f, "%.1f");
-    Setting& good_ = colorSetting("good", "Farbe niedrig", {0.55f, 0.91f, 0.69f, 1.f});
-    Setting& mid_ = colorSetting("mid", "Farbe mittel", {1.f, 0.82f, 0.49f, 1.f});
-    Setting& bad_ = colorSetting("bad", "Farbe hoch", {1.f, 0.4f, 0.45f, 1.f});
+    Setting& mode_ = choice("mode", "Value", {"Last hit", "Average", "Best value"});
+    Setting& window_ = intSlider("window", "Hits in the average", 5, 2, 10);
+    Setting& decimals_ = intSlider("decimals", "Decimals", 2, 0, 3);
+    Setting& unit_ = toggleSetting("unit", "Show unit", false);
+    Setting& showLabel_ = toggleSetting("label", "Label", true);
+    Setting& idle_ = slider("idle", "Hide after (s, 0 = never)", 0.f, 0.f, 30.f, "%.0f s");
+    Setting& colored_ = toggleSetting("colored", "Color by value", false);
+    Setting& warn_ = slider("warn", "Red from (blocks)", 3.2f, 2.6f, 4.f, "%.1f");
+    Setting& good_ = colorSetting("good", "Color low", {0.55f, 0.91f, 0.69f, 1.f});
+    Setting& mid_ = colorSetting("mid", "Color medium", {1.f, 0.82f, 0.49f, 1.f});
+    Setting& bad_ = colorSetting("bad", "Color high", {1.f, 0.4f, 0.45f, 1.f});
     mutable float shown_ = 0.f;
 };
 
 class OpponentReach : public GameText {
 public:
     OpponentReach()
-        : GameText("Opponent Reach", "Zeigt die Distanz, aus der dich der Gegner zuletzt getroffen hat.", need::combat,
+        : GameText("Opponent Reach", "Shows the distance from which the opponent last hit you.", need::combat,
                    need::sigs({"LocalPlayer", "AttackEntity"}), {"info-others"}, {0.01f, 0.44f}) {
-        sub("Kampf-Anzeigen");
+        sub("Combat displays");
     }
 
 protected:
-    std::string label() const override { return "Gegner-Reach"; }
+    std::string label() const override { return i18n::tr("Opponent reach"); }
 
     std::string value() override {
         float r = game::state().combat.opponentReach;
@@ -82,15 +82,15 @@ protected:
     }
 
 private:
-    Setting& decimals_ = intSlider("decimals", "Nachkommastellen", 2, 0, 3);
+    Setting& decimals_ = intSlider("decimals", "Decimals", 2, 0, 3);
 };
 
 class ComboCounter : public GameText {
 public:
     ComboCounter()
-        : GameText("Combo Counter", "Zählt deine Treffer in Folge, bis dich der Gegner trifft.", need::combat,
+        : GameText("Combo Counter", "Counts your hits in a row until the opponent hits you.", need::combat,
                    need::sigs({"LocalPlayer", "AttackEntity"}), {"hud-self"}, {0.01f, 0.48f}) {
-        sub("Kampf-Anzeigen");
+        sub("Combat displays");
         timeout_.visible = [this] { return expire_.b; };
     }
 
@@ -111,7 +111,7 @@ protected:
     std::string value() override {
         auto& c = game::state().combat;
         std::string v = std::to_string(c.combo);
-        if (best_.b) v += std::format("  ·  Best {}", c.bestCombo);
+        if (best_.b) v += i18n::fmt("  ·  Best {}", c.bestCombo);
         return v;
     }
 
@@ -121,12 +121,12 @@ protected:
     }
 
 private:
-    Setting& showLabel_ = toggleSetting("label", "Beschriftung", true);
-    Setting& best_ = toggleSetting("best", "Rekord anzeigen", true);
-    Setting& flash_ = toggleSetting("flash", "Aufleuchten bei neuem Treffer", true);
-    Setting& flashColor_ = colorSetting("flashColor", "Leuchtfarbe", {1.f, 0.49f, 0.71f, 1.f});
-    Setting& expire_ = toggleSetting("expire", "Combo läuft ab", false);
-    Setting& timeout_ = slider("timeout", "Ablauf nach (s)", 3.f, 1.f, 10.f, "%.1f s");
+    Setting& showLabel_ = toggleSetting("label", "Label", true);
+    Setting& best_ = toggleSetting("best", "Show record", true);
+    Setting& flash_ = toggleSetting("flash", "Flash on a new hit", true);
+    Setting& flashColor_ = colorSetting("flashColor", "Flash color", {1.f, 0.49f, 0.71f, 1.f});
+    Setting& expire_ = toggleSetting("expire", "Combo expires", false);
+    Setting& timeout_ = slider("timeout", "Expires after (s)", 3.f, 1.f, 10.f, "%.1f s");
     int last_ = 0;
     float pulse_ = 0.f;
 };
@@ -134,9 +134,9 @@ private:
 class HitCounter : public GameText {
 public:
     HitCounter()
-        : GameText("Hit Counter", "Treffer, Schwünge und Trefferquote der aktuellen Runde.", need::combat,
+        : GameText("Hit Counter", "Hits, swings and hit rate of the current round.", need::combat,
                    need::sigs({"LocalPlayer", "AttackEntity"}), {"hud-self"}, {0.01f, 0.52f}) {
-        sub("Kampf-Anzeigen");
+        sub("Combat displays");
     }
 
     void onKey(KeyEvent& ev) override {
@@ -144,7 +144,7 @@ public:
     }
 
 protected:
-    std::string label() const override { return "Treffer"; }
+    std::string label() const override { return i18n::tr("Hits"); }
 
     std::string value() override {
         auto& c = game::state().combat;
@@ -156,18 +156,18 @@ protected:
     }
 
 private:
-    Setting& swings_ = toggleSetting("swings", "Schwünge anzeigen", true);
-    Setting& accuracy_ = toggleSetting("accuracy", "Trefferquote", true);
-    Setting& crits_ = toggleSetting("crits", "Crit-Quote", false);
-    Setting& reset_ = keySetting("reset", "Zurücksetzen", 0);
+    Setting& swings_ = toggleSetting("swings", "Show swings", true);
+    Setting& accuracy_ = toggleSetting("accuracy", "Hit rate", true);
+    Setting& crits_ = toggleSetting("crits", "Crit rate", false);
+    Setting& reset_ = keySetting("reset", "Reset", 0);
 };
 
 class HitPing : public GameText {
 public:
     HitPing()
-        : GameText("Hit Ping", "Zeigt deinen Ping im Moment deines letzten Treffers.", need::combat,
+        : GameText("Hit Ping", "Shows your ping at the moment of your last hit.", need::combat,
                    need::sigs({"LocalPlayer", "AttackEntity"}), {"info-others"}, {0.01f, 0.56f}) {
-        sub("Kampf-Anzeigen");
+        sub("Combat displays");
     }
 
     void onEnable() override { probe::use(true); }
@@ -183,7 +183,7 @@ public:
     }
 
 protected:
-    std::string label() const override { return "Hit-Ping"; }
+    std::string label() const override { return i18n::tr("Hit ping"); }
 
     std::string value() override { return seen_ ? std::format("{:.0f} ms", ping_) : "–"; }
 
@@ -195,9 +195,9 @@ private:
 class SessionStats : public GameText {
 public:
     SessionStats()
-        : GameText("Session Stats", "Kills, Tode, K/D und Kill-Serie dieser Sitzung.", need::combat,
+        : GameText("Session Stats", "Kills, deaths, K/D and kill streak of this session.", need::combat,
                    need::sigs({"LocalPlayer", "AttackEntity", "ChatEvents"}), {"hud-self"}, {0.01f, 0.60f}) {
-        sub("Kampf-Anzeigen");
+        sub("Combat displays");
     }
 
     void onKey(KeyEvent& ev) override {
@@ -209,36 +209,36 @@ protected:
         auto& c = game::state().combat;
         std::string out;
         if (kills_.b) out += std::format("K {}  ", c.kills);
-        if (deaths_.b) out += std::format("T {}  ", c.deaths);
+        if (deaths_.b) out += std::format("D {}  ", c.deaths);
         if (kd_.b) out += std::format("K/D {:.2f}  ", c.deaths ? float(c.kills) / c.deaths : float(c.kills));
-        if (streak_.b) out += std::format("Serie {} (Best {})", c.streak, c.bestStreak);
+        if (streak_.b) out += i18n::fmt("Streak {} (best {})", c.streak, c.bestStreak);
         while (!out.empty() && out.back() == ' ') out.pop_back();
         return out.empty() ? "–" : out;
     }
 
 private:
     Setting& kills_ = toggleSetting("kills", "Kills", true);
-    Setting& deaths_ = toggleSetting("deaths", "Tode", true);
+    Setting& deaths_ = toggleSetting("deaths", "Deaths", true);
     Setting& kd_ = toggleSetting("kd", "K/D", true);
-    Setting& streak_ = toggleSetting("streak", "Serie", true);
-    Setting& reset_ = keySetting("reset", "Zurücksetzen", 0);
+    Setting& streak_ = toggleSetting("streak", "Streak", true);
+    Setting& reset_ = keySetting("reset", "Reset", 0);
 };
 
 class HitInfo : public GameText {
 public:
     HitInfo()
-        : GameText("Hit Info", "Zeigt, ob dein letzter Schlag ein kritischer Treffer war, und die Crit-Quote.", need::combat,
+        : GameText("Hit Info", "Shows whether your last hit was a critical hit, and the crit rate.", need::combat,
                    need::sigs({"LocalPlayer", "AttackEntity"}), {"hud-self"}, {0.01f, 0.64f}) {
-        sub("Kampf-Anzeigen");
+        sub("Combat displays");
     }
 
 protected:
     std::string value() override {
         auto& c = game::state().combat;
         if (!c.hits) return "–";
-        std::string out = c.lastCrit ? "Kritisch!" : "Normal";
-        if (rate_.b) out += std::format("  ·  {:.0f}% Crit", 100.f * c.crits / c.hits);
-        if (damage_.b) out += std::format("  ·  {:.0f} Schaden", c.damageDealt);
+        std::string out = i18n::tr(c.lastCrit ? "Critical!" : "Normal");
+        if (rate_.b) out += i18n::fmt("  ·  {:.0f}% crit", 100.f * c.crits / c.hits);
+        if (damage_.b) out += i18n::fmt("  ·  {:.0f} damage", c.damageDealt);
         return out;
     }
 
@@ -247,17 +247,17 @@ protected:
     }
 
 private:
-    Setting& rate_ = toggleSetting("rate", "Crit-Quote", true);
-    Setting& damage_ = toggleSetting("damage", "Gesamtschaden", false);
-    Setting& critColor_ = colorSetting("critColor", "Farbe bei Crit", {1.f, 0.49f, 0.71f, 1.f});
+    Setting& rate_ = toggleSetting("rate", "Crit rate", true);
+    Setting& damage_ = toggleSetting("damage", "Total damage", false);
+    Setting& critColor_ = colorSetting("critColor", "Color on crit", {1.f, 0.49f, 0.71f, 1.f});
 };
 
 class EntityCounter : public GameText {
 public:
     EntityCounter()
-        : GameText("Entity Counter", "Zählt Entities und Spieler in deiner Umgebung.", need::world, need::sigs({"Level", "EntityList"}),
+        : GameText("Entity Counter", "Counts entities and players around you.", need::world, need::sigs({"Level", "EntityList"}),
                    {"info-others"}, {0.01f, 0.68f}) {
-        sub("Kampf-Anzeigen");
+        sub("Combat displays");
     }
 
 protected:
@@ -265,9 +265,9 @@ protected:
 
     std::string value() override {
         auto& w = game::state().world;
-        return players_.b ? std::format("{}  ·  {} Spieler", w.entities, w.players) : std::to_string(w.entities);
+        return players_.b ? i18n::fmt("{}  ·  {} players", w.entities, w.players) : std::to_string(w.entities);
     }
 
 private:
-    Setting& players_ = toggleSetting("players", "Spieler zusätzlich", true);
+    Setting& players_ = toggleSetting("players", "Also show players", true);
 };

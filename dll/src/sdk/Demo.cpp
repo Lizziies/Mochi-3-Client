@@ -49,7 +49,7 @@ private:
     void setup(State& s) {
         init_ = true;
         auto& p = s.player;
-        p.name = "MochiSpieler";
+        p.name = "MochiPlayer";
         p.pos = {128.5f, 64.f, -42.5f};
         p.hotbar[0] = item("diamond_sword", 1, 1561, 0, true);
         p.hotbar[1] = item("bow", 1, 384, 0, true);
@@ -159,14 +159,14 @@ private:
                 e.reach = 2.2f + dist_(rng_) * 0.95f;
                 e.crit = dist_(rng_) < 0.2;
                 e.value = e.crit ? 9.f : 6.f;
-                e.text = "Gegner";
+                e.text = "Opponent";
                 ev.push_back(e);
                 opponentHp_ -= e.value * 0.5f;
                 auto& sword = p.hotbar[0];
                 sword.damage = std::min(sword.maxDamage - 1, sword.damage + 1);
                 if (opponentHp_ <= 0.f) {
                     Event k{EventKind::Kill};
-                    k.text = "Gegner";
+                    k.text = "Opponent";
                     ev.push_back(k);
                     opponentHp_ = 20.f;
                 }
@@ -180,7 +180,7 @@ private:
                 Event e{EventKind::Hurt};
                 e.value = 1.5f + dist_(rng_) * 3.f;
                 e.reach = 2.3f + dist_(rng_) * 0.9f;
-                e.text = "Gegner";
+                e.text = "Opponent";
                 ev.push_back(e);
                 p.health -= e.value;
                 for (auto& a : p.armor) a.damage = std::min(a.maxDamage - 1, a.damage + (dist_(rng_) < 0.3 ? 1 : 0));
@@ -229,7 +229,7 @@ private:
         double phase = std::fmod(t_, 16.0);
         if (phase > 4.0 && phase < 12.0) {
             t.kind = Target::Kind::Entity;
-            t.name = "Gegner";
+            t.name = "Opponent";
             t.isPlayer = true;
             t.distance = 2.4f + 0.6f * std::sin(float(t_) * 3.f);
             t.health = std::max(0.f, opponentHp_);
@@ -251,8 +251,8 @@ private:
 
     void chatter(State& s, std::vector<Event>& ev) {
         if (t_ < nextChat_) return;
-        static const char* lines[] = {"<Luna> gg", "<Max> wer hat die Perle?", "§eDas Spiel beginnt in 5 Sekunden", "<Kiki> nice kill",
-                                      "§6Runde 3 von 5 startet", "<Noah> lag?", "§aMochi Wars: Du hast gewonnen!"};
+        static const char* lines[] = {"<Luna> gg", "<Max> who has the pearl?", "§eThe game starts in 5 seconds", "<Kiki> nice kill",
+                                      "§6Round 3 of 5 is starting", "<Noah> lag?", "§aMochi Wars: You won!"};
         Event e{EventKind::Chat};
         e.text = lines[chatIdx_++ % 7];
         ev.push_back(e);
@@ -293,9 +293,9 @@ private:
     void scoreboard(State& s) {
         s.scoreboard.lines.clear();
         s.scoreboard.lines.push_back({"Kills", s.combat.kills});
-        s.scoreboard.lines.push_back({"Tode", s.combat.deaths});
-        s.scoreboard.lines.push_back({"Spieler", s.world.players});
-        s.scoreboard.lines.push_back({"Runde", 3});
+        s.scoreboard.lines.push_back({"Deaths", s.combat.deaths});
+        s.scoreboard.lines.push_back({"Players", s.world.players});
+        s.scoreboard.lines.push_back({"Round", 3});
         s.scoreboard.lines.push_back({"mochi.example", 0});
     }
 

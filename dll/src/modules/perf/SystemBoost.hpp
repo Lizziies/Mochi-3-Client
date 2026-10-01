@@ -8,7 +8,7 @@ public:
     SystemBoost()
         : Module("System Boost", "Windows settings while Minecraft runs: precise timer, higher priority, no power saving. Reverted when you quit.",
                  Category::Performance, {"performance"}) {
-        sub("Frame-Timing");
+        sub("Frame timing");
     }
 
     void onFrame() override {

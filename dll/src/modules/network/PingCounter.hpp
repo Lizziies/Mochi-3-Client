@@ -8,8 +8,8 @@
 
 class PingCounter : public TextHud {
 public:
-    PingCounter() : TextHud("Ping Counter", "Zeigt deinen Ping zum Server.", {"hud-self"}, {0.01f, 0.30f}) {
-        sub("Netzwerk");
+    PingCounter() : TextHud("Ping Counter", "Shows your ping to the server.", {"hud-self"}, {0.01f, 0.30f}) {
+        sub("Network");
     }
 
     void onEnable() override { probe::use(true); }
@@ -29,9 +29,9 @@ protected:
     }
 
 private:
-    Setting& mode_ = choice("mode", "Wert", {"Aktuell", "Durchschnitt"});
-    Setting& unit_ = toggleSetting("unit", "Einheit anzeigen", true);
-    Setting& showLabel_ = toggleSetting("label", "Beschriftung", true);
-    Setting& jitter_ = toggleSetting("jitter", "Jitter anhängen", false);
-    Setting& loss_ = toggleSetting("loss", "Verlust anhängen", false);
+    Setting& mode_ = choice("mode", "Value", {"Current", "Average"});
+    Setting& unit_ = toggleSetting("unit", "Show unit", true);
+    Setting& showLabel_ = toggleSetting("label", "Label", true);
+    Setting& jitter_ = toggleSetting("jitter", "Append jitter", false);
+    Setting& loss_ = toggleSetting("loss", "Append loss", false);
 };

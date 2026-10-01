@@ -16,7 +16,7 @@ public:
     bool defaultEnabled() const override { return true; }
 
     Keystrokes() : HudModule("Keystrokes", "Shows WASD, space and the mouse buttons live.", {"hud-self"}, {0.01f, 0.62f}) {
-        sub("Eigene Werte");
+        sub("Own values");
         background_.b = false;
     }
 

@@ -6,9 +6,9 @@
 class RenderOptions : public Module {
 public:
     RenderOptions()
-        : Module("Render Options", "Schaltet teure Grafik wie Wolken, Partikel und Schatten einzeln ab.",
+        : Module("Render Options", "Turns off expensive graphics like clouds, particles and shadows one by one.",
                  Category::Performance, {"performance"}) {
-        sub("Grafik");
+        sub("Graphics");
         requireAny({fx::sig(fx::Id::Clouds), fx::sig(fx::Id::Particles), fx::sig(fx::Id::BlockEntities), fx::sig(fx::Id::Shadows),
                     fx::sig(fx::Id::Sky), fx::sig(fx::Id::Fog), fx::sig(fx::Id::Vignette), fx::sig(fx::Id::Rain)});
         for (auto* s : {&clouds_, &particles_, &blockEntities_, &shadows_, &weather_, &fog_, &sky_, &vignette_})
@@ -40,7 +40,7 @@ public:
 
     void drawSettings() override {
         ImGui::Spacing();
-        ImGui::TextDisabled("Auf dieser Version verfügbar:");
+        ImGui::TextDisabled(i18n::tr("Available on this version:"));
         for (auto id : {fx::Id::Clouds, fx::Id::Particles, fx::Id::BlockEntities, fx::Id::Shadows, fx::Id::Sky, fx::Id::Fog, fx::Id::Vignette, fx::Id::Rain}) {
             bool ok = fx::available(id);
             ImGui::TextColored(ok ? ImVec4(0.55f, 0.91f, 0.69f, 1.f) : ImVec4(0.6f, 0.5f, 0.6f, 1.f), "%s %s", ok ? "●" : "○", fx::info(id).label);
@@ -48,13 +48,13 @@ public:
     }
 
 private:
-    Setting& preset_ = choice("preset", "Vorlage", {"Eigene Auswahl", "PvP Max FPS", "Ausgewogen"});
-    Setting& clouds_ = toggleSetting("clouds", "Wolken aus", true);
-    Setting& particles_ = toggleSetting("particles", "Partikel aus", false);
-    Setting& blockEntities_ = toggleSetting("blockEntities", "Block-Entities aus (Truhen, Schilder)", false);
-    Setting& shadows_ = toggleSetting("shadows", "Schatten aus", true);
-    Setting& weather_ = toggleSetting("weather", "Wetter-Effekte aus", false);
-    Setting& fog_ = toggleSetting("fog", "Nebel aus", false);
-    Setting& sky_ = toggleSetting("sky", "Himmel aus", false);
-    Setting& vignette_ = toggleSetting("vignette", "Vignette aus", true);
+    Setting& preset_ = choice("preset", "Preset", {"Own selection", "PvP Max FPS", "Balanced"});
+    Setting& clouds_ = toggleSetting("clouds", "Clouds off", true);
+    Setting& particles_ = toggleSetting("particles", "Particles off", false);
+    Setting& blockEntities_ = toggleSetting("blockEntities", "Block entities off (chests, signs)", false);
+    Setting& shadows_ = toggleSetting("shadows", "Shadows off", true);
+    Setting& weather_ = toggleSetting("weather", "Weather effects off", false);
+    Setting& fog_ = toggleSetting("fog", "Fog off", false);
+    Setting& sky_ = toggleSetting("sky", "Sky off", false);
+    Setting& vignette_ = toggleSetting("vignette", "Vignette off", true);
 };

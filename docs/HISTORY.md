@@ -21,3 +21,4 @@ Kurze Chronik, damit jede neue Session weiß, was schon passiert ist.
 - Block 1: Netzwerk-Messung (ICMP und RakNet-Ping, WLAN-Daten über wlanapi/iphlpapi, nur Lesen), Frame Limiter, Instant Input, Latency Blame, Tuning-Verteiler.
 - Block 2: Post-Effekt-Pass (HLSL, ein Shader für alle Bildfilter), Screenshot-Capture, Crosshair-Editor, Block Game, Pomodoro. MinGW und glslang liegen auf der Cloud-Maschine (apt), damit der Code vor dem Commit syntaxgeprüft werden kann.
 - Block 3 bis 5: SDK (`dll/src/sdk`) mit Demo-Daten, Live-Leser, Effekt-Kanälen und Tasten-Injection; danach alle weiteren Module bis 135. `docs/SDK.md` und der Abschnitt "Umsetzungsstand" in `docs/MODULES.md` entstehen teils aus dem Quellcode (Skript lag nur im Scratchpad, die Tabellen sind von Hand pflegbar).
+- Phase 0 (Teil 1): Module-Texte auf Englisch umgestellt, deutsche Tabelle in `Lang_B.cpp`, `Module::ruleNote()` übersetzt den Standardhinweis zur Laufzeit.

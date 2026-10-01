@@ -15,9 +15,9 @@ class Network : public HudModule {
 public:
     Network()
         : HudModule("Network Monitor",
-                    "Ping, Jitter und Paketverlust zum Server, plus WLAN-Daten und Tipps.",
+                    "Ping, jitter and packet loss to the server, plus Wi-Fi data and tips.",
                     {"hud-self"}, {0.01f, 0.34f}) {
-        sub("Netzwerk");
+        sub("Network");
         interval_.visible = [this] { return advanced_.b; };
         window_.visible = [this] { return advanced_.b; };
         host_.visible = [this] { return advanced_.b; };
@@ -45,7 +45,7 @@ public:
 
         auto verdict = quality::judge(probe::snapshot(), limits());
         if (toast_.b && verdict.grade == quality::Grade::Poor && last_ != quality::Grade::Poor)
-            notify::push("Verbindung schlecht", verdict.reason, notify::Kind::Warn, 5.f);
+            notify::push(i18n::tr("Connection poor"), verdict.reason, notify::Kind::Warn, 5.f);
         last_ = verdict.grade;
     }
 
@@ -72,19 +72,19 @@ protected:
         }
 
         if (!snap.running || !snap.resolved || snap.received == 0) {
-            line(snap.sent > 0 ? "Keine Antwort" : "Warte auf Server", textColor());
+            line(snap.sent > 0 ? i18n::tr("No reply") : i18n::tr("Waiting for the server"), textColor());
         } else {
             std::string row;
             if (ping_.b) row += std::format("Ping {:.0f} ms", snap.last >= 0 ? snap.last : snap.avg);
             if (jitter_.b) row += std::format("{}Jitter {:.1f} ms", row.empty() ? "" : "  ·  ", snap.jitter);
-            if (loss_.b) row += std::format("{}Verlust {:.1f} %", row.empty() ? "" : "  ·  ", snap.loss);
+            if (loss_.b) row += i18n::fmt("{}Loss {:.1f} %", row.empty() ? "" : "  ·  ", snap.loss);
             if (!row.empty()) {
                 ImVec4 c = rampColor(snap.avg, limits().pingFair, limits().pingPoor, good_.color, fair_.color, poor_.color);
                 line(row, ImGui::GetColorU32(c));
             }
-            if (range_.b) line(std::format("Min {:.0f}  ·  Mittel {:.0f}  ·  Max {:.0f} ms", snap.min, snap.avg, snap.max), accentColor());
+            if (range_.b) line(i18n::fmt("Min {:.0f}  ·  Avg {:.0f}  ·  Max {:.0f} ms", snap.min, snap.avg, snap.max), accentColor());
             if (link_.b) line(linkText(snap.link), accentColor());
-            if (power_.b && snap.link.powerSaving == 1) line("Energiesparen des Adapters aktiv", ImGui::GetColorU32(t.warn));
+            if (power_.b && snap.link.powerSaving == 1) line(i18n::tr("Adapter power saving is on"), ImGui::GetColorU32(t.warn));
         }
 
         if (reason_.b && !verdict.reason.empty()) line(verdict.reason, ImGui::GetColorU32(t.textDim));
@@ -116,17 +116,17 @@ private:
 
     static std::string linkText(const probe::Link& l) {
         switch (l.kind) {
-        case probe::LinkKind::Wired: return std::format("LAN  ·  {} Mbit/s", l.linkMbps);
+        case probe::LinkKind::Wired: return i18n::fmt("LAN  ·  {} Mbit/s", l.linkMbps);
         case probe::LinkKind::Wifi: {
-            std::string out = "WLAN";
+            std::string out = i18n::tr("Wi-Fi");
             if (!l.band.empty()) out += "  ·  " + l.band;
-            if (l.channel) out += std::format("  ·  Kanal {}", l.channel);
+            if (l.channel) out += i18n::fmt("  ·  channel {}", l.channel);
             if (l.signal >= 0) out += std::format("  ·  {} % ({} dBm)", l.signal, l.rssi);
             if (l.linkMbps) out += std::format("  ·  {} Mbit/s", l.linkMbps);
             return out;
         }
-        case probe::LinkKind::Other: return "Verbindung: " + l.adapter;
-        default: return "Verbindungsart unbekannt";
+        case probe::LinkKind::Other: return i18n::tr("Connection: ") + l.adapter;
+        default: return i18n::tr("Connection type unknown");
         }
     }
 
@@ -149,32 +149,32 @@ private:
         }
     }
 
-    Setting& status_ = toggleSetting("status", "Ampel", true);
+    Setting& status_ = toggleSetting("status", "Traffic light", true);
     Setting& ping_ = toggleSetting("ping", "Ping", true);
     Setting& jitter_ = toggleSetting("jitter", "Jitter", true);
-    Setting& loss_ = toggleSetting("loss", "Paketverlust", true);
-    Setting& range_ = toggleSetting("range", "Min / Mittel / Max", false);
-    Setting& link_ = toggleSetting("link", "Verbindung (WLAN / LAN)", true);
-    Setting& power_ = toggleSetting("power", "Energiespar-Hinweis", true);
-    Setting& reason_ = toggleSetting("reason", "Grund anzeigen", true);
-    Setting& tipsOn_ = toggleSetting("tipsOn", "Tipps anzeigen", false);
-    Setting& tips_ = intSlider("tips", "Anzahl Tipps", 2, 1, 4);
-    Setting& graph_ = toggleSetting("graph", "Ping-Verlauf", true);
-    Setting& graphHeight_ = slider("graphHeight", "Verlauf-Höhe", 36.f, 16.f, 100.f, "%.0f");
-    Setting& toast_ = toggleSetting("toast", "Hinweis bei schlechter Verbindung", true);
-    Setting& good_ = colorSetting("good", "Farbe gut", {0.55f, 0.91f, 0.69f, 1.f});
-    Setting& fair_ = colorSetting("fair", "Farbe mittel", {1.f, 0.82f, 0.49f, 1.f});
-    Setting& poor_ = colorSetting("poor", "Farbe schlecht", {1.f, 0.40f, 0.45f, 1.f});
-    Setting& advanced_ = toggleSetting("advanced", "Erweiterte Einstellungen", false);
-    Setting& method_ = choice("method", "Messverfahren", {"ICMP-Ping", "RakNet-Ping (UDP)"});
-    Setting& interval_ = slider("interval", "Messabstand (ms)", 1000.f, 250.f, 5000.f, "%.0f");
-    Setting& window_ = slider("window", "Messwerte im Fenster", 60.f, 20.f, 200.f, "%.0f");
-    Setting& host_ = textSetting("host", "Eigenes Ziel (leer = Server)", "");
+    Setting& loss_ = toggleSetting("loss", "Packet loss", true);
+    Setting& range_ = toggleSetting("range", "Min / avg / max", false);
+    Setting& link_ = toggleSetting("link", "Connection (Wi-Fi / LAN)", true);
+    Setting& power_ = toggleSetting("power", "Power saving notice", true);
+    Setting& reason_ = toggleSetting("reason", "Show reason", true);
+    Setting& tipsOn_ = toggleSetting("tipsOn", "Show tips", false);
+    Setting& tips_ = intSlider("tips", "Number of tips", 2, 1, 4);
+    Setting& graph_ = toggleSetting("graph", "Ping history", true);
+    Setting& graphHeight_ = slider("graphHeight", "History height", 36.f, 16.f, 100.f, "%.0f");
+    Setting& toast_ = toggleSetting("toast", "Notice on a poor connection", true);
+    Setting& good_ = colorSetting("good", "Color good", {0.55f, 0.91f, 0.69f, 1.f});
+    Setting& fair_ = colorSetting("fair", "Color medium", {1.f, 0.82f, 0.49f, 1.f});
+    Setting& poor_ = colorSetting("poor", "Color bad", {1.f, 0.40f, 0.45f, 1.f});
+    Setting& advanced_ = toggleSetting("advanced", "Advanced settings", false);
+    Setting& method_ = choice("method", "Measurement method", {"ICMP-Ping", "RakNet-Ping (UDP)"});
+    Setting& interval_ = slider("interval", "Measurement interval (ms)", 1000.f, 250.f, 5000.f, "%.0f");
+    Setting& window_ = slider("window", "Samples in the window", 60.f, 20.f, 200.f, "%.0f");
+    Setting& host_ = textSetting("host", "Custom target (empty = server)", "");
     Setting& port_ = intSlider("port", "UDP-Port", 19132, 1, 65535);
-    Setting& pingFair_ = slider("pingFair", "Ping mittel ab (ms)", 60.f, 10.f, 300.f, "%.0f");
-    Setting& pingPoor_ = slider("pingPoor", "Ping schlecht ab (ms)", 150.f, 30.f, 600.f, "%.0f");
-    Setting& jitterFair_ = slider("jitterFair", "Jitter mittel ab (ms)", 6.f, 1.f, 50.f, "%.0f");
-    Setting& jitterPoor_ = slider("jitterPoor", "Jitter schlecht ab (ms)", 20.f, 2.f, 100.f, "%.0f");
-    Setting& lossPoor_ = slider("lossPoor", "Verlust schlecht ab (%)", 3.f, 0.5f, 20.f, "%.1f");
+    Setting& pingFair_ = slider("pingFair", "Ping medium from (ms)", 60.f, 10.f, 300.f, "%.0f");
+    Setting& pingPoor_ = slider("pingPoor", "Ping bad from (ms)", 150.f, 30.f, 600.f, "%.0f");
+    Setting& jitterFair_ = slider("jitterFair", "Jitter medium from (ms)", 6.f, 1.f, 50.f, "%.0f");
+    Setting& jitterPoor_ = slider("jitterPoor", "Jitter bad from (ms)", 20.f, 2.f, 100.f, "%.0f");
+    Setting& lossPoor_ = slider("lossPoor", "Loss bad from (%)", 3.f, 0.5f, 20.f, "%.1f");
     quality::Grade last_ = quality::Grade::Unknown;
 };

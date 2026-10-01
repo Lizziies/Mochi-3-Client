@@ -1,5 +1,6 @@
 #pragma once
 
+#include "I18n.hpp"
 #include "Setting.hpp"
 #include "core/Events.hpp"
 #include "sdk/Game.hpp"
@@ -58,7 +59,7 @@ public:
     void checkSigs();
 
     RuleLevel rule() const { return rule_; }
-    const std::string& ruleNote() const { return ruleNote_.empty() && risky_ ? riskNote_ : ruleNote_; }
+    std::string ruleNote() const { return ruleNote_.empty() && risky_ ? std::string(i18n::tr(riskNote_.c_str())) : ruleNote_; }
     void applyRule(RuleLevel level, std::string note);
     bool optionBlocked(const std::string& option) const;
     void setBlockedOptions(std::vector<std::string> opts) { blockedOptions_ = std::move(opts); }
@@ -87,7 +88,7 @@ protected:
     Setting& keySetting(std::string id, std::string label, int def = 0);
     Setting& textSetting(std::string id, std::string label, std::string def);
 
-    void markRisky(std::string note = "Auf vielen Servern nicht erlaubt. Nur einschalten, wenn die Server-Regeln es zulassen.") {
+    void markRisky(std::string note = "Not allowed on many servers. Only turn it on where the server rules allow it.") {
         risky_ = true;
         riskNote_ = std::move(note);
     }

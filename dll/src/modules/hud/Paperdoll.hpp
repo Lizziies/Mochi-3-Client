@@ -13,9 +13,9 @@
 class Paperdoll : public GameList {
 public:
     Paperdoll()
-        : GameList("Paperdoll", "Kleine Figur im HUD, die deine Rüstung trägt, schleicht, sprintet und bei Treffern rot aufblitzt.", need::player | game::Domain::Inventory,
+        : GameList("Paperdoll", "A small figure in the HUD that wears your armor, sneaks, sprints and flashes red when you are hit.", need::player | game::Domain::Inventory,
                    need::sigs({"LocalPlayer", "Inventory"}), {"cosmetic"}, {0.90f, 0.62f}) {
-        sub("Eigene Werte");
+        sub("Own values");
         background_.b = false;
     }
 
@@ -80,14 +80,14 @@ protected:
     }
 
 private:
-    Setting& size_ = slider("size", "Größe", 90.f, 40.f, 220.f, "%.0f");
-    Setting& armor_ = toggleSetting("armor", "Rüstung anzeigen", true);
-    Setting& item_ = toggleSetting("item", "Item in der Hand", true);
-    Setting& hurt_ = toggleSetting("hurt", "Rot bei Treffern", true);
-    Setting& skin_ = colorSetting("skin", "Hautfarbe", {1.f, 0.82f, 0.72f, 1.f});
-    Setting& hair_ = colorSetting("hair", "Haarfarbe", {0.45f, 0.28f, 0.22f, 1.f});
-    Setting& shirt_ = colorSetting("shirt", "Oberteil", {1.f, 0.55f, 0.75f, 1.f});
-    Setting& pants_ = colorSetting("pants", "Hose", {0.55f, 0.5f, 0.85f, 1.f});
+    Setting& size_ = slider("size", "Size", 90.f, 40.f, 220.f, "%.0f");
+    Setting& armor_ = toggleSetting("armor", "Show armor", true);
+    Setting& item_ = toggleSetting("item", "Item in hand", true);
+    Setting& hurt_ = toggleSetting("hurt", "Red on hits", true);
+    Setting& skin_ = colorSetting("skin", "Skin color", {1.f, 0.82f, 0.72f, 1.f});
+    Setting& hair_ = colorSetting("hair", "Hair color", {0.45f, 0.28f, 0.22f, 1.f});
+    Setting& shirt_ = colorSetting("shirt", "Shirt", {1.f, 0.55f, 0.75f, 1.f});
+    Setting& pants_ = colorSetting("pants", "Pants", {0.55f, 0.5f, 0.85f, 1.f});
     float flash_ = 0.f;
     float lean_ = 0.f;
     float crouch_ = 0.f;

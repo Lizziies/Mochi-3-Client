@@ -21,9 +21,9 @@
 class TargetHud : public GameList {
 public:
     TargetHud()
-        : GameList("Target HUD", "Name und Distanz des anvisierten Gegners, Leben nur auf Wunsch.",
+        : GameList("Target HUD", "Name and distance of the opponent you aim at, health only on request.",
                    need::target, need::sigs({"LocalPlayer", "Target"}), {"info-others"}, {0.40f, 0.62f}) {
-        sub("Kampf-Anzeigen");
+        sub("Combat displays");
         background_.b = true;
     }
 
@@ -39,7 +39,7 @@ public:
         bool editing = gui::editingHud();
         if (!editing && ui::time() - seen_ > linger_.f) return;
         if (editing && last_.name.empty()) {
-            last_.name = "Gegner";
+            last_.name = i18n::tr("Opponent");
             last_.health = 14.f;
             last_.distance = 2.8f;
         }
@@ -64,24 +64,24 @@ protected:
         }
         std::string info;
         if (text_.b && health) info += hearts_.b ? std::format("{:.1f} ♥", last_.health / 2.f) : std::format("{:.0f} / {:.0f}", last_.health, last_.maxHealth);
-        if (dist_.b) info += std::format("{}{:.1f} m", info.empty() ? "" : "  ·  ", last_.distance);
+        if (dist_.b) info += i18n::fmt("{}{:.1f} m", info.empty() ? "" : "  ·  ", last_.distance);
         if (!info.empty()) y += drawText(dl, o + ImVec2(0, y), s, info, textColor()).y;
         return {w, std::max(y, 14.f * s)};
     }
 
 private:
-    Setting& width_ = slider("width", "Breite", 150.f, 90.f, 320.f, "%.0f");
+    Setting& width_ = slider("width", "Width", 150.f, 90.f, 320.f, "%.0f");
     Setting& name_ = toggleSetting("name", "Name", true);
-    Setting& healthMode_ = choice("healthMode", "Leben anzeigen", {"Nie", "Nur bei Mobs", "Immer"}, 1);
-    Setting& bar_ = toggleSetting("bar", "Lebensbalken", true);
-    Setting& text_ = toggleSetting("text", "Lebenswert", true);
-    Setting& hearts_ = toggleSetting("hearts", "In Herzen", false);
-    Setting& dist_ = toggleSetting("dist", "Distanz", true);
-    Setting& playersOnly_ = toggleSetting("players", "Nur Spieler", true);
-    Setting& linger_ = slider("linger", "Anzeigedauer nach Blickwechsel (s)", 2.f, 0.f, 10.f, "%.1f s");
-    Setting& good_ = colorSetting("good", "Farbe volles Leben", {0.55f, 0.91f, 0.69f, 1.f});
-    Setting& mid_ = colorSetting("mid", "Farbe halbes Leben", {1.f, 0.82f, 0.49f, 1.f});
-    Setting& low_ = colorSetting("low", "Farbe wenig Leben", {1.f, 0.4f, 0.45f, 1.f});
+    Setting& healthMode_ = choice("healthMode", "Show health", {"Never", "Only for mobs", "Always"}, 1);
+    Setting& bar_ = toggleSetting("bar", "Health bar", true);
+    Setting& text_ = toggleSetting("text", "Health value", true);
+    Setting& hearts_ = toggleSetting("hearts", "In hearts", false);
+    Setting& dist_ = toggleSetting("dist", "Distance", true);
+    Setting& playersOnly_ = toggleSetting("players", "Players only", true);
+    Setting& linger_ = slider("linger", "Display time after looking away (s)", 2.f, 0.f, 10.f, "%.1f s");
+    Setting& good_ = colorSetting("good", "Color full health", {0.55f, 0.91f, 0.69f, 1.f});
+    Setting& mid_ = colorSetting("mid", "Color half health", {1.f, 0.82f, 0.49f, 1.f});
+    Setting& low_ = colorSetting("low", "Color low health", {1.f, 0.4f, 0.45f, 1.f});
     game::Target last_;
     double seen_ = -100.0;
     float smooth_ = 1.f;
@@ -90,9 +90,9 @@ private:
 class Waila : public GameList {
 public:
     Waila()
-        : GameList("Waila", "Zeigt, was du gerade anschaust: Block oder Entity mit Name, Distanz und Abbaufortschritt.", need::target,
+        : GameList("Waila", "Shows what you are looking at: block or entity with name, distance and break progress.", need::target,
                    need::sigs({"LocalPlayer", "Target"}), {"hud-self"}, {0.40f, 0.02f}) {
-        sub("Kampf-Anzeigen");
+        sub("Combat displays");
     }
 
     void onRender(ImDrawList* dl) override {
@@ -111,11 +111,11 @@ protected:
             w = std::max(w, textSize(s, str).x);
         };
         if (t.kind == game::Target::Kind::Entity) {
-            if (healthMode_.i == 2 || (healthMode_.i == 1 && !t.isPlayer)) line(std::format("{:.0f} / {:.0f} Leben", t.health, t.maxHealth));
+            if (healthMode_.i == 2 || (healthMode_.i == 1 && !t.isPlayer)) line(i18n::fmt("{:.0f} / {:.0f} health", t.health, t.maxHealth));
         } else if (t.kind == game::Target::Kind::Block && coords_.b) {
             line(std::format("{} {} {}", t.blockX, t.blockY, t.blockZ));
         }
-        if (dist_.b) line(std::format("{:.1f} Blöcke entfernt", t.distance));
+        if (dist_.b) line(i18n::fmt("{:.1f} blocks away", t.distance));
         if (progress_.b && t.kind == game::Target::Kind::Block && t.breakProgress > 0.f) {
             ImVec2 b0 = o + ImVec2(0, y + 2 * s);
             float bw = std::max(w, 110.f * s);
@@ -128,17 +128,17 @@ protected:
     }
 
 private:
-    Setting& healthMode_ = choice("healthMode", "Leben anzeigen", {"Nie", "Nur bei Mobs", "Immer"}, 1);
-    Setting& dist_ = toggleSetting("dist", "Distanz", true);
-    Setting& coords_ = toggleSetting("coords", "Blockkoordinaten", false);
-    Setting& progress_ = toggleSetting("progress", "Abbaufortschritt", true);
+    Setting& healthMode_ = choice("healthMode", "Show health", {"Never", "Only for mobs", "Always"}, 1);
+    Setting& dist_ = toggleSetting("dist", "Distance", true);
+    Setting& coords_ = toggleSetting("coords", "Block coordinates", false);
+    Setting& progress_ = toggleSetting("progress", "Break progress", true);
 };
 
 class BowCharge : public Module {
 public:
     BowCharge()
-        : Module("Bow Charge", "Zeigt, wie weit dein Bogen gespannt ist, direkt am Fadenkreuz.", Category::Pvp, {"hud-self"}) {
-        sub("Kampf-Anzeigen");
+        : Module("Bow Charge", "Shows how far your bow is drawn, right at the crosshair.", Category::Pvp, {"hud-self"}) {
+        sub("Combat displays");
         require(need::player, need::sigs({"LocalPlayer", "UseState"}));
     }
 
@@ -176,23 +176,23 @@ private:
         return {std::floor(ds.x * 0.5f) + 0.5f, std::floor(ds.y * 0.5f) + 0.5f};
     }
 
-    Setting& style_ = choice("style", "Form", {"Balken", "Ring"});
-    Setting& width_ = slider("width", "Größe", 80.f, 30.f, 200.f, "%.0f");
-    Setting& offsetX_ = slider("offsetX", "Versatz X", 0.f, -300.f, 300.f, "%.0f");
-    Setting& offsetY_ = slider("offsetY", "Versatz Y", 36.f, -300.f, 300.f, "%.0f");
-    Setting& percent_ = toggleSetting("percent", "Prozent anzeigen", true);
-    Setting& onlyBow_ = toggleSetting("onlyBow", "Nur Bogen", true);
-    Setting& color_ = colorSetting("color", "Farbe", {1.f, 1.f, 1.f, 0.9f});
-    Setting& fullColor_ = colorSetting("full", "Farbe bei voller Spannung", {0.55f, 0.91f, 0.69f, 1.f});
+    Setting& style_ = choice("style", "Shape", {"Bar", "Ring"});
+    Setting& width_ = slider("width", "Size", 80.f, 30.f, 200.f, "%.0f");
+    Setting& offsetX_ = slider("offsetX", "Offset X", 0.f, -300.f, 300.f, "%.0f");
+    Setting& offsetY_ = slider("offsetY", "Offset Y", 36.f, -300.f, 300.f, "%.0f");
+    Setting& percent_ = toggleSetting("percent", "Show percent", true);
+    Setting& onlyBow_ = toggleSetting("onlyBow", "Bow only", true);
+    Setting& color_ = colorSetting("color", "Color", {1.f, 1.f, 1.f, 0.9f});
+    Setting& fullColor_ = colorSetting("full", "Color at full draw", {0.55f, 0.91f, 0.69f, 1.f});
     float shown_ = 0.f;
 };
 
 class CooldownIndicator : public GameList {
 public:
     CooldownIndicator()
-        : GameList("Cooldown Indicator", "Zeigt Abklingzeiten, zum Beispiel für Enderperlen. Welche Items zählen, legst du selbst fest.",
+        : GameList("Cooldown Indicator", "Shows cooldowns, for example for ender pearls. You choose which items count.",
                    need::combat, need::sigs({"LocalPlayer", "ItemUseEvents"}), {"hud-self"}, {0.01f, 0.72f}) {
-        sub("Kampf-Anzeigen");
+        sub("Combat displays");
     }
 
     void onFrame() override {
@@ -256,9 +256,9 @@ private:
         }
     }
 
-    Setting& spec_ = textSetting("spec", "Items (name=Sekunden, mit Komma)", "ender_pearl=1.0,chorus_fruit=1.0");
-    Setting& bar_ = toggleSetting("bar", "Balken", true);
-    Setting& color_ = colorSetting("color", "Balkenfarbe", {1.f, 0.49f, 0.71f, 1.f});
+    Setting& spec_ = textSetting("spec", "Items (name=seconds, comma separated)", "ender_pearl=1.0,chorus_fruit=1.0");
+    Setting& bar_ = toggleSetting("bar", "Bar", true);
+    Setting& color_ = colorSetting("color", "Bar color", {1.f, 0.49f, 0.71f, 1.f});
     std::string parsed_;
     std::vector<Rule> rules_;
     std::map<std::string, std::pair<double, float>> active_;
