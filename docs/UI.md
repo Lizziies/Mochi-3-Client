@@ -66,3 +66,7 @@ Basis ist Vorschlag A (Palette) mit einem Schalter oben rechts, der auf B (Panel
 - Modules ist eine lange Liste mit Abschnitten (PvP, HUD, Visual, Comfort, Performance, Server), wie bei Onix. Eine Sprungleiste oben springt zum Abschnitt. Bild `i_list_long.png`.
 - Panels-Ansicht: jede Kategorie ist eine verschiebbare Spalte. Bild `k_panels_new.png`.
 - Mochi-Nutzer in Tab-Liste und Chat erkennbar (rotes Herz, Namensfarbe, Regenbogen, Tag). Bild `l_players.png`, Konzept in `docs/ONLINE.md`.
+
+### Zweite Änderung (Felix): schlichte Liste
+
+Entwürfe `m1_plain_twopane.png` und `m2_plain_inline.png`. Eine einzige Liste mit allem, geordnet in Abschnitten. Reihenfolge: Server (Hive, Zeqa), HUD, PvP, Visual, Comfort, Performance. Zwischenüberschriften klein, farbig (je Abschnitt eine Pastellfarbe) und dezent, nicht auffällig. Keine Kategorie-Tabs, keine Sprungleiste.

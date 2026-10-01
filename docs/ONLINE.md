@@ -1,6 +1,6 @@
 # Mochi Online: Nutzer erkennen, Tags, Namensfarben, Cosmetics für alle
 
-Ziel: Jeder Spieler, der Mochi benutzt, ist für andere Mochi-Nutzer erkennbar und sichtbar. Rotes Herz vor dem Namen in der Tab-Liste, Tag im Chat, eigene Namensfarbe oder Regenbogen, und später Cosmetics an der Figur. Mockup: `docs/ui_proposals/l_players.png`.
+Ziel: Jeder Spieler, der Mochi benutzt, ist für andere Mochi-Nutzer erkennbar und sichtbar. Mochi-Logo hinter dem Namen in der Tab-Liste und im Chat, eigene Namensfarbe oder Regenbogen, und später Cosmetics an der Figur. Mockup: `docs/ui_proposals/l_players.png`.
 
 ## Warum es einen Server braucht
 
@@ -16,9 +16,8 @@ Es gehen keine zusätzlichen Pakete an den Minecraft-Server. Nicht-Mochi-Spieler
 
 ## Was Nutzer einstellen können
 
-- Namensfarbe: einfarbig, Verlauf, Regenbogen (langsam, mittel, schnell), Puls.
-- Tag-Text und Tag-Farbe (mit Filter für Beleidigungen).
-- Rotes Herz vor dem Namen an/aus.
+- Namensfarbe: nur der echte Xbox-Name wird eingefärbt (einfarbig, Verlauf, Regenbogen, Puls). Man kann keinen anderen Namen dazuschreiben, es gibt keinen freien Text.
+- Das Mochi-Logo (Herz) steht fest hinter dem Xbox-Namen. Es lässt sich nur ein- und ausschalten und in der Farbe wählen.
 - Ausgerüstete Cosmetics (Flügel, Cape, Kopf, Rücken ...).
 - Sichtbarkeit: "Für andere Mochi-Nutzer sichtbar" an/aus (Standard: an, steht beim ersten Start gut sichtbar zur Wahl).
 
@@ -44,7 +43,7 @@ Cloudflare Workers mit D1 (Datenbank) und KV (Zwischenspeicher). Der kostenlose 
 
 - **Namens-Diebstahl:** Ohne Prüfung könnte jemand behaupten, "Luna" zu sein, und deren Stil überschreiben. Gegenmaßnahme erste Version: Der Dienst gibt jedem Gamertag nur einen Sitzungs-Token und akzeptiert nur Änderungen mit dem Token. Zweite Version: Beweis über den Xbox-Login (XSTS-Token), der im Spiel schon existiert. Das muss am PC erforscht werden.
 - **Datenschutz:** Der Dienst speichert nur Gamertag, Servername, Stil, Cosmetics, letzten Kontakt. Nichts über Chat, Standort, IP-Dauerspeicherung oder Welten. Vor dem ersten Senden fragt der Client beim ersten Start, löschen geht mit einem Knopf. Eine Datenschutz-Seite muss vor dem Release stehen.
-- **Missbrauch:** Tag-Texte filtern, melden, Sperrliste. Die Anzahl der Aufrufe pro Nutzer begrenzen.
+- **Missbrauch:** Es gibt keine freien Texte, nur Farben und feste Logos, deshalb kein Filter nötig. Aufrufe pro Nutzer begrenzen, Sperrliste für Namens-Diebstahl.
 - **Server-Regeln:** Manche Server mögen keine Fremd-Clients. Der Dienst meldet keine Serverdaten, wenn die Server-Regeln es für diesen Server sperren (`servers.json`, neues Feld `online: false`).
 - **Cosmetics an fremden Figuren:** Wir sehen sie nur, wenn der Client Position und Haltung fremder Spieler lesen kann (Signaturen). Bis dahin zeigen wir Herz, Farbe und Tag in Tab-Liste und Chat.
 
