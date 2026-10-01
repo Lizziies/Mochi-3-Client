@@ -52,7 +52,7 @@ Cloudflare Workers mit D1 (Datenbank). Der kostenlose Tarif reicht für den Star
 | Schritt | Stand |
 |---|---|
 | 1. Client mit Demo-Daten | gebaut: Modul "Mochi Online" (`dll/src/modules/online/`), Herz hinter dem Namen (Farbe wählbar) und Namensfarbe (einfarbig, Verlauf, Regenbogen, Puls) in Tab-Liste und Better Chat, ausgerüstete Cosmetics gehen als `worn` mit, Einstellungen für alles, erfundene Nutzer ohne Netzwerk |
-| 2. `server/` bauen und lokal testen | gebaut: Worker mit D1 und KV, 18 Tests laufen gegen den Speicher und gegen die echte SQL-Datenbank (`node:sqlite`) |
+| 2. `server/` bauen und lokal testen | gebaut: Worker mit D1, 17 Tests laufen gegen den Speicher und gegen die echte SQL-Datenbank (`node:sqlite`) |
 | 3. Client mit dem Dienst verbinden | gebaut und unter Wine gegen den lokalen Server geprüft: hello, presence, lookup, profile, bye, forget. Hinweis beim ersten Einschalten, Knopf "Meine Daten im Dienst löschen" |
 | 4. Veröffentlichen | **offen, Felix:** Cloudflare-Konto, `wrangler deploy`, Adresse in den Client eintragen. Datenschutz-Seite schreiben. Xbox-Beweis erforschen |
 | 5. Cosmetics an fremden Figuren | offen, braucht Signaturen. Das Profil trägt die ausgerüsteten Cosmetics schon (`worn`), siehe `docs/COSMETICS.md` |
