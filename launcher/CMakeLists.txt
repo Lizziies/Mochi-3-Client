@@ -12,6 +12,7 @@ set(LIB ${CMAKE_CURRENT_SOURCE_DIR}/../dll/lib)
 set(MOCHI_VERSION "0.1.0" CACHE STRING "Version shown in the launcher")
 
 file(GLOB SOURCES CONFIGURE_DEPENDS src/*.cpp)
+list(APPEND SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/../common/I18n.cpp)
 
 add_executable(MochiLauncher WIN32
     ${SOURCES}
@@ -24,7 +25,7 @@ add_executable(MochiLauncher WIN32
     res/launcher.rc
 )
 
-target_include_directories(MochiLauncher PRIVATE src ${LIB}/imgui ${LIB}/imgui/backends ${LIB}/json)
+target_include_directories(MochiLauncher PRIVATE src ${CMAKE_CURRENT_SOURCE_DIR}/../common ${LIB}/imgui ${LIB}/imgui/backends ${LIB}/json)
 
 target_compile_definitions(MochiLauncher PRIVATE
     WIN32_LEAN_AND_MEAN
@@ -35,7 +36,7 @@ target_compile_definitions(MochiLauncher PRIVATE
     MOCHI_VERSION="${MOCHI_VERSION}"
 )
 
-target_link_libraries(MochiLauncher PRIVATE d3d11 dxgi d3dcompiler winhttp version bcrypt dwmapi shell32 ole32 comdlg32 advapi32)
+target_link_libraries(MochiLauncher PRIVATE d3d11 dxgi d3dcompiler winhttp version bcrypt dwmapi shell32 ole32 comdlg32 advapi32 uuid)
 
 if(MSVC)
     set_property(TARGET MochiLauncher PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")

@@ -1,0 +1,57 @@
+#include "I18n.hpp"
+
+namespace {
+
+const i18n::Entry entries[] = {
+    {"Play", "Spielen"},
+    {"Updating", "Aktualisiere"},
+    {"Starting Minecraft", "Starte Minecraft"},
+    {"Waiting for the game", "Warte auf das Spiel"},
+    {"Connecting", "Verbinde"},
+    {"Running", "Läuft"},
+    {"Try again", "Nochmal versuchen"},
+    {"Versions", "Versionen"},
+    {"Settings", "Einstellungen"},
+    {"About", "Über"},
+    {"Update available", "Update verfügbar"},
+    {"Up to date", "Alles aktuell"},
+    {"Ready to play", "Bereit zum Spielen"},
+    {"Current", "Aktuell"},
+    {"Missing", "Fehlt"},
+    {"Supported", "Unterstützt"},
+    {"Untested", "Nicht getestet"},
+    {"Which Minecraft version do you want to play?", "Mit welcher Minecraft-Version möchtest du spielen?"},
+    {"Installed", "Installiert"},
+    {"Mochi compatible", "Mochi-kompatibel"},
+    {"Active", "Aktiv"},
+    {"Switch", "Wechseln"},
+    {"Version switching is still in progress", "Der Versionswechsel ist noch in Arbeit"},
+    {"Switching will later work through your own Microsoft license. Until then you play with the installed version.", "Das Umschalten läuft später über deine eigene Microsoft-Lizenz. Bis dahin spielst du mit der installierten Version."},
+    {"How the launcher should behave.", "Wie sich der Launcher verhalten soll."},
+    {"Beta updates", "Beta-Updates"},
+    {"Get new versions earlier, even if they may still have bugs.", "Neue Versionen früher bekommen, auch wenn sie noch Fehler haben könnten."},
+    {"Connect automatically", "Automatisch verbinden"},
+    {"Connects the client as soon as Minecraft has started.", "Verbindet den Client, sobald Minecraft gestartet ist."},
+    {"Close launcher afterwards", "Launcher danach schließen"},
+    {"Closes this window once the client has loaded.", "Schließt dieses Fenster, sobald der Client geladen ist."},
+    {"Custom DLL (for developers)", "Eigene DLL (für Entwickler)"},
+    {"Leave empty for the normal version.", "Leer lassen für die normale Version."},
+    {"Browse", "Suchen"},
+    {"Free PvP client for Minecraft Bedrock on Windows.", "Kostenloser PvP-Client für Minecraft Bedrock auf Windows."},
+    {"Mochi is an independent project and is not affiliated with Mojang or Microsoft.", "Mochi ist ein unabhängiges Projekt und gehört nicht zu Mojang oder Microsoft."},
+    {"The client only adds helpful displays and gives no unfair advantage.", "Der Client zeigt nur Hilfen an und gibt keine unfairen Vorteile."},
+    {"Your antivirus may warn about injectors. That is normal, only download from the official page.", "Dein Antivirus kann bei Injektoren warnen. Das ist normal, lade nur von der offiziellen Seite."},
+    {"Open logs", "Logs öffnen"},
+    {"Open folder", "Ordner öffnen"},
+    {"Home", "Start"},
+    {"not found", "nicht gefunden"},
+    {"Update to {}", "Auf {} aktualisieren"},
+    {"What's new in {}", "Neu in {}"},
+    {"Language", "Sprache"},
+    {"Auto follows your Windows language.", "Auto folgt deiner Windows-Sprache."},
+    {"Auto", "Automatisch"},
+};
+
+i18n::Table table(entries);
+
+}

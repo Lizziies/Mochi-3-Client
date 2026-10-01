@@ -1,5 +1,7 @@
 #include "Ui.hpp"
 
+#include "I18n.hpp"
+
 #include <algorithm>
 #include <cmath>
 #include <cstring>
@@ -8,6 +10,8 @@
 namespace ui {
 
 namespace {
+
+using i18n::tr;
 
 ImVec4 hex(unsigned rgb, float a = 1.f) {
     return {((rgb >> 16) & 0xFF) / 255.f, ((rgb >> 8) & 0xFF) / 255.f, (rgb & 0xFF) / 255.f, a};
@@ -208,13 +212,13 @@ float pageT = 1.f;
 
 const char* playLabel(Phase p) {
     switch (p) {
-    case Phase::Idle: return "Spielen";
-    case Phase::Updating: return "Aktualisiere";
-    case Phase::Starting: return "Starte Minecraft";
-    case Phase::Waiting: return "Warte auf das Spiel";
-    case Phase::Injecting: return "Verbinde";
-    case Phase::Done: return "Läuft";
-    case Phase::Failed: return "Nochmal versuchen";
+    case Phase::Idle: return tr("Play");
+    case Phase::Updating: return tr("Updating");
+    case Phase::Starting: return tr("Starting Minecraft");
+    case Phase::Waiting: return tr("Waiting for the game");
+    case Phase::Injecting: return tr("Connecting");
+    case Phase::Done: return tr("Running");
+    case Phase::Failed: return tr("Try again");
     }
     return "";
 }
@@ -229,11 +233,11 @@ void sidebar(ImDrawList* dl, State& s, Events& ev) {
     label(dl, bold, 28.f, {84.f, 28.f}, col(text), "Mochi");
 
     struct Item { const char* name; Icon icon; Page page; };
-    static const Item items[] = {
-        {"Start", Icon::Play, Page::Start},
-        {"Versionen", Icon::Layers, Page::Versions},
-        {"Einstellungen", Icon::Sliders, Page::Settings},
-        {"Über", Icon::Info, Page::About},
+    const Item items[] = {
+        {tr("Home"), Icon::Play, Page::Start},
+        {tr("Versions"), Icon::Layers, Page::Versions},
+        {tr("Settings"), Icon::Sliders, Page::Settings},
+        {tr("About"), Icon::Info, Page::About},
     };
 
     float rowH = 48.f, top = 118.f;
@@ -259,13 +263,13 @@ void sidebar(ImDrawList* dl, State& s, Events& ev) {
     }
 
     float by = height - 74.f;
-    label(dl, regular, 14.f, {28.f, by + 8.f}, col(dim), (std::string("Version ") + s.clientVersion).c_str());
+    label(dl, regular, 14.f, {28.f, by + 8.f}, col(dim), (std::string(tr("Version")) + " " + s.clientVersion).c_str());
     if (s.updateAvailable) {
         dl->AddCircleFilled({32.f, by + 38.f}, 4.f, col(warn), 12);
-        label(dl, bold, 13.f, {44.f, by + 30.f}, col(warn), "Update verfügbar");
+        label(dl, bold, 13.f, {44.f, by + 30.f}, col(warn), tr("Update available"));
     } else {
         dl->AddCircleFilled({32.f, by + 38.f}, 4.f, col(ok), 12);
-        label(dl, regular, 13.f, {44.f, by + 30.f}, col(ok), "Alles aktuell");
+        label(dl, regular, 13.f, {44.f, by + 30.f}, col(ok), tr("Up to date"));
     }
 }
 
@@ -316,8 +320,8 @@ void hero(ImDrawList* dl, State& s, Events& ev) {
     sparkle(dl, {max.x - 330.f, min.y + 112.f}, 5.f + 1.5f * std::sin(t * 1.8f + 2.f), col(text, 0.6f));
     dl->PopClipRect();
 
-    label(dl, bold, 38.f, {min.x + 36.f, min.y + 30.f}, col(text), "Bereit zum Spielen");
-    std::string sub = "Minecraft Bedrock " + (s.gameVersion.empty() ? std::string("nicht gefunden") : s.gameVersion);
+    label(dl, bold, 38.f, {min.x + 36.f, min.y + 30.f}, col(text), tr("Ready to play"));
+    std::string sub = "Minecraft Bedrock " + (s.gameVersion.empty() ? std::string(tr("not found")) : s.gameVersion);
     label(dl, regular, 17.f, {min.x + 38.f, min.y + 80.f}, col(text, 0.82f), sub.c_str());
 
     bool working = busy(s.phase);
@@ -341,17 +345,17 @@ void infoCard(ImDrawList* dl, State& s, Events& ev) {
     label(dl, regular, 14.f, {min.x + 22.f, y}, col(dim), "Mochi");
     label(dl, bold, 18.f, {min.x + 22.f, y + 20.f}, col(text), s.clientVersion.c_str());
     if (s.updateAvailable) chip(dl, {max.x - 22.f - chipWidth("Update"), y + 8.f}, "Update", warn);
-    else chip(dl, {max.x - 22.f - chipWidth("Aktuell"), y + 8.f}, "Aktuell", ok);
+    else chip(dl, {max.x - 22.f - chipWidth(tr("Current")), y + 8.f}, tr("Current"), ok);
 
     y += 78.f;
     label(dl, regular, 14.f, {min.x + 22.f, y}, col(dim), "Minecraft");
-    label(dl, bold, 18.f, {min.x + 22.f, y + 20.f}, col(text), s.gameVersion.empty() ? "nicht gefunden" : s.gameVersion.c_str());
-    const char* tag = s.gameVersion.empty() ? "Fehlt" : s.gameSupported ? "Unterstützt" : "Nicht getestet";
+    label(dl, bold, 18.f, {min.x + 22.f, y + 20.f}, col(text), s.gameVersion.empty() ? tr("not found") : s.gameVersion.c_str());
+    const char* tag = s.gameVersion.empty() ? tr("Missing") : s.gameSupported ? tr("Supported") : tr("Untested");
     ImVec4 tc = s.gameVersion.empty() ? off : s.gameSupported ? ok : warn;
     chip(dl, {max.x - 22.f - chipWidth(tag), y + 8.f}, tag, tc);
 
     if (s.updateAvailable) {
-        std::string t = "Auf " + s.latestVersion + " aktualisieren";
+        std::string t = i18n::fmt("Update to {}", s.latestVersion);
         if (button("update", {min.x + 22.f, max.y - 56.f}, {max.x - 22.f, max.y - 18.f}, t.c_str(), false, !busy(s.phase)))
             ev.update = true;
     }
@@ -360,11 +364,11 @@ void infoCard(ImDrawList* dl, State& s, Events& ev) {
 void changelogCard(ImDrawList* dl, State& s) {
     ImVec2 min{556.f, 312.f}, max{928.f, 576.f};
     card(dl, min, max);
-    std::string title = "Neu in " + (s.latestVersion.empty() ? s.clientVersion : s.latestVersion);
+    std::string title = i18n::fmt("What's new in {}", s.latestVersion.empty() ? s.clientVersion : s.latestVersion);
     label(dl, bold, 18.f, {min.x + 22.f, min.y + 18.f}, col(text), title.c_str());
 
     dl->PushClipRect({min.x, min.y + 52.f}, {max.x, max.y - 10.f}, true);
-    std::istringstream in(s.changelog);
+    std::istringstream in(s.changelog.empty() ? std::string(tr("No release notes yet.")) : s.changelog);
     std::string line;
     float y = min.y + 62.f;
     while (std::getline(in, line) && y < max.y - 24.f) {
@@ -382,7 +386,7 @@ void header(ImDrawList* dl, const char* title, const char* subtitle) {
 }
 
 void versions(ImDrawList* dl, State& s) {
-    header(dl, "Versionen", "Mit welcher Minecraft-Version möchtest du spielen?");
+    header(dl, tr("Versions"), tr("Which Minecraft version do you want to play?"));
     float y = 136.f;
     for (size_t i = 0; i < s.versions.size() && y < 450.f; i++, y += 70.f) {
         auto& v = s.versions[i];
@@ -391,21 +395,40 @@ void versions(ImDrawList* dl, State& s) {
         label(dl, bold, 19.f, {min.x + 22.f, min.y + 10.f}, col(text), v.name.c_str());
         float cx = min.x + 22.f;
         if (v.preview) { chip(dl, {cx, min.y + 33.f}, "Preview", accent2); cx += chipWidth("Preview") + 8.f; }
-        if (v.installed) { chip(dl, {cx, min.y + 33.f}, "Installiert", dim); cx += chipWidth("Installiert") + 8.f; }
-        if (v.supported) chip(dl, {cx, min.y + 33.f}, "Mochi-kompatibel", ok);
+        if (v.installed) { chip(dl, {cx, min.y + 33.f}, tr("Installed"), dim); cx += chipWidth(tr("Installed")) + 8.f; }
+        if (v.supported) chip(dl, {cx, min.y + 33.f}, tr("Mochi compatible"), ok);
         if (v.active) {
-            chip(dl, {max.x - 22.f - chipWidth("Aktiv"), min.y + 18.f}, "Aktiv", accent);
+            chip(dl, {max.x - 22.f - chipWidth(tr("Active")), min.y + 18.f}, tr("Active"), accent);
         } else {
             std::string id = "sw" + std::to_string(i);
-            button(id.c_str(), {max.x - 150.f, min.y + 12.f}, {max.x - 18.f, min.y + 48.f}, "Wechseln", false, false);
+            button(id.c_str(), {max.x - 150.f, min.y + 12.f}, {max.x - 18.f, min.y + 48.f}, tr("Switch"), false, false);
         }
     }
 
     ImVec2 min{264.f, 480.f}, max{928.f, 576.f};
     dl->AddRectFilled(min, max, col(warn, 0.08f), 18.f);
     dl->AddRect(min, max, col(warn, 0.35f), 18.f, 0, 1.5f);
-    label(dl, bold, 16.f, {min.x + 22.f, min.y + 16.f}, col(warn), "Version-Wechsel ist noch in Arbeit");
-    label(dl, regular, 15.f, {min.x + 22.f, min.y + 44.f}, col(dim), "Das Umschalten läuft später über deine eigene Microsoft-Lizenz. Bis dahin spielst du mit der installierten Version.");
+    label(dl, bold, 16.f, {min.x + 22.f, min.y + 16.f}, col(warn), tr("Version switching is still in progress"));
+    label(dl, regular, 15.f, {min.x + 22.f, min.y + 44.f}, col(dim), tr("Switching will later work through your own Microsoft license. Until then you play with the installed version."));
+}
+
+int segment(const char* id, ImVec2 pos, const char* const* names, int count, int current) {
+    float w = 92.f, h = 32.f;
+    auto* dl = ImGui::GetWindowDrawList();
+    dl->AddRectFilled(pos, {pos.x + w * count, pos.y + h}, col(hex(0x1A0F1E)), h * 0.5f);
+    float& slot = *ImGui::GetStateStorage()->GetFloatRef(ImGui::GetID(id), float(current));
+    slot = approach(slot, float(current), 16.f);
+    dl->AddRectFilled({pos.x + 3.f + slot * w, pos.y + 3.f}, {pos.x + w * (slot + 1.f) - 3.f, pos.y + h - 3.f},
+                      col(accent), (h - 6.f) * 0.5f);
+    int result = current;
+    for (int i = 0; i < count; i++) {
+        bool hovered, held;
+        std::string item = std::string(id) + std::to_string(i);
+        if (region(item.c_str(), {pos.x + i * w, pos.y}, {pos.x + (i + 1) * w, pos.y + h}, hovered, held)) result = i;
+        float on = std::clamp(1.f - std::fabs(slot - i), 0.f, 1.f);
+        centered(dl, bold, 14.f, {pos.x + (i + 0.5f) * w, pos.y + h * 0.5f}, col(mix(hovered ? text : dim, hex(0x3A1030), on)), names[i]);
+    }
+    return result;
 }
 
 bool settingRow(ImDrawList* dl, const char* id, float y, const char* title, const char* desc, bool& value) {
@@ -417,16 +440,26 @@ bool settingRow(ImDrawList* dl, const char* id, float y, const char* title, cons
 }
 
 void settings(ImDrawList* dl, State& s, Events& ev) {
-    header(dl, "Einstellungen", "Wie sich der Launcher verhalten soll.");
+    header(dl, tr("Settings"), tr("How the launcher should behave."));
     bool changed = false;
-    changed |= settingRow(dl, "beta", 136.f, "Beta-Updates", "Neue Versionen früher bekommen, auch wenn sie noch Fehler haben könnten.", s.settings.beta);
-    changed |= settingRow(dl, "auto", 214.f, "Automatisch verbinden", "Verbindet den Client, sobald Minecraft gestartet ist.", s.settings.autoInject);
-    changed |= settingRow(dl, "close", 292.f, "Launcher danach schließen", "Schließt dieses Fenster, sobald der Client geladen ist.", s.settings.closeAfterInject);
 
-    ImVec2 min{264.f, 370.f}, max{928.f, 470.f};
+    ImVec2 lmin{264.f, 136.f}, lmax{928.f, 204.f};
+    card(dl, lmin, lmax);
+    label(dl, bold, 17.f, {lmin.x + 22.f, lmin.y + 13.f}, col(text), tr("Language"));
+    label(dl, regular, 14.f, {lmin.x + 22.f, lmin.y + 38.f}, col(dim), tr("Auto follows your Windows language."));
+    const char* names[] = {tr("Auto"), "English", "Deutsch"};
+    int now = int(i18n::chosen());
+    int pick = segment("lang", {lmax.x - 22.f - 276.f, lmin.y + 18.f}, names, 3, now);
+    if (pick != now) i18n::choose(i18n::Lang(pick));
+
+    changed |= settingRow(dl, "beta", 214.f, tr("Beta updates"), tr("Get new versions earlier, even if they may still have bugs."), s.settings.beta);
+    changed |= settingRow(dl, "auto", 292.f, tr("Connect automatically"), tr("Connects the client as soon as Minecraft has started."), s.settings.autoInject);
+    changed |= settingRow(dl, "close", 370.f, tr("Close launcher afterwards"), tr("Closes this window once the client has loaded."), s.settings.closeAfterInject);
+
+    ImVec2 min{264.f, 448.f}, max{928.f, 548.f};
     card(dl, min, max);
-    label(dl, bold, 17.f, {min.x + 22.f, min.y + 13.f}, col(text), "Eigene DLL (für Entwickler)");
-    label(dl, regular, 14.f, {min.x + 22.f, min.y + 38.f}, col(dim), "Leer lassen für die normale Version.");
+    label(dl, bold, 17.f, {min.x + 22.f, min.y + 13.f}, col(text), tr("Custom DLL (for developers)"));
+    label(dl, regular, 14.f, {min.x + 22.f, min.y + 38.f}, col(dim), tr("Leave empty for the normal version."));
     ImVec2 fmin{min.x + 22.f, min.y + 62.f}, fmax{max.x - 150.f, min.y + 90.f};
     dl->AddRectFilled(fmin, fmax, col(hex(0x1A0F1E)), 10.f);
     ImGui::SetCursorScreenPos({fmin.x + 10.f, fmin.y + 4.f});
@@ -438,7 +471,7 @@ void settings(ImDrawList* dl, State& s, Events& ev) {
         changed = true;
     }
     ImGui::PopStyleColor(2);
-    if (button("browse", {max.x - 134.f, min.y + 60.f}, {max.x - 22.f, min.y + 92.f}, "Suchen", false)) ev.browseDll = true;
+    if (button("browse", {max.x - 134.f, min.y + 60.f}, {max.x - 22.f, min.y + 92.f}, tr("Browse"), false)) ev.browseDll = true;
     ev.settingsChanged |= changed;
 }
 
@@ -447,13 +480,13 @@ void about(ImDrawList* dl, Events& ev) {
     card(dl, min, max);
     pixelHeart(dl, {min.x + 34.f, min.y + 34.f}, 8.f);
     label(dl, bold, 32.f, {min.x + 150.f, min.y + 40.f}, col(text), "Mochi Launcher");
-    label(dl, regular, 16.f, {min.x + 150.f, min.y + 84.f}, col(dim), "Kostenloser PvP-Client für Minecraft Bedrock auf Windows.");
-    label(dl, regular, 15.f, {min.x + 34.f, min.y + 160.f}, col(dim), "Mochi ist ein unabhängiges Projekt und gehört nicht zu Mojang oder Microsoft.");
-    label(dl, regular, 15.f, {min.x + 34.f, min.y + 190.f}, col(dim), "Der Client zeigt nur Hilfen an und gibt keine unfairen Vorteile.");
-    label(dl, regular, 15.f, {min.x + 34.f, min.y + 220.f}, col(dim), "Dein Antivirus kann bei Injektoren warnen. Das ist normal, lade nur von der offiziellen Seite.");
+    label(dl, regular, 16.f, {min.x + 150.f, min.y + 84.f}, col(dim), tr("Free PvP client for Minecraft Bedrock on Windows."));
+    label(dl, regular, 15.f, {min.x + 34.f, min.y + 160.f}, col(dim), tr("Mochi is an independent project and is not affiliated with Mojang or Microsoft."));
+    label(dl, regular, 15.f, {min.x + 34.f, min.y + 190.f}, col(dim), tr("The client only adds helpful displays and gives no unfair advantage."));
+    label(dl, regular, 15.f, {min.x + 34.f, min.y + 220.f}, col(dim), tr("Your antivirus may warn about injectors. That is normal, only download from the official page."));
 
-    if (button("logs", {264.f, 354.f}, {464.f, 396.f}, "Logs öffnen", false)) ev.openLogs = true;
-    if (button("folder", {480.f, 354.f}, {680.f, 396.f}, "Ordner öffnen", false)) ev.openFolder = true;
+    if (button("logs", {264.f, 354.f}, {464.f, 396.f}, tr("Open logs"), false)) ev.openLogs = true;
+    if (button("folder", {480.f, 354.f}, {680.f, 396.f}, tr("Open folder"), false)) ev.openFolder = true;
 }
 
 }
