@@ -17,6 +17,8 @@ struct Ours {
 };
 
 bool gameplay();
+void syncCursor(bool menuOpen);
+void releaseHeld();
 
 bool down(int vk);
 int cps(MouseButton button);

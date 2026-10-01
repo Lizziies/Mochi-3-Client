@@ -71,6 +71,10 @@ void frame() {
     capture = gui::wantsInput();
     cursor = gui::wantsCursor();
     ImGui::GetIO().MouseDrawCursor = cursor;
+    input::syncCursor(cursor);
+    static bool wasCapturing = false;
+    if (capture && !wasCapturing) input::releaseHeld();
+    wasCapturing = capture;
 
     ImGui::Render();
     ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());

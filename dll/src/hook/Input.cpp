@@ -9,6 +9,8 @@
 #include "render/Ui.hpp"
 #include "sdk/Inject.hpp"
 
+#include <imgui.h>
+
 #include <windowsx.h>
 
 #include <array>
@@ -91,6 +93,9 @@ static bool dispatchMouse(MouseEvent ev) {
     return false;
 }
 
+static bool rawPass = false;
+static std::array<bool, 3> rawEaten{};
+
 static bool handleRaw(LPARAM lp) {
     UINT size = 0;
     GetRawInputData(reinterpret_cast<HRAWINPUT>(lp), RID_INPUT, nullptr, &size, sizeof(RAWINPUTHEADER));
@@ -123,14 +128,30 @@ static bool handleRaw(LPARAM lp) {
         {RI_MOUSE_RIGHT_BUTTON_DOWN, RI_MOUSE_RIGHT_BUTTON_UP, MouseButton::Right},
         {RI_MOUSE_MIDDLE_BUTTON_DOWN, RI_MOUSE_MIDDLE_BUTTON_UP, MouseButton::Middle},
     };
+    // the game asks for raw mouse input, so the menu gets its clicks and wheel from here as well
+    bool menu = ui::capturing();
+    auto feed = [&](MouseButton b, bool down) {
+        if (menu) ImGui::GetIO().AddMouseButtonEvent(b == MouseButton::Left ? 0 : b == MouseButton::Right ? 1 : 2, down);
+    };
+    rawPass = false;
     for (auto& e : map) {
+        int idx = e.button == MouseButton::Left ? 0 : e.button == MouseButton::Right ? 1 : 2;
         if (m.usButtonFlags & e.down) {
             rawButtons = true;
+            if (menu) rawEaten[idx] = true;
+            feed(e.button, true);
             cancel |= dispatchMouse({e.button, true, 0, 0, 0, t});
         }
-        if (m.usButtonFlags & e.up) cancel |= dispatchMouse({e.button, false, 0, 0, 0, t});
+        if (m.usButtonFlags & e.up) {
+            // a button the game saw go down has to see it come up, or it keeps attacking behind the menu
+            if (menu && !rawEaten[idx]) rawPass = true;
+            rawEaten[idx] = false;
+            feed(e.button, false);
+            cancel |= dispatchMouse({e.button, false, 0, 0, 0, t});
+        }
     }
     if (m.usButtonFlags & RI_MOUSE_WHEEL) {
+        if (menu) ImGui::GetIO().AddMouseWheelEvent(0, static_cast<short>(m.usButtonData) / 120.f);
         MouseEvent ev{MouseButton::None, false, (short)m.usButtonData, 0, 0, t};
         modules::dispatchMouse(ev);
         cancel |= ev.cancel;
@@ -241,8 +262,12 @@ static bool process(HWND w, UINT msg, WPARAM wp, LPARAM lp, LRESULT& result) {
         else if (!down && eaten[slot]) {
             eaten[slot] = false;
             take = true;
+        } else if (!down) {
+            take = false;
         }
     }
+    if (msg == WM_INPUT && rawPass) take = false;
+    if (inject::ours()) take = false;
     if (take && (isMouseMessage(msg) || isKeyMessage(msg))) {
         result = msg == WM_INPUT || isPointerMessage(msg) ? DefWindowProcW(w, msg, wp, lp) : 0;
         return true;
@@ -262,9 +287,34 @@ static LRESULT CALLBACK proc(HWND w, UINT msg, WPARAM wp, LPARAM lp) {
     return CallWindowProcW(original, w, msg, wp, lp);
 }
 
+static RECT lastClip{};
+static bool haveClip = false;
+static bool clipReleased = false;
+
 static BOOL WINAPI clipCursor(const RECT* r) {
+    haveClip = r != nullptr;
+    if (r) lastClip = *r;
     if (ui::wantsCursor()) return oClipCursor(nullptr);
     return oClipCursor(r);
+}
+
+void releaseHeld() {
+    for (int vk = 8; vk < 255; vk++) {
+        if (vk == VK_RSHIFT || vk <= VK_XBUTTON2 || !keys[vk]) continue;
+        inject::key(vk, false);
+        eaten[vk] = true;
+    }
+}
+
+void syncCursor(bool menuOpen) {
+    if (!oClipCursor) return;
+    if (menuOpen) {
+        oClipCursor(nullptr);
+        clipReleased = true;
+    } else if (clipReleased) {
+        clipReleased = false;
+        oClipCursor(haveClip ? &lastClip : nullptr);
+    }
 }
 
 static BOOL WINAPI setCursorPos(int x, int y) {
@@ -305,7 +355,9 @@ static UINT WINAPI getRawInputData(HRAWINPUT h, UINT cmd, LPVOID data, PUINT siz
     auto* raw = static_cast<RAWINPUT*>(data);
     if (raw->header.dwType == RIM_TYPEMOUSE) {
         raw->data.mouse.lLastX = raw->data.mouse.lLastY = 0;
-        raw->data.mouse.usButtonFlags = raw->data.mouse.usButtonData = 0;
+        raw->data.mouse.usButtonFlags &= RI_MOUSE_LEFT_BUTTON_UP | RI_MOUSE_RIGHT_BUTTON_UP | RI_MOUSE_MIDDLE_BUTTON_UP |
+                                         RI_MOUSE_BUTTON_4_UP | RI_MOUSE_BUTTON_5_UP;
+        raw->data.mouse.usButtonData = 0;
     } else if (raw->header.dwType == RIM_TYPEKEYBOARD) {
         raw->data.keyboard.VKey = 0xFF;
         raw->data.keyboard.MakeCode = 0;
