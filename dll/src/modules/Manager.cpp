@@ -6,6 +6,7 @@
 #include "gui/Notify.hpp"
 #include "gui/Widgets.hpp"
 #include "hook/Input.hpp"
+#include "server/HiveApi.hpp"
 #include "server/Rules.hpp"
 #include "sdk/Effects.hpp"
 #include "sdk/Game.hpp"
@@ -65,6 +66,7 @@
 #include "perf/RenderOptions.hpp"
 #include "perf/SystemBoost.hpp"
 #include "server/Hive.hpp"
+#include "server/HiveStats.hpp"
 #include "server/MatchSummary.hpp"
 #include "server/ServerProfiles.hpp"
 #include "server/Zeqa.hpp"
@@ -219,6 +221,8 @@ void init() {
     add<MatchSummary>();
     add<HiveUtils>();
     add<ZeqaUtils>();
+    add<HiveStats>();
+    add<HiveLeaderboard>();
     add<InstantInput>();
 
     add<Screenshot>();
@@ -259,6 +263,7 @@ void shutdown() {
     fx::shutdown();
     inject::shutdown();
     probe::shutdown();
+    hive::shutdown();
     post::shutdown();
     capture::shutdown();
     game::shutdown();

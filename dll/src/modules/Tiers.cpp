@@ -23,7 +23,7 @@ constexpr std::string_view expected[] = {
     "Player Notifier", "Chunk Border", "Break Progress", "Cinematic Camera", "Snap Look", "Auto Perspective",
     "Sens Multiplier", "Bow Sensitivity", "Stopwatch", "Memory", "Experience Info", "Durability Warning",
     "Streamer Mode", "Server Profiles", "Crystal Optimizer", "Better Chat", "View Model", "Saturation / Hue", "Screenshot+", "Target HUD",
-    "Session Timer", "Day Counter", "Hide Hand", "Entity Counter", "Zeqa Utils",
+    "Session Timer", "Day Counter", "Hide Hand", "Entity Counter", "Zeqa Utils", "Hive Stats", "Hive Leaderboard",
 };
 
 constexpr std::string_view extras[] = {

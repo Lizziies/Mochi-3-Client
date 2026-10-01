@@ -113,7 +113,7 @@ public:
     }
 
 protected:
-    bool growsUp() const override { return bottomUp_.b; }
+    ImVec2 pivot() const override { return {0.f, bottomUp_.b ? 1.f : 0.f}; }
 
     ImVec2 content(ImDrawList* dl, ImVec2 o, float s) override {
         std::vector<game::Effect> list = game::state().player.effects;

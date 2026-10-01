@@ -24,3 +24,4 @@ Kurze Chronik, damit jede neue Session weiß, was schon passiert ist.
 - Phase 0 (Teil 1): Module-Texte auf Englisch umgestellt, deutsche Tabelle in `Lang_B.cpp`, `Module::ruleNote()` übersetzt den Standardhinweis zur Laufzeit.
 - Phase 0 (Teil 2): Counter-Module angeglichen (Combo, Reach, Hit Ping, Opponent Reach, Potion HUD, Arrow/Totem/Pot Counter, Insta Hurt Animation). `HudModule` kann jetzt nach oben wachsen (`growsUp`), `Module::wants` leiht Daten, ohne das Modul bei fehlenden Daten grau zu machen.
 - Phase 1 (Teil 1): Hive Utils und Zeqa Utils, gemeinsame Chat-Hilfen in `modules/server/ServerChat.hpp`, Demo-Server mit Skript-Chat, `tools/testhost` kann per `TESTHOST_SCRIPT` Tasten und Klicks ausführen.
+- Phase 1 (Teil 2): Hive Stats, Hive Leaderboard (`modules/server/HiveApi.*`), Auto-GG-Endwörter pro Server, NetherGames und Mineville in `servers.json`, Pivot für HUD-Module.

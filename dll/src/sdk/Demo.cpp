@@ -86,7 +86,7 @@ private:
         s.player.maxHealth = 20.f;
         s.scoreboard.title = "Mochi Wars";
         for (int i = 0; i < 12; i++) {
-            static const char* names[] = {"Luna", "Max", "Kiki", "Noah", "Mia", "Finn", "Lea", "Tim", "Emma", "Ben", "Zoe", "Paul"};
+            static const char* names[] = {"Teammate", "Opponent", "Bystander", "Luna", "Max", "Kiki", "Noah", "Mia", "Finn", "Lea", "Tim", "Emma"};
             TabEntry e;
             e.name = names[i];
             e.ping = 20 + (i * 17) % 90;

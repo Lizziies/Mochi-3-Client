@@ -10,6 +10,7 @@
 #include "modules/common/GameHud.hpp"
 #include "modules/common/Needs.hpp"
 #include "modules/common/Text.hpp"
+#include "modules/server/ServerChat.hpp"
 #include "render/Fonts.hpp"
 #include "render/Ui.hpp"
 #include "sdk/Effects.hpp"
@@ -67,16 +68,7 @@ public:
 private:
     bool endMatches(const std::string& raw) const {
         std::string line = text::lower(text::strip(raw));
-        std::vector<std::string> list;
-        if (preset_.i == 1) {
-            list = splitList(text::lower(triggers_.text), ',');
-        } else {
-            auto& srv = game::state().server;
-            if (srv == "The Hive") list = {"game over", "victory"};
-            else if (srv == "Zeqa") list = {"has won", "winner"};
-            else if (srv == "CubeCraft") list = {"won the game", "game over"};
-            else list = {"game over", "you won", "victory"};
-        }
+        std::vector<std::string> list = preset_.i == 1 ? splitList(text::lower(triggers_.text), ',') : srv::endWords(game::state().server);
         for (auto& t : list)
             if (line.find(t) != std::string::npos) return true;
         return false;

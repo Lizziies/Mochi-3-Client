@@ -19,7 +19,7 @@ public:
     void setScale(float s);
 
 protected:
-    virtual bool growsUp() const { return false; }
+    virtual ImVec2 pivot() const { return {0.f, 0.f}; }
     virtual ImVec2 content(ImDrawList* dl, ImVec2 origin, float scale) = 0;
 
     ImVec2 drawText(ImDrawList* dl, ImVec2 at, float scale, const std::string& text, ImU32 color);

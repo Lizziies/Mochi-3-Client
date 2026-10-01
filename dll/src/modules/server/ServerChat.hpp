@@ -27,6 +27,17 @@ inline std::string fill(std::string pattern, const std::string& key, const std::
     return pattern;
 }
 
+inline std::vector<std::string> endWords(const std::string& server) {
+    if (server == "The Hive") return {"game over", "victory", "you win"};
+    if (server == "Zeqa") return {"has won", "winner", "won the duel"};
+    if (server == "CubeCraft") return {"won the game", "game over", "winners"};
+    if (server == "Lifeboat") return {"winner", "has won", "game over"};
+    if (server == "Galaxite") return {"game over", "winner", "you won", "victory"};
+    if (server == "Mineville") return {"game over", "winner", "has won"};
+    if (server == "NetherGames") return {"winner", "game over", "won the game"};
+    return {"game over", "you won", "victory"};
+}
+
 inline bool nameChar(char c) { return std::isalnum((unsigned char)c) || c == '_' || c == '-'; }
 
 inline std::string nameBefore(const std::string& raw, const std::vector<std::string>& phrases) {

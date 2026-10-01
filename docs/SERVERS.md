@@ -54,8 +54,19 @@ Quelle: galaxite.net/rules. Mods mit Vorteil = permanenter Bann, keine Liste.
 - `block`: Null Movement, Faster Inventory, Item Use Delay Fix, Insta Hurt Animation
 - `warn`: Tags `info-others`, `timing`, `input`
 
-### NetherGames, Mineville, andere
-Regeln noch nicht recherchiert. Keine Sperren. `server-rules`-Module bleiben auf unbekannten Servern standardmäßig aus.
+### NetherGames
+Quelle: support.nethergames.org/terms-of-service (Details im Forum-Thread "A list of Allowed Modifications", von der Cloud-Maschine nicht erreichbar). Allgemein: nur kosmetische Mods, keine Vorteile. Laut Latite-Seite sind dort Toggle Sprint und Bow Indicator gesperrt (nicht selbst geprüft).
+- `warn`: Toggle Sprint, Bow Charge, Instant Hit, Null Movement, Faster Inventory, Item Use Delay Fix. Keine Sperren, bis jemand die Liste am PC gelesen hat.
+
+### Mineville
+Quelle: mineville.org/support/what-are-the-rules. Hacked Clients und unfaire Mods verboten, keine Liste.
+- `warn`: Instant Hit, Null Movement, Faster Inventory, Item Use Delay Fix, Insta Hurt Animation.
+
+### Weitere Server
+Keine Regeln erfasst, keine Sperren. `server-rules`-Module bleiben auf unbekannten Servern standardmäßig aus.
+
+### Server-Module (Hive Utils, Zeqa Utils)
+Laufen nur auf ihrem Server und tippen Befehle über den Chat. Die Wortlisten für Spielende, Anfragen und Chat-Aufräumen sind Annahmen und in den Einstellungen änderbar. Beide stehen in `warn` ihres Servers, weil die Regelseiten dazu nicht gelesen werden konnten.
 
 ## Modul-Tags
 
