@@ -6,7 +6,14 @@
 
 namespace draw {
 
+static bool motionOn = true;
+
+void setMotion(bool on) { motionOn = on; }
+
+bool motion() { return motionOn; }
+
 float approach(float current, float target, float speed) {
+    if (!motionOn) return target;
     float k = 1.f - std::exp(-speed * ui::dt());
     float v = current + (target - current) * k;
     if (std::fabs(v - target) < 0.001f) v = target;

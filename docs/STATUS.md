@@ -146,3 +146,13 @@ Das hier ist der Anfang, nicht das Ende. Die Basis steht, der große Rest (Modul
 - **Echter Fehler durch den Self-Test gefunden und behoben:** Der Netzwerk-Monitor hielt eine Sperre, während er bei nicht auflösbarer Server-Adresse 2 Sekunden wartete. Der Render-Thread blieb daran hängen, das Spiel hätte bei einem Server ohne DNS-Antwort alle zwei Sekunden eingefroren. Der Self-Test meldet jetzt außerdem Frame-Aussetzer über 350 ms (`selftest STALL`), speichert die Konfiguration nicht und kann mit `MOCHI_SELFTEST_ONLY="Modul A,Modul B"` einzelne Module prüfen.
 - **Performance Lock** (neues Modul, Kategorie Performance): ein Schalter, der System Boost, Low Latency und Frame Limiter einschaltet und Post-Effekte und Extras pausiert. Der alte Zustand wird gemerkt und beim Ausschalten wiederhergestellt.
 - README.md angelegt, CLAUDE.md-Hinweis zum Launcher korrigiert (C++, nicht C#).
+
+## Session A, Block: neues Menü (Hub, Liste, Favoriten, Settings, Cosmetics)
+
+- Rechts-Shift öffnet zuerst den Hub (Karten Modules, Favorites, Cosmetics, Settings, Suche, Schnellschalter für Favoriten). Noch einmal Rechts-Shift öffnet das volle Menü, Esc geht eine Ebene zurück.
+- Modules: eine lange Liste nach Muster M1 (`docs/ui_proposals/m1_plain_twopane.png`): Abschnitte Server, HUD, PvP, Visual, Comfort, Performance, Extras mit dezenten Pastellfarben, Einstellungen des gewählten Moduls rechts. Oben nur Suche, Favoriten-Filter, "More modules", Edit HUD.
+- Favoriten: Stern an jeder Zeile, wird pro Profil gespeichert (`favorite` im Modul-JSON), Favoriten stehen oben in der Liste und als Schnellschalter im Hub.
+- Settings-Seite mit Unterseiten General, Chat & watermark, Appearance, Modules (Voreinstellungen Minimal/PvP/Alles aus, Standard-Größe der HUD-Module, HUD-Positionen zurücksetzen), Profiles, About. Animationen lassen sich abschalten (`draw::setMotion`).
+- Cosmetics-Seite liest `%LOCALAPPDATA%\Mochi\cosmetics\index.json` (Format in `docs/COSMETICS.md`), Ausrüsten pro Slot, 3D-Vorschau folgt mit dem ersten Set.
+- Watermark im Inventar (Pille unten rechts, wenn das Inventar offen ist).
+- `gui/Gui.cpp` aufgeteilt in `Gui.cpp`, `GuiCommon.cpp`, `ModulesPage.cpp`, `SettingsPage.cpp`, `CosmeticsPage.cpp`. Mouse Strokes, CPS, Keystrokes, Armor HUD und Potion HUD stehen jetzt unter HUD statt PvP.

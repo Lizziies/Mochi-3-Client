@@ -44,8 +44,18 @@ void HudModule::setScale(float s) {
     config::markDirty();
 }
 
+namespace hud {
+
+static float global = 1.f;
+
+float globalScale() { return global; }
+
+void setGlobalScale(float s) { global = s; }
+
+}
+
 void HudModule::onRender(ImDrawList* dl) {
-    float s = scale_.f;
+    float s = scale_.f * hud::globalScale();
     ImVec2 pos = position();
     float pad = padding_.f * s;
 

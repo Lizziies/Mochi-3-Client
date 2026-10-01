@@ -35,8 +35,8 @@ constexpr std::string_view extras[] = {
 };
 
 constexpr std::string_view pvp[] = {
-    "CPS", "Keystrokes", "Mouse Strokes", "Combo Counter", "Reach Counter", "Opponent Reach", "Hit Ping", "Armor HUD",
-    "Potion HUD", "Pot Counter", "Arrow Counter", "Totem Counter", "Target HUD", "Hitbox", "Hurt Color", "Animations",
+    "Combo Counter", "Reach Counter", "Opponent Reach", "Hit Ping",
+    "Pot Counter", "Arrow Counter", "Totem Counter", "Target HUD", "Hitbox", "Hurt Color", "Animations",
     "Low Health Indicator", "Auto GG", "Toggle Sprint", "Toggle Sneak", "Snap Look", "Block Hit", "Crystal Optimizer", "Instant Hit", "CPS Limiter",
     "Hit Counter", "Null Movement", "Faster Inventory", "Item Use Delay Fix", "Insta Hurt Animation",
 };

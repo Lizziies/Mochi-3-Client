@@ -4,6 +4,11 @@
 
 #include <string>
 
+namespace hud {
+float globalScale();
+void setGlobalScale(float s);
+}
+
 class HudModule : public Module {
 public:
     HudModule(std::string name, std::string description, std::vector<std::string> tags = {"hud-self"},

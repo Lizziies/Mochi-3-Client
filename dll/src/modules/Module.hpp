@@ -72,6 +72,8 @@ public:
     void resetSettings(const std::function<bool(const Setting&)>& which);
 
     bool risky() const { return risky_; }
+    bool favorite() const { return favorite_; }
+    void setFavorite(bool on);
 
     nlohmann::json save() const;
     void load(const nlohmann::json& j);
@@ -126,6 +128,7 @@ private:
     bool enabled_ = false;
     bool wanted_ = false;
     bool risky_ = false;
+    bool favorite_ = false;
     RuleLevel rule_ = RuleLevel::Allowed;
     std::string ruleNote_;
     std::string riskNote_;
