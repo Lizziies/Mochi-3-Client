@@ -55,7 +55,7 @@ target_link_libraries(Mochi PRIVATE d3d11 d3d12 dxgi d3dcompiler ws2_32 winhttp 
 
 if(MSVC)
     set_property(TARGET Mochi PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-    target_compile_options(Mochi PRIVATE /utf-8 /W3 /permissive- /EHa)
+    target_compile_options(Mochi PRIVATE /utf-8 /W3 /permissive- /EHa /bigobj)
 else()
     target_compile_options(Mochi PRIVATE -Wall -Wno-unknown-pragmas -Wno-missing-field-initializers)
     target_link_options(Mochi PRIVATE -static -static-libgcc -static-libstdc++)

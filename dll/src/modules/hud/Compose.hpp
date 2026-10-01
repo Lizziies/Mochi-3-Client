@@ -168,9 +168,9 @@ protected:
         if (version_.b) extra += std::string(build::version);
         if (fps_.b) extra += std::format("{}{:.0f} FPS", extra.empty() ? "" : "  ·  ", frameMs_ > 0 ? 1000.0 / frameMs_ : 0.0);
         if (!extra.empty()) {
-            float small = size * 0.55f;
-            dl->AddText(fonts::hud(), small, o + ImVec2(x + ts.x + 8 * s, (h - small) * 0.5f), theme::col(t.textDim), extra.c_str());
-            w += 8 * s + fonts::hud()->CalcTextSizeA(small, FLT_MAX, 0.f, extra.c_str()).x;
+            float tiny = size * 0.55f;
+            dl->AddText(fonts::hud(), tiny, o + ImVec2(x + ts.x + 8 * s, (h - tiny) * 0.5f), theme::col(t.textDim), extra.c_str());
+            w += 8 * s + fonts::hud()->CalcTextSizeA(tiny, FLT_MAX, 0.f, extra.c_str()).x;
         }
         return {w, h};
     }

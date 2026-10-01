@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <atomic>
+#include <cwctype>
 #include <mutex>
 #include <thread>
 

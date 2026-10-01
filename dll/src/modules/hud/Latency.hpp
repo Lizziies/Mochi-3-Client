@@ -70,9 +70,9 @@ protected:
                 y += drawText(dl, o + ImVec2(0, y), s, i18n::fmt("Slowest: {} ({:.2f} ms)", worst->name(), worst->costMs), ImGui::GetColorU32(theme::current().textDim)).y;
         std::string mode = i18n::fmt("{}  ·  {}  ·  {} buffered", i18n::tr(fi.lowLatencyActive ? "Low latency on" : "Low latency off"),
                                        dx::tuning().allowTearing && fi.tearingSupported ? "Tearing" : i18n::tr("VSync/default"), fi.bufferCount);
-        float small = fonts::hudSize() * s * 0.7f;
-        dl->AddText(fonts::hud(), small, o + ImVec2(0, y + 2 * s), theme::col(t.textDim), mode.c_str());
-        y += small + 6 * s;
+        float tiny = fonts::hudSize() * s * 0.7f;
+        dl->AddText(fonts::hud(), tiny, o + ImVec2(0, y + 2 * s), theme::col(t.textDim), mode.c_str());
+        y += tiny + 6 * s;
 
         ImVec2 g0 = o + ImVec2(0, y), g1 = g0 + ImVec2(w, h);
         dl->AddRectFilled(g0, g1, IM_COL32(0, 0, 0, 60), 4 * s);
