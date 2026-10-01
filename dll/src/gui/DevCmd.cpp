@@ -3,6 +3,7 @@
 #include "core/Log.hpp"
 #include "core/Paths.hpp"
 #include "modules/Manager.hpp"
+#include "modules/post/Capture.hpp"
 #include "sdk/Explore.hpp"
 
 #include <filesystem>
@@ -11,15 +12,42 @@
 
 namespace gui {
 
+namespace {
+
+bool pendingShot = false;
+bool shotRequested = false;
+std::string shotName;
+
+void pollShot() {
+    if (!pendingShot) return;
+    if (!shotRequested) {
+        shotRequested = capture::request(capture::Stage::Overlay);
+        return;
+    }
+    capture::Image img;
+    if (!capture::poll(img)) return;
+    capture::save(std::move(img), paths::root() / L"out" / (logger::widen(shotName) + L".png"), capture::Format::Png, 100);
+    pendingShot = shotRequested = false;
+}
+
+}
+
 // development only: a file named dev.cmd in the data folder drives the menu, one command per line
 void pollDevCommands() {
-    static const bool dev = std::filesystem::exists(paths::dllDir() / L"Mochi.root");
+    static const bool dev = [] {
+        bool on = std::filesystem::exists(paths::dllDir() / L"Mochi.root");
+        logger::info("dev channel {} ({})", on ? "on" : "off", logger::narrow(paths::dllDir().wstring()));
+        return on;
+    }();
     static int tick = 0;
-    if (!dev || ++tick % 20) return;
+    if (!dev) return;
+    pollShot();
+    if (++tick % 20) return;
 
     auto file = paths::root() / L"dev.cmd";
     std::error_code ec;
     if (!std::filesystem::exists(file, ec)) return;
+    logger::info("dev file found {}", logger::narrow(file.wstring()));
 
     std::ifstream in(file);
     std::vector<std::string> lines;
@@ -63,6 +91,10 @@ void pollDevCommands() {
             setOpen(true);
             go(Page::Modules);
             std::snprintf(searchText(), 64, "%s", rest.c_str());
+        } else if (cmd == "shot") {
+            shotName = rest.empty() ? "shot" : rest;
+            pendingShot = true;
+            shotRequested = false;
         }
         logger::info("dev command: {}", line);
     }

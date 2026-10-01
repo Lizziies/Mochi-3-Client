@@ -298,7 +298,20 @@ static BOOL WINAPI clipCursor(const RECT* r) {
     return oClipCursor(r);
 }
 
+static void releaseButton(int vk, DWORD flag) {
+    if (!keys[vk]) return;
+    INPUT in{};
+    in.type = INPUT_MOUSE;
+    in.mi.dwFlags = flag;
+    in.mi.dwExtraInfo = 0x4D4F4348;
+    SendInput(1, &in, sizeof(in));
+}
+
 void releaseHeld() {
+    if (!inject::focused()) return;
+    releaseButton(VK_LBUTTON, MOUSEEVENTF_LEFTUP);
+    releaseButton(VK_RBUTTON, MOUSEEVENTF_RIGHTUP);
+    releaseButton(VK_MBUTTON, MOUSEEVENTF_MIDDLEUP);
     for (int vk = 8; vk < 255; vk++) {
         if (vk == VK_RSHIFT || vk <= VK_XBUTTON2 || !keys[vk]) continue;
         inject::key(vk, false);

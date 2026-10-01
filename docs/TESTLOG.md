@@ -59,3 +59,10 @@ Nicht erreicht: Es gibt noch keine einzige übernehmbare Signatur in `sigs/`. `l
 Weitere Fehler und Änderungen heute: Cursor-Freigabe bei offenem Menü (`ClipCursor` wird zurückgenommen), Raw-Input-Klicks gehen ans Menü, gehaltene Tasten werden beim Öffnen losgelassen, der erste Klick bei offenem Menü kommt jetzt vom Raw-Input statt von `WM_*`-Nachrichten.
 
 Offen und nicht geprüft: ob das Menü im Spiel jetzt mit der Maus bedienbar ist (der letzte Test lief nur über Entwickler-Befehle), Rechtsklick links/rechts im Menü, Einstellungen der Extras-Module live, Einfrieren des Spiels im Hintergrund beim Menüwechsel.
+
+## 2026-10-01 spät, ohne Minecraft (Marc spielt)
+
+- Menü öffnet sich jetzt mit sofortiger Eingabesperre: `ui::capturing()` liest den Zustand live (vorher erst im nächsten Frame), beim Öffnen werden gehaltene Tasten und Maustasten sofort losgelassen (`input::releaseHeld` in `gui::setOpen`). Das war der Rest der Spielbewegung beim Öffnen. Im Spiel noch nicht bestätigt, Marc testet.
+- Mochi Online: `GET /v1/health` des eigenen Cloudflare-Workers antwortet `{"ok":true,"online":0}`. Der Dienst ist da, die Anbindung im Spiel ist ungeprüft (braucht den Gamertag aus dem Spiel).
+- Skin-Vorschau mit dem echten Skin: Es gibt keine Skin-Datei auf der Platte (`custom_skins` ist leer, der Skin kommt aus dem Xbox-Profil beziehungsweise dem Spiel). Die Vorschau muss das Skin-Bild zur Laufzeit aus dem Spiel lesen, hängt also an den Signaturen.
+- Testwerkzeug `tools/testhost` mit `TESTHOST_OFFSCREEN`: das Testfenster bekommt auf echtem Windows nur den ersten Frame durch den Present-Hook (danach ruft der Host den Hook nicht mehr auf, Ursache nicht gefunden, in Minecraft tritt es nicht auf). Deshalb keine Oberflächen-Screenshots ohne Minecraft.

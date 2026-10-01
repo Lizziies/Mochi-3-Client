@@ -72,9 +72,6 @@ void frame() {
     cursor = gui::wantsCursor();
     ImGui::GetIO().MouseDrawCursor = cursor;
     input::syncCursor(cursor);
-    static bool wasCapturing = false;
-    if (capture && !wasCapturing) input::releaseHeld();
-    wasCapturing = capture;
 
     ImGui::Render();
     ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
@@ -93,11 +90,11 @@ void invalidate() {}
 bool wndProc(HWND w, UINT msg, WPARAM wp, LPARAM lp) {
     if (!ready) return false;
     ImGui_ImplWin32_WndProcHandler(w, msg, wp, lp);
-    return capture;
+    return capturing();
 }
 
-bool wantsCursor() { return cursor; }
-bool capturing() { return capture; }
+bool wantsCursor() { return cursor || gui::wantsCursor(); }
+bool capturing() { return ready && gui::wantsInput(); }
 float scale() { return uiScale; }
 float dt() { return ready ? ImGui::GetIO().DeltaTime : 0.016f; }
 double time() { return ready ? ImGui::GetTime() : 0.0; }

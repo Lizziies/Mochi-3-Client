@@ -106,8 +106,10 @@ int wmain(int argc, wchar_t** argv) {
     bool manual = std::getenv("TESTHOST_MANUAL") != nullptr;
     RECT r{0, 0, viewW, viewH};
     AdjustWindowRect(&r, WS_OVERLAPPEDWINDOW, FALSE);
-    hwnd = CreateWindowExW(0, wc.lpszClassName, L"TestHost", WS_OVERLAPPEDWINDOW | WS_VISIBLE, 0, 0, r.right - r.left,
-                           r.bottom - r.top, nullptr, nullptr, wc.hInstance, nullptr);
+    int x = std::getenv("TESTHOST_OFFSCREEN") ? -20000 : 0;
+    hwnd = CreateWindowExW(WS_EX_NOACTIVATE | WS_EX_TOOLWINDOW, wc.lpszClassName, L"TestHost", WS_OVERLAPPEDWINDOW, x, 0,
+                           r.right - r.left, r.bottom - r.top, nullptr, nullptr, wc.hInstance, nullptr);
+    ShowWindow(hwnd, SW_SHOWNOACTIVATE);
 
     DXGI_SWAP_CHAIN_DESC sd{};
     sd.BufferCount = 2;

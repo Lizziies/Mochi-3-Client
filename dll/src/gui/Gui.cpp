@@ -5,6 +5,7 @@
 #include "Theme.hpp"
 #include "Widgets.hpp"
 #include "core/Config.hpp"
+#include "hook/Input.hpp"
 #include "modules/Manager.hpp"
 #include "modules/client/ClientSettings.hpp"
 #include "modules/Tiers.hpp"
@@ -62,6 +63,7 @@ void beginFrame() {
 bool open() { return isOpen; }
 
 void setOpen(bool on) {
+    if (on && !isOpen) input::releaseHeld();
     isOpen = on;
     if (on) {
         hudEdit = false;
@@ -95,6 +97,7 @@ void showModule(Module* m) {
 bool editingHud() { return hudEdit; }
 
 void setEditingHud(bool on) {
+    if (on && !hudEdit) input::releaseHeld();
     hudEdit = on;
     if (on) isOpen = false;
 }
