@@ -237,7 +237,7 @@ struct Net {
     Clock::time_point nextTry{};
     Clock::time_point presenceAt{};
     Clock::time_point lookupAt{};
-    std::string lookupKey;
+    std::map<std::string, Clock::time_point> asked;
     std::string url;
 };
 
@@ -259,7 +259,7 @@ void hello(Net& net, const Snapshot& s, const Style& st, const std::vector<Worn>
     net.sentVisible = s.cfg.visible;
     net.presenceAt = {};
     net.lookupAt = {};
-    net.lookupKey.clear();
+    net.asked.clear();
     setState(State::Online);
     logger::info("online: signed in as {}", s.self);
 }
@@ -279,33 +279,44 @@ void sendPresence(Net& net, const Snapshot& s) {
     net.presenceAt = Clock::now();
 }
 
-void sendLookup(Net& net, const Snapshot& s, const std::string& key) {
+std::vector<std::string> due(const Net& net, const Snapshot& s) {
+    std::vector<std::string> out;
+    auto now = Clock::now();
+    std::scoped_lock g(lock);
+    for (auto& n : s.names) {
+        if (out.size() >= 100) break;
+        std::string key = lower(n);
+        auto it = net.asked.find(key);
+        auto ttl = std::chrono::seconds(known.count(key) ? 120 : 300);
+        if (it == net.asked.end() || now - it->second > ttl) out.push_back(n);
+    }
+    return out;
+}
+
+void sendLookup(Net& net, const Snapshot& s, const std::vector<std::string>& asked) {
     json names = json::array();
-    for (auto& n : s.names)
-        if (names.size() < 100) names.push_back(n);
+    for (auto& n : asked) names.push_back(n);
     Reply r = post(net.url, "/v1/lookup", {{"names", names}}, net.token);
     net.lookupAt = Clock::now();
     if (r.status != 200) return fail(net, r.status, 10);
     auto j = json::parse(r.body, nullptr, false);
     if (j.is_discarded() || !j.contains("users") || !j["users"].is_array()) return;
-    std::map<std::string, User> fresh;
+    std::map<std::string, User> found;
     for (auto& e : j["users"]) {
         User u = userFrom(e);
-        if (!u.name.empty()) fresh[lower(u.name)] = std::move(u);
+        if (!u.name.empty()) found[lower(u.name)] = std::move(u);
     }
-    net.lookupKey = key;
+    std::set<std::string> present;
+    for (auto& n : s.names) present.insert(lower(n));
+    for (auto& n : asked) net.asked[lower(n)] = net.lookupAt;
+    for (auto it = net.asked.begin(); it != net.asked.end();) it = present.count(it->first) ? std::next(it) : net.asked.erase(it);
+
     std::scoped_lock g(lock);
-    known = std::move(fresh);
+    for (auto& n : asked) known.erase(lower(n));
+    for (auto& [k, u] : found) known[k] = std::move(u);
+    for (auto it = known.begin(); it != known.end();) it = present.count(it->first) ? std::next(it) : known.erase(it);
     current = State::Online;
     detail.clear();
-}
-
-std::string namesKey(const Snapshot& s) {
-    std::set<std::string> sorted;
-    for (auto& n : s.names) sorted.insert(lower(n));
-    std::string key;
-    for (auto& n : sorted) key += n + "\n";
-    return key;
 }
 
 void signOut(Net& net) {
@@ -368,13 +379,14 @@ void loop() {
             continue;
         }
         auto now = Clock::now();
-        if (net.server != s.cfg.server || now - net.presenceAt > std::chrono::seconds(60)) {
+        if (net.server != s.cfg.server || now - net.presenceAt > std::chrono::seconds(120)) {
             sendPresence(net, s);
             continue;
         }
-        std::string key = namesKey(s);
-        auto age = now - net.lookupAt;
-        if (!s.names.empty() && ((key != net.lookupKey && age > std::chrono::seconds(5)) || age > std::chrono::seconds(30))) sendLookup(net, s, key);
+        if (now - net.lookupAt > std::chrono::seconds(15)) {
+            auto ask = due(net, s);
+            if (!ask.empty()) sendLookup(net, s, ask);
+        }
     }
     signOut(net);
 }

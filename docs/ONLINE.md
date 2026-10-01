@@ -37,7 +37,7 @@ Antworten sind klein (unter 10 KB), der Client fragt höchstens alle 5 Sekunden 
 
 ## Technik und Kosten
 
-Cloudflare Workers mit D1 (Datenbank) und KV (Zwischenspeicher). Der kostenlose Tarif reicht für den Start. Kein eigener Server, keine laufenden Kosten, bis viele tausend gleichzeitige Nutzer da sind. Der Code liegt in `server/` (JavaScript, ohne Abhängigkeiten) und lässt sich lokal testen, siehe `server/README.md`. Ein Konto bei Cloudflare muss Felix anlegen und den Dienst veröffentlichen (ich habe von hier aus keinen Zugang).
+Cloudflare Workers mit D1 (Datenbank). Der kostenlose Tarif reicht für den Start. Kein eigener Server, keine laufenden Kosten, bis viele tausend gleichzeitige Nutzer da sind. Der Code liegt in `server/` (JavaScript, ohne Abhängigkeiten) und lässt sich lokal testen, siehe `server/README.md`. Ein Konto bei Cloudflare muss Felix anlegen und den Dienst veröffentlichen (ich habe von hier aus keinen Zugang).
 
 ## Ehrliche Risiken
 
@@ -52,7 +52,7 @@ Cloudflare Workers mit D1 (Datenbank) und KV (Zwischenspeicher). Der kostenlose 
 | Schritt | Stand |
 |---|---|
 | 1. Client mit Demo-Daten | gebaut: Modul "Mochi Online" (`dll/src/modules/online/`), Herz hinter dem Namen (Farbe wählbar) und Namensfarbe (einfarbig, Verlauf, Regenbogen, Puls) in Tab-Liste und Better Chat, ausgerüstete Cosmetics gehen als `worn` mit, Einstellungen für alles, erfundene Nutzer ohne Netzwerk |
-| 2. `server/` bauen und lokal testen | gebaut: Worker mit D1 und KV, 18 Tests laufen gegen den Speicher und gegen die echte SQL-Datenbank (`node:sqlite`) |
+| 2. `server/` bauen und lokal testen | gebaut: Worker mit D1, 17 Tests laufen gegen den Speicher und gegen die echte SQL-Datenbank (`node:sqlite`) |
 | 3. Client mit dem Dienst verbinden | gebaut und unter Wine gegen den lokalen Server geprüft: hello, presence, lookup, profile, bye, forget. Hinweis beim ersten Einschalten, Knopf "Meine Daten im Dienst löschen" |
 | 4. Veröffentlichen | **offen, Felix:** Cloudflare-Konto, `wrangler deploy`, Adresse in den Client eintragen. Datenschutz-Seite schreiben. Xbox-Beweis erforschen |
 | 5. Cosmetics an fremden Figuren | offen, braucht Signaturen. Das Profil trägt die ausgerüsteten Cosmetics schon (`worn`), siehe `docs/COSMETICS.md` |
@@ -63,3 +63,7 @@ Entscheidungen beim Bauen:
 - **Einwilligung:** Das Modul ist standardmäßig aus. Wer es einschaltet, stimmt zu und bekommt dabei eine Meldung, was gesendet wird. "Für andere sichtbar" ist getrennt einstellbar: wer es ausschaltet, sieht andere, wird aber selbst nicht aufgelistet.
 - **Ohne Adresse:** Im Demo-Modus zeigt der Client erfundene Nutzer. Ohne Demo und ohne Adresse passiert nichts und das Modul sagt es.
 - **Kein freier Text:** Der Dienst kennt nur Modus, Farben, Tempo, Herz an/aus und Herzfarbe. Alles andere im Profil wird verworfen.
+
+## Verbrauch (Gratis-Tarif)
+
+Der Client fragt sparsam: Herzschlag alle 2 Minuten, Nachschlagen nur für Namen, die er noch nicht kennt (Mochi-Nutzer werden alle 2 Minuten, Nicht-Nutzer alle 5 Minuten neu gefragt, höchstens alle 15 Sekunden). Pro Spieler und Stunde sind das grob 30 bis 100 Aufrufe. Mit 100 Spielern, die je 2 Stunden am Tag spielen, sind das etwa 6.000 bis 20.000 Aufrufe und 12.000 geschriebene Zeilen pro Tag, das Gratis-Limit von Cloudflare (100.000 Aufrufe, 100.000 Schreibzugriffe) reicht grob bis 500 Spieler.

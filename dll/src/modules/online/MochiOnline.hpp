@@ -121,7 +121,7 @@ private:
         online::Config cfg;
         cfg.on = on;
         cfg.visible = visible_.b;
-        cfg.demo = on && (demo_.b || (game::demo() && url_.text.empty()));
+        cfg.demo = on && (demo_.b || game::demo());
         cfg.url = url_.text;
         cfg.server = game::state().server;
         std::vector<std::string> names;
@@ -138,7 +138,7 @@ private:
     Setting& heartColor_ = colorSetting("heartColor", "Heart color", {1.f, 0.23f, 0.36f, 1.f});
     Setting& showHearts_ = toggleSetting("showHearts", "Show hearts of other users", true);
     Setting& showColors_ = toggleSetting("showColors", "Show name colors of other users", true);
-    Setting& url_ = textSetting("url", "Service address", "");
+    Setting& url_ = textSetting("url", "Service address", "https://mochi-online.lisawer008.workers.dev");
     Setting& demo_ = toggleSetting("demo", "Made-up users, no network", false);
     Setting& informed_ = toggleSetting("informed", "Informed", false);
 };

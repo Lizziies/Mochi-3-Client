@@ -12,25 +12,43 @@ npm test           # runs the tests against the memory store and against the rea
 
 Point the client at it: Mochi Online, "Service address" = `http://127.0.0.1:8787`.
 
-## Publish it
+## Publish it without installing anything
 
-You need a Cloudflare account (the free plan is enough to start) and `wrangler`.
+You only need a browser and a free Cloudflare account.
+
+1. Dashboard, Storage & databases, D1, create a database called `mochi-online`. Open its Console tab, paste the content of `schema.sql` and run it.
+2. Workers & Pages, Create, start from "Hello World", name it `mochi-online`, deploy, then "Edit code": select everything, paste the content of `dist/worker.js` and deploy again.
+3. The worker, Settings, Bindings, add a D1 database: variable name `DB`, database `mochi-online`.
+4. Optional: Settings, Variables and secrets, add a secret `ADMIN_KEY` (needed for `/v1/admin/block`). Triggers, Cron, add `17 3 * * *` (the daily cleanup).
+5. Open `https://<worker>.<account>.workers.dev/v1/health`. It answers `{"ok":true,"online":0}`.
+
+`dist/worker.js` is generated from `src/` with `node bundle.js`, so after changing the code build it again.
+
+## Publish it on Render with Turso
+
+For people who want a plain Node server. The data lives in Turso (SQLite in the cloud, free plan), so nothing is lost when Render restarts or sleeps.
+
+1. turso.tech: sign up, create a database `mochi-online`. Copy its URL (`libsql://...`) and create a token for it.
+2. render.com: New, Web Service, connect the GitHub repo. Root directory `server`, runtime Node, build command empty, start command `node render.js`, instance type Free.
+3. Environment variables on Render: `TURSO_URL`, `TURSO_TOKEN`, optional `ADMIN_KEY`. The tables are created on start.
+4. A free Render service falls asleep after about 15 minutes without requests. Add a monitor on uptimerobot.com (free): HTTPS, `https://<service>.onrender.com/v1/health`, every 5 minutes.
+
+The Turso adapter talks to Turso's HTTP API with `fetch` and has no dependencies. It is tested against a stand-in built on `node:sqlite`, not against the real Turso yet.
+
+## Publish it with wrangler
+
+Needs Node. Put the database id into `wrangler.toml`, then:
 
 ```
 cd server
+npx wrangler login
 npx wrangler d1 create mochi-online
-npx wrangler kv namespace create LIMITS
-```
-
-Put the two ids into `wrangler.toml`, then:
-
-```
 npx wrangler d1 execute mochi-online --remote --file schema.sql
 npx wrangler secret put ADMIN_KEY
 npx wrangler deploy
 ```
 
-Wrangler prints the address. Enter it in the client as the service address (or make it the default in `dll/src/modules/online/MochiOnline.hpp`).
+Enter the printed address in the client as the service address (or make it the default in `dll/src/modules/online/MochiOnline.hpp`).
 
 ## Calls
 
@@ -40,8 +58,8 @@ All bodies are JSON, all answers are JSON. Everything except `hello` and `health
 |---|---|
 | `POST /v1/hello` | `{name, secret, client, visible, style, worn}` signs in and returns `{token, ttl, style, worn}`. The `secret` is a random 48 character hex string the client creates once and keeps. The first install that uses a gamertag owns it, others get 403 until it has been silent for 30 days. |
 | `POST /v1/profile` | `{visible, style, worn}` saves the look. Anything that is not a known field is dropped, there is no free text. |
-| `POST /v1/presence` | `{server}` heartbeat, every 60 seconds. |
-| `POST /v1/lookup` | `{names: [...]}` (at most 100) returns `{users: [{name, style, worn}], online}` for visible users seen in the last 150 seconds. |
+| `POST /v1/presence` | `{server}` heartbeat, every 2 minutes, this is also what keeps a user listed. |
+| `POST /v1/lookup` | `{names: [...]}` (at most 100) returns `{users: [{name, style, worn}]}` for visible users seen in the last 5 minutes. |
 | `POST /v1/bye` | ends the session and hides the user. |
 | `POST /v1/forget` | deletes everything stored about the gamertag. |
 | `POST /v1/admin/block` | `{name, reason}` with header `X-Admin-Key`, blocks a gamertag. |
@@ -51,11 +69,11 @@ All bodies are JSON, all answers are JSON. Everything except `hello` and `health
 
 ## What it stores
 
-Gamertag, a hash of the install secret, style, worn cosmetics, server name, client version, last seen. Nothing from chat, no worlds. IP addresses only live in the rate limit counters, which expire after two minutes. Rows nobody has touched for 90 days are deleted by a daily job.
+Gamertag, a hash of the install secret, style, worn cosmetics, server name, client version, last seen. Nothing from chat, no worlds. IP addresses only live in the rate limit counters in memory. Rows nobody has touched for 90 days are deleted by a daily job.
 
 ## Limits
 
-Ten `hello` per minute per address, 30 calls per route per minute per gamertag, bodies up to 16 KB.
+Ten `hello` per minute per address, 30 calls per route per minute per gamertag (counted in the worker's memory, best effort), bodies up to 16 KB.
 
 ## Not done yet
 

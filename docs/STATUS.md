@@ -192,3 +192,4 @@ Das hier ist der Anfang, nicht das Ende. Die Basis steht, der große Rest (Modul
 - Neues Modul "Health Above Head": Balken und Zahl über anderen Spielern, projiziert über `game::project`. Läuft mit Demo-Daten und wird im Spiel erst aktiv, wenn der Provider `others` liefert. Ausgeliefert aus (Server-Regeln).
 - Eigener Name im Spiel bei F5: "Third Person Nametag" von Session B (Hook, braucht die Signatur).
 - Offen, nur am PC: Cosmetics im Spiel für andere sichtbar. Ansatz in `docs/COSMETICS.md` unter "Cosmetics im Spiel".
+- **Plan für den PC:** `docs/PLAN_HOME.md` beschreibt Phase für Phase, wie Claude Code zu Hause den Client im echten Minecraft verbindet und testet (Start, Signatur-Werkzeuge, vier Signatur-Wellen, Server, Mochi Online, Cosmetics, Messung gegen Flarial und Onix, Versionen und Release).

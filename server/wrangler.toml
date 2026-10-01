@@ -7,9 +7,5 @@ binding = "DB"
 database_name = "mochi-online"
 database_id = "replace-after-wrangler-d1-create"
 
-[[kv_namespaces]]
-binding = "LIMITS"
-id = "replace-after-wrangler-kv-create"
-
 [triggers]
 crons = ["17 3 * * *"]
