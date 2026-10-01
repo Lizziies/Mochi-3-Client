@@ -2,7 +2,7 @@
 
 Der volle Ausbauplan. Alles, was Flarial, Onix, Latite und Lunar (das Java-Vorbild "Luna") können, plus das, was keiner hat. Die Wettbewerbsliste steht in `docs/CLIENTS.md`, die kurze Modulübersicht mit Tiers in `docs/MODULES.md`, die Latenz-Technik in `docs/INPUT.md`.
 
-Umsetzungsstand je Modul (Session B): , Abschnitt "Umsetzungsstand". Spiel-Schnittstelle: .
+Umsetzungsstand je Modul (Session B): `docs/MODULES.md`, Abschnitt "Umsetzungsstand". Spiel-Schnittstelle: `docs/SDK.md`.
 
 Leitregel (siehe `CLAUDE.md`): Ein Modul ist erst fertig, wenn es das beste existierende Gegenstück übertrifft: mehr Optionen, glatter, schöner, schneller.
 
