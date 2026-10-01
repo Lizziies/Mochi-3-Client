@@ -5,6 +5,7 @@
 #include "gui/Gui.hpp"
 #include "gui/Notify.hpp"
 #include "gui/Theme.hpp"
+#include "hook/Input.hpp"
 #include "modules/Manager.hpp"
 
 #include <imgui.h>
@@ -56,6 +57,7 @@ static void updateScale() {
 
 void frame() {
     if (!ready) return;
+    input::Ours ours;
     ImGui_ImplDX11_NewFrame();
     ImGui_ImplWin32_NewFrame();
     updateScale();
@@ -91,6 +93,7 @@ bool wndProc(HWND w, UINT msg, WPARAM wp, LPARAM lp) {
 }
 
 bool wantsCursor() { return cursor; }
+bool capturing() { return capture; }
 float scale() { return uiScale; }
 float dt() { return ready ? ImGui::GetIO().DeltaTime : 0.016f; }
 double time() { return ready ? ImGui::GetTime() : 0.0; }

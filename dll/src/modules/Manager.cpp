@@ -400,9 +400,11 @@ void frame(ImDrawList* hud) {
     post::params().blur = std::max(post::params().blur, gui::menuBlurPx());
     post::submit(hud);
     capture::submit(hud, capture::Stage::Game);
+    bool inWorld = game::state().inWorld;
     for (size_t i = 0; i < list.size(); i++) {
         auto& m = list[i];
         if (!m->enabled()) continue;
+        if (!inWorld && !editing) continue;
         if (m->isHud() && (hudHidden && !editing)) continue;
         LARGE_INTEGER from;
         QueryPerformanceCounter(&from);

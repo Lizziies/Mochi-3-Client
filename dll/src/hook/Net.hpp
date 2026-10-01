@@ -12,6 +12,7 @@ struct Peer {
 };
 
 void install();
+bool session();
 std::vector<Peer> drain();
 
 }

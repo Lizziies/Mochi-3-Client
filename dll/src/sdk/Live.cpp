@@ -2,6 +2,8 @@
 #include "Memory.hpp"
 #include "core/Log.hpp"
 #include "hook/Hook.hpp"
+#include "hook/Input.hpp"
+#include "hook/Net.hpp"
 #include "sig/Sigs.hpp"
 
 #include <algorithm>
@@ -51,7 +53,8 @@ public:
         playerPtr_ = 0;
         if (have & unsigned(Domain::Player)) readPlayer(s);
         if (have & unsigned(Domain::World)) readWorld(s);
-        s.inWorld = playerPtr_ != 0;
+        bool hidden = input::gameplay();
+        s.inWorld = playerPtr_ != 0 || (!sigs::address("LocalPlayer") && (hidden || net::session()));
     }
 
     void attacked(void* actor) {

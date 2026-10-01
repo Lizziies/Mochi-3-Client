@@ -14,6 +14,7 @@ void invalidate();
 
 bool wndProc(HWND w, UINT msg, WPARAM wp, LPARAM lp);
 bool wantsCursor();
+bool capturing();
 
 float scale();
 float dt();

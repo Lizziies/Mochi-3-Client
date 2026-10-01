@@ -11,6 +11,13 @@ namespace input {
 bool install(HWND window);
 void uninstall();
 
+struct Ours {
+    Ours();
+    ~Ours();
+};
+
+bool gameplay();
+
 bool down(int vk);
 int cps(MouseButton button);
 int64_t lastClickQpc();

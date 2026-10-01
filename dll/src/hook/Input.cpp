@@ -32,8 +32,35 @@ static LARGE_INTEGER qpf{};
 
 using ClipCursorFn = BOOL(WINAPI*)(const RECT*);
 using SetCursorPosFn = BOOL(WINAPI*)(int, int);
+using GetCursorPosFn = BOOL(WINAPI*)(LPPOINT);
+using KeyStateFn = SHORT(WINAPI*)(int);
+using RawDataFn = UINT(WINAPI*)(HRAWINPUT, UINT, LPVOID, PUINT, UINT);
+using RawBufferFn = UINT(WINAPI*)(PRAWINPUT, PUINT, UINT);
+using PeekFn = BOOL(WINAPI*)(LPMSG, HWND, UINT, UINT, UINT);
+using GetMsgFn = BOOL(WINAPI*)(LPMSG, HWND, UINT, UINT);
 static ClipCursorFn oClipCursor = nullptr;
 static SetCursorPosFn oSetCursorPos = nullptr;
+static GetCursorPosFn oGetCursorPos = nullptr;
+static KeyStateFn oGetAsyncKeyState = nullptr;
+static KeyStateFn oGetKeyState = nullptr;
+static RawDataFn oGetRawInputData = nullptr;
+static RawBufferFn oGetRawInputBuffer = nullptr;
+static PeekFn oPeekMessage = nullptr;
+static GetMsgFn oGetMessage = nullptr;
+
+static thread_local int oursDepth = 0;
+static POINT frozen{};
+static bool wasBlocking = false;
+static std::atomic<int64_t> hiddenSince{0};
+static std::atomic<int64_t> lastPlaying{0};
+static std::atomic<bool> playing{false};
+static std::atomic<int> spy[8];
+static int64_t spyAt = 0;
+
+Ours::Ours() { oursDepth++; }
+Ours::~Ours() { oursDepth--; }
+
+static bool blocking() { return oursDepth == 0 && ui::capturing(); }
 
 static int64_t qpc() {
     LARGE_INTEGER t;
@@ -196,7 +223,10 @@ static LRESULT CALLBACK proc(HWND w, UINT msg, WPARAM wp, LPARAM lp) {
     tweaks::threadBoost(tweaks::wantsInputBoost());
     LRESULT result = 0;
     bool handled = false;
-    guard::call("wndproc", [&] { handled = process(w, msg, wp, lp, result); });
+    guard::call("wndproc", [&] {
+        Ours ours;
+        handled = process(w, msg, wp, lp, result);
+    });
     if (handled) return result;
     return CallWindowProcW(original, w, msg, wp, lp);
 }
@@ -211,6 +241,115 @@ static BOOL WINAPI setCursorPos(int x, int y) {
     return oSetCursorPos(x, y);
 }
 
+static BOOL WINAPI getCursorPos(LPPOINT p) {
+    if (!p || !blocking()) {
+        wasBlocking = false;
+        return oGetCursorPos(p);
+    }
+    spy[0]++;
+    if (!wasBlocking) {
+        wasBlocking = true;
+        if (!oGetCursorPos(&frozen)) frozen = {};
+    }
+    *p = frozen;
+    return TRUE;
+}
+
+static SHORT WINAPI getAsyncKeyState(int vk) {
+    if (!blocking()) return oGetAsyncKeyState(vk);
+    spy[1]++;
+    return 0;
+}
+
+static SHORT WINAPI getKeyState(int vk) {
+    if (!blocking()) return oGetKeyState(vk);
+    spy[2]++;
+    return 0;
+}
+
+static UINT WINAPI getRawInputData(HRAWINPUT h, UINT cmd, LPVOID data, PUINT size, UINT header) {
+    UINT r = oGetRawInputData(h, cmd, data, size, header);
+    if (!data || r == UINT(-1) || cmd != RID_INPUT || !blocking()) return r;
+    spy[3]++;
+    auto* raw = static_cast<RAWINPUT*>(data);
+    if (raw->header.dwType == RIM_TYPEMOUSE) {
+        raw->data.mouse.lLastX = raw->data.mouse.lLastY = 0;
+        raw->data.mouse.usButtonFlags = raw->data.mouse.usButtonData = 0;
+    } else if (raw->header.dwType == RIM_TYPEKEYBOARD) {
+        raw->data.keyboard.VKey = 0xFF;
+        raw->data.keyboard.MakeCode = 0;
+        raw->data.keyboard.Flags |= RI_KEY_BREAK;
+    }
+    return r;
+}
+
+static UINT WINAPI getRawInputBuffer(PRAWINPUT data, PUINT size, UINT header) {
+    UINT r = oGetRawInputBuffer(data, size, header);
+    if (!data || r == 0 || r == UINT(-1) || !blocking()) return r;
+    spy[4]++;
+    return 0;
+}
+
+static bool pumpedInput(const MSG& m) {
+    return (m.message >= WM_KEYFIRST && m.message <= WM_KEYLAST) ||
+           (m.message >= WM_MOUSEFIRST && m.message <= WM_MOUSELAST) || m.message == WM_INPUT;
+}
+
+static void swallow(MSG* m, int slot) {
+    if (!m || m->hwnd != target || !pumpedInput(*m) || !blocking()) return;
+    LRESULT result = 0;
+    bool handled = false;
+    guard::call("pump", [&] {
+        Ours ours;
+        handled = process(m->hwnd, m->message, m->wParam, m->lParam, result);
+    });
+    if (!handled) return;
+    spy[slot]++;
+    m->message = WM_NULL;
+}
+
+static BOOL WINAPI peekMessage(LPMSG m, HWND w, UINT lo, UINT hi, UINT remove) {
+    BOOL r = oPeekMessage(m, w, lo, hi, remove);
+    if (r && (remove & PM_REMOVE)) swallow(m, 5);
+    return r;
+}
+
+static BOOL WINAPI getMessage(LPMSG m, HWND w, UINT lo, UINT hi) {
+    BOOL r = oGetMessage(m, w, lo, hi);
+    if (r > 0) swallow(m, 6);
+    return r;
+}
+
+static void flushSpy(int64_t now) {
+    if (now - spyAt < qpf.QuadPart) return;
+    spyAt = now;
+    int n[7];
+    int total = 0;
+    for (int i = 0; i < 7; i++) total += n[i] = spy[i].exchange(0);
+    if (total)
+        logger::info("menu open, game polled: GetCursorPos={} GetAsyncKeyState={} GetKeyState={} RawData={} RawBuffer={} Peek={} GetMessage={}",
+                     n[0], n[1], n[2], n[3], n[4], n[5], n[6]);
+}
+
+bool gameplay() {
+    int64_t now = qpc();
+    flushSpy(now);
+
+    CURSORINFO ci{sizeof(ci)};
+    bool hidden = GetCursorInfo(&ci) && !(ci.flags & CURSOR_SHOWING);
+    if (!hidden) {
+        hiddenSince = 0;
+    } else {
+        if (!hiddenSince) hiddenSince = now;
+        if (now - hiddenSince > qpf.QuadPart * 3 / 10) lastPlaying = now;
+    }
+
+    int64_t last = lastPlaying;
+    bool on = last && now - last < qpf.QuadPart * 8;
+    if (on != playing.exchange(on)) logger::info("gameplay heuristic: {} (cursor {})", on ? "in game" : "menus", hidden ? "hidden" : "visible");
+    return on;
+}
+
 bool install(HWND window) {
     QueryPerformanceFrequency(&qpf);
     target = window;
@@ -222,6 +361,13 @@ bool install(HWND window) {
 
     hook::create("ClipCursor", hook::exported(L"user32.dll", "ClipCursor"), clipCursor, &oClipCursor);
     hook::create("SetCursorPos", hook::exported(L"user32.dll", "SetCursorPos"), setCursorPos, &oSetCursorPos);
+    hook::create("GetCursorPos", hook::exported(L"user32.dll", "GetCursorPos"), getCursorPos, &oGetCursorPos);
+    hook::create("GetAsyncKeyState", hook::exported(L"user32.dll", "GetAsyncKeyState"), getAsyncKeyState, &oGetAsyncKeyState);
+    hook::create("GetKeyState", hook::exported(L"user32.dll", "GetKeyState"), getKeyState, &oGetKeyState);
+    hook::create("GetRawInputData", hook::exported(L"user32.dll", "GetRawInputData"), getRawInputData, &oGetRawInputData);
+    hook::create("GetRawInputBuffer", hook::exported(L"user32.dll", "GetRawInputBuffer"), getRawInputBuffer, &oGetRawInputBuffer);
+    hook::create("PeekMessageW", hook::exported(L"user32.dll", "PeekMessageW"), peekMessage, &oPeekMessage);
+    hook::create("GetMessageW", hook::exported(L"user32.dll", "GetMessageW"), getMessage, &oGetMessage);
     hook::enableAll();
     return true;
 }

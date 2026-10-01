@@ -66,7 +66,7 @@ void draw() {
 
         ImVec2 bodySz = fonts::regular()->CalcTextSizeA(bodySize, FLT_MAX, w - pad * 2 - 10 * s, toast.body.c_str());
         float h = pad * 2 + titleSize + (toast.body.empty() ? 0 : bodySz.y + 2 * s);
-        float x = ds.x - (w + 16.f * s) * draw::easeOutCubic(toast.slide);
+        float x = 16.f * s - (w + 16.f * s) * (1.f - draw::easeOutCubic(toast.slide));
         ImVec2 min{x, toast.y}, max{x + w, toast.y + h};
         float a = toast.slide;
 

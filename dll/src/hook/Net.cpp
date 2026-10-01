@@ -5,6 +5,7 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 
+#include <algorithm>
 #include <map>
 #include <mutex>
 
@@ -24,6 +25,9 @@ static GetAddrInfoWFn oGetAddrInfoW = nullptr;
 static std::mutex lock;
 static std::map<std::string, std::string> hosts;
 static std::map<std::string, int> counts;
+static ULONGLONG windowStart = 0;
+static int windowSends = 0;
+static int lastRate = 0;
 
 static std::string ipOf(const sockaddr* sa) {
     char buf[64]{};
@@ -59,6 +63,13 @@ static void count(const sockaddr* to, int len) {
     if (ignored(ip, portOf(to))) return;
     std::scoped_lock g(lock);
     counts[ip]++;
+    ULONGLONG now = GetTickCount64();
+    if (now - windowStart >= 1000) {
+        lastRate = windowSends;
+        windowSends = 0;
+        windowStart = now;
+    }
+    windowSends++;
 }
 
 static void remember(const char* host, const addrinfo* res) {
@@ -101,6 +112,11 @@ void install() {
     hook::create("WSASendTo", hook::exported(L"ws2_32.dll", "WSASendTo"), wsaSendTo, &oWSASendTo);
     hook::create("getaddrinfo", hook::exported(L"ws2_32.dll", "getaddrinfo"), getAddrInfo, &oGetAddrInfo);
     hook::create("GetAddrInfoW", hook::exported(L"ws2_32.dll", "GetAddrInfoW"), getAddrInfoW, &oGetAddrInfoW);
+}
+
+bool session() {
+    std::scoped_lock g(lock);
+    return GetTickCount64() - windowStart < 3000 && std::max(lastRate, windowSends) >= 12;
 }
 
 std::vector<Peer> drain() {
