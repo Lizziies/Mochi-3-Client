@@ -78,11 +78,20 @@ void gradient(ImDrawList* dl, ImVec2 min, ImVec2 max, ImVec4 a, ImVec4 b, float 
 }
 
 void heart(ImDrawList* dl, ImVec2 c, float size, ImU32 color) {
-    float r = size * 0.27f;
-    dl->AddCircleFilled({c.x - r * 0.95f, c.y - size * 0.12f}, r, color, 24);
-    dl->AddCircleFilled({c.x + r * 0.95f, c.y - size * 0.12f}, r, color, 24);
-    dl->AddTriangleFilled({c.x - r * 1.9f, c.y - size * 0.02f}, {c.x + r * 1.9f, c.y - size * 0.02f},
-                          {c.x, c.y + size * 0.45f}, color);
+    constexpr int n = 48;
+    ImVec2 pts[n];
+    float k = size / 34.f;
+    for (int i = 0; i < n; i++) {
+        float t = float(i) / n * 6.2831853f;
+        float x = 16.f * std::pow(std::sin(t), 3.f);
+        float y = 13.f * std::cos(t) - 5.f * std::cos(2.f * t) - 2.f * std::cos(3.f * t) - std::cos(4.f * t);
+        pts[i] = {c.x + x * k, c.y - y * k + size * 0.05f};
+    }
+    ImDrawListFlags saved = dl->Flags;
+    dl->Flags &= ~ImDrawListFlags_AntiAliasedFill;
+    ImVec2 mid{c.x, c.y + size * 0.05f};
+    for (int i = 0; i < n; i++) dl->AddTriangleFilled(mid, pts[i], pts[(i + 1) % n], color);
+    dl->Flags = saved;
 }
 
 void sparkle(ImDrawList* dl, ImVec2 c, float s, ImU32 color) {
@@ -266,7 +275,7 @@ void titlebar(ImDrawList* dl, Events& ev) {
     if (region("min", {x, 0.f}, {x + 48.f, titleHeight}, hovered, held)) ev.minimize = true;
     float& hm = anim(ImGui::GetItemID(), hovered ? 1.f : 0.f);
     dl->AddRectFilled({x + 8.f, 8.f}, {x + 40.f, titleHeight - 8.f}, col(surfaceHover, hm), 10.f);
-    dl->AddLine({x + 17.f, titleHeight * 0.5f + 3.f}, {x + 31.f, titleHeight * 0.5f + 3.f}, col(mix(dim, text, hm)), 2.f);
+    dl->AddLine({x + 17.f, titleHeight * 0.5f}, {x + 31.f, titleHeight * 0.5f}, col(mix(dim, text, hm)), 2.f);
 
     if (region("close", {x + 48.f, 0.f}, {x + 96.f, titleHeight}, hovered, held)) ev.close = true;
     float& hc = anim(ImGui::GetItemID(), hovered ? 1.f : 0.f);
