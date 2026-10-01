@@ -111,6 +111,7 @@ const i18n::Entry entries[] = {
     {"Capes", "Capes"},
     {"Head", "Kopf"},
     {"Body", "Körper"},
+    {"Feet", "Füße"},
     {"Cosmetics", "Cosmetics"},
     {"Equip", "Ausrüsten"},
     {"Equipped", "Ausgerüstet"},
@@ -167,6 +168,10 @@ const i18n::Entry entries[] = {
     {"Music volume down", "Musik leiser"},
     {"Mute music", "Musik stumm"},
     {"Slowest: {} ({:.2f} ms)", "Langsamstes: {} ({:.2f} ms)"},
+    {"Slim arms (Alex model)", "Schmale Arme (Alex-Modell)"},
+    {"Turn speed", "Drehgeschwindigkeit"},
+    {"Animation speed", "Animationsgeschwindigkeit"},
+    {"Equip a cosmetic to change its colors here.", "Rüste ein Cosmetic aus, um hier seine Farben zu ändern."},
 };
 
 i18n::Table table(entries);

@@ -21,6 +21,7 @@ public:
         : Module("Client Settings", "Name tag behind your name in chat, notifications and other global options.", Category::Client) {
         sub("Client");
         cosmetics_.hidden = true;
+        tints_.hidden = true;
         tagText_.visible = [this] { return tag_.b; };
         tagColor_.visible = [this] { return tag_.b; };
         tagPos_.visible = [this] { return tag_.b; };
@@ -74,6 +75,10 @@ public:
     ImVec4 tagColor() const { return tagColor_.color; }
     Setting& equipped() { return cosmetics_; }
     float menuBlur() const { return menuBlur_.f; }
+    Setting& slim() { return slim_; }
+    Setting& spin() { return spin_; }
+    Setting& animSpeed() { return animSpeed_; }
+    Setting& tints() { return tints_; }
 
 private:
     static size_t nameEnd(const std::string& line, const std::string& me) {
@@ -98,4 +103,8 @@ private:
     Setting& menuBlur_ = slider("menuBlur", "Menu background blur", 0.7f, 0.f, 1.f, "%.2f");
     Setting& hudScale_ = slider("hudScale", "Default HUD size", 1.f, 0.6f, 1.6f, "%.2fx");
     Setting& cosmetics_ = textSetting("cosmetics", "Equipped cosmetics", "");
+    Setting& tints_ = textSetting("cosmeticTints", "Cosmetic colors", "");
+    Setting& slim_ = toggleSetting("slimArms", "Slim arms (Alex model)", false);
+    Setting& spin_ = slider("previewSpin", "Turn speed", 18.f, 0.f, 120.f, "%.0f°/s");
+    Setting& animSpeed_ = slider("cosmeticAnim", "Animation speed", 1.f, 0.2f, 3.f, "%.1fx");
 };
