@@ -10,7 +10,7 @@ Ablauf:
 
 1. Beim Betreten eines Servers meldet der Client: Spielername (Gamertag), Servername. Außerdem Namensstil und ausgerüstete Cosmetics.
 2. Alle paar Sekunden fragt der Client: "Welche dieser Spielernamen aus meiner Tab-Liste sind Mochi-Nutzer, und wie sehen sie aus?" Die Antwort enthält Stil und Cosmetics.
-3. Der Client zeichnet das Ergebnis in seine eigenen Anzeigen: Tab-Liste (Herz, Farbe), Better Chat (Tag, Farbe), später Spielfiguren (Cosmetics).
+3. Der Client zeichnet das Ergebnis in seine eigenen Anzeigen: Tab-Liste (Herz, Farbe), Better Chat (Herz, Farbe), später Spielfiguren (Cosmetics).
 
 Es gehen keine zusätzlichen Pakete an den Minecraft-Server. Nicht-Mochi-Spieler sehen nichts davon.
 
@@ -45,7 +45,7 @@ Cloudflare Workers mit D1 (Datenbank) und KV (Zwischenspeicher). Der kostenlose 
 - **Datenschutz:** Der Dienst speichert nur Gamertag, Servername, Stil, Cosmetics, letzten Kontakt. Nichts über Chat, Standort, IP-Dauerspeicherung oder Welten. Vor dem ersten Senden fragt der Client beim ersten Start, löschen geht mit einem Knopf. Eine Datenschutz-Seite muss vor dem Release stehen.
 - **Missbrauch:** Es gibt keine freien Texte, nur Farben und feste Logos, deshalb kein Filter nötig. Aufrufe pro Nutzer begrenzen, Sperrliste für Namens-Diebstahl.
 - **Server-Regeln:** Manche Server mögen keine Fremd-Clients. Der Dienst meldet keine Serverdaten, wenn die Server-Regeln es für diesen Server sperren: dafür gibt es keinen neuen Mechanismus, das Modul "Mochi Online" kommt einfach in die `block`-Liste des Servers in `servers.json`. Dann lässt es sich dort nicht einschalten.
-- **Cosmetics an fremden Figuren:** Wir sehen sie nur, wenn der Client Position und Haltung fremder Spieler lesen kann (Signaturen). Bis dahin zeigen wir Herz, Farbe und Tag in Tab-Liste und Chat.
+- **Cosmetics an fremden Figuren:** Wir sehen sie nur, wenn der Client Position und Haltung fremder Spieler lesen kann (Signaturen). Bis dahin zeigen wir Herz und Farbe in Tab-Liste und Chat.
 
 ## Stand
 
