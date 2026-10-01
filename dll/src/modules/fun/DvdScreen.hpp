@@ -11,7 +11,9 @@
 
 class DvdScreen : public Module {
 public:
-    DvdScreen() : Module("DVD Screen", "Ein hüpfendes Logo wie beim DVD-Bildschirmschoner.", Category::Fun, {"cosmetic"}) {}
+    DvdScreen() : Module("DVD Screen", "Ein hüpfendes Logo wie beim DVD-Bildschirmschoner.", Category::Fun, {"cosmetic"}) {
+        sub("Spiele");
+    }
 
     void onRender(ImDrawList* dl) override {
         float s = ui::scale();

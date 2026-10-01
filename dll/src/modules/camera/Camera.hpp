@@ -139,7 +139,7 @@ private:
         if (active_ && !remember_.b) level_ = zoom_.f;
     }
 
-    Setting& key_ = keySetting("key", "Zoom-Taste", 'C');
+    Setting& key_ = keySetting("zoomKey", "Zoom-Taste", 'C');
     Setting& mode_ = choice("mode", "Modus", {"Halten", "Umschalten"});
     Setting& zoom_ = slider("zoom", "Zoomstufe", 4.f, 1.5f, 20.f, "%.1fx");
     Setting& base_ = slider("base", "Basis-Sichtfeld", 70.f, 30.f, 120.f, "%.0f");
@@ -202,7 +202,7 @@ private:
         active_ = next;
     }
 
-    Setting& key_ = keySetting("key", "Freelook-Taste", VK_LMENU);
+    Setting& key_ = keySetting("freelookKey", "Freelook-Taste", VK_LMENU);
     Setting& mode_ = choice("mode", "Modus", {"Halten", "Umschalten"});
     Setting& sens_ = slider("sens", "Empfindlichkeit", 1.f, 0.2f, 3.f, "%.2fx");
     Setting& invert_ = toggleSetting("invert", "Y-Achse umkehren", false);

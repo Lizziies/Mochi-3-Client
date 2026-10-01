@@ -10,7 +10,9 @@
 
 class Memory : public TextHud {
 public:
-    Memory() : TextHud("Memory", "Zeigt, wie viel RAM Minecraft gerade nutzt.", {"hud-self"}, {0.01f, 0.22f}) {}
+    Memory() : TextHud("Memory", "Zeigt, wie viel RAM Minecraft gerade nutzt.", {"hud-self"}, {0.01f, 0.22f}) {
+        sub("Diagnose");
+    }
 
 protected:
     std::string label() const override { return "RAM"; }

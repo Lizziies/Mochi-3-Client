@@ -8,7 +8,9 @@
 
 class Clock : public TextHud {
 public:
-    Clock() : TextHud("Clock", "Zeigt die aktuelle Uhrzeit.", {"hud-self"}, {0.01f, 0.10f}) {}
+    Clock() : TextHud("Clock", "Zeigt die aktuelle Uhrzeit.", {"hud-self"}, {0.01f, 0.10f}) {
+        sub("Eigene Werte");
+    }
 
 protected:
     std::string value() override {

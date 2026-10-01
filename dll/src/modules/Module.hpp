@@ -90,6 +90,10 @@ protected:
         needs_ = domains;
         sigs_ = std::move(sigs);
     }
+    void requireAny(std::vector<std::string> sigs) {
+        sigs_ = std::move(sigs);
+        anySig_ = true;
+    }
 
 private:
     Setting& add(Setting s);
@@ -105,6 +109,7 @@ private:
     std::deque<Setting> settings_;
     Setting* key_ = nullptr;
     unsigned needs_ = 0;
+    bool anySig_ = false;
     bool enabled_ = false;
     bool wanted_ = false;
     bool risky_ = false;

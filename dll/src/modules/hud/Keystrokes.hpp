@@ -16,6 +16,7 @@ public:
     bool defaultEnabled() const override { return true; }
 
     Keystrokes() : HudModule("Keystrokes", "Zeigt WASD, Leertaste und Maustasten live an.", {"hud-self"}, {0.01f, 0.62f}) {
+        sub("Eigene Werte");
         background_.b = false;
     }
 

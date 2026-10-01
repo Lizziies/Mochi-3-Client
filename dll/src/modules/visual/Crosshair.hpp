@@ -7,6 +7,8 @@
 #include "modules/common/Colors.hpp"
 #include "render/Draw.hpp"
 #include "render/Ui.hpp"
+#include "sdk/Effects.hpp"
+#include "sdk/Game.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -37,10 +39,20 @@ public:
         spinSpeed_.visible = [this] { return spin_.b; };
         rainbowSpeed_.visible = [this] { return rainbow_.b; };
         color_.visible = [this] { return !rainbow_.b; };
+        targetColor_.visible = [this] { return targetOn_.b; };
+    }
+
+    void onFrame() override {
+        if (hideVanilla_.b) fx::skip(fx::Id::HideCrosshair);
     }
 
     void onRender(ImDrawList* dl) override {
         if (gui::open() || gui::editingHud()) return;
+        auto& st = game::state();
+        if (game::has(game::Domain::Player)) {
+            if (hideThird_.b && st.player.view != game::View::First) return;
+            if (hideScreens_.b && st.screen != game::Screen::None) return;
+        }
         auto ds = ImGui::GetIO().DisplaySize;
         center_ = {std::floor(ds.x * 0.5f) + 0.5f + offsetX_.f, std::floor(ds.y * 0.5f) + 0.5f + offsetY_.f};
 
@@ -52,6 +64,9 @@ public:
         rad_ = (rotation_.f + angle_) * 0.0174533f;
 
         ImVec4 col = baseColor();
+        bool onPlayer = targetOn_.b && game::has(game::Domain::Target) && st.target.kind == game::Target::Kind::Entity && (!playersOnly_.b || st.target.isPlayer);
+        targetMix_ = draw::approach(targetMix_, onPlayer ? 1.f : 0.f, 18.f);
+        if (targetMix_ > 0.001f) col = lerp(col, targetColor_.color, targetMix_);
         if (clickColor_.b) col = lerp(col, activeColor_.color, pulse_);
         col.w *= opacity_.f;
         float size = size_.f * (1.f + (clickPulse_.b ? pulse_ * 0.25f : 0.f));
@@ -325,6 +340,12 @@ private:
     Setting& jumpSpread_ = slider("jumpSpread", "Aufweiten beim Springen", 4.f, 0.f, 16.f, "%.1f");
     Setting& sneakShrink_ = slider("sneakShrink", "Zusammenziehen beim Schleichen", 2.f, 0.f, 8.f, "%.1f");
     Setting& clickSpread_ = slider("clickSpread", "Aufweiten beim Klicken", 2.f, 0.f, 16.f, "%.1f");
+    Setting& hideVanilla_ = toggleSetting("hideVanilla", "Original-Fadenkreuz ausblenden", true);
+    Setting& hideThird_ = toggleSetting("hideThird", "In dritter Person ausblenden", true);
+    Setting& hideScreens_ = toggleSetting("hideScreens", "In Inventar, Chat und Pause ausblenden", true);
+    Setting& targetOn_ = toggleSetting("targetOn", "Farbe beim Anvisieren eines Gegners", false);
+    Setting& playersOnly_ = toggleSetting("playersOnly", "Nur bei Spielern", true);
+    Setting& targetColor_ = colorSetting("targetColor", "Farbe beim Anvisieren", {1.f, 0.35f, 0.4f, 1.f});
     Setting& rotation_ = slider("rotation", "Drehung", 0.f, 0.f, 360.f, "%.0f°");
     Setting& spin_ = toggleSetting("spin", "Dauerdrehung", false);
     Setting& spinSpeed_ = slider("spinSpeed", "Dreh-Tempo (°/s)", 90.f, 10.f, 720.f, "%.0f");
@@ -334,6 +355,7 @@ private:
 
     ImVec2 center_{0, 0};
     float pulse_ = 0.f;
+    float targetMix_ = 0.f;
     float spread_ = 0.f;
     float angle_ = 0.f;
     float rad_ = 0.f;

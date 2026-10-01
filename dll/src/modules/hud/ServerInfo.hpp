@@ -7,7 +7,9 @@ class ServerInfo : public TextHud {
 public:
     bool defaultEnabled() const override { return true; }
 
-    ServerInfo() : TextHud("Server Display", "Zeigt, auf welchem Server du gerade bist.", {"hud-self"}, {0.01f, 0.26f}) {}
+    ServerInfo() : TextHud("Server Display", "Zeigt, auf welchem Server du gerade bist.", {"hud-self"}, {0.01f, 0.26f}) {
+        sub("Eigene Werte");
+    }
 
     void onRender(ImDrawList* dl) override {
         if (onlyOnline_.b && rules::status().server.empty()) return;

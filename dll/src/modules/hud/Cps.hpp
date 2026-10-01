@@ -9,7 +9,9 @@ class Cps : public TextHud {
 public:
     bool defaultEnabled() const override { return true; }
 
-    Cps() : TextHud("CPS", "Zählt deine Klicks pro Sekunde.", {"hud-self"}, {0.01f, 0.06f}) {}
+    Cps() : TextHud("CPS", "Zählt deine Klicks pro Sekunde.", {"hud-self"}, {0.01f, 0.06f}) {
+        sub("Eigene Werte");
+    }
 
 protected:
     std::string label() const override { return "CPS"; }

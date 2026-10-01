@@ -1,10 +1,13 @@
 #pragma once
 
+#include <imgui.h>
+
 #include <algorithm>
 #include <cctype>
 #include <cmath>
 #include <format>
 #include <string>
+#include <vector>
 
 namespace text {
 
@@ -78,6 +81,39 @@ inline std::string strip(const std::string& s) {
         }
         out += s[i];
     }
+    return out;
+}
+
+struct Segment {
+    std::string text;
+    ImU32 color;
+};
+
+inline std::vector<Segment> colored(const std::string& in, ImU32 base) {
+    static const ImU32 palette[16] = {IM_COL32(0, 0, 0, 255),       IM_COL32(0, 0, 170, 255),     IM_COL32(0, 170, 0, 255),    IM_COL32(0, 170, 170, 255),
+                                      IM_COL32(170, 0, 0, 255),     IM_COL32(170, 0, 170, 255),   IM_COL32(255, 170, 0, 255),  IM_COL32(170, 170, 170, 255),
+                                      IM_COL32(85, 85, 85, 255),    IM_COL32(85, 85, 255, 255),   IM_COL32(85, 255, 85, 255),  IM_COL32(85, 255, 255, 255),
+                                      IM_COL32(255, 85, 85, 255),   IM_COL32(255, 85, 255, 255),  IM_COL32(255, 255, 85, 255), IM_COL32(255, 255, 255, 255)};
+    std::vector<Segment> out;
+    ImU32 color = base;
+    std::string cur;
+    auto flush = [&] {
+        if (!cur.empty()) out.push_back({cur, color});
+        cur.clear();
+    };
+    for (size_t i = 0; i < in.size(); i++) {
+        if ((unsigned char)in[i] == 0xC2 && i + 2 < in.size() && (unsigned char)in[i + 1] == 0xA7) {
+            char code = (char)std::tolower((unsigned char)in[i + 2]);
+            flush();
+            int idx = code >= '0' && code <= '9' ? code - '0' : code >= 'a' && code <= 'f' ? code - 'a' + 10 : -1;
+            if (idx >= 0) color = palette[idx];
+            else if (code == 'r') color = base;
+            i += 2;
+            continue;
+        }
+        cur += in[i];
+    }
+    flush();
     return out;
 }
 

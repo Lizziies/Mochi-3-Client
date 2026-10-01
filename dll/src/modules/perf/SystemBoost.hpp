@@ -8,7 +8,9 @@ public:
     SystemBoost()
         : Module("System Boost", "Windows-Einstellungen, solange Minecraft läuft: genauer Timer, höhere Priorität, kein Energiesparen. "
                                  "Wird beim Beenden zurückgesetzt.",
-                 Category::Performance, {"performance"}) {}
+                 Category::Performance, {"performance"}) {
+        sub("Frame-Timing");
+    }
 
     void onFrame() override {
         tweaks::timerResolution(timer_.b);

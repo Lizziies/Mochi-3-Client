@@ -9,7 +9,9 @@ class NoScroll : public Module {
 public:
     NoScroll()
         : Module("Disable Mouse Wheel", "Verhindert, dass du aus Versehen durch die Hotbar scrollst.", Category::Comfort,
-                 {"input"}) {}
+                 {"input"}) {
+        sub("Eingabe");
+    }
 
     void onMouse(MouseEvent& ev) override {
         if (ev.wheel == 0) return;

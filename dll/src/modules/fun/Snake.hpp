@@ -14,7 +14,9 @@
 
 class Snake : public Module {
 public:
-    Snake() : Module("Snake", "Snake für die Warteschlange. Pfeiltasten/WASD, ESC beendet.", Category::Fun, {"cosmetic"}) {}
+    Snake() : Module("Snake", "Snake für die Warteschlange. Pfeiltasten/WASD, ESC beendet.", Category::Fun, {"cosmetic"}) {
+        sub("Spiele");
+    }
 
     bool persistent() const override { return false; }
     void onEnable() override { reset(); }

@@ -192,7 +192,7 @@ public:
     void onDisable() override { active_ = false; }
 
 private:
-    Setting& key_ = keySetting("key", "Blick-Taste", 'V');
+    Setting& key_ = keySetting("snapKey", "Blick-Taste", 'V');
     Setting& mode_ = choice("mode", "Modus", {"Halten", "Umschalten"});
     Setting& dir_ = choice("dir", "Richtung", {"Hinten", "Links", "Rechts"});
     Setting& keepPitch_ = toggleSetting("keepPitch", "Neigung beibehalten", true);

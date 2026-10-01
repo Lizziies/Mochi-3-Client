@@ -12,14 +12,16 @@
       "block": ["Freelook"],
       "blockOptions": { "Auto GG": ["onKill"] },
       "warn": ["Entity Counter", "Null Movement", "Faster Inventory", "Item Use Delay Fix",
-               "Insta Hurt Animation", "Opponent Reach", "Hit Ping", "Instant Input"]
+               "Insta Hurt Animation", "Opponent Reach", "Hit Ping", "Instant Input", "Snap Look",
+               "Waypoints", "Command Hotkey", "Text Hotkey", "Damage Indicator", "Target HUD"]
     },
     {
       "name": "CubeCraft",
       "match": ["cubecraft.net"],
       "rules": "https://www.cubecraft.net/threads/allowed-mods-and-clients.228596/",
       "warn": ["Faster Inventory", "Java Inventory Hotkeys", "Item Use Delay Fix", "Null Movement",
-               "Insta Hurt Animation", "Instant Input"]
+               "Insta Hurt Animation", "Instant Input", "Snap Look", "Command Hotkey",
+               "Text Hotkey"]
     },
     {
       "name": "Lifeboat",
