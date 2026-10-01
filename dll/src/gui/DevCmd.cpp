@@ -21,7 +21,7 @@ std::string shotName;
 void pollShot() {
     if (!pendingShot) return;
     if (!shotRequested) {
-        shotRequested = capture::request(capture::Stage::Overlay);
+        shotRequested = capture::request(capture::Stage::Final);
         return;
     }
     capture::Image img;
@@ -91,6 +91,12 @@ void pollDevCommands() {
             setOpen(true);
             go(Page::Modules);
             std::snprintf(searchText(), 64, "%s", rest.c_str());
+        } else if (cmd == "demo") {
+            if (auto* support = modules::find("Game Support"))
+                for (auto& st : support->settings())
+                    if (st.id == "demo") st.b = rest != "off";
+        } else if (cmd == "enable") {
+            if (auto* m = modules::find(rest)) m->setEnabled(true);
         } else if (cmd == "shot") {
             shotName = rest.empty() ? "shot" : rest;
             pendingShot = true;

@@ -2,6 +2,7 @@
 #include "Hook.hpp"
 #include "core/Guard.hpp"
 #include "core/Log.hpp"
+#include "modules/post/Capture.hpp"
 #include "render/Ui.hpp"
 
 #include <d3d11.h>
@@ -289,6 +290,7 @@ static void draw(IDXGISwapChain* sc) {
         on12->AcquireWrappedResources(&b.wrapped, 1);
         ctx->OMSetRenderTargets(1, &b.rtv, nullptr);
         ui::frame();
+        capture::grabFinal(d11, ctx);
         ctx->OMSetRenderTargets(0, nullptr, nullptr);
         on12->ReleaseWrappedResources(&b.wrapped, 1);
         ctx->ClearState();
@@ -299,6 +301,7 @@ static void draw(IDXGISwapChain* sc) {
         if (!rtv11 && !buildTargets11(sc)) return;
         ctx->OMSetRenderTargets(1, &rtv11, nullptr);
         ui::frame();
+        capture::grabFinal(d11, ctx);
     }
 }
 

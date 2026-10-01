@@ -66,3 +66,14 @@ Offen und nicht geprüft: ob das Menü im Spiel jetzt mit der Maus bedienbar ist
 - Mochi Online: `GET /v1/health` des eigenen Cloudflare-Workers antwortet `{"ok":true,"online":0}`. Der Dienst ist da, die Anbindung im Spiel ist ungeprüft (braucht den Gamertag aus dem Spiel).
 - Skin-Vorschau mit dem echten Skin: Es gibt keine Skin-Datei auf der Platte (`custom_skins` ist leer, der Skin kommt aus dem Xbox-Profil beziehungsweise dem Spiel). Die Vorschau muss das Skin-Bild zur Laufzeit aus dem Spiel lesen, hängt also an den Signaturen.
 - Testwerkzeug `tools/testhost` mit `TESTHOST_OFFSCREEN`: das Testfenster bekommt auf echtem Windows nur den ersten Frame durch den Present-Hook (danach ruft der Host den Hook nicht mehr auf, Ursache nicht gefunden, in Minecraft tritt es nicht auf). Deshalb keine Oberflächen-Screenshots ohne Minecraft.
+
+## 2026-10-01 spät, Durchsicht ohne Minecraft
+
+- MSVC /W4: nur 7 Warnungen im eigenen Code (Kleinkram). `/analyze`: 14 Meldungen, behoben: URL ohne Host im Online-Modul, Null-Prüfungen bei Zwischenablage, Schrift-Ressource, Fence-Event im DX12-Pfad, `WSAStartup`-Rückgabe.
+- Echter Fehler gefunden und behoben: losgelöste Threads (Music, Mice, Regel- und Signatur-Download) konnten beim Entladen (Strg+L) noch laufen, während die DLL freigegeben wurde. Neu: `core/Bg.*` verwaltet sie, `bg::drain` wartet beim Entladen. Alle Thread-Einstiegspunkte laufen jetzt im Crash-Guard, eine Ausnahme (zum Beispiel fehlerhafte `servers.json`) beendet das Spiel nicht mehr.
+- Konfiguration gehärtet: kaputte oder falsch typisierte Dateien brechen den Start nicht mehr ab, Profilnamen werden bereinigt (kein `..`).
+- `server/bundle.js` konnte bei Windows-Zeilenenden ein kaputtes Bundle erzeugen, behoben (Ergebnis identisch zum committeten `dist/worker.js`). Server-Tests: 17 von 17 grün auf Speicher, D1 und Turso-Attrappe.
+- Übersetzungen: `tools/i18n_check.py` prüft englische Texte gegen die deutschen Tabellen. 5 fehlende Einträge ergänzt, der Selbsttest meldet 0 unübersetzte Texte.
+- Selbsttest (`MOCHI_SELFTEST=1`, im Testfenster außerhalb des Bildschirms, ohne Minecraft): 177 Module mit Demo-Daten getestet, 0 Fehler, 0 Aussetzer, 0 zu langsam.
+- Testfenster `tools/testhost`: lief nur einen Frame, weil es das alte Swapchain-Modell nutzte, jetzt Flip-Modell wie Minecraft. Der Screenshot-Befehl `shot` (neue Stufe `Final`) ist eingebaut, aber nicht fertig geprüft: in einigen Läufen verarbeitet das Testfenster danach keine Befehle mehr, Ursache offen.
+- Lua-Sandbox geprüft (kein `io`, `debug`, kein `os.execute`), Eingaben des Clients sind nur Tastatur (kein Klick-Automat).

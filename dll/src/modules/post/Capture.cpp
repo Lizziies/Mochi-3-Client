@@ -115,6 +115,11 @@ static void callback(const ImDrawList*, const ImDrawCmd* cmd) {
     guard::call("screenshot", [&] { grab(state->Device, state->DeviceContext); });
 }
 
+void grabFinal(ID3D11Device* device, ID3D11DeviceContext* context) {
+    if (!wanted || wantedStage != Stage::Final || !device || !context) return;
+    grab(device, context);
+}
+
 void submit(ImDrawList* dl, Stage stage) {
     if (!wanted || stage != wantedStage) return;
     dl->AddCallback(callback, stage == Stage::Overlay ? reinterpret_cast<void*>(1) : nullptr);

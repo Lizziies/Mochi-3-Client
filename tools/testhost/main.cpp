@@ -120,7 +120,7 @@ int wmain(int argc, wchar_t** argv) {
     sd.OutputWindow = hwnd;
     sd.SampleDesc.Count = 1;
     sd.Windowed = TRUE;
-    sd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
+    sd.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 
     IDXGISwapChain* sc = nullptr;
     ID3D11Device* dev = nullptr;
