@@ -51,3 +51,7 @@ Grundlage: `docs/FLARIAL_REAL.md` (aus dem echten Quellcode gelesen). Dort steht
 7. **Kleine Lücken:** Zoom (Hand und Module ausblenden, Cinematic-Balken), Cinematic Camera (Balken), Auto Perspective (Schwimmen, Emote), Particle Multiplier ("Normal Hit Crit"), Swing Animations (Swing Angle), Hotbar-Auswahl-Animation, Render Options (Entities, Terrain, Item in Hand), Tab List (Köpfe, Plattform-Icons, Hervorhebung), Chat (Erwähnungs-Ton), View Model (Item-FOV, dritte Person), Custom Crosshair (PNG-Import).
 8. **Nicht bauen:** FPS-/Ping-Spoof (zeigt falsche Zahlen).
 9. Combo Counter (480-ms-Regel, 15-s-Reset, Negatives), Reach Counter (15-s-Reset), Hit Ping (Zeit Angriff bis Server-Bestätigung), Opponent Reach (nächster Spieler im Radius) bitte gegen die Beschreibung in `FLARIAL_REAL.md` prüfen und angleichen.
+
+## Session A → Session B: Der große Plan
+
+Ab jetzt gilt `docs/PLAN_B.md` (Phasen 0 bis 7, mit Hive Utils, Zeqa Utils, Hive Stats, Crystal Speed, allen fehlenden Modulen, Lua, Discord RPC). Alle früheren Wunschlisten in dieser Datei sind darin enthalten. Beginne mit Phase 0.

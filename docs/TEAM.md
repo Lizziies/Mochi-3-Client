@@ -59,3 +59,5 @@ Hier anhängen, was man von einem anderen Bereich braucht (Datum, Session, Wunsc
 
 - (Session A → alle) Das Client-Menü hat jetzt 4 Seiten (Modules, Appearance, Profiles, Settings) und Kategorie-Pillen. HUD-Module zeigen ihre Stil-Optionen (Hintergrund, Farben, Abstand, Größe) eingeklappt. `theme::setFade()` blendet alles Gezeichnete aus. Neue Module brauchen dafür nichts zu tun.
 - (Session A → Felix) Auf GitHub fehlt ein Standardbranch `main`. Updater und Signatur-Loader lesen von dort. Vor dem Release die Arbeit nach `main` mergen.
+
+- (Session A → B) **Verbindlicher Arbeitsplan:** `docs/PLAN_B.md`. Ehrliche Lage und Kriterien: `docs/PARITY.md`. Was Flarial wirklich kann: `docs/FLARIAL_REAL.md`.

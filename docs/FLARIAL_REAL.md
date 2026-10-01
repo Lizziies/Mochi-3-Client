@@ -109,3 +109,26 @@ Bei uns: **nichts davon.** Für Hive-Spieler ist das das wichtigste Modul überh
 ## Was das für uns heißt
 
 Viele unserer Module haben auf den ersten Blick Einstellungen, aber bei einigen entscheidenden (Hitbox, Keystrokes, CPS, Coordinates, Tab List) fehlt Tiefe. Und vier ganze Module fehlen: **Hive Utils, Inventory Lock, Modern Keybind Handling, Item Physics, TNT Timer, Nametag Modifier**. Die Arbeitsliste dazu steht in `docs/HANDOFF.md`.
+
+## Weitere Module (zweiter Lesedurchgang)
+
+| Modul | Was es wirklich tut |
+|---|---|
+| **Zeqa Utils** | Auto-Requeue in Ranked/Unranked-Duelle nach dem Match, Chat aufräumen (Promo, Join, Leave, Kill-Streak), Freundschafts- und **Duell-Anfragen automatisch annehmen** (sendet die passenden Befehle) |
+| **Hive Stat** | Overlay mit Spielerstatistiken aus der **Hive-API**: FKDR (BedWars), K/D, Win-Rate, Level (mit Prestige), Siege, Niederlagen, Kills, Final Kills, Tode, Spiele, erstes Spiel, je Spiel Primär- und Sekundärwert (Beds, Ores, Coins, Flags, Crates …). Farbige Schwellen pro Wert, Team-Farben aus den Nametags erkennen, Spieler-Hervorhebungen, auch in Lobbys, **Bestenliste** (All-Time/Monatlich, Zeilen, Refresh) mit eigenem Fenster, Tabelle an neun Positionen verankerbar |
+| **Skin Stealer** | Taste, während man einen Spieler ansieht: Skin und Cape klonen, optional lokal als Datei speichern (Ordner per Chat-Befehl) |
+| **Nick** | Eigener Anzeigename (Standard "Flarial User"), fett, verschleiert, 25 Farben |
+| **Subtitles** | Untertitel für Geräusche: Rohmodus (technische Namen), Lebensdauer bis 5 s, Maximalanzahl 1 bis 20, Animationen/Fade, neun Ankerpunkte, Größe, Ausrichtung, Zeilenhöhe, Hintergrund, Rand, Glow, Blur, Rotation, Farben |
+| **Block Break Indicator** | Fortschritt beim Blockabbau als Balken oder Text, nur beim Abbauen anzeigen, Ausrichtung, Größe, Farben |
+| **Item Counter** | Beliebig viele Items zählen (`namespace:item`), Sortierung, mit **Item-Textur** statt Text, Zähler an drei Positionen oder in Minecraft-Schrift, ausblenden bei 0 oder bei 1, Format `{value}` `{name}` `{id}`, pro Item eigene Optik |
+| **Entity Counter** | Zählt Entities im Level (keine Einstellungen) |
+| **Message Logger** | Speichert den Chat in Dateien, optional mit Zeitstempel `[HH:MM:SS]` und zusätzlich ohne Farbcodes |
+| **Experience Info** | Modi: Level und Prozent, Dezimal-Level, XP-Zahlen, ausführlich; "noch bis zum nächsten Level" |
+| **Better Hunger Bar** | Zeigt die zu erwartende Sättigung beim Essen (Pulsieren), Farbe, Kuchen-Priorität, auch bei voller Hungerleiste, manuelle Korrektur der Position |
+| **Debug Menu (Java F3)** | Taste F3; Blöcke: FPS/1% Low/Frametime, Entities/Biom/Dimension, Koordinaten/Chunk/Wetter/Sound-Zähler, Speed/Velocity/Abbaufortschritt, Welt-Zeit/Name, Server (IP, Port, Ping, TPS), RAM, CPU, Auflösung/Renderer/GPU, Uhrzeiten/Uptime, Ziel-Block mit Tags, **Frametime-Graph** (Höhe, Breite, 30/60-FPS-Linien) |
+| **Force Coords** | Zeigt die Koordinaten auch dort, wo das Spiel sie verbirgt. Stilfelder wie Rand, Rundung, Blur, Mojang-Stil |
+| **Bow Sensitivity** | Senkt die Empfindlichkeit beim Bogenspannen, einheitlich oder getrennt für X/Y (1 bis 100 %) |
+| **Sens Multiplier** | Empfindlichkeit mal 0,1 bis 8 |
+| **Time (Uhr)** | 24-h oder 12-h, Spielzeit statt echter Zeit, Datum, vierstellige Jahreszahl, Reihenfolge, mm/dd/yyyy |
+| **Movable Hotbar / Scoreboard / Chat** | Position in Prozent (Hotbar Standard 0,5 / 1,0) |
+| **Pack Changer** | Quelle nicht lesbar (404). Laut Changelog Teil von "Quality of Life" |
