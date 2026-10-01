@@ -32,6 +32,7 @@ target_include_directories(Mochi PRIVATE
     lib/imgui
     lib/imgui/backends
     lib/json
+    lib/stb
 )
 
 target_compile_definitions(Mochi PRIVATE

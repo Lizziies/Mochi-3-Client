@@ -133,6 +133,8 @@ const i18n::Entry entries[] = {
     {"Reload shaders", "Shader neu laden"},
     {"Open folder", "Ordner öffnen"},
     {"Shader", "Shader"},
+    {"Game scheduling for render and input threads", "Spiel-Priorität für Render- und Eingabe-Thread"},
+    {"Windows settings while Minecraft runs: precise timer, higher priority, no power saving, game scheduling for render and input threads. Reverted when you quit.", "Windows-Einstellungen, solange Minecraft läuft: präziser Timer, höhere Priorität, kein Energiesparen, Spiel-Priorität für Render- und Eingabe-Thread. Wird beim Beenden zurückgesetzt."},
 };
 
 i18n::Table table(entries);

@@ -34,6 +34,9 @@ static char search[64] = "";
 static bool focusSearch = false;
 static bool showMore = false;
 static bool onlyFavorites = false;
+static float contentT = 1.f;
+
+void restartContentAnim() { contentT = 0.f; }
 
 char* searchText() { return search; }
 bool& showMoreModules() { return showMore; }
@@ -45,6 +48,7 @@ void go(Page p) {
     if (p == current) return;
     current = p;
     selected = nullptr;
+    contentT = 0.f;
     focusSearch = p == Page::Modules;
     if (p == Page::Cosmetics) reloadCosmetics();
     if (p == Page::Hub) search[0] = 0;
@@ -370,7 +374,11 @@ static void drawFrame(float anim) {
     auto* dl = ImGui::GetWindowDrawList();
     dl->AddLine({pos.x + pad, pos.y + 66 * s}, {pos.x + size.x - pad, pos.y + 66 * s}, theme::col(t.surfaceHover, 0.7f), 1.f);
 
-    ImVec2 origin{pos.x + pad, pos.y + 80 * s};
+    contentT = draw::motion() ? std::min(1.f, contentT + ui::dt() / 0.3f) : 1.f;
+    float ce = draw::easeOutCubic(contentT);
+    theme::setFade(fade * ce);
+    ImGui::PushStyleVar(ImGuiStyleVar_Alpha, fade * ce);
+    ImVec2 origin{pos.x + pad, pos.y + 80 * s + (1.f - ce) * 16 * s};
     ImVec2 area{size.x - pad * 2, size.y - 80 * s - 22 * s};
     switch (current) {
     case Page::Modules: drawModulesPage(origin, area); break;
@@ -378,6 +386,8 @@ static void drawFrame(float anim) {
     case Page::Settings: drawSettingsPage(origin, area); break;
     default: break;
     }
+    ImGui::PopStyleVar();
+    theme::setFade(fade);
     endWindow();
     if (current == Page::Modules) drawModulePanel();
     theme::setFade(1.f);

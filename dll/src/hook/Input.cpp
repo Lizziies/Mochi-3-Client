@@ -2,6 +2,7 @@
 #include "Hook.hpp"
 #include "core/Client.hpp"
 #include "core/Guard.hpp"
+#include "system/Tweaks.hpp"
 #include "core/Log.hpp"
 #include "modules/Manager.hpp"
 #include "render/Ui.hpp"
@@ -186,6 +187,7 @@ static bool process(HWND w, UINT msg, WPARAM wp, LPARAM lp, LRESULT& result) {
 }
 
 static LRESULT CALLBACK proc(HWND w, UINT msg, WPARAM wp, LPARAM lp) {
+    tweaks::threadBoost(tweaks::wantsInputBoost());
     LRESULT result = 0;
     bool handled = false;
     guard::call("wndproc", [&] { handled = process(w, msg, wp, lp, result); });

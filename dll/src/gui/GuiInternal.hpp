@@ -23,6 +23,7 @@ Category catOf(const Module& m);
 void go(Page p);
 Page page();
 Module*& selectedModule();
+void restartContentAnim();
 
 char* searchText();
 bool& showMoreModules();

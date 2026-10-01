@@ -4,6 +4,7 @@
 #include "Widgets.hpp"
 #include "core/Config.hpp"
 #include "core/Paths.hpp"
+#include "cosmetics/Cosmetics.hpp"
 #include "modules/Manager.hpp"
 #include "modules/client/ClientSettings.hpp"
 #include "render/Draw.hpp"
@@ -21,27 +22,10 @@ namespace gui {
 
 namespace {
 
-struct Item {
-    std::string id;
-    std::string name;
-    std::string slot;
-};
-
-std::vector<Item> items;
-bool loaded = false;
 int slotFilter = 0;
+float yaw = 25.f;
 const char* slots[] = {"All", "Wings", "Capes", "Head", "Back", "Body"};
 const char* slotIds[] = {"", "wings", "cape", "head", "back", "body"};
-
-void load() {
-    items.clear();
-    std::ifstream in(paths::root() / L"cosmetics" / L"index.json");
-    if (!in) return;
-    auto j = nlohmann::json::parse(in, nullptr, false);
-    if (!j.is_object() || !j.contains("items") || !j["items"].is_array()) return;
-    for (auto& e : j["items"])
-        items.push_back({e.value("id", ""), e.value("name", ""), e.value("slot", "")});
-}
 
 std::vector<std::string> split(const std::string& s) {
     std::vector<std::string> out;
@@ -58,15 +42,15 @@ bool isEquipped(const std::string& list, const std::string& id) {
     return std::find(v.begin(), v.end(), id) != v.end();
 }
 
-void toggleEquipped(Setting& st, const Item& item) {
+void toggleEquipped(Setting& st, const cosmetics::Item& item) {
     auto v = split(st.text);
     auto same = std::find(v.begin(), v.end(), item.id);
     if (same != v.end()) {
         v.erase(same);
     } else {
         std::erase_if(v, [&](const std::string& other) {
-            auto it = std::find_if(items.begin(), items.end(), [&](const Item& i) { return i.id == other; });
-            return it != items.end() && it->slot == item.slot;
+            auto* it = cosmetics::find(other);
+            return it && it->slot == item.slot;
         });
         v.push_back(item.id);
     }
@@ -76,29 +60,12 @@ void toggleEquipped(Setting& st, const Item& item) {
     config::markDirty();
 }
 
-void figure(ImDrawList* dl, ImVec2 c, float u) {
-    auto& t = theme::current();
-    auto block = [&](float x, float y, float w, float h, ImVec4 col) {
-        dl->AddRectFilled({c.x + x * u, c.y + y * u}, {c.x + (x + w) * u, c.y + (y + h) * u}, theme::col(col), u * 0.4f);
-    };
-    ImVec4 skin{0.86f, 0.66f, 0.54f, 1.f};
-    block(-4, -16, 8, 8, skin);
-    block(-4, -8, 8, 12, t.accent);
-    block(-8, -8, 4, 12, skin);
-    block(4, -8, 4, 12, skin);
-    block(-4, 4, 4, 12, theme::mix(t.accent, t.bg, 0.5f));
-    block(0, 4, 4, 12, theme::mix(t.accent, t.bg, 0.5f));
-}
 
 }
 
 void drawCosmeticsPage(ImVec2 origin, ImVec2 size) {
     auto& t = theme::current();
     float s = ui::scale();
-    if (!loaded) {
-        load();
-        loaded = true;
-    }
     auto* cs = modules::get<ClientSettings>();
     auto* dl = ImGui::GetWindowDrawList();
 
@@ -111,16 +78,19 @@ void drawCosmeticsPage(ImVec2 origin, ImVec2 size) {
     smoothScroll();
     for (int i = 0; i < 6; i++) {
         if (i) ImGui::SameLine();
-        if (widgets::button(slots[i], {0, 0}, slotFilter == i)) slotFilter = i;
+        if (widgets::button(slots[i], {0, 0}, slotFilter == i) && slotFilter != i) {
+            slotFilter = i;
+            restartContentAnim();
+        }
     }
     ImGui::Dummy({0, 10 * s});
 
-    std::vector<const Item*> shown;
-    for (auto& it : items)
+    std::vector<const cosmetics::Item*> shown;
+    for (auto& it : cosmetics::items())
         if (!slotFilter || it.slot == slotIds[slotFilter]) shown.push_back(&it);
 
     if (shown.empty()) {
-        widgets::hint(items.empty() ? "No cosmetics installed yet. Wings, capes and bandanas arrive with the first release and will show up here."
+        widgets::hint(cosmetics::items().empty() ? "No cosmetics installed yet. Wings, capes and bandanas arrive with the first release and will show up here."
                                      : "Nothing in this category.");
     }
 
@@ -130,7 +100,7 @@ void drawCosmeticsPage(ImVec2 origin, ImVec2 size) {
     float w = (avail - cg * (cols - 1)) / cols;
     ImVec2 o = ImGui::GetCursorScreenPos();
     for (size_t i = 0; i < shown.size(); i++) {
-        const Item& it = *shown[i];
+        const cosmetics::Item& it = *shown[i];
         ImVec2 p = o + ImVec2((i % cols) * (w + cg), (i / cols) * (176 * s + cg));
         ImGui::SetCursorScreenPos(p);
         ImGui::PushID(it.id.c_str());
@@ -143,7 +113,7 @@ void drawCosmeticsPage(ImVec2 origin, ImVec2 size) {
         cdl->AddRectFilled(p, p + ImVec2(w, 176 * s), theme::col(hov ? t.surfaceHover : t.surface), r);
         if (eq) cdl->AddRect(p, p + ImVec2(w, 176 * s), theme::col(t.accent), r, 0, 2 * s);
         draw::gradientRect(cdl, p + ImVec2(10 * s, 10 * s), p + ImVec2(w - 10 * s, 104 * s), theme::col(t.accent, 0.35f), theme::col(t.accent2, 0.15f), 12 * s);
-        figure(cdl, p + ImVec2(w * 0.5f, 62 * s), 2.2f * s);
+        cosmetics::drawPreview(cdl, p + ImVec2(w * 0.5f, 92 * s), 1.9f * s, 160.f, 10.f, {&it}, t.accent);
         cdl->AddText(fonts::bold(), 15.f * s, p + ImVec2(14 * s, 114 * s), theme::col(t.text), it.name.c_str());
         cdl->AddText(fonts::regular(), 12.5f * s, p + ImVec2(14 * s, 135 * s), theme::col(t.textDim), it.slot.c_str());
         const char* label = i18n::tr(eq ? "Equipped" : "Equip");
@@ -159,12 +129,19 @@ void drawCosmeticsPage(ImVec2 origin, ImVec2 size) {
     ImVec2 po{origin.x + listW + gap, origin.y};
     dl->AddRectFilled(po, po + ImVec2(previewW, size.y), theme::col(t.surface, 0.8f), 18 * s);
     draw::glow(dl, po + ImVec2(previewW * 0.2f, size.y * 0.25f), po + ImVec2(previewW * 0.8f, size.y * 0.6f), 40 * s, theme::col(t.accent, 0.12f), 50 * s);
-    float bob = std::sin((float)ui::time() * 1.6f) * 3 * s;
-    figure(dl, {po.x + previewW * 0.5f, po.y + size.y * 0.45f + bob}, 7.f * s);
-    const char* hint = i18n::tr("Your character. The 3D preview of equipped cosmetics comes with the first set.");
-    dl->AddText(fonts::regular(), 13.f * s, {po.x + 20 * s, po.y + size.y - 54 * s}, theme::col(t.textDim), hint, nullptr, previewW - 40 * s);
+    ImGui::SetCursorScreenPos(po);
+    ImGui::InvisibleButton("preview", {previewW, size.y});
+    if (ImGui::IsItemActive()) yaw -= ImGui::GetIO().MouseDelta.x * 0.7f;
+    else yaw += ui::dt() * 18.f;
+    std::vector<const cosmetics::Item*> worn;
+    if (cs)
+        for (auto& id : split(cs->equipped().text))
+            if (auto* it = cosmetics::find(id)) worn.push_back(it);
+    cosmetics::drawPreview(dl, {po.x + previewW * 0.5f, po.y + size.y * 0.55f}, 8.5f * s, yaw, 12.f, worn, t.accent);
+    const char* hint = i18n::tr("Drag to rotate. Equipped cosmetics show on your character.");
+    dl->AddText(fonts::regular(), 13.f * s, {po.x + 20 * s, po.y + size.y - 40 * s}, theme::col(t.textDim), hint, nullptr, previewW - 40 * s);
 }
 
-void reloadCosmetics() { loaded = false; }
+void reloadCosmetics() { cosmetics::reload(); }
 
 }

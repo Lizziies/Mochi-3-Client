@@ -156,3 +156,11 @@ Das hier ist der Anfang, nicht das Ende. Die Basis steht, der große Rest (Modul
 - Cosmetics-Seite liest `%LOCALAPPDATA%\Mochi\cosmetics\index.json` (Format in `docs/COSMETICS.md`), Ausrüsten pro Slot, 3D-Vorschau folgt mit dem ersten Set.
 - Watermark im Inventar (Pille unten rechts, wenn das Inventar offen ist).
 - `gui/Gui.cpp` aufgeteilt in `Gui.cpp`, `GuiCommon.cpp`, `ModulesPage.cpp`, `SettingsPage.cpp`, `CosmeticsPage.cpp`. Mouse Strokes, CPS, Keystrokes, Armor HUD und Potion HUD stehen jetzt unter HUD statt PvP.
+
+## Session A, Block: Blur, Shader Packs, Cosmetics-Vorschau, Eingabe-Priorität
+
+- Hub kompakt (rund 720 px breit), Hintergrund wird beim Öffnen echt unscharf (Shader, Einstellung "Menu background blur"). Neues Modul Blur (Vollbild, immer oder nur in Menüs).
+- Shader Packs: eigener Pixel-Shader über dem Spielbild, vier eingebaute Looks, eigene `.hlsl` aus `%LOCALAPPDATA%\Mochi\shaders`. Details und Grenzen in `docs/RENDERDRAGON.md`.
+- Cosmetics: Lader (`dll/src/cosmetics/`) liest `item.json` und `tex.png`, 3D-Vorschau mit Drehen, Animationen (flap, sway, bob, wag, twitch, float, spin), Farbmischung über Tints. Unter Wine mit Testdaten geprüft (`tools/testdata/cosmetics`).
+- Alle Fenster öffnen animiert: Hub, Menü, Seitenwechsel, Settings-Unterseiten, HUD-Editor (blendet ein, Hilfsleiste schiebt von oben).
+- System Boost: Spiel-Priorität (MMCSS "Games") für Render- und Fenster-Thread, abschaltbar.

@@ -66,7 +66,21 @@ static void consider(Snap& best, float threshold, float mine, float target) {
 
 static HudModule* selected = nullptr;
 
+struct FadeScope {
+    explicit FadeScope(float f) { theme::setFade(f); }
+    ~FadeScope() { theme::setFade(1.f); }
+};
+
 void draw() {
+    static double lastDraw = -1.0;
+    static float anim = 0.f;
+    double now = ui::time();
+    if (now - lastDraw > 0.25) anim = 0.f;
+    lastDraw = now;
+    anim = draw::motion() ? draw::approach(anim, 1.f, 12.f * theme::current().animSpeed) : 1.f;
+    FadeScope fadeScope(anim);
+    float rise = (1.f - draw::easeOutCubic(anim));
+
     auto& t = theme::current();
     float s = ui::scale();
     auto& io = ImGui::GetIO();
@@ -74,11 +88,11 @@ void draw() {
     auto* fg = ImGui::GetForegroundDrawList();
     auto* bg = ImGui::GetBackgroundDrawList();
 
-    bg->AddRectFilled({0, 0}, ds, IM_COL32(10, 4, 12, 70));
+    bg->AddRectFilled({0, 0}, ds, IM_COL32(10, 4, 12, int(70 * anim)));
 
     const char* help = i18n::tr("Drag = move  ·  Arrows = nudge  ·  Mouse wheel = size  ·  Double click = reset  ·  Right click = settings  ·  Shift = no snap  ·  ESC = done");
     ImVec2 hs = ImGui::CalcTextSize(help);
-    ImVec2 hp{(ds.x - hs.x) * 0.5f - 16 * s, 18 * s};
+    ImVec2 hp{(ds.x - hs.x) * 0.5f - 16 * s, 18 * s - rise * 36 * s};
     fg->AddRectFilled(hp, hp + hs + ImVec2(32 * s, 16 * s), theme::col(t.surface, 0.95f), 99.f);
     fg->AddText(hp + ImVec2(16 * s, 8 * s), theme::col(t.text), help);
 

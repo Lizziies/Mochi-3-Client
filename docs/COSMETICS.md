@@ -73,6 +73,15 @@ Regeln:
 - Cape und Schal bekommen `"physics": "cloth"` mit Segmenten (zum Beispiel 6 Streifen), der Client lässt sie mit der Bewegung schwingen.
 - Optional: Export nach Bedrock-Geometrie (`.geo.json`), damit die Modelle später auch in der Skin-Welt nutzbar sind.
 
+### Festlegungen des Client-Ladecodes (`dll/src/cosmetics/`)
+
+- Ordner: `%LOCALAPPDATA%\Mochi\cosmetics\index.json` mit `{"items": [{"id", "name", "slot"}]}` und je Cosmetic ein Ordner `<id>/item.json` + `tex.png` (nur PNG, RGBA).
+- Koordinaten: X nach rechts, Y nach oben, Z nach vorn (Vorderseite der Figur ist +Z, der Rücken -Z). Die Figur steht auf Y = 0, Kopf ab Y = 24 bis 32, Körper 12 bis 24, Beine 0 bis 12.
+- UV wie bei Minecraft-Quadern (Würfel mit Größe w, h, d und Ursprung u, v in der Textur): erste Reihe Oberseite (`u+d`, `v`, Breite w, Höhe d) und Unterseite (`u+d+w`, `v`), zweite Reihe Höhe h ab `v+d`: rechte Seite (-X) bei `u`, Vorderseite (+Z) bei `u+d`, linke Seite (+X) bei `u+d+w`, Rückseite (-Z) bei `u+2d+w`.
+- `tint`: Name aus der `tint`-Liste des Items. Die Texturfarbe wird mit der Farbe multipliziert, deshalb Texturen hell/weiß-nah halten, wenn der Spieler die Farbe ändern soll.
+- `anim.axis` ist `"x"`, `"y"` oder `"z"`, `anim.type` einer von `flap`, `sway`, `bob`, `wag`, `twitch`, `float`, `spin`. Winkel in Grad, `speed` in Schwingungen pro Sekunde.
+- Beispiele zum Testen: `tools/testdata/cosmetics/` (Flügel, Cape, Bandana). Zum Ausprobieren den Ordner nach `%LOCALAPPDATA%\Mochi\cosmetics` kopieren.
+
 ## Auftrag für den Cowork-Chat
 
 Kopiere den folgenden Text in den Cowork-Chat.
