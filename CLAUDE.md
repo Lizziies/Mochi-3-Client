@@ -12,6 +12,7 @@ Arbeitstitel "Mochi" — vor dem ersten Release umbenennen (global suchen/ersetz
 
 ## Read first
 
+- `docs/MASTER.md` — Gesamtübersicht, Wünsche, Arbeitsteilung, Test-Checkliste. Zuerst lesen.
 - `docs/PLAN.md` — architecture and phases. Work phase by phase, never skip ahead.
 - `docs/MODULES.md` — every module, its tier and phase.
 - `docs/INPUT.md` — input latency strategy.
