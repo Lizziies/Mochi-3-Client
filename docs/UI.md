@@ -59,3 +59,10 @@ Basis ist Vorschlag A (Palette) mit einem Schalter oben rechts, der auf B (Panel
 - Einstellungs-Tab (`g_settings.png`): eigener Tab mit Chat-Tag, Watermark (Inventar, HUD), Sprache, Design, Animationen an/aus, Menügröße, Standard-Größe der HUD-Module, Modul-Voreinstellungen, Tasten und Profilen.
 - Cosmetics-Tab (`h_cosmetics.png`): Karten mit Filter nach Slot, rechts 3D-Vorschau mit Drehen, Farben und Ausrüsten. Siehe `docs/COSMETICS.md`.
 - Animationen: Menü blendet ein, Karten und Zeilen laufen gestaffelt ein, Schalter gleiten, Tab-Wechsel mit Schieben, Hub mit Skalierung. Alles abschaltbar im Einstellungs-Tab (Animationen aus = sofort).
+
+### Änderung nach Rückmeldung (Felix)
+
+- Oben nur noch vier Tabs: Modules, Favorites, Cosmetics, Settings. Keine Aufteilung in PvP, HUD usw. als Tabs.
+- Modules ist eine lange Liste mit Abschnitten (PvP, HUD, Visual, Comfort, Performance, Server), wie bei Onix. Eine Sprungleiste oben springt zum Abschnitt. Bild `i_list_long.png`.
+- Panels-Ansicht: jede Kategorie ist eine verschiebbare Spalte. Bild `k_panels_new.png`.
+- Mochi-Nutzer in Tab-Liste und Chat erkennbar (rotes Herz, Namensfarbe, Regenbogen, Tag). Bild `l_players.png`, Konzept in `docs/ONLINE.md`.
