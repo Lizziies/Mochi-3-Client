@@ -313,12 +313,29 @@ private:
 class InstaHurtAnimation : public Module {
 public:
     InstaHurtAnimation()
-        : Module("Insta Hurt Animation", "Hurt animation instantly instead of delayed. Banned on many servers.",
+        : Module("Insta Hurt Animation", "Plays the hurt animation of the player you hit right away instead of after the server reply. Banned on many servers.",
                  Category::Pvp, {"timing"}) {
-        sub("Input");
+        sub("Hit feedback");
         markRisky();
         require(0, {fx::sig(fx::Id::HurtAnim)});
+        wants(need::target);
+        excludeTeam_.visible = [] { return game::ready(need::target); };
+        fullArmor_.visible = [] { return game::ready(need::target); };
     }
 
-    void onFrame() override { fx::force(fx::Id::HurtAnim, true); }
+    void onFrame() override {
+        auto& st = game::state();
+        auto& t = st.target;
+        bool filtered = game::ready(need::target) && (excludeTeam_.b || fullArmor_.b);
+        if (filtered) {
+            if (t.kind != game::Target::Kind::Entity || !t.isPlayer) return;
+            if (excludeTeam_.b && st.player.team && t.team == st.player.team) return;
+            if (fullArmor_.b && t.armor < 4) return;
+        }
+        fx::force(fx::Id::HurtAnim, true);
+    }
+
+private:
+    Setting& excludeTeam_ = toggleSetting("excludeTeam", "Exclude team", true);
+    Setting& fullArmor_ = toggleSetting("fullArmor", "Only against full armor", false);
 };

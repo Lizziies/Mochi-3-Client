@@ -9,6 +9,7 @@
 #include <cmath>
 #include <format>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace text {
@@ -44,8 +45,13 @@ inline std::string pretty(std::string id) {
 }
 
 inline std::string roman(int n) {
-    static const char* r[] = {"", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"};
-    return n >= 0 && n <= 10 ? r[n] : std::to_string(n);
+    if (n <= 0 || n >= 4000) return std::to_string(n);
+    static const std::pair<int, const char*> steps[] = {{1000, "M"}, {900, "CM"}, {500, "D"}, {400, "CD"}, {100, "C"}, {90, "XC"}, {50, "L"},
+                                                         {40, "XL"},  {10, "X"},   {9, "IX"},  {5, "V"},    {4, "IV"},  {1, "I"}};
+    std::string out;
+    for (auto& [value, glyphs] : steps)
+        for (; n >= value; n -= value) out += glyphs;
+    return out;
 }
 
 inline std::string effect(const std::string& id) {

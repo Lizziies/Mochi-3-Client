@@ -94,6 +94,7 @@ protected:
     }
     void sub(std::string name) { sub_ = std::move(name); }
     void needs(unsigned mask) { needs_ = mask; }
+    void wants(unsigned mask) { wants_ = mask; }
     void needs(game::Domain d) { needs_ = unsigned(d); }
     void require(unsigned domains, std::vector<std::string> sigs) {
         needs_ = domains;
@@ -120,6 +121,7 @@ private:
     Setting* hold_ = nullptr;
     std::vector<nlohmann::json> defaults_;
     unsigned needs_ = 0;
+    unsigned wants_ = 0;
     bool anySig_ = false;
     bool enabled_ = false;
     bool wanted_ = false;

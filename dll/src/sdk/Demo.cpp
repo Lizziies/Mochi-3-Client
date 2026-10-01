@@ -11,7 +11,7 @@ namespace {
 
 constexpr unsigned all = unsigned(Domain::Player) | unsigned(Domain::Inventory) | unsigned(Domain::Effects) | unsigned(Domain::Target) |
                          unsigned(Domain::World) | unsigned(Domain::Combat) | unsigned(Domain::Chat) | unsigned(Domain::Scoreboard) |
-                         unsigned(Domain::Tab) | unsigned(Domain::Camera);
+                         unsigned(Domain::Tab) | unsigned(Domain::Camera) | unsigned(Domain::Others);
 
 class Demo : public Provider {
 public:
@@ -31,6 +31,8 @@ public:
         target(s);
         chatter(s, ev);
         uses(ev);
+        nearby(s);
+        confirms(ev);
         effects(s, dt);
         scoreboard(s);
     }
@@ -156,11 +158,13 @@ private:
             ev.push_back({EventKind::Swing});
             if (dist_(rng_) < 0.72) {
                 Event e{EventKind::Hit};
-                e.reach = 2.2f + dist_(rng_) * 0.95f;
+                e.reach = std::max(0.5f, oppDist_ - 0.3f + (float(dist_(rng_)) - 0.5f) * 0.2f);
                 e.crit = dist_(rng_) < 0.2;
                 e.value = e.crit ? 9.f : 6.f;
                 e.text = "Opponent";
                 ev.push_back(e);
+                float ms = float(s.world.ping) + float(dist_(rng_)) * 12.f;
+                acks_.push_back({t_ + ms / 1000.0, ms, e.reach});
                 opponentHp_ -= e.value * 0.5f;
                 auto& sword = p.hotbar[0];
                 sword.damage = std::min(sword.maxDamage - 1, sword.damage + 1);
@@ -179,7 +183,7 @@ private:
             if (dist_(rng_) < 0.45) {
                 Event e{EventKind::Hurt};
                 e.value = 1.5f + dist_(rng_) * 3.f;
-                e.reach = 2.3f + dist_(rng_) * 0.9f;
+                e.reach = std::max(0.5f, oppDist_ - 0.3f);
                 e.text = "Opponent";
                 ev.push_back(e);
                 p.health -= e.value;
@@ -198,6 +202,40 @@ private:
             }
         }
         p.blocking = std::fmod(t_, 3.0) < 0.5;
+    }
+
+    void nearby(State& s) {
+        auto& p = s.player;
+        p.team = 1;
+        oppDist_ = 2.9f + 0.45f * std::sin(float(t_) * 1.7f);
+        float yaw = p.yaw * 0.0174533f;
+        Vec3 fwd{-std::sin(yaw), 0.f, std::cos(yaw)};
+        auto place = [&](const char* name, float ahead, float side, int team) {
+            Other o;
+            o.name = name;
+            o.team = team;
+            o.pos = {p.pos.x + fwd.x * ahead - fwd.z * side, p.pos.y, p.pos.z + fwd.z * ahead + fwd.x * side};
+            s.others.push_back(o);
+        };
+        s.others.clear();
+        place("Teammate", 1.8f, -1.2f, 1);
+        place("Opponent", oppDist_, 0.f, 2);
+        place("Bystander", 8.f, 3.f, 3);
+    }
+
+    void confirms(std::vector<Event>& ev) {
+        for (size_t i = 0; i < acks_.size();) {
+            if (acks_[i].due > t_) {
+                i++;
+                continue;
+            }
+            Event e{EventKind::Confirm};
+            e.value = acks_[i].ms;
+            e.reach = acks_[i].reach;
+            e.text = "Opponent";
+            ev.push_back(e);
+            acks_.erase(acks_.begin() + long(i));
+        }
     }
 
     void survival(State& s, double dt) {
@@ -231,7 +269,9 @@ private:
             t.kind = Target::Kind::Entity;
             t.name = "Opponent";
             t.isPlayer = true;
-            t.distance = 2.4f + 0.6f * std::sin(float(t_) * 3.f);
+            t.distance = std::max(0.5f, oppDist_ - 0.3f);
+            t.team = 2;
+            t.armor = std::fmod(t_, 32.0) < 24.0 ? 4 : 3;
             t.health = std::max(0.f, opponentHp_);
             t.maxHealth = 20.f;
             t.pos = {s.player.pos.x + 2.f, s.player.pos.y, s.player.pos.z};
@@ -299,6 +339,13 @@ private:
         s.scoreboard.lines.push_back({"mochi.example", 0});
     }
 
+    struct Ack {
+        double due;
+        float ms;
+        float reach;
+    };
+    std::vector<Ack> acks_;
+    float oppDist_ = 3.f;
     std::mt19937 rng_{1234};
     std::uniform_real_distribution<double> dist_{0.0, 1.0};
     bool init_ = false;
