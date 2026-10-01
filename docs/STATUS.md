@@ -50,3 +50,9 @@ Das hier ist der Anfang, nicht das Ende. Die Basis steht, der große Rest (Modul
 - Einstellungs-Panel war hinter den Karten gezeichnet: behoben, ist jetzt ein eigenes Fenster.
 - DX12-Pfad ungetestet.
 - Screenshots aus Wine haben schlechte Auflösung, Schärfe/Schrift im echten Spiel prüfen.
+
+## Session B (Module), Block 1: Latenz, Netzwerk, Limiter
+
+- Neu: Network (Ping/Jitter/Verlust, WLAN/LAN-Erkennung, Ampel mit Grund und Tipps, Scan-Spitzen), Ping Counter, Latency Blame, Frame Limiter, Instant Input (SR). Latency-HUD um 1%-Low, Spitze und Overlay-Kosten erweitert.
+- `perf/Tuning` sammelt die Wünsche von LowLatency, Frame Limiter und Instant Input und schreibt `dx::tuning()` einmal pro Frame.
+- Module 29 von 135. Alles mit MinGW syntaxgeprüft, nicht im Spiel getestet.

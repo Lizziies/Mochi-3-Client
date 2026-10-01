@@ -4,6 +4,7 @@
 #include "hook/Dx.hpp"
 #include "hook/Input.hpp"
 #include "modules/HudModule.hpp"
+#include "modules/Manager.hpp"
 #include "render/Fonts.hpp"
 
 #include <windows.h>
@@ -53,6 +54,17 @@ protected:
 
         y += drawText(dl, o, s, std::format("Frame {:.2f} ms", fi.frameMs), textColor()).y;
         y += drawText(dl, o + ImVec2(0, y), s, clickCount_ ? std::format("Klick → Bild {:.1f} ms", avgClick) : "Klick → Bild: klick mal", accentColor()).y;
+        if (lowShown_.b) {
+            std::array<float, 300> sorted = times_;
+            std::sort(sorted.begin(), sorted.end(), std::greater<>());
+            float worst = 0.f;
+            for (int i = 0; i < 3; i++) worst += sorted[i];
+            worst /= 3.f;
+            y += drawText(dl, o + ImVec2(0, y), s, std::format("1% Low {:.0f} FPS  ·  Spitze {:.1f} ms", worst > 0 ? 1000.f / worst : 0.f, sorted[0]),
+                          textColor()).y;
+        }
+        if (cost_.b)
+            y += drawText(dl, o + ImVec2(0, y), s, std::format("Overlay {:.2f} ms pro Frame", modules::costMs()), textColor()).y;
         std::string mode = std::format("{}  ·  {}  ·  {} Puffer", fi.lowLatencyActive ? "Low-Latency an" : "Low-Latency aus",
                                        dx::tuning().allowTearing && fi.tearingSupported ? "Tearing" : "VSync/Standard", fi.bufferCount);
         float small = fonts::hudSize() * s * 0.7f;
@@ -79,8 +91,10 @@ protected:
     }
 
 private:
+    Setting& lowShown_ = toggleSetting("low", "1% Low und Spitze", true);
+    Setting& cost_ = toggleSetting("cost", "Overlay-Kosten", true);
     Setting& flashTest_ = toggleSetting("flash", "Flash-Test (weißes Quadrat bei Klick)", false);
-    std::array<float, 120> times_{};
+    std::array<float, 300> times_{};
     size_t head_ = 0;
     std::array<float, 20> clicks_{};
     size_t clickHead_ = 0;

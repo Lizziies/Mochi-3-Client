@@ -23,8 +23,15 @@
 #include "hud/SessionTimer.hpp"
 #include "hud/Stopwatch.hpp"
 #include "input/CpsLimiter.hpp"
+#include "input/InstantInput.hpp"
 #include "input/NoScroll.hpp"
+#include "network/LatencyBlame.hpp"
+#include "network/Network.hpp"
+#include "network/PingCounter.hpp"
+#include "network/Probe.hpp"
+#include "perf/FrameLimiter.hpp"
 #include "perf/LowLatency.hpp"
+#include "perf/Tuning.hpp"
 #include "perf/SystemBoost.hpp"
 #include "visual/Crosshair.hpp"
 
@@ -34,6 +41,7 @@ namespace modules {
 
 static std::vector<std::unique_ptr<Module>> list;
 static bool hudHidden = false;
+static float cost = 0.f;
 
 template <class T>
 static void add() {
@@ -53,13 +61,18 @@ void init() {
     add<Memory>();
     add<LatencyHud>();
     add<ServerInfo>();
+    add<PingCounter>();
+    add<Network>();
+    add<LatencyBlame>();
 
     add<Crosshair>();
 
     add<CpsLimiter>();
     add<NoScroll>();
+    add<InstantInput>();
 
     add<LowLatency>();
+    add<FrameLimiter>();
     add<SystemBoost>();
 
     add<Snake>();
@@ -78,6 +91,7 @@ void shutdown() {
     for (auto& m : list) {
         if (m->enabled()) guard::call(m->name().c_str(), [&] { m->onDisable(); });
     }
+    probe::shutdown();
 }
 
 const std::vector<std::unique_ptr<Module>>& all() { return list; }
@@ -97,6 +111,9 @@ void frame(ImDrawList* hud) {
     if (sigs::takeChanged()) refreshSigs();
     rules::tick();
 
+    LARGE_INTEGER t0, t1, qpf;
+    QueryPerformanceCounter(&t0);
+    perf::begin();
     bool editing = gui::editingHud();
     for (auto& m : list) {
         if (!m->enabled()) continue;
@@ -107,7 +124,13 @@ void frame(ImDrawList* hud) {
         if (m->isHud() && (hudHidden && !editing)) continue;
         if (!guard::call(m->name().c_str(), [&] { m->onRender(hud); })) fault(*m);
     }
+    perf::apply();
+    QueryPerformanceCounter(&t1);
+    QueryPerformanceFrequency(&qpf);
+    cost += (float(double(t1.QuadPart - t0.QuadPart) * 1000.0 / double(qpf.QuadPart)) - cost) * 0.05f;
 }
+
+float costMs() { return cost; }
 
 void dispatchKey(KeyEvent& ev) {
     if (widgets::capturingKey()) return;

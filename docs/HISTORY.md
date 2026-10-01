@@ -15,3 +15,7 @@ Kurze Chronik, damit jede neue Session weiß, was schon passiert ist.
 - Fehlende Module werden hier in Blöcken nachgebaut (siehe `docs/STATUS.md`).
 - `docs/CLIENTS.md` (Wettbewerber) und `docs/FEATURES.md` (Feature-Spezifikation) geschrieben. Einige Seiten (flarial.xyz, onixclient.com, latite.net) waren vom Netzwerk gesperrt, Angaben sind in CLIENTS.md mit ✔/~/? gekennzeichnet.
 - Um 11 Uhr bekommt diese Session die Zusammenfassung des Chatverlaufs vom Hauptaccount, damit mehrere Sessions parallel arbeiten können.
+
+## Session B (Module, Branch claude/modules-b)
+
+- Block 1: Netzwerk-Messung (ICMP und RakNet-Ping, WLAN-Daten über wlanapi/iphlpapi, nur Lesen), Frame Limiter, Instant Input, Latency Blame, Tuning-Verteiler.

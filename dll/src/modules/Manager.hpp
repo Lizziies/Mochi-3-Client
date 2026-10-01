@@ -26,5 +26,6 @@ void dispatchKey(KeyEvent& ev);
 void dispatchMouse(MouseEvent& ev);
 void dispatchServer(const ServerEvent& ev);
 void refreshSigs();
+float costMs();
 
 }

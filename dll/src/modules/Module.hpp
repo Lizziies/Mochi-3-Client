@@ -46,6 +46,7 @@ public:
     const std::string& name() const { return name_; }
     const std::string& description() const { return description_; }
     Category category() const { return category_; }
+    const std::string& sub() const { return sub_; }
     const std::vector<std::string>& tags() const { return tags_; }
     const std::vector<std::string>& sigs() const { return sigs_; }
     bool hasTag(const std::string& t) const;
@@ -81,6 +82,7 @@ protected:
     Setting& textSetting(std::string id, std::string label, std::string def);
 
     void markRisky() { risky_ = true; }
+    void sub(std::string name) { sub_ = std::move(name); }
 
 private:
     Setting& add(Setting s);
@@ -88,6 +90,7 @@ private:
     std::string name_;
     std::string description_;
     Category category_;
+    std::string sub_;
     std::vector<std::string> tags_;
     std::vector<std::string> sigs_;
     std::vector<std::string> missing_;
