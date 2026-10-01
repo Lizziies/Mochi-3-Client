@@ -1,6 +1,7 @@
 """Builds the Mochi cosmetics (item.json) without Blender.
 
 The items are made of smooth swept tubes (ears, tails, hats, cloth) instead of boxes.
+Wings and capes come from tools/cosmetics_hd and get copied into the same folder.
 
 Usage: python3 tools/cosmetics/build.py [output dir]
 """
@@ -209,10 +210,38 @@ def sneakers():
     return it
 
 
+def copy_hd():
+    root = os.path.join(os.path.dirname(__file__), "..", "cosmetics_hd")
+    for name in sorted(os.listdir(root)):
+        src = os.path.join(root, name)
+        if not os.path.isfile(os.path.join(src, "item.json")):
+            continue
+        dst = os.path.join(OUT, name)
+        shutil.rmtree(dst, ignore_errors=True)
+        os.makedirs(dst)
+        for f in ("item.json", "tex.png"):
+            if os.path.isfile(os.path.join(src, f)):
+                shutil.copy(os.path.join(src, f), dst)
+
+
+def write_index():
+    items = []
+    for name in sorted(os.listdir(OUT)):
+        path = os.path.join(OUT, name, "item.json")
+        if os.path.isfile(path):
+            with open(path) as f:
+                j = json.load(f)
+            items.append({"id": j["id"], "name": j["name"], "slot": j["slot"]})
+    with open(os.path.join(OUT, "index.json"), "w") as f:
+        json.dump({"items": items}, f, indent=1)
+
+
 def main():
     os.makedirs(OUT, exist_ok=True)
     for make in (cat_ears, dog_ears, cat_tail, dog_tail, bandana, beanie, wizard_hat, sneakers):
         make().save()
+    copy_hd()
+    write_index()
     print("built cosmetics")
 
 

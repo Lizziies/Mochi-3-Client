@@ -82,6 +82,15 @@ Regeln:
 - `anim.axis` ist `"x"`, `"y"` oder `"z"`, `anim.type` einer von `flap`, `sway`, `bob`, `wag`, `twitch`, `float`, `spin`. Winkel in Grad, `speed` in Schwingungen pro Sekunde.
 - Beispiele zum Testen: `tools/testdata/cosmetics/` (Flügel, Cape, Bandana). Zum Ausprobieren den Ordner nach `%LOCALAPPDATA%\Mochi\cosmetics` kopieren.
 
+### Erweiterungen des Formats (alle optional)
+
+- `tubes` (Bone): glatte Körper statt Quader, entlang eines Pfades gezogen. `{"tint", "tint2", "sides", "power", "capped", "two_sided", "wave", "path": [[x, y, z, rx, rz, mix], ...]}`. Der Querschnitt ist rund (`power` 2) bis fast eckig (`power` 6 und mehr), `rx`/`rz` sind die Radien, `mix` blendet von `tint` nach `tint2` (ohne Angabe: Anteil am Pfad). `wave` lässt den Pfad wehen (`axis`, `amplitude`, `speed`, `freq`). Items nur aus Tubes brauchen keine `tex.png`.
+- `texel` (Item): Texeln pro Einheit. Über 1 wird linear gefiltert, sonst Nearest.
+- Quader mit `"flat": true`, `"mirror"`, `"tint2"`, `"mix"`: eine UV-Fläche für Vorder- und Rückseite, Verlaufsfarbe aus zwei Tints.
+- `anim.type: "sparkle"`: Alpha flackert pro Quader.
+- `physics` (Bone): `{"type": "spring" | "cloth", "stiffness", "damping", "inertia", "wind", "drive": {"air", "sprint", "sneak", "speed"}}`. Feder und Stoff reagieren auf Tempo, Beschleunigung, Drehen, Sprinten, Schleichen und Springen. Im Menü lässt sich die Bewegung der Vorschau wählen (Auto, Ruhig, Gehen, Sprinten, Springen).
+- Generator: `tools/cosmetics/build.py` baut Ohren, Schwänze, Bandana, Mütze, Zaubererhut und Sneaker (Tubes) und kopiert die Flügel und Capes aus `tools/cosmetics_hd/` in `cosmetics/`, dazu `index.json`.
+
 ## Auftrag für den Cowork-Chat
 
 Kopiere den folgenden Text in den Cowork-Chat.

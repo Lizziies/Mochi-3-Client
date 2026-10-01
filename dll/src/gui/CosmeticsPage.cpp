@@ -15,6 +15,7 @@
 #include <json.hpp>
 
 #include <algorithm>
+#include <cmath>
 #include <fstream>
 #include <sstream>
 
@@ -24,6 +25,9 @@ namespace {
 
 int slotFilter = 0;
 float yaw = 25.f;
+int motion = 0;
+cosmetics::Rig rig;
+const char* motions[] = {"Auto", "Idle", "Walk", "Sprint", "Jump"};
 const char* slots[] = {"All", "Wings", "Capes", "Head", "Back", "Body", "Feet"};
 const char* slotIds[] = {"", "wings", "cape", "head", "back", "body", "feet"};
 
@@ -75,6 +79,29 @@ void saveTints(ClientSettings* cs, const cosmetics::Item& item, const std::vecto
     config::markDirty();
 }
 
+cosmetics::Moving demoMotion() {
+    cosmetics::Moving m;
+    int mode = motion;
+    float t = float(ui::time());
+    if (mode == 0) {
+        float cycle = std::fmod(t, 14.f);
+        mode = cycle < 3.f ? 1 : cycle < 7.f ? 2 : cycle < 11.f ? 3 : 4;
+    }
+    if (mode == 2) m.fwd = 4.3f;
+    if (mode == 3) {
+        m.fwd = 5.6f;
+        m.sprint = true;
+    }
+    if (mode == 4) {
+        float k = std::fmod(t, 1.4f);
+        m.fwd = 1.5f;
+        m.air = k < 0.8f;
+        m.up = m.air ? 7.f * (1.f - k / 0.4f) : 0.f;
+    }
+    m.turn = 18.f * std::sin(t * 0.7f) * (mode == 1 ? 0.f : 1.f);
+    return m;
+}
+
 struct Frame {
     float focus, zoom, yaw;
 };
@@ -83,7 +110,7 @@ Frame cardFrame(const std::string& slot) {
     if (slot == "head") return {30.f, 4.3f, 25.f};
     if (slot == "feet") return {3.f, 5.6f, 30.f};
     if (slot == "body" || slot == "back") return {16.f, 2.6f, 155.f};
-    return {16.f, 2.6f, 155.f};
+    return {19.f, 3.5f, 155.f};
 }
 
 void toggleEquipped(Setting& st, const cosmetics::Item& item) {
@@ -116,6 +143,8 @@ void drawCosmeticsPage(ImVec2 origin, ImVec2 size) {
     float previewW = std::min(420 * s, size.x * 0.34f);
     float gap = 22 * s;
     float listW = size.x - previewW - gap;
+
+    rig.step(ui::dt() * (cs ? cs->animSpeed().f : 1.f), demoMotion());
 
     ImGui::SetCursorScreenPos(origin);
     ImGui::BeginChild("cosmetics", {listW, size.y}, 0, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoScrollWithMouse);
@@ -160,7 +189,7 @@ void drawCosmeticsPage(ImVec2 origin, ImVec2 size) {
         auto fr = cardFrame(it.slot);
         cdl->PushClipRect(p + ImVec2(10 * s, 10 * s), p + ImVec2(w - 10 * s, 104 * s), true);
         cosmetics::drawPreview(cdl, p + ImVec2(w * 0.5f, 57 * s), fr.zoom * s, fr.yaw + std::sin(float(ui::time()) * 0.8f) * 12.f, 10.f, {{&it, savedTints(cs, it)}}, t.accent,
-                               {cs ? cs->slim().b : false, 1.f, fr.focus});
+                               {cs ? cs->slim().b : false, fr.focus, &rig});
         cdl->PopClipRect();
         cdl->AddText(fonts::bold(), 15.f * s, p + ImVec2(14 * s, 114 * s), theme::col(t.text), it.name.c_str());
         cdl->AddText(fonts::regular(), 12.5f * s, p + ImVec2(14 * s, 135 * s), theme::col(t.textDim), it.slot.c_str());
@@ -187,14 +216,18 @@ void drawCosmeticsPage(ImVec2 origin, ImVec2 size) {
     if (cs)
         for (auto& id : split(cs->equipped().text))
             if (auto* it = cosmetics::find(id)) worn.push_back({it, savedTints(cs, *it)});
-    cosmetics::Look look{cs ? cs->slim().b : false, cs ? cs->animSpeed().f : 1.f};
+    cosmetics::Look look{cs ? cs->slim().b : false, 20.f, &rig};
     dl->PushClipRect(po, po + ImVec2(previewW, stageH), true);
-    cosmetics::drawPreview(dl, {po.x + previewW * 0.5f, po.y + stageH * 0.56f}, stageH / 44.f, yaw, 12.f, worn, t.accent, look);
+    cosmetics::drawPreview(dl, {po.x + previewW * 0.5f, po.y + stageH * 0.54f}, stageH / 54.f, yaw, 12.f, worn, t.accent, look);
     dl->PopClipRect();
 
     ImGui::SetCursorScreenPos({po.x + 14 * s, po.y + stageH + 6 * s});
     ImGui::BeginChild("cosmeticLook", {previewW - 28 * s, size.y - stageH - 12 * s}, 0, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoScrollWithMouse);
     smoothScroll();
+    for (int i = 0; i < 5; i++) {
+        if (i) ImGui::SameLine();
+        if (widgets::button(motions[i], {0, 0}, motion == i)) motion = i;
+    }
     if (cs) {
         widgets::setting(cs->slim());
         widgets::setting(cs->spin());

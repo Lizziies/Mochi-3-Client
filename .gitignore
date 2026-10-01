@@ -8,3 +8,4 @@ obj/
 *.exe
 *.pdb
 CMakeSettings.json
+__pycache__/
