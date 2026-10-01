@@ -338,3 +338,21 @@ private:
     Setting& onlyNight_ = toggleSetting("onlyNight", "Nur nachts", false);
     float current_ = 0.f;
 };
+
+class CinematicCamera : public Module {
+public:
+    CinematicCamera()
+        : Module("Cinematic Camera", "Weiche, gleitende Kamerabewegung wie in Filmaufnahmen. Auf Wunsch nur beim Zoomen.", Category::Visual, {"camera"}) {
+        sub("Kamera");
+        require(0, {fx::sig(fx::Id::LookDelta)});
+    }
+
+    void onFrame() override {
+        if (onlyZoom_.b && !ctx::zooming) return;
+        fx::smooth(fx::Id::LookDelta, 1.f - smoothing_.f);
+    }
+
+private:
+    Setting& smoothing_ = slider("smoothing", "Glättung", 0.7f, 0.f, 0.95f, "%.2f");
+    Setting& onlyZoom_ = toggleSetting("onlyZoom", "Nur beim Zoomen", false);
+};

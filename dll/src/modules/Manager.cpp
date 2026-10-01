@@ -36,6 +36,7 @@
 #include "hud/GameInfo.hpp"
 #include "hud/Inventory.hpp"
 #include "hud/Keystrokes.hpp"
+#include "hud/Paperdoll.hpp"
 #include "hud/Latency.hpp"
 #include "hud/Memory.hpp"
 #include "hud/MouseStrokes.hpp"
@@ -105,6 +106,7 @@ void init() {
     add<DayCounter>();
     add<PackDisplay>();
     add<HeldItem>();
+    add<Paperdoll>();
     add<StatsHud>();
     add<Watermark>();
     add<DebugMenu>();
@@ -134,6 +136,7 @@ void init() {
     add<JavaDynamicFov>();
     add<Zoom>();
     add<Freelook>();
+    add<CinematicCamera>();
     add<NoViewBobbing>();
     add<MinimalViewBobbing>();
     add<NoHurtCam>();
@@ -298,7 +301,7 @@ float costMs() { return cost; }
 Motion mouseDelta() { return motion; }
 
 void dispatchKey(KeyEvent& ev) {
-    if (widgets::capturingKey()) return;
+    if (widgets::capturingKey() || inject::ours()) return;
     if (ev.down && !ev.repeat && ev.vk == VK_F1) hudHidden = !hudHidden;
 
     bool captured = gui::capturesKeyboard();

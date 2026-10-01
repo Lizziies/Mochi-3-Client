@@ -48,6 +48,7 @@ enum class Id {
     HandMatrix,
     LookTurn,
     LookCamera,
+    LookDelta,
     SelfNametag,
     ItemPhysics,
     UseDelay,
@@ -77,6 +78,7 @@ void add(Id id, float a);
 void force(Id id, bool on);
 void setInt(Id id, int v);
 void skip(Id id);
+void smooth(Id id, float factor);
 void out(Id id, std::initializer_list<float> values);
 void transform(Id id, game::Vec3 move, game::Vec3 scale, game::Vec3 rotateDeg);
 

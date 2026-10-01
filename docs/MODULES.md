@@ -193,9 +193,9 @@ Nicht gebaut: nur echte Cheats mit Kampfvorteil (siehe CLAUDE.md, Hard rules).
 
 ## Umsetzungsstand (Session B)
 
-Alle 135 Module sind in `dll/src/modules/Manager.cpp` registriert und mit MinGW syntaxgeprüft, im Spiel getestet ist noch keins. "Braucht" nennt die Signaturen, ohne die das Modul grau bleibt. Namen mit `fx.` sind Effekt-Kanäle, andere sind Daten-Signaturen, siehe `docs/SDK.md`. Mit Demo-Daten (Modul "Sig Status") laufen alle.
+Alle 137 Module sind in `dll/src/modules/Manager.cpp` registriert und mit MinGW syntaxgeprüft, im Spiel getestet ist noch keins. "Braucht" nennt die Signaturen, ohne die das Modul grau bleibt. Namen mit `fx.` sind Effekt-Kanäle, andere sind Daten-Signaturen, siehe `docs/SDK.md`. Mit Demo-Daten (Modul "Sig Status") laufen alle.
 
-### HUD (55)
+### HUD (56)
 
 | Modul | Unterkategorie | Braucht |
 |---|---|---|
@@ -222,6 +222,7 @@ Alle 135 Module sind in `dll/src/modules/Manager.cpp` registriert und mit MinGW 
 | Low Health Indicator | Eigene Werte | `LocalPlayer` |
 | Mouse Strokes | Eigene Werte | nichts |
 | Pack Display | Eigene Werte | `Level`, `PackList` |
+| Paperdoll | Eigene Werte | `LocalPlayer`, `Inventory` |
 | Server Display | Eigene Werte | nichts |
 | Speed Display | Eigene Werte | `LocalPlayer` |
 | Stats HUD | Eigene Werte | nichts |
@@ -255,12 +256,13 @@ Alle 135 Module sind in `dll/src/modules/Manager.cpp` registriert und mit MinGW 
 | Session Timer | Timer | nichts |
 | Stopwatch | Timer | nichts |
 
-### Visuell (31)
+### Visuell (32)
 
 | Modul | Unterkategorie | Braucht |
 |---|---|---|
 | Custom Crosshair | Crosshair | nichts |
 | Auto Perspective | Kamera | `LocalPlayer`, `fx.perspective` |
+| Cinematic Camera | Kamera | `fx.lookDelta` |
 | FOV Changer | Kamera | `fx.fov` |
 | Freelook | Kamera | `LocalPlayer`, `fx.lookCamera`, `fx.lookTurn` |
 | Java Dynamic FOV | Kamera | `LocalPlayer`, `fx.fov` |

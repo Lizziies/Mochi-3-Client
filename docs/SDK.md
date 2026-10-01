@@ -49,11 +49,11 @@ Marker-Signaturen: Namen für Spielfunktionen oder Daten, die der Live-Provider 
 | `ChatEvents` | Session Stats, Auto GG, Message Logger, Chat Plus |
 | `Effects` | Potion HUD |
 | `EntityList` | Entity Counter |
-| `Inventory` | Held Item, Armor HUD, Pot Counter, Arrow Counter, Totem Counter, Item Counter, Durability Warning, Better Hunger Bar |
+| `Inventory` | Held Item, Armor HUD, Pot Counter, Arrow Counter, Totem Counter, Item Counter, Durability Warning, Better Hunger Bar, Paperdoll |
 | `ItemUseEvents` | Cooldown Indicator |
 | `KillEvents` | Kill Effects |
 | `Level` | Entity Counter, Day Counter, Pack Display |
-| `LocalPlayer` | Java Dynamic FOV, Freelook, Auto Perspective, Reach Counter, Opponent Reach, Combo Counter, Hit Counter, Hit Ping, Session Stats, Hit Info, Hit Effects, Kill Effects, Damage Indicator, Hit Sound, Totem Pop, Target HUD, Waila, Bow Charge, Cooldown Indicator, Bow Sensitivity, Snap Look, Death Logger, Mumble Link, Coordinates, Direction HUD, Speed Display, Look Angles, Health Display, Experience Info, Held Item, Break Progress, Armor HUD, Potion HUD, Pot Counter, Arrow Counter, Totem Counter, Item Counter, Durability Warning, Low Health Indicator, Better Hunger Bar, Match Summary, Waypoints, Block Outline, Chunk Border |
+| `LocalPlayer` | Java Dynamic FOV, Freelook, Auto Perspective, Reach Counter, Opponent Reach, Combo Counter, Hit Counter, Hit Ping, Session Stats, Hit Info, Hit Effects, Kill Effects, Damage Indicator, Hit Sound, Totem Pop, Target HUD, Waila, Bow Charge, Cooldown Indicator, Bow Sensitivity, Snap Look, Death Logger, Mumble Link, Coordinates, Direction HUD, Speed Display, Look Angles, Health Display, Experience Info, Held Item, Break Progress, Armor HUD, Potion HUD, Pot Counter, Arrow Counter, Totem Counter, Item Counter, Durability Warning, Low Health Indicator, Better Hunger Bar, Paperdoll, Match Summary, Waypoints, Block Outline, Chunk Border |
 | `PackList` | Pack Display |
 | `ScoreboardData` | Scoreboard |
 | `TabListData` | Player Notifier, Tab List |
@@ -70,7 +70,7 @@ Arten pro Kanal (Standard, pro Signatur mit dem Offset `<sig>.kind` überschreib
 - **Value**: Funktion gibt einen Float zurück. Der Hook ersetzt, skaliert oder addiert.
 - **Flag**: Funktion gibt bool/int zurück. Der Hook erzwingt den Wert.
 - **Skip**: Funktion wird nicht aufgerufen, solange das Modul aktiv ist.
-- **Out**: Original wird aufgerufen, danach schreibt der Hook Floats in den Zeiger-Parameter. Der Index des Parameters steht im Offset `<sig>.arg` (Standard 1 = `rdx`). Bei `fx.handMatrix` ist es eine 4x4-Matrix (Spaltenmajor, mit `<sig>.rowMajor = 1` für Zeilenmajor), die verschoben/skaliert/gedreht wird.
+- **Out**: Original wird aufgerufen, danach schreibt der Hook Floats in den Zeiger-Parameter (mit dem Offset  davor). Bei  glättet der Hook die Blickbewegung (Zeiger auf zwei Floats, vor dem Original). Der Index des Parameters steht im Offset `<sig>.arg` (Standard 1 = `rdx`). Bei `fx.handMatrix` ist es eine 4x4-Matrix (Spaltenmajor, mit `<sig>.rowMajor = 1` für Zeilenmajor), die verschoben/skaliert/gedreht wird.
 - **Int**: wie Flag, aber der Hook gibt einen Integer zurück (zum Beispiel die Perspektive).
 - **Data**: die Signatur zeigt auf Daten (Float oder Float4), die direkt überschrieben und beim Abschalten zurückgesetzt werden.
 
@@ -116,6 +116,7 @@ Alle Detours haben die Form `(a, b, c, d)` mit vier Integer-Argumenten und reich
 | `fx.handMatrix` | Hand-Transformation | Out | View Model, Animations |
 | `fx.lookTurn` | Blickdrehung des Spielers | Skip | Freelook |
 | `fx.lookCamera` | Kamera-Rotation | Out | Freelook, Snap Look |
+| `fx.lookDelta` | Blickbewegung | Out | Cinematic Camera |
 | `fx.selfNametag` | Eigener Nametag | Flag | – |
 | `fx.itemPhysics` | Item-Physik | Flag | – |
 | `fx.useDelay` | Item-Nutzungs-Verzögerung | Value | Item Use Delay Fix |
