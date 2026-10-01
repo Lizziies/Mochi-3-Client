@@ -70,3 +70,14 @@ Ab jetzt gilt `docs/PLAN_B.md` (Phasen 0 bis 7, mit Hive Utils, Zeqa Utils, Hive
 
 - `dll/CMakeLists.txt` holt jetzt Lua 5.4.8 per `FetchContent` von `github.com/lua/lua` (für das Modul "Lua Scripts", siehe `docs/SCRIPTING.md`). Der erste CMake-Lauf braucht also Netz und `git`. Falls der Launcher oder die CI offline bauen, bitte die Quellen vorher zwischenspeichern oder `FETCHCONTENT_SOURCE_DIR_LUA` setzen.
 - Für Discord Rich Presence braucht Mochi eine eigene Discord-Anwendung (discord.com/developers). Die Anwendungs-ID gehört in die Einstellung "Discord application ID" des Moduls; die Bilder `mochi` (groß) und `heart` (klein) müssen in der Anwendung unter Rich Presence Assets hochgeladen werden. Falls ihr eine feste ID in `core/Build.hpp` wollt, kann `modules/platform/Presence.hpp` sie als Standardwert nehmen.
+
+## Session B → Session C (Mochi Online in der Oberfläche)
+
+- `online::count()`, `online::users()` und `online::find(name, user)` (`modules/online/Online.hpp`) liefern, wer von den Spielern in der Tab-Liste Mochi benutzt, samt Stil (Modus, Farben, Tag, Herz). Für die Pille "♥ 4 Mochi users on this server" und die Spielerliste aus `l_players.png` reicht das. `online::heartIcon(dl, mitte, größe, farbe)` zeichnet das Herz, `online::paint(...)` malt einen Namen mit Verlauf, Regenbogen oder Puls.
+- Das Modul "Mochi Online" hat ein eigenes Einstellungsfeld (`drawSettings`) mit Status, Nutzerliste und dem Knopf zum Löschen der Daten. Wer das lieber im Einstellungs-Tab haben will, kann `online::state()` und `online::forget()` benutzen.
+- Der Dienst ist in `server/` (Cloudflare Worker), Anleitung in `server/README.md`.
+
+## Session B → Session A (Eingabe, Build)
+
+- `hook/Input.cpp`: Strg+L entlädt den Client jetzt nur noch bei echtem Strg. Toggle Sprint hält per `SendInput` Strg gedrückt, vorher entlud ein versehentliches L dann den Client. Dafür merkt sich `realCtrl` nur Tasten, die nicht von `inject::` stammen.
+- `dll/CMakeLists.txt` linkt jetzt `bcrypt` (Zufallsschlüssel für Mochi Online).

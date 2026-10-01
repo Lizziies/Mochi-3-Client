@@ -38,20 +38,29 @@ Antworten sind klein (unter 10 KB), der Client fragt höchstens alle 5 Sekunden 
 
 ## Technik und Kosten
 
-Cloudflare Workers mit D1 (Datenbank) und KV (Zwischenspeicher). Der kostenlose Tarif reicht für den Start. Kein eigener Server, keine laufenden Kosten, bis viele tausend gleichzeitige Nutzer da sind. Der Code kommt nach `server/` ins Repo (JavaScript, ohne Abhängigkeiten) und lässt sich lokal testen. Ein Konto bei Cloudflare muss Felix anlegen und den Dienst veröffentlichen (ich habe von hier aus keinen Zugang).
+Cloudflare Workers mit D1 (Datenbank) und KV (Zwischenspeicher). Der kostenlose Tarif reicht für den Start. Kein eigener Server, keine laufenden Kosten, bis viele tausend gleichzeitige Nutzer da sind. Der Code liegt in `server/` (JavaScript, ohne Abhängigkeiten) und lässt sich lokal testen, siehe `server/README.md`. Ein Konto bei Cloudflare muss Felix anlegen und den Dienst veröffentlichen (ich habe von hier aus keinen Zugang).
 
 ## Ehrliche Risiken
 
 - **Namens-Diebstahl:** Ohne Prüfung könnte jemand behaupten, "Luna" zu sein, und deren Stil überschreiben. Gegenmaßnahme erste Version: Der Dienst gibt jedem Gamertag nur einen Sitzungs-Token und akzeptiert nur Änderungen mit dem Token. Zweite Version: Beweis über den Xbox-Login (XSTS-Token), der im Spiel schon existiert. Das muss am PC erforscht werden.
 - **Datenschutz:** Der Dienst speichert nur Gamertag, Servername, Stil, Cosmetics, letzten Kontakt. Nichts über Chat, Standort, IP-Dauerspeicherung oder Welten. Vor dem ersten Senden fragt der Client beim ersten Start, löschen geht mit einem Knopf. Eine Datenschutz-Seite muss vor dem Release stehen.
 - **Missbrauch:** Tag-Texte filtern, melden, Sperrliste. Die Anzahl der Aufrufe pro Nutzer begrenzen.
-- **Server-Regeln:** Manche Server mögen keine Fremd-Clients. Der Dienst meldet keine Serverdaten, wenn die Server-Regeln es für diesen Server sperren (`servers.json`, neues Feld `online: false`).
+- **Server-Regeln:** Manche Server mögen keine Fremd-Clients. Der Dienst meldet keine Serverdaten, wenn die Server-Regeln es für diesen Server sperren: dafür gibt es keinen neuen Mechanismus, das Modul "Mochi Online" kommt einfach in die `block`-Liste des Servers in `servers.json`. Dann lässt es sich dort nicht einschalten.
 - **Cosmetics an fremden Figuren:** Wir sehen sie nur, wenn der Client Position und Haltung fremder Spieler lesen kann (Signaturen). Bis dahin zeigen wir Herz, Farbe und Tag in Tab-Liste und Chat.
 
-## Reihenfolge
+## Stand
 
-1. Client-Teil mit Platzhalter-Dienst im Client (Demo-Daten): Tab-Liste mit Herz und Farben, Chat-Tags, Namensstil-Einstellungen. Das ist ohne Server testbar.
-2. `server/` bauen und lokal testen.
-3. Client mit dem Dienst verbinden (`online.url`), Datenschutz-Hinweis beim ersten Start.
-4. Veröffentlichen (Felix), Xbox-Beweis erforschen.
-5. Cosmetics an fremden Figuren (braucht Signaturen).
+| Schritt | Stand |
+|---|---|
+| 1. Client mit Demo-Daten | gebaut: Modul "Mochi Online" (`dll/src/modules/online/`), rotes Herz, Namensfarbe (einfarbig, Verlauf, Regenbogen, Puls) und Tag in Tab-Liste und Better Chat, Einstellungen für alles, erfundene Nutzer ohne Netzwerk |
+| 2. `server/` bauen und lokal testen | gebaut: Worker mit D1 und KV, 18 Tests laufen gegen den Speicher und gegen die echte SQL-Datenbank (`node:sqlite`) |
+| 3. Client mit dem Dienst verbinden | gebaut und unter Wine gegen den lokalen Server geprüft: hello, presence, lookup, profile, bye, forget. Hinweis beim ersten Einschalten, Knopf "Meine Daten im Dienst löschen" |
+| 4. Veröffentlichen | **offen, Felix:** Cloudflare-Konto, `wrangler deploy`, Adresse in den Client eintragen. Datenschutz-Seite schreiben. Xbox-Beweis erforschen |
+| 5. Cosmetics an fremden Figuren | offen, braucht Signaturen. Das Profil trägt die ausgerüsteten Cosmetics schon (`worn`), siehe `docs/COSMETICS.md` |
+
+Entscheidungen beim Bauen:
+
+- **Namens-Diebstahl, erste Version:** Jede Installation erzeugt einmal ein zufälliges Geheimnis (`online.key`). Wer einen Gamertag zuerst benutzt, besitzt ihn. Andere bekommen 403, bis er 30 Tage still war. Das ist nur ein Anfang, der Xbox-Beweis ersetzt es.
+- **Einwilligung:** Das Modul ist standardmäßig aus. Wer es einschaltet, stimmt zu und bekommt dabei eine Meldung, was gesendet wird. "Für andere sichtbar" ist getrennt einstellbar: wer es ausschaltet, sieht andere, wird aber selbst nicht aufgelistet.
+- **Ohne Adresse:** Im Demo-Modus zeigt der Client erfundene Nutzer. Ohne Demo und ohne Adresse passiert nichts und das Modul sagt es.
+- **Tags:** Der Client entfernt Steuerzeichen und `§`, kürzt auf 16 Zeichen. Der Dienst filtert zusätzlich Beleidigungen und Rollen wie "Admin" und leert den Tag, wenn er durchfällt.

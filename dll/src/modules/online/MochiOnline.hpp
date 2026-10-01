@@ -103,7 +103,7 @@ private:
         online::Config cfg;
         cfg.on = on;
         cfg.visible = visible_.b;
-        cfg.demo = on && (demo_.b || game::demo());
+        cfg.demo = on && (demo_.b || (game::demo() && url_.text.empty()));
         cfg.url = url_.text;
         cfg.server = game::state().server;
         std::vector<std::string> names;

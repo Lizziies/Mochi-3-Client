@@ -1,0 +1,15 @@
+name = "mochi-online"
+main = "src/index.js"
+compatibility_date = "2025-01-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "mochi-online"
+database_id = "replace-after-wrangler-d1-create"
+
+[[kv_namespaces]]
+binding = "LIMITS"
+id = "replace-after-wrangler-kv-create"
+
+[triggers]
+crons = ["17 3 * * *"]
