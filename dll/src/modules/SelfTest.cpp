@@ -79,7 +79,7 @@ const char* sameInGerman[] = {"Client", "Timer", "Ring", "Minecraft (MB)", "Syst
                               "km/h", "Yaw", "Absorption", "FPS", "Frametime", "CPS", "Ping", "Jitter", "Position", "Hunger", "Combo", "Reach",
                               "RAM", "Server", "Version", "ICMP ping", "UDP port", "Warm", "Retro", "Gamma", "Vignette", "Position X",
                               "Position Y", "Position Z", "Crosshair", "Kills", "Plus", "Chat", "Audio", "Format", "PNG", "JPEG", "Limit",
-                              "ICMP-Ping", "RakNet-Ping (UDP)", "UDP-Port", "PvP Max FPS", "Wind", "The Hive", "Zeqa", "BedWars", "SkyWars", "Treasure Wars", "Ground Wars", "Capture the Flag", "/hub"};
+                              "ICMP-Ping", "RakNet-Ping (UDP)", "UDP-Port", "PvP Max FPS", "Soft Glow", "Vibrant", "Cinematic", "Crisp", "example", "Wind", "The Hive", "Zeqa", "BedWars", "SkyWars", "Treasure Wars", "Ground Wars", "Capture the Flag", "/hub"};
 
 void audit() {
     int missing = 0;
