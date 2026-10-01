@@ -372,8 +372,6 @@ void drawPreview(ImDrawList* dl, ImVec2 center, float unit, float yaw, float pit
         addFaces(faces, cube);
         bool textured = item && item->texture;
         for (auto& f : faces) {
-            V3 pts[4];
-            for (int i = 0; i < 4; i++) pts[i] = place.point(f.corner[i]);
             ImVec2 uv[4] = {{0.5f, 0.5f}, {0.5f, 0.5f}, {0.5f, 0.5f}, {0.5f, 0.5f}};
             if (textured) {
                 float u0, v0, u1, v1;
@@ -388,7 +386,26 @@ void drawPreview(ImDrawList* dl, ImVec2 center, float unit, float yaw, float pit
                 float tw = float(item->texW), th = float(item->texH);
                 uv[0] = {u0 / tw, v0 / th}; uv[1] = {u1 / tw, v0 / th}; uv[2] = {u1 / tw, v1 / th}; uv[3] = {u0 / tw, v1 / th};
             }
-            push(pts, place.normal(f.normal), item != nullptr, tint, alpha, textured ? item->texture : nullptr, !item || item->texel <= 1.f, uv);
+            // the painter's sort works per quad, so big plates are cut into small tiles or they sort wrongly against the body
+            auto steps = [](V3 a, V3 b) { return std::clamp(int(std::ceil(std::sqrt(dot(b - a, b - a)) / 2.f)), 1, 10); };
+            int nu = steps(f.corner[0], f.corner[1]), nv = steps(f.corner[0], f.corner[3]);
+            V3 eu = f.corner[1] - f.corner[0], ev = f.corner[3] - f.corner[0];
+            ImVec2 uu = {uv[1].x - uv[0].x, uv[1].y - uv[0].y}, uvv = {uv[3].x - uv[0].x, uv[3].y - uv[0].y};
+            auto at = [&](float a, float b, V3& p, ImVec2& t) {
+                p = place.point(f.corner[0] + eu * a + ev * b);
+                t = {uv[0].x + uu.x * a + uvv.x * b, uv[0].y + uu.y * a + uvv.y * b};
+            };
+            for (int j = 0; j < nv; j++)
+                for (int i = 0; i < nu; i++) {
+                    float a0 = float(i) / float(nu), a1 = float(i + 1) / float(nu), b0 = float(j) / float(nv), b1 = float(j + 1) / float(nv);
+                    V3 pts[4];
+                    ImVec2 tex[4];
+                    at(a0, b0, pts[0], tex[0]);
+                    at(a1, b0, pts[1], tex[1]);
+                    at(a1, b1, pts[2], tex[2]);
+                    at(a0, b1, pts[3], tex[3]);
+                    push(pts, place.normal(f.normal), item != nullptr, tint, alpha, textured ? item->texture : nullptr, !item || item->texel <= 1.f, tex);
+                }
         }
     };
 
