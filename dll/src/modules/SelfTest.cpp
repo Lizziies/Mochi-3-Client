@@ -26,6 +26,8 @@ size_t index = 0;
 int frame = 0;
 bool started = false;
 std::vector<std::string> failed;
+std::vector<std::string> stalled;
+double lastTick = 0.0;
 std::vector<std::string> skipped;
 int tested = 0;
 
@@ -73,10 +75,17 @@ void poke(Module& m) {
     modules::dispatchMouse(e);
 }
 
+const char* sameInGerman[] = {"Client", "Timer", "Ring", "Minecraft (MB)", "System (%)", "Name", "Chunk", "Text", "Yaw / Pitch", "Horizontal",
+                              "km/h", "Yaw", "Absorption", "FPS", "Frametime", "CPS", "Ping", "Jitter", "Position", "Hunger", "Combo", "Reach",
+                              "RAM", "Server", "Version", "ICMP ping", "UDP port", "Warm", "Retro", "Gamma", "Vignette", "Position X",
+                              "Position Y", "Position Z", "Crosshair", "Kills", "Plus", "Chat", "Audio", "Format", "PNG", "JPEG", "Limit",
+                              "ICMP-Ping", "RakNet-Ping (UDP)", "UDP-Port", "PvP Max FPS", "Wind", "The Hive", "Zeqa", "BedWars", "SkyWars", "Treasure Wars", "Ground Wars", "Capture the Flag", "/hub"};
+
 void audit() {
     int missing = 0;
     auto check = [&](const std::string& owner, const std::string& text) {
         if (text.size() < 3 || i18n::known(text.c_str())) return;
+        if (std::any_of(std::begin(sameInGerman), std::end(sameInGerman), [&](const char* w) { return text == w; })) return;
         if (std::none_of(text.begin(), text.end(), [](unsigned char c) { return std::isalpha(c); })) return;
         logger::warn("untranslated [{}]: {}", owner, text);
         missing++;
@@ -86,6 +95,7 @@ void audit() {
         check(m.name(), m.description());
         check(m.name(), m.sub());
         for (auto& st : m.settings()) {
+            if (st.hidden) continue;
             check(m.name(), st.label);
             for (auto& c : st.choices) check(m.name(), c);
         }
@@ -95,7 +105,8 @@ void audit() {
 
 void finish() {
     audit();
-    logger::info("selftest: tested {} modules, {} skipped (locked), {} failed", tested, skipped.size(), failed.size());
+    for (auto& n : stalled) logger::error("selftest STALL: {}", n);
+    logger::info("selftest: tested {} modules, {} skipped (locked), {} failed, {} stalled", tested, skipped.size(), failed.size(), stalled.size());
     for (auto& n : failed) logger::error("selftest FAIL: {}", n);
     logger::info("selftest done");
     client::requestUnload();
@@ -108,6 +119,13 @@ bool active() { return on; }
 void tick() {
     if (!on) return;
     auto& list = modules::all();
+
+    double now = GetTickCount64() / 1000.0;
+    if (started && lastTick > 0.0 && now - lastTick > 0.35 && index < list.size()) {
+        stalled.push_back(list[index]->name());
+        logger::warn("selftest: frame stall of {:.0f} ms in {}", (now - lastTick) * 1000.0, list[index]->name());
+    }
+    lastTick = now;
 
     if (!started) {
         started = true;
@@ -128,6 +146,11 @@ void tick() {
     }
 
     Module& m = *list[index];
+    const char* only = std::getenv("MOCHI_SELFTEST_ONLY");
+    if (only && (std::string(",") + only + ",").find("," + m.name() + ",") == std::string::npos) {
+        index++;
+        return;
+    }
     if (m.name() == "ClickGUI" || m.name() == "Game Support" || !m.available()) {
         if (frame == 0 && !m.available()) {
             skipped.push_back(m.name());
@@ -140,7 +163,10 @@ void tick() {
         return;
     }
 
-    if (frame == 0) m.setEnabled(true);
+    if (frame == 0) {
+        logger::info("selftest: {}", m.name());
+        m.setEnabled(true);
+    }
     if (frame % 7 == 3) mutate(m);
     if (frame % 5 == 1) poke(m);
 

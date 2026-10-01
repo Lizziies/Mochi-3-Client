@@ -36,8 +36,8 @@ Schrift: rund und gut lesbar, z. B. "Nunito" oder "Quicksand" (OFL-Lizenz, einbe
 ## HUD-Editor
 
 - Spiel abgedunkelt, alle HUD-Elemente mit gestrichelter Umrandung.
-- Ziehen, Mausrad = Größe, Rechtsklick = Einstellungen.
-- Hilfslinien und Einrasten an Rändern, Mitte und anderen Elementen.
+- Ziehen, Mausrad = Größe, Rechtsklick = Einstellungen, Doppelklick = Position und Größe zurücksetzen, Pfeiltasten = 1 px verschieben (Shift = 10 px).
+- Hilfslinien und Einrasten an Rändern, Mitte und den Rändern und Mitten anderer Elemente (gebaut). Shift beim Ziehen schaltet das Einrasten ab. Bei Überlappung wird das kleinere Element gegriffen.
 - Pro Element: Hintergrund an/aus, Farbe, Eckenradius, Textschatten, Ausrichtung.
 
 ## Launcher

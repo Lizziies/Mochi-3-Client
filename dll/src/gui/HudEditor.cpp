@@ -41,8 +41,14 @@ struct Rect {
     float l, t, r, b;
 };
 
+static ImVec2 boxSize(HudModule* h) {
+    float s = ui::scale();
+    ImVec2 sz = h->size();
+    return {std::max(sz.x, 34.f * s), std::max(sz.y, 22.f * s)};
+}
+
 static Rect rectOf(HudModule* h) {
-    ImVec2 p = h->position(), sz = h->size();
+    ImVec2 p = h->position(), sz = boxSize(h);
     return {p.x, p.y, p.x + sz.x, p.y + sz.y};
 }
 
@@ -83,7 +89,7 @@ void draw() {
         if (!m->enabled() || !m->isHud()) continue;
         auto* h = static_cast<HudModule*>(m.get());
         shown.push_back(h);
-        ImVec2 p = h->position(), sz = h->size();
+        ImVec2 p = h->position(), sz = boxSize(h);
         if (!ImGui::IsMouseHoveringRect(p, p + sz, false)) continue;
         float area = sz.x * sz.y;
         if (!hovered || area < hoveredArea) {
@@ -93,12 +99,12 @@ void draw() {
     }
 
     for (auto* h : shown) {
-        ImVec2 p = h->position(), sz = h->size();
+        ImVec2 p = h->position(), sz = boxSize(h);
         bool active = h == hovered || h == dragging || h == selected;
         ImU32 col = theme::col(active ? t.accent : t.accent2, active ? 1.f : 0.6f);
         dashedRect(fg, p - ImVec2(3 * s, 3 * s), p + sz + ImVec2(3 * s, 3 * s), col, 1.5f * s, 5 * s);
         if (h == selected) fg->AddRect(p - ImVec2(3 * s, 3 * s), p + sz + ImVec2(3 * s, 3 * s), theme::col(t.accent, 0.35f), 4 * s, 0, 3.f * s);
-        if ((h == hovered && !dragging) || h == selected || h == dragging) {
+        if ((h == hovered && !dragging) || h == selected || h == dragging || h->size().x < 20.f * s) {
             std::string label = std::format("{}  ·  {:.0f}%", h->name(), h->scale() * 100.f);
             fg->AddText(fonts::regular(), 13 * s, p + ImVec2(0, -18 * s), theme::col(t.text), label.c_str());
         }
@@ -137,7 +143,7 @@ void draw() {
             return;
         }
         ImVec2 target = io.MousePos - grabOffset;
-        ImVec2 sz = dragging->size();
+        ImVec2 sz = boxSize(dragging);
         if (!io.KeyShift) {
             float th = 7 * s;
             Snap sx, sy;

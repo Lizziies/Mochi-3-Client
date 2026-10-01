@@ -38,7 +38,7 @@ Arbeitstitel "Mochi" — vor dem ersten Release umbenennen (global suchen/ersetz
 
 The code must read like a hand-written open-source project.
 
-- C++20, MSVC, CMake. C# .NET 8 for the launcher.
+- C++20, MSVC, CMake, for the client and the launcher (ImGui, DirectX 11, WinHTTP).
 - No comments that restate the code. Comment only non-obvious reverse-engineering facts (where a signature points, why an offset is what it is). No banner comments, no section dividers, no emoji, no "// Helper function to ..." lines.
 - No doc-comment blocks on every function. Names carry the meaning.
 - Short, specific names: `Zoom`, `fovTarget`, `scanSig`, not `ZoomModuleImplementation`, `targetFieldOfViewValue`.
@@ -67,7 +67,8 @@ tools/cross.sh shots    # runs the dll in the test host under Wine, takes screen
 # on Windows
 cmake -S dll -B build -G "Visual Studio 17 2022" -A x64
 cmake --build build --config Release
-dotnet publish launcher -c Release -r win-x64 --self-contained -p:PublishSingleFile=true
+cmake -S launcher -B build-launcher -G "Visual Studio 17 2022" -A x64
+cmake --build build-launcher --config Release
 ```
 
 ## Test loop

@@ -59,6 +59,7 @@
 #include "perf/Auto.hpp"
 #include "perf/FrameLimiter.hpp"
 #include "perf/LowLatency.hpp"
+#include "perf/PerformanceLock.hpp"
 #include "perf/Tuning.hpp"
 #include "post/Capture.hpp"
 #include "post/Effects.hpp"
@@ -232,6 +233,7 @@ void init() {
     add<AutoProfile>();
     add<BackgroundLoad>();
     add<SystemBoost>();
+    add<PerformanceLock>();
     add<SigStatus>();
 
     add<Snake>();
