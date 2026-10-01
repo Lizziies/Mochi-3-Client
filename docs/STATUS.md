@@ -193,3 +193,9 @@ Das hier ist der Anfang, nicht das Ende. Die Basis steht, der große Rest (Modul
 - Eigener Name im Spiel bei F5: "Third Person Nametag" von Session B (Hook, braucht die Signatur).
 - Offen, nur am PC: Cosmetics im Spiel für andere sichtbar. Ansatz in `docs/COSMETICS.md` unter "Cosmetics im Spiel".
 - **Plan für den PC:** `docs/PLAN_HOME.md` beschreibt Phase für Phase, wie Claude Code zu Hause den Client im echten Minecraft verbindet und testet (Start, Signatur-Werkzeuge, vier Signatur-Wellen, Server, Mochi Online, Cosmetics, Messung gegen Flarial und Onix, Versionen und Release).
+
+## 2026-10-01 abends, PC-Test (claude/pc-test)
+
+- Der Client baut mit MSVC, lädt im echten Minecraft 1.26.52.3 und zeichnet über DX12 (Hub, Blur, HUD). Phase 0 ist begonnen, Gate noch nicht erreicht: Strg+L, Fenstergröße, Vollbild, Alt-Tab, 30-Minuten-Lauf und Versionswahl sind ungeprüft.
+- 179 Module registriert, 107 gesperrt (`locked:`), `sigs: 0/0`. Das Ziel "locked leer" hängt an den Signaturen (Phase 2).
+- Fehler aus dem ersten Spieltest (HUD in Menüs, Eingabe bei offenem Menü, Toast-Seite) sind im Code behoben, Prüfung im Spiel steht aus, siehe `docs/TESTLOG.md`.
