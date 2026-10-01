@@ -88,6 +88,6 @@ ImVec2 TextHud::content(ImDrawList* dl, ImVec2 origin, float scale) {
         at.x += sz.x;
         h = sz.y;
     }
-    auto sz = drawText(dl, at, scale, v, textColor());
+    auto sz = drawText(dl, at, scale, v, valueColor());
     return {at.x + sz.x - origin.x, std::max(h, sz.y)};
 }

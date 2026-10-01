@@ -48,5 +48,6 @@ public:
 protected:
     virtual std::string label() const { return ""; }
     virtual std::string value() = 0;
+    virtual ImU32 valueColor() const { return textColor(); }
     ImVec2 content(ImDrawList* dl, ImVec2 origin, float scale) override;
 };

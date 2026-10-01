@@ -3,6 +3,7 @@
 #include "gui/Theme.hpp"
 #include "hook/Input.hpp"
 #include "modules/HudModule.hpp"
+#include "modules/Manager.hpp"
 #include "render/Draw.hpp"
 
 #include <algorithm>
@@ -16,8 +17,8 @@ public:
 protected:
     ImVec2 content(ImDrawList* dl, ImVec2 o, float s) override {
         float size = boxSize_.f * s;
-        int dx = 0, dy = 0;
-        input::consumeMotion(dx, dy);
+        auto d = modules::mouseDelta();
+        int dx = d.x, dy = d.y;
 
         target_.x = std::clamp(target_.x * 0.8f + dx * sensitivity_.f * 0.05f, -1.f, 1.f);
         target_.y = std::clamp(target_.y * 0.8f + dy * sensitivity_.f * 0.05f, -1.f, 1.f);

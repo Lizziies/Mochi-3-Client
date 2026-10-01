@@ -1,6 +1,7 @@
 #pragma once
 
 #include "I18n.hpp"
+#include "Tuning.hpp"
 #include "hook/Dx.hpp"
 #include "modules/Module.hpp"
 
@@ -13,13 +14,10 @@ public:
     }
 
     void onFrame() override {
-        auto& t = dx::tuning();
-        t.lowLatency = queue_.b;
-        t.allowTearing = tearing_.b;
-        t.fpsLimit = useLimit_.b ? limit_.f : 0.f;
+        if (queue_.b) perf::lowLatency();
+        if (tearing_.b) perf::tearing();
+        if (useLimit_.b) perf::limit(limit_.f);
     }
-
-    void onDisable() override { dx::tuning() = {}; }
 
     void drawSettings() override {
         auto& fi = dx::frame();

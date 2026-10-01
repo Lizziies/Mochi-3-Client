@@ -2,6 +2,7 @@
 
 #include "Setting.hpp"
 #include "core/Events.hpp"
+#include "sdk/Game.hpp"
 
 #include <imgui.h>
 #include <json.hpp>
@@ -46,11 +47,12 @@ public:
     const std::string& name() const { return name_; }
     const std::string& description() const { return description_; }
     Category category() const { return category_; }
+    const std::string& sub() const { return sub_; }
     const std::vector<std::string>& tags() const { return tags_; }
     const std::vector<std::string>& sigs() const { return sigs_; }
     bool hasTag(const std::string& t) const;
 
-    bool available() const { return missing_.empty(); }
+    bool available() const { return game::demo() || (missing_.empty() && game::ready(needs_)); }
     const std::vector<std::string>& missingSigs() const { return missing_; }
     void checkSigs();
 
@@ -81,6 +83,13 @@ protected:
     Setting& textSetting(std::string id, std::string label, std::string def);
 
     void markRisky() { risky_ = true; }
+    void sub(std::string name) { sub_ = std::move(name); }
+    void needs(unsigned mask) { needs_ = mask; }
+    void needs(game::Domain d) { needs_ = unsigned(d); }
+    void require(unsigned domains, std::vector<std::string> sigs) {
+        needs_ = domains;
+        sigs_ = std::move(sigs);
+    }
 
 private:
     Setting& add(Setting s);
@@ -88,12 +97,14 @@ private:
     std::string name_;
     std::string description_;
     Category category_;
+    std::string sub_;
     std::vector<std::string> tags_;
     std::vector<std::string> sigs_;
     std::vector<std::string> missing_;
     std::vector<std::string> blockedOptions_;
     std::deque<Setting> settings_;
     Setting* key_ = nullptr;
+    unsigned needs_ = 0;
     bool enabled_ = false;
     bool wanted_ = false;
     bool risky_ = false;

@@ -26,5 +26,12 @@ void dispatchKey(KeyEvent& ev);
 void dispatchMouse(MouseEvent& ev);
 void dispatchServer(const ServerEvent& ev);
 void refreshSigs();
+float costMs();
+
+struct Motion {
+    int x = 0;
+    int y = 0;
+};
+Motion mouseDelta();
 
 }

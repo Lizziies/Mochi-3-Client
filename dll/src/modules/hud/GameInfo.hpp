@@ -1,0 +1,445 @@
+#pragma once
+
+#include "gui/Gui.hpp"
+#include "gui/Theme.hpp"
+#include "modules/common/Colors.hpp"
+#include "modules/common/GameHud.hpp"
+#include "modules/common/Needs.hpp"
+#include "modules/common/Text.hpp"
+#include "render/Draw.hpp"
+#include "render/Fonts.hpp"
+#include "render/Ui.hpp"
+#include "sdk/Game.hpp"
+#include "server/Rules.hpp"
+
+#include <algorithm>
+#include <cmath>
+#include <format>
+
+class Coordinates : public GameList {
+public:
+    Coordinates()
+        : GameList("Coordinates", "Zeigt deine Position, auf Wunsch mit Chunk, Biom, Himmelsrichtung und Nether-Umrechnung.", need::player,
+                   need::sigs({"LocalPlayer"}), {"hud-self"}, {0.01f, 0.30f}) {
+        sub("Eigene Werte");
+    }
+
+    void onKey(KeyEvent& ev) override {
+        if (ev.down && !ev.repeat && ev.vk == hideKey_.i && hideKey_.i) hidden_ = !hidden_;
+    }
+
+protected:
+    ImVec2 content(ImDrawList* dl, ImVec2 o, float s) override {
+        auto& p = game::state().player;
+        float y = 0.f, w = 0.f;
+        auto line = [&](const std::string& label, const std::string& value, ImU32 col) {
+            ImVec2 a = drawText(dl, o + ImVec2(0, y), s, label, accentColor());
+            ImVec2 b = drawText(dl, o + ImVec2(a.x + 6 * s, y), s, value, col);
+            w = std::max(w, a.x + 6 * s + b.x);
+            y += std::max(a.y, b.y);
+        };
+        if (hidden_) {
+            line("XYZ", "versteckt", textColor());
+            return {w, y};
+        }
+        float px = p.pos.x, py = p.pos.y, pz = p.pos.z;
+        auto fmt = [&](float v) { return blocks_.b ? std::to_string(int(std::floor(v))) : text::num(v, decimals_.i); };
+        if (layout_.i == 0) {
+            line("XYZ", fmt(px) + " / " + fmt(py) + " / " + fmt(pz), textColor());
+        } else {
+            line("X", fmt(px), ImGui::GetColorU32(xColor_.color));
+            line("Y", fmt(py), ImGui::GetColorU32(yColor_.color));
+            line("Z", fmt(pz), ImGui::GetColorU32(zColor_.color));
+        }
+        if (nether_.b && p.dimension != 2) {
+            float k = p.dimension == 1 ? 8.f : 1.f / 8.f;
+            line(p.dimension == 1 ? "Oberwelt" : "Nether", fmt(px * k) + " / " + fmt(pz * k), textColor());
+        }
+        if (chunk_.b) line("Chunk", std::format("{} {}", int(std::floor(px / 16.f)), int(std::floor(pz / 16.f))), textColor());
+        if (inChunk_.b) line("Im Chunk", std::format("{} {} {}", int(std::floor(px)) & 15, int(std::floor(py)) & 15, int(std::floor(pz)) & 15), textColor());
+        if (facing_.b) line("Blick", compass(p.yaw), textColor());
+        if (biome_.b) line("Biom", text::pretty(game::state().world.biome), textColor());
+        return {w, y};
+    }
+
+private:
+    static std::string compass(float yaw) {
+        static const char* names[] = {"Norden", "Nordosten", "Osten", "Südosten", "Süden", "Südwesten", "Westen", "Nordwesten"};
+        float bearing = std::fmod(yaw + 180.f + 360.f, 360.f);
+        return names[int(std::floor((bearing + 22.5f) / 45.f)) % 8];
+    }
+
+    Setting& layout_ = choice("layout", "Anordnung", {"Eine Zeile", "Untereinander"});
+    Setting& decimals_ = intSlider("decimals", "Nachkommastellen", 1, 0, 4);
+    Setting& blocks_ = toggleSetting("blocks", "Nur Blockkoordinaten", false);
+    Setting& nether_ = toggleSetting("nether", "Nether-Umrechnung", false);
+    Setting& chunk_ = toggleSetting("chunk", "Chunk", false);
+    Setting& inChunk_ = toggleSetting("inChunk", "Position im Chunk", false);
+    Setting& facing_ = toggleSetting("facing", "Himmelsrichtung", false);
+    Setting& biome_ = toggleSetting("biome", "Biom", false);
+    Setting& xColor_ = colorSetting("xColor", "Farbe X", {1.f, 0.55f, 0.6f, 1.f});
+    Setting& yColor_ = colorSetting("yColor", "Farbe Y", {0.6f, 1.f, 0.7f, 1.f});
+    Setting& zColor_ = colorSetting("zColor", "Farbe Z", {0.6f, 0.75f, 1.f, 1.f});
+    Setting& hideKey_ = keySetting("hideKey", "Verstecken (Streamer)", 0);
+    bool hidden_ = false;
+};
+
+class DirectionHud : public GameList {
+public:
+    DirectionHud()
+        : GameList("Direction HUD", "Kompass mit Himmelsrichtung, Grad und Blickwinkel, als Text oder als Leiste.", need::player,
+                   need::sigs({"LocalPlayer"}), {"hud-self"}, {0.40f, 0.10f}) {
+        sub("Eigene Werte");
+        width_.visible = [this] { return style_.i == 1; };
+    }
+
+protected:
+    ImVec2 content(ImDrawList* dl, ImVec2 o, float s) override {
+        auto& p = game::state().player;
+        float bearing = std::fmod(p.yaw + 180.f + 360.f, 360.f);
+        static const char* short_[] = {"N", "NO", "O", "SO", "S", "SW", "W", "NW"};
+        const char* dir = short_[int(std::floor((bearing + 22.5f) / 45.f)) % 8];
+        float y = 0.f, w = 0.f;
+        if (style_.i == 0) {
+            std::string t = std::format("{}  {:.0f}°", dir, bearing);
+            if (angles_.b) t += std::format("  ·  Yaw {:.1f}  Pitch {:.1f}", p.yaw, p.pitch);
+            auto sz = drawText(dl, o, s, t, textColor());
+            return {sz.x, sz.y};
+        }
+        w = width_.f * s;
+        float h = fonts::hudSize() * s * 1.2f;
+        ImVec2 a = o, b = o + ImVec2(w, h);
+        float pxPerDeg = w / 180.f;
+        dl->PushClipRect(a, b, true);
+        for (int d = -100; d <= 100; d += 5) {
+            float deg = std::floor(bearing / 5.f) * 5.f + d;
+            float x = a.x + w * 0.5f + (deg - bearing) * pxPerDeg;
+            int norm = ((int(deg) % 360) + 360) % 360;
+            bool major = norm % 45 == 0;
+            dl->AddLine({x, b.y - (major ? h * 0.5f : h * 0.25f)}, {x, b.y}, theme::col(theme::current().textDim, 0.6f), 1.f * s);
+            if (major) {
+                static const char* names[] = {"N", "NO", "O", "SO", "S", "SW", "W", "NW"};
+                const char* n = names[norm / 45];
+                bool cardinal = norm % 90 == 0;
+                ImVec2 ts = textSize(s, n);
+                drawText(dl, {x - ts.x * 0.5f, a.y}, s, n, cardinal ? accentColor() : textColor());
+            }
+        }
+        dl->PopClipRect();
+        dl->AddTriangleFilled({a.x + w * 0.5f - 4 * s, b.y + 2 * s}, {a.x + w * 0.5f + 4 * s, b.y + 2 * s}, {a.x + w * 0.5f, b.y - 4 * s},
+                              ImGui::GetColorU32(theme::current().accent));
+        y = h + 6 * s;
+        if (angles_.b) {
+            std::string t = std::format("{:.0f}°  ·  Pitch {:.1f}", bearing, p.pitch);
+            auto sz = drawText(dl, o + ImVec2(0, y), s, t, textColor());
+            y += sz.y;
+        }
+        return {w, y};
+    }
+
+private:
+    Setting& style_ = choice("style", "Darstellung", {"Text", "Leiste"}, 1);
+    Setting& width_ = slider("width", "Breite der Leiste", 260.f, 120.f, 600.f, "%.0f");
+    Setting& angles_ = toggleSetting("angles", "Yaw / Pitch", false);
+};
+
+class SpeedDisplay : public GameText {
+public:
+    SpeedDisplay()
+        : GameText("Speed Display", "Zeigt deine Geschwindigkeit in Blöcken pro Sekunde.", need::player, need::sigs({"LocalPlayer"}), {"hud-self"},
+                   {0.01f, 0.34f}) {
+        sub("Eigene Werte");
+    }
+
+    void onFrame() override {
+        auto& st = game::state();
+        auto& p = st.player.pos;
+        if (have_ && st.dt > 0.0) {
+            float dx = p.x - last_.x, dy = p.y - last_.y, dz = p.z - last_.z;
+            float d = axes_.i == 0 ? std::sqrt(dx * dx + dz * dz) : axes_.i == 1 ? std::fabs(dy) : std::sqrt(dx * dx + dy * dy + dz * dz);
+            float v = d / float(st.dt);
+            if (v < 200.f) speed_ += (v - speed_) * std::min(1.f, float(st.dt) / std::max(0.02f, smooth_.f));
+        }
+        last_ = p;
+        have_ = true;
+        peak_ = std::max(peak_ * (1.f - float(st.dt) * 0.05f), speed_);
+    }
+
+protected:
+    std::string label() const override { return "Tempo"; }
+
+    std::string value() override {
+        float v = unit_.i == 1 ? speed_ * 3.6f : speed_;
+        std::string out = text::num(v, decimals_.i) + (unit_.i == 1 ? " km/h" : " b/s");
+        if (showPeak_.b) out += "  ·  Max " + text::num(unit_.i == 1 ? peak_ * 3.6f : peak_, decimals_.i);
+        return out;
+    }
+
+private:
+    Setting& axes_ = choice("axes", "Richtung", {"Horizontal", "Vertikal", "Alle Achsen"});
+    Setting& unit_ = choice("unit", "Einheit", {"Blöcke pro Sekunde", "km/h"});
+    Setting& decimals_ = intSlider("decimals", "Nachkommastellen", 1, 0, 3);
+    Setting& smooth_ = slider("smooth", "Glättung (s)", 0.15f, 0.02f, 1.f, "%.2f s");
+    Setting& showPeak_ = toggleSetting("peak", "Höchstwert anzeigen", false);
+    game::Vec3 last_;
+    bool have_ = false;
+    float speed_ = 0.f;
+    float peak_ = 0.f;
+};
+
+class LookAngles : public GameText {
+public:
+    LookAngles()
+        : GameText("Look Angles", "Zeigt Yaw und Pitch deiner Blickrichtung.", need::player, need::sigs({"LocalPlayer"}), {"hud-self"}, {0.01f, 0.38f}) {
+        sub("Eigene Werte");
+    }
+
+protected:
+    std::string value() override {
+        auto& p = game::state().player;
+        std::string out;
+        if (yaw_.b) out += "Yaw " + text::num(p.yaw, decimals_.i);
+        if (pitch_.b) out += std::string(out.empty() ? "" : "  ·  ") + "Pitch " + text::num(p.pitch, decimals_.i);
+        return out.empty() ? "–" : out;
+    }
+
+private:
+    Setting& yaw_ = toggleSetting("yaw", "Yaw", true);
+    Setting& pitch_ = toggleSetting("pitch", "Pitch", true);
+    Setting& decimals_ = intSlider("decimals", "Nachkommastellen", 1, 0, 3);
+};
+
+class HealthDisplay : public GameText {
+public:
+    HealthDisplay()
+        : GameText("Health Display", "Zeigt dein Leben als Zahl, Herzen oder Balken, mit Absorption.", need::player, need::sigs({"LocalPlayer"}),
+                   {"hud-self"}, {0.01f, 0.42f}) {
+        sub("Eigene Werte");
+    }
+
+protected:
+    std::string label() const override { return "Leben"; }
+
+    std::string value() override {
+        auto& p = game::state().player;
+        std::string out = style_.i == 0 ? std::format("{:.1f} / {:.0f}", p.health, p.maxHealth) : std::format("{:.1f} ♥", p.health / 2.f);
+        if (absorb_.b && p.absorption > 0.f) out += style_.i == 0 ? std::format(" +{:.0f}", p.absorption) : std::format(" +{:.1f}", p.absorption / 2.f);
+        return out;
+    }
+
+    ImU32 valueColor() const override {
+        auto& p = game::state().player;
+        if (!colored_.b) return textColor();
+        float f = p.maxHealth > 0.f ? p.health / p.maxHealth : 1.f;
+        return ImGui::GetColorU32(rampColor(1.f - f, 0.f, 1.f, good_.color, mid_.color, low_.color));
+    }
+
+private:
+    Setting& style_ = choice("style", "Anzeige", {"Zahl", "Herzen"});
+    Setting& absorb_ = toggleSetting("absorb", "Absorption", true);
+    Setting& colored_ = toggleSetting("colored", "Farbe nach Leben", true);
+    Setting& good_ = colorSetting("good", "Voll", {0.55f, 0.91f, 0.69f, 1.f});
+    Setting& mid_ = colorSetting("mid", "Halb", {1.f, 0.82f, 0.49f, 1.f});
+    Setting& low_ = colorSetting("low", "Wenig", {1.f, 0.4f, 0.45f, 1.f});
+};
+
+class ExperienceInfo : public GameList {
+public:
+    ExperienceInfo()
+        : GameList("Experience Info", "Zeigt dein Level und den Fortschritt zum nächsten Level.", need::player, need::sigs({"LocalPlayer"}),
+                   {"hud-self"}, {0.01f, 0.46f}) {
+        sub("Eigene Werte");
+    }
+
+protected:
+    ImVec2 content(ImDrawList* dl, ImVec2 o, float s) override {
+        auto& p = game::state().player;
+        auto sz = drawText(dl, o, s, std::format("Level {}{}", p.level, percent_.b ? std::format("  ·  {:.0f}%", p.xp * 100.f) : ""), textColor());
+        float w = std::max(sz.x, 110.f * s), y = sz.y;
+        if (bar_.b) {
+            ImVec2 b0 = o + ImVec2(0, y + 2 * s);
+            dl->AddRectFilled(b0, b0 + ImVec2(w, 5 * s), IM_COL32(0, 0, 0, 80), 2.5f * s);
+            dl->AddRectFilled(b0, b0 + ImVec2(w * std::clamp(p.xp, 0.f, 1.f), 5 * s), ImGui::GetColorU32(color_.color), 2.5f * s);
+            y += 9 * s;
+        }
+        return {w, y};
+    }
+
+private:
+    Setting& percent_ = toggleSetting("percent", "Prozent", true);
+    Setting& bar_ = toggleSetting("bar", "Balken", true);
+    Setting& color_ = colorSetting("color", "Balkenfarbe", {0.55f, 0.95f, 0.45f, 1.f});
+};
+
+class DayCounter : public GameText {
+public:
+    DayCounter()
+        : GameText("Day Counter", "Zeigt den Spieltag und die Spielzeit der Welt.", need::world, need::sigs({"Level"}), {"hud-self"}, {0.01f, 0.50f}) {
+        sub("Eigene Werte");
+    }
+
+protected:
+    std::string label() const override { return "Tag"; }
+
+    std::string value() override {
+        auto& w = game::state().world;
+        std::string out = std::to_string(w.day);
+        if (time_.b) {
+            int hours = (w.time / 1000 + 6) % 24, minutes = (w.time % 1000) * 60 / 1000;
+            out += twelve_.b ? std::format("  ·  {}:{:02} {}", hours % 12 == 0 ? 12 : hours % 12, minutes, hours >= 12 ? "PM" : "AM")
+                             : std::format("  ·  {:02}:{:02}", hours, minutes);
+        }
+        if (phase_.b) out += std::format("  ·  {}", w.time >= 13000 && w.time < 23000 ? "Nacht" : "Tag");
+        return out;
+    }
+
+private:
+    Setting& time_ = toggleSetting("time", "Spielzeit", true);
+    Setting& twelve_ = toggleSetting("twelve", "12-Stunden-Format", false);
+    Setting& phase_ = toggleSetting("phase", "Tag oder Nacht", false);
+};
+
+class IpDisplay : public TextHud {
+public:
+    IpDisplay() : TextHud("IP Display", "Zeigt die Server-Adresse. Für Streamer lässt sie sich verstecken.", {"hud-self"}, {0.01f, 0.54f}) {
+        sub("Eigene Werte");
+    }
+
+    void onKey(KeyEvent& ev) override {
+        if (ev.down && !ev.repeat && ev.vk == hideKey_.i && hideKey_.i) hidden_ = !hidden_;
+    }
+
+    void onRender(ImDrawList* dl) override {
+        if (onlyOnline_.b && rules::status().server.empty() && !gui::editingHud()) return;
+        TextHud::onRender(dl);
+    }
+
+protected:
+    std::string label() const override { return "IP"; }
+
+    std::string value() override {
+        auto st = rules::status();
+        std::string v = mode_.i == 1 ? st.ip : st.host;
+        if (v.empty()) v = st.ip;
+        if (v.empty()) return "–";
+        if (hidden_ || mask_.b) return std::string(std::min<size_t>(v.size(), 14), '*');
+        return v;
+    }
+
+private:
+    Setting& mode_ = choice("mode", "Anzeige", {"Adresse", "IP"});
+    Setting& mask_ = toggleSetting("mask", "Immer als Sterne", false);
+    Setting& hideKey_ = keySetting("hideKey", "Verstecken per Taste", 0);
+    Setting& onlyOnline_ = toggleSetting("online", "Nur auf Servern anzeigen", true);
+    bool hidden_ = false;
+};
+
+class PackDisplay : public GameList {
+public:
+    PackDisplay()
+        : GameList("Pack Display", "Zeigt, welche Resource Packs gerade aktiv sind.", need::world, need::sigs({"Level", "PackList"}), {"hud-self"},
+                   {0.01f, 0.58f}) {
+        sub("Eigene Werte");
+    }
+
+protected:
+    ImVec2 content(ImDrawList* dl, ImVec2 o, float s) override {
+        auto& packs = game::state().world.packs;
+        float y = 0.f, w = 0.f;
+        int shown = 0;
+        for (auto& p : packs) {
+            if (shown++ >= max_.i) break;
+            auto sz = drawText(dl, o + ImVec2(0, y), s, p, textColor());
+            w = std::max(w, sz.x);
+            y += sz.y;
+        }
+        if (packs.empty()) {
+            auto sz = drawText(dl, o, s, "Kein Pack", textColor());
+            return sz;
+        }
+        return {w, y};
+    }
+
+private:
+    Setting& max_ = intSlider("max", "Maximal anzeigen", 4, 1, 10);
+};
+
+class HeldItem : public GameList {
+public:
+    HeldItem()
+        : GameList("Held Item", "Zeigt das Item in deiner Hand mit Menge und Haltbarkeit.", need::inventory, need::sigs({"LocalPlayer", "Inventory"}),
+                   {"hud-self"}, {0.01f, 0.62f}) {
+        sub("Eigene Werte");
+    }
+
+protected:
+    ImVec2 content(ImDrawList* dl, ImVec2 o, float s) override {
+        auto& it = game::state().player.held();
+        if (it.empty()) return drawText(dl, o, s, "Leere Hand", textColor());
+        std::string name = text::pretty(it.name);
+        if (count_.b && it.count > 1) name += std::format(" x{}", it.count);
+        auto sz = drawText(dl, o, s, name, it.enchanted && glint_.b ? accentColor() : textColor());
+        float w = sz.x, y = sz.y;
+        if (it.maxDamage > 0 && durability_.b) {
+            auto d = drawText(dl, o + ImVec2(0, y), s, percent_.b ? std::format("{:.0f}%", it.fraction() * 100.f) : std::format("{} / {}", it.left(), it.maxDamage),
+                              ImGui::GetColorU32(rampColor(1.f - it.fraction(), 0.f, 1.f, ok_.color, warn_.color, bad_.color)));
+            w = std::max(w, d.x);
+            y += d.y;
+        }
+        return {w, y};
+    }
+
+private:
+    Setting& count_ = toggleSetting("count", "Menge", true);
+    Setting& durability_ = toggleSetting("durability", "Haltbarkeit", true);
+    Setting& percent_ = toggleSetting("percent", "Als Prozent", false);
+    Setting& glint_ = toggleSetting("glint", "Verzauberte hervorheben", true);
+    Setting& ok_ = colorSetting("ok", "Farbe voll", {0.55f, 0.91f, 0.69f, 1.f});
+    Setting& warn_ = colorSetting("warn", "Farbe halb", {1.f, 0.82f, 0.49f, 1.f});
+    Setting& bad_ = colorSetting("bad", "Farbe fast kaputt", {1.f, 0.4f, 0.45f, 1.f});
+};
+
+class BreakProgress : public Module {
+public:
+    BreakProgress()
+        : Module("Break Progress", "Zeigt den Abbaufortschritt des Blocks, den du gerade abbaust, am Fadenkreuz.", Category::Visual, {"hud-self"}) {
+        sub("Welt");
+        require(need::target, need::sigs({"LocalPlayer", "Target"}));
+    }
+
+    void onRender(ImDrawList* dl) override {
+        auto& t = game::state().target;
+        bool active = t.kind == game::Target::Kind::Block && t.breakProgress > 0.f;
+        shown_ = draw::approach(shown_, active ? 1.f : 0.f, 16.f);
+        if (active) last_ = t.breakProgress;
+        if (shown_ < 0.02f) return;
+        auto ds = ImGui::GetIO().DisplaySize;
+        float s = ui::scale();
+        ImVec2 c{std::floor(ds.x * 0.5f) + 0.5f + offsetX_.f, std::floor(ds.y * 0.5f) + 0.5f + offsetY_.f};
+        ImVec4 col = theme::mix(color_.color, doneColor_.color, last_ * last_);
+        col.w *= shown_;
+        if (style_.i == 0) {
+            float w = width_.f * s, h = 5.f * s;
+            dl->AddRectFilled(c - ImVec2(w * 0.5f, 0), c + ImVec2(w * 0.5f, h), IM_COL32(0, 0, 0, int(110 * shown_)), h * 0.5f);
+            dl->AddRectFilled(c - ImVec2(w * 0.5f, 0), c + ImVec2(w * (last_ - 0.5f), h), ImGui::GetColorU32(col), h * 0.5f);
+        } else {
+            float r = width_.f * 0.2f * s;
+            dl->AddCircle(c, r, IM_COL32(0, 0, 0, int(110 * shown_)), 32, 4 * s);
+            dl->PathArcTo(c, r, -1.5708f, -1.5708f + 6.2832f * last_, 32);
+            dl->PathStroke(ImGui::GetColorU32(col), 0, 3 * s);
+        }
+        if (percent_.b) draw::textCentered(dl, fonts::bold(), 12.f * s, c + ImVec2(0, style_.i == 0 ? 16 * s : 0.f), ImGui::GetColorU32(col),
+                                           std::format("{:.0f}%", last_ * 100.f).c_str());
+    }
+
+private:
+    Setting& style_ = choice("style", "Form", {"Balken", "Ring"});
+    Setting& width_ = slider("width", "Größe", 70.f, 30.f, 200.f, "%.0f");
+    Setting& offsetX_ = slider("offsetX", "Versatz X", 0.f, -300.f, 300.f, "%.0f");
+    Setting& offsetY_ = slider("offsetY", "Versatz Y", 40.f, -300.f, 300.f, "%.0f");
+    Setting& percent_ = toggleSetting("percent", "Prozent", true);
+    Setting& color_ = colorSetting("color", "Farbe", {1.f, 0.49f, 0.71f, 1.f});
+    Setting& doneColor_ = colorSetting("done", "Farbe kurz vor fertig", {0.55f, 0.91f, 0.69f, 1.f});
+    float shown_ = 0.f;
+    float last_ = 0.f;
+};

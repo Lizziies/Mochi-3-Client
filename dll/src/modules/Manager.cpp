@@ -5,10 +5,22 @@
 #include "gui/Gui.hpp"
 #include "gui/Notify.hpp"
 #include "gui/Widgets.hpp"
+#include "hook/Input.hpp"
 #include "server/Rules.hpp"
+#include "sdk/Effects.hpp"
+#include "sdk/Game.hpp"
+#include "sdk/Inject.hpp"
 #include "sig/Sigs.hpp"
 
+#include "camera/Camera.hpp"
 #include "client/ClickGui.hpp"
+#include "client/SigStatus.hpp"
+#include "combat/Counters.hpp"
+#include "combat/Feedback.hpp"
+#include "combat/Target.hpp"
+#include "combat/Tweaks.hpp"
+#include "comfort/Screenshot.hpp"
+#include "fun/BlockGame.hpp"
 #include "fun/DvdScreen.hpp"
 #include "fun/EyeBreak.hpp"
 #include "fun/Flappy.hpp"
@@ -16,18 +28,34 @@
 #include "hud/Clock.hpp"
 #include "hud/Cps.hpp"
 #include "hud/Fps.hpp"
+#include "hud/GameInfo.hpp"
+#include "hud/Inventory.hpp"
 #include "hud/Keystrokes.hpp"
 #include "hud/Latency.hpp"
 #include "hud/Memory.hpp"
 #include "hud/MouseStrokes.hpp"
+#include "hud/Pomodoro.hpp"
 #include "hud/ServerInfo.hpp"
 #include "hud/SessionTimer.hpp"
 #include "hud/Stopwatch.hpp"
 #include "input/CpsLimiter.hpp"
+#include "input/InstantInput.hpp"
 #include "input/NoScroll.hpp"
+#include "network/LatencyBlame.hpp"
+#include "network/Network.hpp"
+#include "network/PingCounter.hpp"
+#include "network/Probe.hpp"
+#include "perf/FrameLimiter.hpp"
 #include "perf/LowLatency.hpp"
+#include "perf/Tuning.hpp"
+#include "post/Capture.hpp"
+#include "post/Effects.hpp"
+#include "post/FunEffects.hpp"
+#include "post/PostFx.hpp"
 #include "perf/SystemBoost.hpp"
 #include "visual/Crosshair.hpp"
+#include "world/Waypoints.hpp"
+#include "world/World.hpp"
 
 #include <windows.h>
 
@@ -35,6 +63,8 @@ namespace modules {
 
 static std::vector<std::unique_ptr<Module>> list;
 static bool hudHidden = false;
+static float cost = 0.f;
+static Motion motion;
 
 template <class T>
 static void add() {
@@ -42,6 +72,7 @@ static void add() {
 }
 
 void init() {
+    game::init();
     add<ClickGui>();
 
     add<Fps>();
@@ -50,23 +81,116 @@ void init() {
     add<MouseStrokes>();
     add<Clock>();
     add<Stopwatch>();
+    add<Pomodoro>();
     add<SessionTimer>();
     add<Memory>();
     add<LatencyHud>();
     add<ServerInfo>();
+    add<IpDisplay>();
+    add<Coordinates>();
+    add<DirectionHud>();
+    add<SpeedDisplay>();
+    add<LookAngles>();
+    add<HealthDisplay>();
+    add<ExperienceInfo>();
+    add<DayCounter>();
+    add<PackDisplay>();
+    add<HeldItem>();
+    add<ArmorHud>();
+    add<PotionHud>();
+    add<PotCounter>();
+    add<ArrowCounter>();
+    add<TotemCounter>();
+    add<ItemCounter>();
+    add<DurabilityWarning>();
+    add<LowHealth>();
+    add<BetterHunger>();
+    add<PingCounter>();
+    add<Network>();
+    add<LatencyBlame>();
 
+    add<SaturationHue>();
+    add<BrightnessContrast>();
+    add<ScreenTint>();
+    add<Sharpen>();
+    add<DepthOfField>();
+    add<ColorFilter>();
+    add<NightShift>();
+    add<MotionBlur>();
+
+    add<FovChanger>();
+    add<JavaDynamicFov>();
+    add<Zoom>();
+    add<Freelook>();
+    add<NoViewBobbing>();
+    add<MinimalViewBobbing>();
+    add<NoHurtCam>();
+    add<SmoothSneak>();
+    add<AutoPerspective>();
+    add<Fullbright>();
+    add<BlockOutline>();
+    add<TimeChanger>();
+    add<WeatherChanger>();
+    add<EnvironmentChanger>();
+    add<FogColor>();
+    add<WaterColor>();
+    add<ChunkBorder>();
+    add<Waypoints>();
+    add<HideHand>();
+    add<ViewModel>();
+    add<Animations>();
+
+    add<BreakProgress>();
     add<Crosshair>();
 
+    add<ReachCounter>();
+    add<OpponentReach>();
+    add<ComboCounter>();
+    add<HitCounter>();
+    add<HitPing>();
+    add<SessionStats>();
+    add<HitInfo>();
+    add<EntityCounter>();
+    add<TargetHud>();
+    add<Waila>();
+    add<BowCharge>();
+    add<CooldownIndicator>();
+    add<DamageIndicator>();
+    add<HitMarker>();
+    add<HitEffects>();
+    add<KillEffects>();
+    add<HitSound>();
+    add<TotemPop>();
+    add<Hitbox>();
+    add<HurtColor>();
+    add<GlintColor>();
+    add<LowFire>();
+    add<ParticleMultiplier>();
+    add<SensMultiplier>();
+    add<BowSensitivity>();
+    add<SnapLook>();
+    add<NullMovement>();
+    add<ItemUseDelayFix>();
+    add<FasterInventory>();
+    add<InstaHurtAnimation>();
     add<CpsLimiter>();
     add<NoScroll>();
+    add<InstantInput>();
+
+    add<Screenshot>();
 
     add<LowLatency>();
+    add<FrameLimiter>();
     add<SystemBoost>();
+    add<SigStatus>();
 
     add<Snake>();
     add<Flappy>();
     add<DvdScreen>();
     add<EyeBreak>();
+    add<BlockGame>();
+    add<Deepfry>();
+    add<UpsideDown>();
 
     refreshSigs();
     for (auto& m : list)
@@ -79,6 +203,12 @@ void shutdown() {
     for (auto& m : list) {
         if (m->enabled()) guard::call(m->name().c_str(), [&] { m->onDisable(); });
     }
+    fx::shutdown();
+    inject::shutdown();
+    probe::shutdown();
+    post::shutdown();
+    capture::shutdown();
+    game::shutdown();
 }
 
 const std::vector<std::unique_ptr<Module>>& all() { return list; }
@@ -98,17 +228,39 @@ void frame(ImDrawList* hud) {
     if (sigs::takeChanged()) refreshSigs();
     rules::tick();
 
+    LARGE_INTEGER t0, t1, qpf;
+    QueryPerformanceCounter(&t0);
+    perf::begin();
+    post::begin();
+    fx::begin();
+    game::update();
+    input::consumeMotion(motion.x, motion.y);
+
     bool editing = gui::editingHud();
     for (auto& m : list) {
         if (!m->enabled()) continue;
-        if (!guard::call(m->name().c_str(), [&] { m->onFrame(); })) {
-            fault(*m);
-            continue;
-        }
+        if (!guard::call(m->name().c_str(), [&] { m->onFrame(); })) fault(*m);
+    }
+
+    post::submit(hud);
+    capture::submit(hud, capture::Stage::Game);
+    for (auto& m : list) {
+        if (!m->enabled()) continue;
         if (m->isHud() && (hudHidden && !editing)) continue;
         if (!guard::call(m->name().c_str(), [&] { m->onRender(hud); })) fault(*m);
     }
+
+    capture::submit(hud, capture::Stage::Overlay);
+    perf::apply();
+    fx::apply();
+    QueryPerformanceCounter(&t1);
+    QueryPerformanceFrequency(&qpf);
+    cost += (float(double(t1.QuadPart - t0.QuadPart) * 1000.0 / double(qpf.QuadPart)) - cost) * 0.05f;
 }
+
+float costMs() { return cost; }
+
+Motion mouseDelta() { return motion; }
 
 void dispatchKey(KeyEvent& ev) {
     if (widgets::capturingKey()) return;

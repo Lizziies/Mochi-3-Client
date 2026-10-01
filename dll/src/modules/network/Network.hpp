@@ -1,0 +1,181 @@
+#pragma once
+
+#include "Probe.hpp"
+#include "Quality.hpp"
+#include "gui/Notify.hpp"
+#include "gui/Theme.hpp"
+#include "modules/HudModule.hpp"
+#include "modules/common/Colors.hpp"
+#include "render/Fonts.hpp"
+
+#include <algorithm>
+#include <format>
+
+class Network : public HudModule {
+public:
+    Network()
+        : HudModule("Network",
+                    "Misst Ping, Jitter und Paketverlust zum Server und zeigt, ob WLAN, Leitung oder Server das Problem sind. "
+                    "Ändert nichts am Spielverkehr.",
+                    {"hud-self"}, {0.01f, 0.34f}) {
+        sub("Netzwerk");
+        interval_.visible = [this] { return advanced_.b; };
+        window_.visible = [this] { return advanced_.b; };
+        host_.visible = [this] { return advanced_.b; };
+        port_.visible = [this] { return advanced_.b && method_.i == 1; };
+        pingFair_.visible = [this] { return advanced_.b; };
+        pingPoor_.visible = [this] { return advanced_.b; };
+        jitterFair_.visible = [this] { return advanced_.b; };
+        jitterPoor_.visible = [this] { return advanced_.b; };
+        lossPoor_.visible = [this] { return advanced_.b; };
+        graphHeight_.visible = [this] { return graph_.b; };
+        tips_.visible = [this] { return tipsOn_.b; };
+    }
+
+    void onEnable() override { probe::use(true); }
+    void onDisable() override { probe::use(false); }
+
+    void onFrame() override {
+        probe::Config c;
+        c.method = method_.i == 1 ? probe::Method::RakNet : probe::Method::Icmp;
+        c.intervalMs = int(interval_.f);
+        c.window = int(window_.f);
+        c.port = port_.i;
+        c.host = host_.text;
+        probe::configure(c);
+
+        auto verdict = quality::judge(probe::snapshot(), limits());
+        if (toast_.b && verdict.grade == quality::Grade::Poor && last_ != quality::Grade::Poor)
+            notify::push("Verbindung schlecht", verdict.reason, notify::Kind::Warn, 5.f);
+        last_ = verdict.grade;
+    }
+
+protected:
+    ImVec2 content(ImDrawList* dl, ImVec2 o, float s) override {
+        auto snap = probe::snapshot();
+        auto verdict = quality::judge(snap, limits());
+        auto& t = theme::current();
+        float lineH = fonts::hudSize() * s * 1.1f;
+        float y = 0, width = 0;
+        auto line = [&](const std::string& text, ImU32 col) {
+            auto sz = drawText(dl, o + ImVec2(0, y), s, text, col);
+            width = std::max(width, sz.x);
+            y += lineH;
+        };
+
+        if (status_.b) {
+            ImVec4 c = gradeColor(verdict.grade);
+            float r = fonts::hudSize() * s * 0.32f;
+            dl->AddCircleFilled(o + ImVec2(r, lineH * 0.5f), r, ImGui::GetColorU32(c));
+            auto sz = drawText(dl, o + ImVec2(r * 2 + 6 * s, 0), s, verdict.label, ImGui::GetColorU32(c));
+            width = std::max(width, sz.x + r * 2 + 6 * s);
+            y += lineH;
+        }
+
+        if (!snap.running || !snap.resolved || snap.received == 0) {
+            line(snap.sent > 0 ? "Keine Antwort" : "Warte auf Server", textColor());
+        } else {
+            std::string row;
+            if (ping_.b) row += std::format("Ping {:.0f} ms", snap.last >= 0 ? snap.last : snap.avg);
+            if (jitter_.b) row += std::format("{}Jitter {:.1f} ms", row.empty() ? "" : "  ·  ", snap.jitter);
+            if (loss_.b) row += std::format("{}Verlust {:.1f} %", row.empty() ? "" : "  ·  ", snap.loss);
+            if (!row.empty()) {
+                ImVec4 c = rampColor(snap.avg, limits().pingFair, limits().pingPoor, good_.color, fair_.color, poor_.color);
+                line(row, ImGui::GetColorU32(c));
+            }
+            if (range_.b) line(std::format("Min {:.0f}  ·  Mittel {:.0f}  ·  Max {:.0f} ms", snap.min, snap.avg, snap.max), accentColor());
+            if (link_.b) line(linkText(snap.link), accentColor());
+            if (power_.b && snap.link.powerSaving == 1) line("Energiesparen des Adapters aktiv", ImGui::GetColorU32(t.warn));
+        }
+
+        if (reason_.b && !verdict.reason.empty()) line(verdict.reason, ImGui::GetColorU32(t.textDim));
+        if (tipsOn_.b)
+            for (size_t i = 0; i < verdict.tips.size() && int(i) < tips_.i; i++) line("→ " + verdict.tips[i], ImGui::GetColorU32(t.textDim));
+
+        if (graph_.b && !snap.history.empty()) {
+            float gw = std::max(width, 180.f * s), gh = graphHeight_.f * s;
+            drawGraph(dl, o + ImVec2(0, y + 2 * s), {gw, gh}, snap, s);
+            width = std::max(width, gw);
+            y += gh + 4 * s;
+        }
+        return {std::max(width, 120.f * s), std::max(y, lineH)};
+    }
+
+private:
+    quality::Limits limits() const {
+        return {pingFair_.f, pingPoor_.f, jitterFair_.f, jitterPoor_.f, lossPoor_.f};
+    }
+
+    ImVec4 gradeColor(quality::Grade g) const {
+        switch (g) {
+        case quality::Grade::Good: return good_.color;
+        case quality::Grade::Fair: return fair_.color;
+        case quality::Grade::Poor: return poor_.color;
+        default: return theme::current().textDim;
+        }
+    }
+
+    static std::string linkText(const probe::Link& l) {
+        switch (l.kind) {
+        case probe::LinkKind::Wired: return std::format("LAN  ·  {} Mbit/s", l.linkMbps);
+        case probe::LinkKind::Wifi: {
+            std::string out = "WLAN";
+            if (!l.band.empty()) out += "  ·  " + l.band;
+            if (l.channel) out += std::format("  ·  Kanal {}", l.channel);
+            if (l.signal >= 0) out += std::format("  ·  {} % ({} dBm)", l.signal, l.rssi);
+            if (l.linkMbps) out += std::format("  ·  {} Mbit/s", l.linkMbps);
+            return out;
+        }
+        case probe::LinkKind::Other: return "Verbindung: " + l.adapter;
+        default: return "Verbindungsart unbekannt";
+        }
+    }
+
+    void drawGraph(ImDrawList* dl, ImVec2 p, ImVec2 size, const probe::Snapshot& snap, float s) {
+        dl->AddRectFilled(p, p + size, IM_COL32(0, 0, 0, 60), 4 * s);
+        float top = std::max(40.f, std::min(snap.max * 1.25f, 400.f));
+        size_t n = snap.history.size();
+        if (n < 2) return;
+        float step = size.x / float(std::max<size_t>(n - 1, 1));
+        for (size_t i = 0; i < n; i++) {
+            float v = snap.history[i];
+            float x = p.x + step * i;
+            if (v < 0.f) {
+                dl->AddLine({x, p.y + 2 * s}, {x, p.y + size.y - 2 * s}, ImGui::GetColorU32(withAlpha(poor_.color, 0.6f)), 1.5f * s);
+                continue;
+            }
+            float h = size.y * std::min(v / top, 1.f);
+            ImVec4 c = rampColor(v, limits().pingFair, limits().pingPoor, good_.color, fair_.color, poor_.color);
+            dl->AddLine({x, p.y + size.y}, {x, p.y + size.y - std::max(h, 1.f)}, ImGui::GetColorU32(c), std::max(step, 1.f));
+        }
+    }
+
+    Setting& status_ = toggleSetting("status", "Ampel", true);
+    Setting& ping_ = toggleSetting("ping", "Ping", true);
+    Setting& jitter_ = toggleSetting("jitter", "Jitter", true);
+    Setting& loss_ = toggleSetting("loss", "Paketverlust", true);
+    Setting& range_ = toggleSetting("range", "Min / Mittel / Max", false);
+    Setting& link_ = toggleSetting("link", "Verbindung (WLAN / LAN)", true);
+    Setting& power_ = toggleSetting("power", "Energiespar-Hinweis", true);
+    Setting& reason_ = toggleSetting("reason", "Grund anzeigen", true);
+    Setting& tipsOn_ = toggleSetting("tipsOn", "Tipps anzeigen", false);
+    Setting& tips_ = intSlider("tips", "Anzahl Tipps", 2, 1, 4);
+    Setting& graph_ = toggleSetting("graph", "Ping-Verlauf", true);
+    Setting& graphHeight_ = slider("graphHeight", "Verlauf-Höhe", 36.f, 16.f, 100.f, "%.0f");
+    Setting& toast_ = toggleSetting("toast", "Hinweis bei schlechter Verbindung", true);
+    Setting& good_ = colorSetting("good", "Farbe gut", {0.55f, 0.91f, 0.69f, 1.f});
+    Setting& fair_ = colorSetting("fair", "Farbe mittel", {1.f, 0.82f, 0.49f, 1.f});
+    Setting& poor_ = colorSetting("poor", "Farbe schlecht", {1.f, 0.40f, 0.45f, 1.f});
+    Setting& advanced_ = toggleSetting("advanced", "Erweiterte Einstellungen", false);
+    Setting& method_ = choice("method", "Messverfahren", {"ICMP-Ping", "RakNet-Ping (UDP)"});
+    Setting& interval_ = slider("interval", "Messabstand (ms)", 1000.f, 250.f, 5000.f, "%.0f");
+    Setting& window_ = slider("window", "Messwerte im Fenster", 60.f, 20.f, 200.f, "%.0f");
+    Setting& host_ = textSetting("host", "Eigenes Ziel (leer = Server)", "");
+    Setting& port_ = intSlider("port", "UDP-Port", 19132, 1, 65535);
+    Setting& pingFair_ = slider("pingFair", "Ping mittel ab (ms)", 60.f, 10.f, 300.f, "%.0f");
+    Setting& pingPoor_ = slider("pingPoor", "Ping schlecht ab (ms)", 150.f, 30.f, 600.f, "%.0f");
+    Setting& jitterFair_ = slider("jitterFair", "Jitter mittel ab (ms)", 6.f, 1.f, 50.f, "%.0f");
+    Setting& jitterPoor_ = slider("jitterPoor", "Jitter schlecht ab (ms)", 20.f, 2.f, 100.f, "%.0f");
+    Setting& lossPoor_ = slider("lossPoor", "Verlust schlecht ab (%)", 3.f, 0.5f, 20.f, "%.1f");
+    quality::Grade last_ = quality::Grade::Unknown;
+};

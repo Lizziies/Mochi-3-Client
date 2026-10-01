@@ -12,20 +12,21 @@
       "block": ["Freelook"],
       "blockOptions": { "Auto GG": ["onKill"] },
       "warn": ["Entity Counter", "Null Movement", "Faster Inventory", "Item Use Delay Fix",
-               "Insta Hurt Animation", "Opponent Reach", "Hit Ping"]
+               "Insta Hurt Animation", "Opponent Reach", "Hit Ping", "Instant Input"]
     },
     {
       "name": "CubeCraft",
       "match": ["cubecraft.net"],
       "rules": "https://www.cubecraft.net/threads/allowed-mods-and-clients.228596/",
-      "warn": ["Faster Inventory", "Java Inventory Hotkeys", "Item Use Delay Fix",
-               "Null Movement", "Insta Hurt Animation"]
+      "warn": ["Faster Inventory", "Java Inventory Hotkeys", "Item Use Delay Fix", "Null Movement",
+               "Insta Hurt Animation", "Instant Input"]
     },
     {
       "name": "Lifeboat",
       "match": ["lbsg.net"],
       "rules": "https://www.lbsg.net/in-game-rules/index.html",
-      "block": ["Null Movement", "Faster Inventory", "Item Use Delay Fix", "Insta Hurt Animation"],
+      "block": ["Null Movement", "Faster Inventory", "Item Use Delay Fix", "Insta Hurt Animation",
+                "Instant Input"],
       "warnTags": ["info-others", "input", "timing", "chat"],
       "notice": "Mochi ist auf Lifeboat noch nicht offiziell freigegeben."
     },
@@ -33,7 +34,8 @@
       "name": "Galaxite",
       "match": ["galaxite.net"],
       "rules": "https://www.galaxite.net/rules/",
-      "block": ["Null Movement", "Faster Inventory", "Item Use Delay Fix", "Insta Hurt Animation"],
+      "block": ["Null Movement", "Faster Inventory", "Item Use Delay Fix", "Insta Hurt Animation",
+                "Instant Input"],
       "warnTags": ["info-others", "input", "timing"]
     }
   ]
