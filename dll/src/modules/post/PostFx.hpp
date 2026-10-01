@@ -2,6 +2,9 @@
 
 #include <imgui.h>
 
+#include <string>
+#include <vector>
+
 namespace post {
 
 struct Params {
@@ -23,9 +26,22 @@ struct Params {
     int dirSamples = 0;
     float blend = 0.f;
     float blur = 0.f;
+    int shader = -1;
+    float shaderMix = 1.f;
 
     bool active() const;
+    bool basic() const;
 };
+
+struct ShaderInfo {
+    std::string name;
+    std::string source;
+    bool builtin = false;
+};
+
+const std::vector<ShaderInfo>& shaders();
+void reloadShaders();
+std::string shaderError(int index);
 
 Params& params();
 void begin();

@@ -139,6 +139,7 @@ void init() {
     add<Sharpen>();
     add<DepthOfField>();
     add<Blur>();
+    add<ShaderPacks>();
     add<ColorFilter>();
     add<NightShift>();
     add<MotionBlur>();
