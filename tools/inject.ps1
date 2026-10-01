@@ -85,9 +85,14 @@ if ($Launch -and -not (Get-Process Minecraft.Windows -ErrorAction SilentlyContin
 }
 
 $deadline = (Get-Date).AddSeconds($WaitSeconds)
+$retryAt = (Get-Date).AddSeconds(30)
 $mc = $null
 while ((Get-Date) -lt $deadline) {
     $mc = @(Get-Process Minecraft.Windows -ErrorAction SilentlyContinue)[0]
+    if (-not $mc -and $Launch -and (Get-Date) -gt $retryAt) {
+        Start-Process 'explorer.exe' 'shell:AppsFolder\Microsoft.MinecraftUWP_8wekyb3d8bbwe!Game'
+        $retryAt = (Get-Date).AddSeconds(30)
+    }
     if ($mc) {
         $mods = $mc.Modules | ForEach-Object { $_.ModuleName }
         if ($mc.MainWindowHandle -ne 0 -and ($mods -contains 'd3d12.dll' -or $mods -contains 'd3d11.dll')) { break }

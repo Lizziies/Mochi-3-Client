@@ -3,7 +3,6 @@
 #include "core/Log.hpp"
 #include "core/Paths.hpp"
 #include "modules/Manager.hpp"
-#include "sdk/Explore.hpp"
 
 #include <filesystem>
 #include <fstream>
@@ -13,8 +12,9 @@ namespace gui {
 
 // development only: a file named dev.cmd in the data folder drives the menu, one command per line
 void pollDevCommands() {
+    static const bool dev = std::filesystem::exists(paths::dllDir() / L"Mochi.root");
     static int tick = 0;
-    if (++tick % 20) return;
+    if (!dev || ++tick % 20) return;
 
     auto file = paths::root() / L"dev.cmd";
     std::error_code ec;
@@ -50,8 +50,6 @@ void pollDevCommands() {
             restartContentAnim();
         } else if (cmd == "module") {
             if (auto* m = modules::find(rest)) showModule(m);
-        } else if (cmd == "lua") {
-            explore::run(rest);
         } else if (cmd == "hudedit") {
             setEditingHud(true);
         } else if (cmd == "more") {
