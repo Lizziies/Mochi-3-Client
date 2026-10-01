@@ -324,17 +324,19 @@ private:
         oppDist_ = 2.9f + 0.45f * std::sin(float(t_) * 1.7f);
         float yaw = p.yaw * 0.0174533f;
         Vec3 fwd{-std::sin(yaw), 0.f, std::cos(yaw)};
-        auto place = [&](const char* name, float ahead, float side, int team) {
+        auto place = [&](const char* name, float ahead, float side, int team, float health) {
             Other o;
+            o.id = uintptr_t(team) + 100;
             o.name = name;
+            o.health = health;
             o.team = team;
             o.pos = {p.pos.x + fwd.x * ahead - fwd.z * side, p.pos.y, p.pos.z + fwd.z * ahead + fwd.x * side};
             s.others.push_back(o);
         };
         s.others.clear();
-        place("Teammate", 1.8f, -1.2f, 1);
-        place("Opponent", oppDist_, 0.f, 2);
-        place("Bystander", 8.f, 3.f, 3);
+        place("Teammate", 1.8f, -1.2f, 1, 20.f);
+        place("Opponent", oppDist_, 0.f, 2, 9.f + 5.f * std::sin(float(t_) * 0.8f));
+        place("Bystander", 8.f, 3.f, 3, 17.f);
     }
 
     void confirms(std::vector<Event>& ev) {

@@ -93,6 +93,7 @@
 #include "visual/Crosshair.hpp"
 #include "visual/Trail.hpp"
 #include "world/Entities.hpp"
+#include "world/HealthAbove.hpp"
 #include "world/LightOverlay.hpp"
 #include "world/Waypoints.hpp"
 #include "world/World.hpp"
@@ -277,6 +278,7 @@ void init() {
     add<LeftHand>();
     add<GamemodeHotkeys>();
     add<ThirdPersonNametag>();
+    add<HealthAbove>();
     add<HiveUtils>();
     add<ZeqaUtils>();
     add<HiveStats>();

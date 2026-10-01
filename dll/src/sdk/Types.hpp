@@ -193,6 +193,7 @@ struct Other {
     std::string name;
     Vec3 pos;
     float health = 20.f;
+    float maxHealth = 20.f;
     int team = 0;
 };
 

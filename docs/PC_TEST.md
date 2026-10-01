@@ -10,6 +10,14 @@ Alles, was in der Cloud geht, ist erledigt: gebaut, unter Wine getestet, Release
 4. Ein paar Module an- und ausschalten, das HUD verschieben (Edit HUD), die Sprache umstellen (Settings).
 5. Strg+L drücken. Der Client entlädt sich, das Spiel läuft normal weiter.
 
+## Versionswechsel testen
+
+1. Launcher, Seite Versions: LeviLauncher installieren (Knopf), dort eine ältere Minecraft-Version laden.
+2. Zurück im Mochi-Launcher auf "Rescan". Die neue Version sollte in der Liste stehen. Steht sie nicht da, mit "Add folder" den Ordner wählen, in dem LeviLauncher die Version abgelegt hat.
+3. "Use this one" wählen und auf Play klicken. Mochi startet genau diese Version (die Exe direkt) und verbindet sich.
+4. Launcher schließen und neu öffnen: die gewählte Version steht weiter auf "In use".
+5. Wenn die Version sofort wieder schließt: die Meldung im Launcher und `latest.log` schicken. Direkter Start einer Exe außerhalb des Stores ist am PC noch nicht geprüft.
+
 ## Was du mir schickst
 
 - Die Datei `%LOCALAPPDATA%\Mochi\logs\latest.log` (Launcher: Settings → Open logs).

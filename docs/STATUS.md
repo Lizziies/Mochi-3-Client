@@ -184,3 +184,11 @@ Das hier ist der Anfang, nicht das Ende. Die Basis steht, der große Rest (Modul
 - Lader und Vorschau unterstützen jetzt auch die Erweiterungen aus Session B (`texel`, `flat`, `mirror`, `tint2`/`mix`, `sparkle`, `physics` mit Feder und Stoff). Alle Flügel und Capes aus `tools/cosmetics_hd/` laufen im Menü, Bewegung der Vorschau wählbar (Auto, Ruhig, Gehen, Sprinten, Springen).
 - Cosmetics-Seite: Karten zoomen auf den Slot (Kopf, Füße, Rücken), Slot-Filter Feet, Farben pro Teil, Slim/Wide-Körper, Dreh- und Animationstempo.
 - Offen: Verteilung der Cosmetics an Nutzer (Download beim ersten Start oder Bündel im Launcher, braucht eine Entscheidung), Anzeige im Spiel (Signaturen), Sichtbarkeit für andere (Mochi Online).
+
+## Session A, Block: Versionswahl im Launcher, Leben über dem Kopf
+
+- Launcher, Seite Versions: findet Minecraft-Installationen anderer Launcher (LeviLauncher-Ordner, eigene Ordner über "Add folder"), liest die Version aus der Exe, zeigt Mochi-kompatibel oder nicht und merkt sich die gewählte Version in `launcher.json` (`pinned`). Play startet genau diese Exe direkt und verbindet sich. Meldet, wenn schon eine andere Version läuft. Der Store-Eintrag bleibt als Standard. Gebaut, Oberfläche und Suche unter Wine geprüft, der echte Start einer Exe außerhalb des Stores ist am PC offen (`docs/PC_TEST.md`).
+- Kein Überschreiben der Store-Installation: Mochi startet die gewählte Version, ohne Dateien im Store-Ordner anzufassen. Das Laden alter Versionen übernimmt LeviLauncher mit der eigenen Lizenz des Spielers.
+- Neues Modul "Health Above Head": Balken und Zahl über anderen Spielern, projiziert über `game::project`. Läuft mit Demo-Daten und wird im Spiel erst aktiv, wenn der Provider `others` liefert. Ausgeliefert aus (Server-Regeln).
+- Eigener Name im Spiel bei F5: "Third Person Nametag" von Session B (Hook, braucht die Signatur).
+- Offen, nur am PC: Cosmetics im Spiel für andere sichtbar. Ansatz in `docs/COSMETICS.md` unter "Cosmetics im Spiel".

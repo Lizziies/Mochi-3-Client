@@ -91,6 +91,15 @@ Regeln:
 - `physics` (Bone): `{"type": "spring" | "cloth", "stiffness", "damping", "inertia", "wind", "drive": {"air", "sprint", "sneak", "speed"}}`. Feder und Stoff reagieren auf Tempo, Beschleunigung, Drehen, Sprinten, Schleichen und Springen. Im Menü lässt sich die Bewegung der Vorschau wählen (Auto, Ruhig, Gehen, Sprinten, Springen).
 - Generator: `tools/cosmetics/build.py` baut Ohren, Schwänze, Bandana, Mütze, Zaubererhut und Sneaker (Tubes) und kopiert die Flügel und Capes aus `tools/cosmetics_hd/` in `cosmetics/`, dazu `index.json`.
 
+## Cosmetics im Spiel (Stufe 2 und 3, braucht den PC)
+
+Die Menü-Vorschau ist fertig. Damit jeder Mochi-Nutzer die Cosmetics im Spiel sieht, braucht es zwei Teile, die sich nur am PC bauen lassen:
+
+1. **Zeichnen an der Spielfigur.** Als Overlay über das Bild zu malen geht nicht sauber: Das Overlay kennt keine Wände und würde Spieler hinter Blöcken zeigen, das wäre ein Wallhack und ist verboten. Der richtige Weg ist, die Teile in die Figur selbst zu geben, also in die Skin-Geometrie des Spielers, den das Spiel zeichnet (Skin-Daten oder Render-Aufruf der Figur hooken). Dann sortiert das Spiel selbst, Sneaken, Schwimmen und Sichtbarkeit stimmen automatisch. Dafür fehlen Signaturen für das Laden der Skin-Geometrie.
+2. **Wer trägt was.** Der Mochi-Online-Dienst (`server/`) kennt zu jedem Gamertag die `worn`-Liste. Der Client liest sie für die Spieler in der Tab-Liste und übergibt sie an Punkt 1. Der Dienst ist gebaut und getestet, aber noch nicht veröffentlicht (Cloudflare-Konto).
+
+Eigener Name über dem Kopf in der dritten Person liefert das Modul "Third Person Nametag", Leben über dem Kopf "Health Above Head".
+
 ## Auftrag für den Cowork-Chat
 
 Kopiere den folgenden Text in den Cowork-Chat.
