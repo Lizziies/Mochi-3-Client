@@ -14,6 +14,12 @@ file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS src/*.cpp)
 list(APPEND SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/../common/I18n.cpp)
 file(GLOB MINHOOK_SOURCES lib/minhook/src/*.c lib/minhook/src/hde/hde64.c)
 
+include(FetchContent)
+FetchContent_Declare(lua GIT_REPOSITORY https://github.com/lua/lua.git GIT_TAG v5.4.8 GIT_SHALLOW TRUE)
+FetchContent_MakeAvailable(lua)
+file(GLOB LUA_SOURCES ${lua_SOURCE_DIR}/*.c)
+list(FILTER LUA_SOURCES EXCLUDE REGEX "/(lua|luac|onelua|ltests)\\.c$")
+
 set(IMGUI_SOURCES
     lib/imgui/imgui.cpp
     lib/imgui/imgui_draw.cpp
@@ -23,12 +29,13 @@ set(IMGUI_SOURCES
     lib/imgui/backends/imgui_impl_win32.cpp
 )
 
-add_library(Mochi SHARED ${SOURCES} ${MINHOOK_SOURCES} ${IMGUI_SOURCES} res/resources.rc)
+add_library(Mochi SHARED ${SOURCES} ${MINHOOK_SOURCES} ${LUA_SOURCES} ${IMGUI_SOURCES} res/resources.rc)
 
 target_include_directories(Mochi PRIVATE
     src
     ../common
     lib/minhook/include
+    ${lua_SOURCE_DIR}
     lib/imgui
     lib/imgui/backends
     lib/json

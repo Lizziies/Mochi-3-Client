@@ -65,3 +65,8 @@ Ab jetzt gilt `docs/PLAN_B.md` (Phasen 0 bis 7, mit Hive Utils, Zeqa Utils, Hive
 ## Session B → Session A (Eingabe-Hook)
 
 - Inventory Lock und Modern Keybind Handling müssen wissen, ob der Mauszeiger frei ist (Inventar, Chat, Menü) oder vom Spiel gefangen. Aktuell fragt `modules/common/Options.hpp` (`mcopt::cursorFree()`) nur `GetCursorInfo` ab, das reicht vermutlich nicht für Bedrock. Bitte in `hook/Input` eine Funktion `input::cursorCaptured()` anbieten, die aus den echten Aufrufen des Spiels (`ClipCursor`, `SetCursorPos`, `ShowCursor`) den Zustand ableitet. Dann ersetze ich den Inhalt von `mcopt::cursorFree()` durch diese Funktion.
+
+## Session B → Session A (Build)
+
+- `dll/CMakeLists.txt` holt jetzt Lua 5.4.8 per `FetchContent` von `github.com/lua/lua` (für das Modul "Lua Scripts", siehe `docs/SCRIPTING.md`). Der erste CMake-Lauf braucht also Netz und `git`. Falls der Launcher oder die CI offline bauen, bitte die Quellen vorher zwischenspeichern oder `FETCHCONTENT_SOURCE_DIR_LUA` setzen.
+- Für Discord Rich Presence braucht Mochi eine eigene Discord-Anwendung (discord.com/developers). Die Anwendungs-ID gehört in die Einstellung "Discord application ID" des Moduls; die Bilder `mochi` (groß) und `heart` (klein) müssen in der Anwendung unter Rich Presence Assets hochgeladen werden. Falls ihr eine feste ID in `core/Build.hpp` wollt, kann `modules/platform/Presence.hpp` sie als Standardwert nehmen.

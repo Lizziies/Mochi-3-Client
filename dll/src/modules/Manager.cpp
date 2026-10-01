@@ -66,6 +66,9 @@
 #include "perf/FrameLimiter.hpp"
 #include "perf/LowLatency.hpp"
 #include "perf/Tuning.hpp"
+#include "platform/Presence.hpp"
+#include "platform/Scripts.hpp"
+#include "platform/Share.hpp"
 #include "post/Capture.hpp"
 #include "post/Effects.hpp"
 #include "post/FunEffects.hpp"
@@ -244,6 +247,9 @@ void init() {
     add<MovableTitle>();
     add<MovableBossbar>();
     add<SkinStealer>();
+    add<DiscordPresence>();
+    add<LuaScripts>();
+    add<ConfigSharing>();
     add<HiveUtils>();
     add<ZeqaUtils>();
     add<HiveStats>();
@@ -289,6 +295,7 @@ void shutdown() {
     inject::shutdown();
     probe::shutdown();
     hive::shutdown();
+    discord::stop();
     post::shutdown();
     capture::shutdown();
     game::shutdown();
