@@ -15,6 +15,7 @@
 #include "modules/common/GameHud.hpp"
 #include "modules/common/Needs.hpp"
 #include "modules/common/Text.hpp"
+#include "modules/online/MochiOnline.hpp"
 #include "modules/server/ServerChat.hpp"
 #include "render/Fonts.hpp"
 #include "render/Ui.hpp"
@@ -301,11 +302,18 @@ protected:
 
             dl->PushClipRect(o + ImVec2(0, y), o + ImVec2(w, y + lineH + 2), true);
             std::string shownText = nick::replaceIn(l->text);
+            if (auto* mo = modules::get<MochiOnline>(); mo && mo->enabled()) shownText = online::tagLine(shownText, mo->colors(), mo->tags(), mo->hearts());
             if (colors_.b) {
                 auto* cs = modules::get<ClientSettings>();
                 for (auto& seg : text::colored(cs ? cs->tagged(shownText, true) : shownText, base)) {
                     ImVec4 c = ImGui::ColorConvertU32ToFloat4(seg.color);
                     c.w *= a;
+                    if (seg.text == "\x01") {
+                        float hs = lineH * 0.75f;
+                        online::heartIcon(dl, o + ImVec2(x + hs * 0.5f, y + lineH * 0.5f), hs, ImGui::GetColorU32(c));
+                        x += hs + 2 * s;
+                        continue;
+                    }
                     x += drawText(dl, o + ImVec2(x, y), s, seg.text, ImGui::GetColorU32(c)).x;
                 }
             } else {
@@ -478,6 +486,8 @@ protected:
         if (sort_.i == 0) std::sort(list.begin(), list.end(), [](auto& a, auto& b) { return text::lower(a.name) < text::lower(b.name); });
         else if (sort_.i == 1) std::sort(list.begin(), list.end(), [](auto& a, auto& b) { return a.ping < b.ping; });
         auto* cs = modules::get<ClientSettings>();
+        auto* mo = modules::get<MochiOnline>();
+        if (mo && !mo->enabled()) mo = nullptr;
         int per = columns_.i > 0 ? int((list.size() + size_t(columns_.i) - 1) / size_t(columns_.i)) : rows_.i;
         per = std::max(per, 1);
         int cols = std::max(1, int((list.size() + size_t(per) - 1) / size_t(per)));
@@ -512,6 +522,10 @@ protected:
                 size_t i = size_t(c * per + r);
                 if (i >= list.size()) break;
                 std::string extra = list[i].name == st.player.name && cs ? cs->tabTag() : "";
+                online::User peer;
+                bool mochi = mo && online::find(list[i].name, peer);
+                if (mochi && mo->hearts() && peer.style.heart) extra += "    ";
+                if (mochi && mo->tags() && !peer.style.tag.empty()) extra += "[" + peer.style.tag + "]";
                 float w = textSize(s, list[i].name).x + (extra.empty() ? 0.f : textSize(s, extra).x + 6 * s) + (heads_.b ? rowH : 0.f) + (platform_.b ? rowH : 0.f) + (ping_.b ? 56.f * s : 8.f * s);
                 colW = std::max(colW, w);
             }
@@ -536,9 +550,23 @@ protected:
                 ImU32 nameColor = marked ? ImGui::GetColorU32(highlightColor_.color) : me ? accentColor() : textColor();
                 if (nick::mine(e.name)) nameColor = nick::colorOf(nick::color, nameColor);
                 std::string shownName = nick::show(e.name);
-                drawText(dl, row + ImVec2(cx, spacing_.f * s * 0.5f), s, shownName, nameColor);
+                online::User peer;
+                bool mochi = mo && online::find(e.name, peer);
+                ImVec2 namePos = row + ImVec2(cx, spacing_.f * s * 0.5f);
+                if (mochi && mo->hearts() && peer.style.heart) {
+                    float hs = icon * 0.8f;
+                    online::heartIcon(dl, {namePos.x + hs * 0.5f, row.y + rowH * 0.5f}, hs, IM_COL32(255, 59, 92, 255));
+                    namePos.x += hs + 3 * s;
+                }
+                if (mochi && mo->colors() && !marked) online::paint(shownName, peer.style, ui::time(), [&](const std::string& piece, ImU32 col, float x) { return drawText(dl, namePos + ImVec2(x, 0), s, piece, col).x; });
+                else drawText(dl, namePos, s, shownName, nameColor);
+                float after = namePos.x + textSize(s, shownName).x + 6 * s;
                 std::string tabTag = me && cs ? cs->tabTag() : "";
-                if (!tabTag.empty()) drawText(dl, row + ImVec2(cx + textSize(s, shownName).x + 6 * s, spacing_.f * s * 0.5f), s, tabTag, ImGui::GetColorU32(cs->tagColor()));
+                if (!tabTag.empty()) {
+                    drawText(dl, {after, namePos.y}, s, tabTag, ImGui::GetColorU32(cs->tagColor()));
+                    after += textSize(s, tabTag).x + 6 * s;
+                }
+                if (mochi && mo->tags() && !peer.style.tag.empty()) drawText(dl, {after, namePos.y}, s, "[" + peer.style.tag + "]", online::rgb(peer.style.tagColor));
                 if (ping_.b) {
                     ImVec4 c4 = rampColor(float(e.ping), 40.f, 200.f, good_.color, mid_.color, bad_.color);
                     if (pingBars_.b) {

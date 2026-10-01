@@ -5,6 +5,7 @@
 #include "core/Log.hpp"
 #include "modules/Manager.hpp"
 #include "render/Ui.hpp"
+#include "sdk/Inject.hpp"
 
 #include <windowsx.h>
 
@@ -18,6 +19,7 @@ namespace input {
 static HWND target = nullptr;
 static WNDPROC original = nullptr;
 static std::array<std::atomic<bool>, 256> keys{};
+static std::array<std::atomic<bool>, 2> realCtrl{};
 static std::mutex clickLock;
 static std::deque<int64_t> clicks[2];
 static std::atomic<int64_t> lastClick{0};
@@ -134,7 +136,8 @@ static bool process(HWND w, UINT msg, WPARAM wp, LPARAM lp, LRESULT& result) {
         keys[vk & 0xFF] = isDown;
         if (vk != (int)wp) keys[wp & 0xFF] = isDown;
 
-        if (isDown && !repeat && vk == 'L' && down(VK_CONTROL)) {
+        if (!inject::ours() && (vk == VK_LCONTROL || vk == VK_RCONTROL)) realCtrl[vk == VK_RCONTROL] = isDown;
+        if (isDown && !repeat && vk == 'L' && (realCtrl[0] || realCtrl[1]) && !inject::ours()) {
             client::requestUnload();
             return true;
         }
@@ -171,6 +174,7 @@ static bool process(HWND w, UINT msg, WPARAM wp, LPARAM lp, LRESULT& result) {
     }
     case WM_KILLFOCUS:
         for (auto& k : keys) k = false;
+        realCtrl[0] = realCtrl[1] = false;
         break;
     default:
         break;

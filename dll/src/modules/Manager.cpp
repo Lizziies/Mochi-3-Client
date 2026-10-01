@@ -68,6 +68,7 @@
 #include "network/Network.hpp"
 #include "network/PingCounter.hpp"
 #include "network/Probe.hpp"
+#include "online/MochiOnline.hpp"
 #include "perf/Auto.hpp"
 #include "perf/FrameLimiter.hpp"
 #include "perf/LowLatency.hpp"
@@ -262,6 +263,7 @@ void init() {
     add<DiscordPresence>();
     add<LuaScripts>();
     add<ConfigSharing>();
+    add<MochiOnline>();
     add<HotbarArmor>();
     add<FallPredictor>();
     add<InventoryView>();
@@ -335,6 +337,7 @@ void shutdown() {
     inject::shutdown();
     probe::shutdown();
     hive::shutdown();
+    online::shutdown();
     discord::stop();
     post::shutdown();
     capture::shutdown();
