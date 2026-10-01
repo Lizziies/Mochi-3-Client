@@ -156,6 +156,27 @@ static int resolveVk(WPARAM wp, LPARAM lp) {
     return vk;
 }
 
+static std::array<bool, 259> eaten{};
+
+static int eatSlot(UINT msg, WPARAM wp, LPARAM lp, bool& down) {
+    switch (msg) {
+    case WM_KEYDOWN:
+    case WM_SYSKEYDOWN:
+        down = true;
+        return resolveVk(wp, lp) & 0xFF;
+    case WM_KEYUP:
+    case WM_SYSKEYUP:
+        return resolveVk(wp, lp) & 0xFF;
+    case WM_LBUTTONDOWN: down = true; return 256;
+    case WM_RBUTTONDOWN: down = true; return 257;
+    case WM_MBUTTONDOWN: down = true; return 258;
+    case WM_LBUTTONUP: return 256;
+    case WM_RBUTTONUP: return 257;
+    case WM_MBUTTONUP: return 258;
+    default: return -1;
+    }
+}
+
 static bool process(HWND w, UINT msg, WPARAM wp, LPARAM lp, LRESULT& result) {
     if (client::unloading()) return false;
 
@@ -204,17 +225,25 @@ static bool process(HWND w, UINT msg, WPARAM wp, LPARAM lp, LRESULT& result) {
     }
     case WM_KILLFOCUS:
         for (auto& k : keys) k = false;
+        eaten.fill(false);
         realCtrl[0] = realCtrl[1] = false;
         break;
     default:
         break;
     }
 
-    if (ui::wndProc(w, msg, wp, lp)) {
-        if (isMouseMessage(msg) || isKeyMessage(msg)) {
-            result = msg == WM_INPUT ? DefWindowProcW(w, msg, wp, lp) : 0;
-            return true;
+    bool take = ui::wndProc(w, msg, wp, lp);
+    bool down = false;
+    if (int slot = eatSlot(msg, wp, lp, down); slot >= 0) {
+        if (take && down) eaten[slot] = true;
+        else if (!down && eaten[slot]) {
+            eaten[slot] = false;
+            take = true;
         }
+    }
+    if (take && (isMouseMessage(msg) || isKeyMessage(msg))) {
+        result = msg == WM_INPUT ? DefWindowProcW(w, msg, wp, lp) : 0;
+        return true;
     }
     return false;
 }
@@ -296,7 +325,10 @@ static bool pumpedInput(const MSG& m) {
 }
 
 static void swallow(MSG* m, int slot) {
-    if (!m || m->hwnd != target || !pumpedInput(*m) || !blocking()) return;
+    if (!m || m->hwnd != target || !pumpedInput(*m) || oursDepth) return;
+    bool down = false;
+    int eat = eatSlot(m->message, m->wParam, m->lParam, down);
+    if (!ui::capturing() && !(eat >= 0 && !down && eaten[eat])) return;
     LRESULT result = 0;
     bool handled = false;
     guard::call("pump", [&] {

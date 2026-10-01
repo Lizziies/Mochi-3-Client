@@ -31,3 +31,10 @@ Autostart-Ausgangslage vor der Arbeit (nicht von uns): OneDrive, LGHUB, RazerApp
 | 3 | Der Toast "Mochi loaded" erscheint oben rechts, soll oben links | Code behoben, im Spiel noch nicht geprüft |
 
 Offen aus der Sicherheitsprüfung: Das Speicherabbild von `Minecraft.Windows.exe` (Phase 1, Ghidra) wurde vom Werkzeug-Schutz blockiert. Das Skript liegt nicht im Repo, bis klar ist, wie die Signatursuche laufen darf.
+
+Geprüft im Spiel nach dem Neustart (Build mit Eingabesperre): HUD (FPS, CPS, Keystrokes) ist im Hauptmenü weg, auch bei offenem Mochi-Menü (Screenshot). Strg+L entlädt sauber (`unloading`, `bye`, Modul weg, Spiel läuft weiter). Das Spiel fragt im Menü per `GetCursorPos` (hunderte Aufrufe pro Sekunde), `GetKeyState` und `PeekMessageW` ab, nicht über Raw Input (`RawData=0`, `RawBuffer=0`).
+
+| Nr | Fehler | Stand |
+|---|---|---|
+| 4 | Esc schließt das Mochi-Menü und öffnet gleichzeitig Minecrafts Dialog "Möchtest du Minecraft verlassen?" (das Loslassen der Taste gelangte ins Spiel) | Code behoben (jede verschluckte Taste und Maustaste wird samt Loslassen verschluckt), im Spiel noch nicht geprüft |
+| 5 | Im Hauptmenü ließ sich das Mochi-Menü mit Rechts-Shift öffnen, Module waren bedienbar | Code behoben (`Manager::dispatchKey` und `dispatchMouse` arbeiten nur im Spiel, bei offenem Menü oder im HUD-Editor), im Spiel noch nicht geprüft |

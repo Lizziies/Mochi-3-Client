@@ -432,8 +432,10 @@ const Module* slowest() {
 
 Motion mouseDelta() { return motion; }
 
+static bool active() { return game::state().inWorld || gui::open() || gui::editingHud(); }
+
 void dispatchKey(KeyEvent& ev) {
-    if (widgets::capturingKey() || inject::ours()) return;
+    if (widgets::capturingKey() || inject::ours() || !active()) return;
     if (ev.down && !ev.repeat && ev.vk == VK_F1) hudHidden = !hudHidden;
 
     bool captured = gui::capturesKeyboard();
@@ -459,6 +461,7 @@ void dispatchKey(KeyEvent& ev) {
 }
 
 void dispatchMouse(MouseEvent& ev) {
+    if (!active()) return;
     for (auto& m : list) {
         if (!m->enabled()) continue;
         if (!guard::call(m->name().c_str(), [&] { m->onMouse(ev); })) fault(*m);
