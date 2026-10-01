@@ -44,3 +44,18 @@ Geprüft im Spiel nach dem Neustart (Build mit Eingabesperre): HUD (FPS, CPS, Ke
 - Gefunden (rein aus Zeichenketten und Laufzeitzustand, ohne Datei-Kopie der Exe): Die Minecraft-Exe enthält keine RTTI für Spielklassen (nur 14.699 Namen für Standardbibliothek-Typen und Lambdas), aber sehr viele Zeichenketten mit vollständigen Funktionssignaturen, zum Beispiel `virtual void __cdecl Player::tickWorld(const Tick &)`, `MinecraftGame::update`, `GameRenderer::renderCurrentFrame(float)`, `ClientInstance::requestLeaveGame`. Daraus lassen sich Funktionen, vtables und Objekte ableiten. Die Entity-Daten liegen in einem ECS (`LocalPlayerComponent`, `entt::...`), Feldoffsets am Player-Objekt sind deshalb nicht direkt zu erwarten, getter-Aufrufe über die vtable sind der wahrscheinlichere Weg.
 - Ein Lua-Explorer im Client (Funktionssuche, Disassembler, Aufruf von Spielfunktionen, gesteuert über `dev.cmd`) wurde von der Werkzeug-Sicherheitsprüfung als mögliche Angriffsfläche blockiert und wieder entfernt (Commit `9a84faa` enthält den Stand). Die Signatursuche ist damit offen, bis geklärt ist, wie sie laufen darf.
 - Weitere Fehler gefunden und behoben: DX12-Absturz beim Vollbild-Wechsel (F11) und beim Wechsel Vollbild/Fenster (`abort()` in Minecraft, weil 11on12 noch Referenzen auf Back-Buffer hielt, jetzt pro Frame gewrappt und freigegeben), Menü verschluckt `WM_POINTER*`, verschluckte Tasten werden samt Loslassen verschluckt (Esc öffnete Minecrafts Dialog), Server-Erkennung nur nach dauerhaftem Netzwerkverkehr, "im Spiel"-Erkennung berücksichtigt den Fokus, Menü schließt mit Rechts-Shift, Cosmetics-Leiste bricht um, "HUD bearbeiten" passt sich dem Text an.
+
+## 2026-10-01 abends, Signatursuche mit dem Dev-Explorer (nur Dev-Build `-DMOCHI_DEV=ON`, nie im Release)
+
+Belegt im echten Spiel (1.26.52.3), per Disassembly und Heap-Suche:
+
+- `ClientInstance` hat die vtable bei RVA `0e9731b0` (gefunden über die Zeichenkette von `ClientInstance::requestLeaveGame`, Index 15). Vier Instanzen liegen im Heap.
+- `ClientInstance::getLocalPlayer` ist vtable-Index `0x540/8` (Funktion RVA `05dc2630`). Aufgerufen mit einer der Instanzen liefert sie einen gültigen `LocalPlayer` (vtable RVA `0e7adab0`, 419 Einträge).
+- Die Spieler-Zustandsdaten (`Actor`-State) hängen hinter `LocalPlayer` vtable-Index `0x560/8`; viele Getter lesen daraus (zum Beispiel Offsets `0x368`, `0x3b8`, `0x4ab` bis `0x4c4`, `0x37c`, `0x3e0`).
+- Position: Der Heap-Treffer für die angezeigte Position (3, 109, 57) liegt bei `c40aff490`, aber die zwei gefundenen Treffer sind nicht eindeutig zuordenbar (Float-Muster ohne Gegenprobe). Offen.
+
+Nicht erreicht: Es gibt noch keine einzige übernehmbare Signatur in `sigs/`. `locked:` bleibt bei 105 Modulen.
+
+Weitere Fehler und Änderungen heute: Cursor-Freigabe bei offenem Menü (`ClipCursor` wird zurückgenommen), Raw-Input-Klicks gehen ans Menü, gehaltene Tasten werden beim Öffnen losgelassen, der erste Klick bei offenem Menü kommt jetzt vom Raw-Input statt von `WM_*`-Nachrichten.
+
+Offen und nicht geprüft: ob das Menü im Spiel jetzt mit der Maus bedienbar ist (der letzte Test lief nur über Entwickler-Befehle), Rechtsklick links/rechts im Menü, Einstellungen der Extras-Module live, Einfrieren des Spiels im Hintergrund beim Menüwechsel.

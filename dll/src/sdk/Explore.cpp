@@ -314,6 +314,39 @@ int lHeap(lua_State* L) {
     return pushList(L, hits);
 }
 
+// three consecutive floats inside the given ranges, in private writable memory
+int lHeapFloats(lua_State* L) {
+    float lo[3], hi[3];
+    for (int i = 0; i < 3; i++) {
+        lo[i] = static_cast<float>(luaL_checknumber(L, 1 + i * 2));
+        hi[i] = static_cast<float>(luaL_checknumber(L, 2 + i * 2));
+    }
+    size_t limit = static_cast<size_t>(luaL_optinteger(L, 7, 32));
+    std::vector<uintptr_t> hits;
+    MEMORY_BASIC_INFORMATION mbi{};
+    uintptr_t at = 0x10000;
+    while (hits.size() < limit && VirtualQuery(reinterpret_cast<void*>(at), &mbi, sizeof(mbi))) {
+        uintptr_t next = reinterpret_cast<uintptr_t>(mbi.BaseAddress) + mbi.RegionSize;
+        bool ok = mbi.State == MEM_COMMIT && mbi.Type == MEM_PRIVATE && !(mbi.Protect & (PAGE_GUARD | PAGE_NOACCESS)) &&
+                  (mbi.Protect & (PAGE_READWRITE | PAGE_WRITECOPY));
+        if (ok) {
+            walk(reinterpret_cast<uintptr_t>(mbi.BaseAddress), mbi.RegionSize, 12, [&](uintptr_t base, const uint8_t* data, size_t count, size_t span) {
+                for (size_t i = 0; i + 12 <= count && i < span; i += 4) {
+                    float v[3];
+                    std::memcpy(v, data + i, 12);
+                    if (v[0] >= lo[0] && v[0] <= hi[0] && v[1] >= lo[1] && v[1] <= hi[1] && v[2] >= lo[2] && v[2] <= hi[2])
+                        hits.push_back(base + i);
+                    if (hits.size() >= limit) return true;
+                }
+                return false;
+            });
+        }
+        if (next <= at) break;
+        at = next;
+    }
+    return pushList(L, hits);
+}
+
 // only functions of the game's own code can be called, with plain integer arguments
 int lCall(lua_State* L) {
     using Fn = uintptr_t(__fastcall*)(uintptr_t, uintptr_t, uintptr_t, uintptr_t);
@@ -480,7 +513,7 @@ void work(std::string name) {
         {"i32", readValue<int32_t>},  {"f32", readValue<float>},    {"f64", readValue<double>},
         {"cstr", lCstr},       {"find", lFind},         {"findd", lFindData},  {"bytes", lBytes},
         {"xrefs", lXrefs},     {"callers", lCallers},   {"func", lFunc},       {"vtable", lVtable},
-        {"heap", lHeap},       {"call", lCall},         {"disasm", lDisasm},   {"disfunc", lDisFunc},
+        {"heap", lHeap},       {"heapf", lHeapFloats},  {"call", lCall},        {"disasm", lDisasm},   {"disfunc", lDisFunc},
         {"sleep", lSleep},     {"log", lLog},           {"out", lOut},         {"run", lRun},
         {nullptr, nullptr}};
     luaL_newlib(L, api);

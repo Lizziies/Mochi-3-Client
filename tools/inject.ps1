@@ -69,12 +69,12 @@ public static class Inj {
 '@
 
 $dll = (Resolve-Path $Dll).Path
-$dev = Join-Path (Resolve-Path (Join-Path $PSScriptRoot '..')).Path 'dev-data'
-$bin = Join-Path $dev 'bin'
-New-Item -ItemType Directory -Force $bin, (Join-Path $dev 'data') | Out-Null
+$devDir = Join-Path (Resolve-Path (Join-Path $PSScriptRoot '..')).Path 'dev-data'
+$bin = Join-Path $devDir 'bin'
+New-Item -ItemType Directory -Force $bin, (Join-Path $devDir 'data') | Out-Null
 $target = Join-Path $bin ("Mochi-{0:yyMMdd-HHmmss}.dll" -f (Get-Date))
 Copy-Item $dll $target -Force
-[IO.File]::WriteAllText((Join-Path $bin 'Mochi.root'), (Join-Path $dev 'data'))
+[IO.File]::WriteAllText((Join-Path $bin 'Mochi.root'), (Join-Path $devDir 'data'))
 $marker = Join-Path $bin 'Mochi.explore'
 if ($Dev) { [IO.File]::WriteAllText($marker, (Resolve-Path (Join-Path $PSScriptRoot 'explore')).Path) }
 elseif (Test-Path $marker) { Remove-Item $marker }
