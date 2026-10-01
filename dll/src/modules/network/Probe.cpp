@@ -1,3 +1,5 @@
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
+
 #include "Probe.hpp"
 #include "Link.hpp"
 #include "core/Log.hpp"
@@ -137,16 +139,31 @@ struct Target {
 };
 
 static bool resolve(const std::string& host, int port, bool wantV4, Target& out) {
-    addrinfo hints{};
-    hints.ai_socktype = SOCK_DGRAM;
-    hints.ai_family = wantV4 ? AF_INET : AF_UNSPEC;
-    addrinfo* res = nullptr;
-    if (getaddrinfo(host.c_str(), std::to_string(port).c_str(), &hints, &res) != 0 || !res) return false;
     out.text = host;
-    out.len = (int)res->ai_addrlen;
-    std::memcpy(&out.addr, res->ai_addr, res->ai_addrlen);
-    out.v4 = res->ai_family == AF_INET;
-    freeaddrinfo(res);
+    out.addr = {};
+    sockaddr_in* v4 = reinterpret_cast<sockaddr_in*>(&out.addr);
+    sockaddr_in6* v6 = reinterpret_cast<sockaddr_in6*>(&out.addr);
+    if (inet_pton(AF_INET, host.c_str(), &v4->sin_addr) == 1) {
+        v4->sin_family = AF_INET;
+        v4->sin_port = htons((u_short)port);
+        out.len = sizeof(sockaddr_in);
+        out.v4 = true;
+        return true;
+    }
+    if (!wantV4 && inet_pton(AF_INET6, host.c_str(), &v6->sin6_addr) == 1) {
+        v6->sin6_family = AF_INET6;
+        v6->sin6_port = htons((u_short)port);
+        out.len = sizeof(sockaddr_in6);
+        out.v4 = false;
+        return true;
+    }
+    hostent* he = gethostbyname(host.c_str());
+    if (!he || he->h_addrtype != AF_INET || !he->h_addr_list[0]) return false;
+    v4->sin_family = AF_INET;
+    v4->sin_port = htons((u_short)port);
+    std::memcpy(&v4->sin_addr, he->h_addr_list[0], 4);
+    out.len = sizeof(sockaddr_in);
+    out.v4 = true;
     return true;
 }
 

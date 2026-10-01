@@ -56,6 +56,7 @@ constexpr Info table[count] = {
     {"fx.handMatrix", "Hand-Transformation", Kind::Out},
     {"fx.lookTurn", "Blickdrehung des Spielers", Kind::Skip},
     {"fx.lookCamera", "Kamera-Rotation", Kind::Out},
+    {"fx.lookDelta", "Blickbewegung", Kind::Out},
     {"fx.selfNametag", "Eigener Nametag", Kind::Flag},
     {"fx.itemPhysics", "Item-Physik", Kind::Flag},
     {"fx.useDelay", "Item-Nutzungs-Verzögerung", Kind::Value},
@@ -65,7 +66,7 @@ constexpr Info table[count] = {
     {"fx.swingSpeed", "Schwung-Dauer", Kind::Value},
 };
 
-enum Mode { None, Set, Scale, Add, Force, Skipped, Out, Matrix };
+enum Mode { None, Set, Scale, Add, Force, Skipped, Out, Matrix, Smooth };
 
 struct Request {
     int mode = None;
@@ -82,6 +83,8 @@ struct Slot {
     bool tried = false;
     int arg = 1;
     bool rowMajor = false;
+    bool before = false;
+    std::array<float, 2> acc{};
     uintptr_t patched = 0;
     std::array<uint8_t, 64> backup{};
     size_t backupLen = 0;
@@ -170,20 +173,37 @@ struct Detour {
 
     static uintptr_t out(uintptr_t a, uintptr_t b, uintptr_t c, uintptr_t d) {
         auto& sl = slots[N];
-        uintptr_t r = reinterpret_cast<Fn>(sl.orig)(a, b, c, d);
         uintptr_t args[4] = {a, b, c, d};
         uintptr_t target = args[std::clamp(sl.arg, 0, 3)];
-        if (sl.mode == Out) {
-            for (int k = 0; k < sl.len; k++) mem::write(target + 4 * k, sl.v[k].load());
-        } else if (sl.mode == Matrix) {
-            applyMatrix(target, sl);
-        }
+        int mode = sl.mode.load();
+        bool pre = sl.before || mode == Smooth;
+        if (pre) modify(sl, target, mode);
+        uintptr_t r = reinterpret_cast<Fn>(sl.orig)(a, b, c, d);
+        if (!pre) modify(sl, target, mode);
         return r;
+    }
+
+    static void modify(Slot& sl, uintptr_t target, int mode) {
+        if (mode == Out) {
+            for (int k = 0; k < sl.len; k++) mem::write(target + 4 * k, sl.v[k].load());
+        } else if (mode == Matrix) {
+            applyMatrix(target, sl);
+        } else if (mode == Smooth) {
+            float cur[2];
+            if (!mem::read(target, cur)) return;
+            sl.acc[0] += cur[0];
+            sl.acc[1] += cur[1];
+            float f = std::clamp(sl.v[0].load(), 0.02f, 1.f);
+            float o[2] = {sl.acc[0] * f, sl.acc[1] * f};
+            sl.acc[0] -= o[0];
+            sl.acc[1] -= o[1];
+            mem::write(target, o);
+        }
     }
 };
 
 template <size_t... I>
-constexpr auto makeTable(std::index_sequence<I...>) {
+auto makeTable(std::index_sequence<I...>) {
     struct Row {
         void* flag;
         void* integer;
@@ -212,6 +232,7 @@ void install(size_t i, Slot& sl, uintptr_t address) {
     sl.tried = true;
     sl.arg = sigs::offset(std::string(table[i].sig) + ".arg", 1);
     sl.rowMajor = sigs::offset(std::string(table[i].sig) + ".rowMajor", 0) == 1;
+    sl.before = sigs::offset(std::string(table[i].sig) + ".before", 0) == 1;
     void* target = reinterpret_cast<void*>(address);
     const auto& row = detours[i];
     void* detour = nullptr;
@@ -285,6 +306,13 @@ void setInt(Id id, int v) {
 }
 
 void skip(Id id) { req(id).mode = Skipped; }
+
+void smooth(Id id, float factor) {
+    auto& r = req(id);
+    r.mode = Smooth;
+    r.len = 1;
+    r.v[0] = factor;
+}
 
 void out(Id id, std::initializer_list<float> values) {
     auto& r = req(id);

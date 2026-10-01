@@ -9,7 +9,9 @@ class EyeBreak : public Module {
 public:
     EyeBreak()
         : Module("20-20-20", "Reminds you every 20 minutes to look at something 20 feet (6 m) away for 20 seconds.",
-                 Category::Fun, {"cosmetic"}) {}
+                 Category::Fun, {"cosmetic"}) {
+        sub("Spiele");
+    }
 
     void onEnable() override { next_ = ui::time() + interval_.f * 60.0; }
 

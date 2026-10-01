@@ -2,6 +2,8 @@
 
 Der volle Ausbauplan. Alles, was Flarial, Onix, Latite und Lunar (das Java-Vorbild "Luna") können, plus das, was keiner hat. Die Wettbewerbsliste steht in `docs/CLIENTS.md`, die kurze Modulübersicht mit Tiers in `docs/MODULES.md`, die Latenz-Technik in `docs/INPUT.md`.
 
+Umsetzungsstand je Modul (Session B): `docs/MODULES.md`, Abschnitt "Umsetzungsstand". Spiel-Schnittstelle: `docs/SDK.md`.
+
 Leitregel (siehe `CLAUDE.md`): Ein Modul ist erst fertig, wenn es das beste existierende Gegenstück übertrifft: mehr Optionen, glatter, schöner, schneller.
 
 **Spalten:** `Prio` 1 = vor v1.0, 2 = kurz danach, 3 = später. `Tier`: `ov` = Overlay (keine Spiel-Signatur nötig), `game` = braucht Signaturen. Tags (`cosmetic`, `hud-self`, `info-others`, `camera`, `input`, `timing`, `chat`) wie in `SERVERS.md`. `SR` = `server-rules`, standardmäßig aus und mit Warnhinweis.

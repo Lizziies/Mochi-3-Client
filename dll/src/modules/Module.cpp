@@ -91,6 +91,7 @@ void Module::checkSigs() {
     missing_.clear();
     for (auto& s : sigs_)
         if (!sigs::address(s)) missing_.push_back(s);
+    if (anySig_ && missing_.size() < sigs_.size()) missing_.clear();
 }
 
 void Module::setEnabled(bool on) {

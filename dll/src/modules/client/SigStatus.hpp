@@ -11,8 +11,7 @@ class SigStatus : public Module {
 public:
     SigStatus()
         : Module("Sig Status",
-                 "Zeigt, welche Module auf dieser Minecraft-Version laufen und welche Signatur fehlt. Hier lassen sich auch "
-                 "simulierte Spieldaten für Tests einschalten.",
+                 "Zeigt, welche Module auf dieser Version laufen. Hier gibt es auch Demo-Daten.",
                  Category::Performance, {"performance"}) {
         sub("Diagnose");
     }

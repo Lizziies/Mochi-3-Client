@@ -21,7 +21,7 @@
 class TargetHud : public GameList {
 public:
     TargetHud()
-        : GameList("Target HUD", "Zeigt Name, Leben und Distanz des Gegners, den du gerade anschaust. Nur Infos, die der normale Client auch zeigt.",
+        : GameList("Target HUD", "Name und Distanz des anvisierten Gegners, Leben nur auf Wunsch.",
                    need::target, need::sigs({"LocalPlayer", "Target"}), {"info-others"}, {0.40f, 0.62f}) {
         sub("Kampf-Anzeigen");
         background_.b = true;
@@ -53,7 +53,8 @@ protected:
         if (name_.b) y += drawText(dl, o, s, last_.name, accentColor()).y;
         float frac = last_.maxHealth > 0.f ? std::clamp(last_.health / last_.maxHealth, 0.f, 1.f) : 0.f;
         smooth_ = draw::approach(smooth_, frac, 10.f);
-        if (bar_.b) {
+        bool health = healthMode_.i == 2 || (healthMode_.i == 1 && !last_.isPlayer);
+        if (bar_.b && health) {
             ImVec2 b0 = o + ImVec2(0, y + 3 * s);
             float h = 8 * s;
             dl->AddRectFilled(b0, b0 + ImVec2(w, h), IM_COL32(0, 0, 0, 80), h * 0.5f);
@@ -62,7 +63,7 @@ protected:
             y += h + 6 * s;
         }
         std::string info;
-        if (text_.b) info += hearts_.b ? std::format("{:.1f} ♥", last_.health / 2.f) : std::format("{:.0f} / {:.0f}", last_.health, last_.maxHealth);
+        if (text_.b && health) info += hearts_.b ? std::format("{:.1f} ♥", last_.health / 2.f) : std::format("{:.0f} / {:.0f}", last_.health, last_.maxHealth);
         if (dist_.b) info += std::format("{}{:.1f} m", info.empty() ? "" : "  ·  ", last_.distance);
         if (!info.empty()) y += drawText(dl, o + ImVec2(0, y), s, info, textColor()).y;
         return {w, std::max(y, 14.f * s)};
@@ -71,6 +72,7 @@ protected:
 private:
     Setting& width_ = slider("width", "Breite", 150.f, 90.f, 320.f, "%.0f");
     Setting& name_ = toggleSetting("name", "Name", true);
+    Setting& healthMode_ = choice("healthMode", "Leben anzeigen", {"Nie", "Nur bei Mobs", "Immer"}, 1);
     Setting& bar_ = toggleSetting("bar", "Lebensbalken", true);
     Setting& text_ = toggleSetting("text", "Lebenswert", true);
     Setting& hearts_ = toggleSetting("hearts", "In Herzen", false);
@@ -109,7 +111,7 @@ protected:
             w = std::max(w, textSize(s, str).x);
         };
         if (t.kind == game::Target::Kind::Entity) {
-            if (health_.b) line(std::format("{:.0f} / {:.0f} Leben", t.health, t.maxHealth));
+            if (healthMode_.i == 2 || (healthMode_.i == 1 && !t.isPlayer)) line(std::format("{:.0f} / {:.0f} Leben", t.health, t.maxHealth));
         } else if (t.kind == game::Target::Kind::Block && coords_.b) {
             line(std::format("{} {} {}", t.blockX, t.blockY, t.blockZ));
         }
@@ -126,7 +128,7 @@ protected:
     }
 
 private:
-    Setting& health_ = toggleSetting("health", "Leben von Entities", true);
+    Setting& healthMode_ = choice("healthMode", "Leben anzeigen", {"Nie", "Nur bei Mobs", "Immer"}, 1);
     Setting& dist_ = toggleSetting("dist", "Distanz", true);
     Setting& coords_ = toggleSetting("coords", "Blockkoordinaten", false);
     Setting& progress_ = toggleSetting("progress", "Abbaufortschritt", true);

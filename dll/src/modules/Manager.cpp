@@ -19,18 +19,25 @@
 #include "combat/Feedback.hpp"
 #include "combat/Target.hpp"
 #include "combat/Tweaks.hpp"
+#include "comfort/Chat.hpp"
+#include "comfort/Link.hpp"
 #include "comfort/Screenshot.hpp"
+#include "comfort/Streamer.hpp"
+#include "comfort/Toggles.hpp"
 #include "fun/BlockGame.hpp"
 #include "fun/DvdScreen.hpp"
 #include "fun/EyeBreak.hpp"
 #include "fun/Flappy.hpp"
+#include "fun/Pets.hpp"
 #include "fun/Snake.hpp"
 #include "hud/Clock.hpp"
 #include "hud/Cps.hpp"
+#include "hud/Compose.hpp"
 #include "hud/Fps.hpp"
 #include "hud/GameInfo.hpp"
 #include "hud/Inventory.hpp"
 #include "hud/Keystrokes.hpp"
+#include "hud/Paperdoll.hpp"
 #include "hud/Latency.hpp"
 #include "hud/Memory.hpp"
 #include "hud/MouseStrokes.hpp"
@@ -45,6 +52,7 @@
 #include "network/Network.hpp"
 #include "network/PingCounter.hpp"
 #include "network/Probe.hpp"
+#include "perf/Auto.hpp"
 #include "perf/FrameLimiter.hpp"
 #include "perf/LowLatency.hpp"
 #include "perf/Tuning.hpp"
@@ -52,7 +60,10 @@
 #include "post/Effects.hpp"
 #include "post/FunEffects.hpp"
 #include "post/PostFx.hpp"
+#include "perf/RenderOptions.hpp"
 #include "perf/SystemBoost.hpp"
+#include "server/MatchSummary.hpp"
+#include "server/ServerProfiles.hpp"
 #include "visual/Crosshair.hpp"
 #include "world/Waypoints.hpp"
 #include "world/World.hpp"
@@ -96,6 +107,10 @@ void init() {
     add<DayCounter>();
     add<PackDisplay>();
     add<HeldItem>();
+    add<Paperdoll>();
+    add<StatsHud>();
+    add<Watermark>();
+    add<DebugMenu>();
     add<ArmorHud>();
     add<PotionHud>();
     add<PotCounter>();
@@ -122,6 +137,7 @@ void init() {
     add<JavaDynamicFov>();
     add<Zoom>();
     add<Freelook>();
+    add<CinematicCamera>();
     add<NoViewBobbing>();
     add<MinimalViewBobbing>();
     add<NoHurtCam>();
@@ -175,12 +191,33 @@ void init() {
     add<InstaHurtAnimation>();
     add<CpsLimiter>();
     add<NoScroll>();
+    add<ToggleSprint>();
+    add<ToggleSneak>();
+    add<CommandHotkey>();
+    add<TextHotkey>();
+    add<ProfileHotkeys>();
+    add<AutoGG>();
+    add<MessageLogger>();
+    add<ChatPlus>();
+    add<DeathLogger>();
+    add<PlayerNotifier>();
+    add<ScoreboardPlus>();
+    add<TabList>();
+    add<MumbleLink>();
+    add<GuiScale>();
+    add<StreamerMode>();
+
+    add<ServerProfiles>();
+    add<MatchSummary>();
     add<InstantInput>();
 
     add<Screenshot>();
 
     add<LowLatency>();
     add<FrameLimiter>();
+    add<RenderOptions>();
+    add<AutoProfile>();
+    add<BackgroundLoad>();
     add<SystemBoost>();
     add<SigStatus>();
 
@@ -189,6 +226,8 @@ void init() {
     add<DvdScreen>();
     add<EyeBreak>();
     add<BlockGame>();
+    add<Pet>();
+    add<Petals>();
     add<Deepfry>();
     add<UpsideDown>();
 
@@ -233,7 +272,7 @@ void frame(ImDrawList* hud) {
     perf::begin();
     post::begin();
     fx::begin();
-    game::update();
+    guard::call("sdk", [] { game::update(); });
     input::consumeMotion(motion.x, motion.y);
 
     bool editing = gui::editingHud();
@@ -252,7 +291,7 @@ void frame(ImDrawList* hud) {
 
     capture::submit(hud, capture::Stage::Overlay);
     perf::apply();
-    fx::apply();
+    guard::call("effects", [] { fx::apply(); });
     QueryPerformanceCounter(&t1);
     QueryPerformanceFrequency(&qpf);
     cost += (float(double(t1.QuadPart - t0.QuadPart) * 1000.0 / double(qpf.QuadPart)) - cost) * 0.05f;
@@ -263,7 +302,7 @@ float costMs() { return cost; }
 Motion mouseDelta() { return motion; }
 
 void dispatchKey(KeyEvent& ev) {
-    if (widgets::capturingKey()) return;
+    if (widgets::capturingKey() || inject::ours()) return;
     if (ev.down && !ev.repeat && ev.vk == VK_F1) hudHidden = !hudHidden;
 
     bool captured = gui::capturesKeyboard();

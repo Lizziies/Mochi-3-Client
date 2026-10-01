@@ -97,7 +97,7 @@ private:
 class TimeChanger : public Module {
 public:
     TimeChanger()
-        : Module("Time Changer", "Stellt die Tageszeit nur bei dir ein: fest, laufend oder immer Sonnenuntergang. Der Server merkt davon nichts.",
+        : Module("Time Changer", "Stellt die Tageszeit nur bei dir ein: fest, laufend oder Sonnenuntergang.",
                  Category::Visual, {"cosmetic"}) {
         sub("Welt");
         require(0, {fx::sig(fx::Id::TimeOfDay)});
@@ -330,7 +330,7 @@ private:
 class Animations : public Module {
 public:
     Animations()
-        : Module("Animations", "Schwung- und Block-Animationen im 1.8-Stil: kleineres Item, tiefere Hand, Schwert-Block-Pose und eigene Schwunggeschwindigkeit.",
+        : Module("Animations", "Schwung- und Block-Animationen im 1.8-Stil, kleineres Item, eigene Schwunggeschwindigkeit.",
                  Category::Visual, {"cosmetic"}) {
         sub("Modell");
         require(0, {fx::sig(fx::Id::HandMatrix)});

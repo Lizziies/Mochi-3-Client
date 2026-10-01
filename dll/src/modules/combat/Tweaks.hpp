@@ -122,7 +122,7 @@ private:
 class SensMultiplier : public Module {
 public:
     SensMultiplier()
-        : Module("Sens Multiplier", "Eigene Mausempfindlichkeit je Situation: beim Zoomen, Bogenspannen, Blocken, Schleichen und Sprinten.",
+        : Module("Sens Multiplier", "Eigene Empfindlichkeit beim Zoomen, Bogenspannen, Blocken, Schleichen und Sprinten.",
                  Category::Pvp, {"input"}) {
         sub("Eingabe");
         require(0, {fx::sig(fx::Id::Sensitivity)});
@@ -169,7 +169,7 @@ private:
 class SnapLook : public Module {
 public:
     SnapLook()
-        : Module("Snap Look", "Wirft per Taste einen kurzen Blick nach hinten oder zur Seite, ohne dass sich deine Blickrichtung ändert.",
+        : Module("Snap Look", "Kurzer Blick nach hinten oder zur Seite per Taste, ohne die Blickrichtung zu ändern.",
                  Category::Pvp, {"camera"}) {
         sub("Eingabe");
         require(need::player, {fx::sig(fx::Id::LookCamera), "LocalPlayer"});
@@ -192,7 +192,7 @@ public:
     void onDisable() override { active_ = false; }
 
 private:
-    Setting& key_ = keySetting("key", "Blick-Taste", 'V');
+    Setting& key_ = keySetting("snapKey", "Blick-Taste", 'V');
     Setting& mode_ = choice("mode", "Modus", {"Halten", "Umschalten"});
     Setting& dir_ = choice("dir", "Richtung", {"Hinten", "Links", "Rechts"});
     Setting& keepPitch_ = toggleSetting("keepPitch", "Neigung beibehalten", true);
@@ -203,8 +203,7 @@ class NullMovement : public Module {
 public:
     NullMovement()
         : Module("Null Movement",
-                 "Gegensätzliche Richtungstasten heben sich nicht mehr auf: die zuletzt gedrückte gewinnt, oder beide neutralisieren sich. "
-                 "Auf vielen Servern verboten, deshalb standardmäßig aus.",
+                 "Gegenläufige Richtungstasten heben sich nicht auf. Auf vielen Servern verboten.",
                  Category::Pvp, {"input"}) {
         sub("Eingabe");
         markRisky();
@@ -282,7 +281,7 @@ private:
 class ItemUseDelayFix : public Module {
 public:
     ItemUseDelayFix()
-        : Module("Item Use Delay Fix", "Verkürzt die Wartezeit zwischen zwei Item-Nutzungen. Auf vielen Servern nicht erlaubt, deshalb standardmäßig aus.",
+        : Module("Item Use Delay Fix", "Verkürzt die Wartezeit zwischen Item-Nutzungen. Auf vielen Servern verboten.",
                  Category::Pvp, {"timing"}) {
         sub("Eingabe");
         markRisky();
@@ -298,7 +297,7 @@ private:
 class FasterInventory : public Module {
 public:
     FasterInventory()
-        : Module("Faster Inventory", "Verkürzt die Verzögerung beim Bewegen von Items im Inventar. Auf vielen Servern nicht erlaubt, deshalb standardmäßig aus.",
+        : Module("Faster Inventory", "Schnelleres Bewegen von Items im Inventar. Auf vielen Servern verboten.",
                  Category::Pvp, {"timing"}) {
         sub("Eingabe");
         markRisky();
@@ -314,7 +313,7 @@ private:
 class InstaHurtAnimation : public Module {
 public:
     InstaHurtAnimation()
-        : Module("Insta Hurt Animation", "Zeigt die Treffer-Animation sofort, ohne auf die Bestätigung zu warten. Auf vielen Servern nicht erlaubt, deshalb standardmäßig aus.",
+        : Module("Insta Hurt Animation", "Treffer-Animation sofort statt verzögert. Auf vielen Servern verboten.",
                  Category::Pvp, {"timing"}) {
         sub("Eingabe");
         markRisky();

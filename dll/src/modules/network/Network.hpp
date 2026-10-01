@@ -15,8 +15,7 @@ class Network : public HudModule {
 public:
     Network()
         : HudModule("Network",
-                    "Misst Ping, Jitter und Paketverlust zum Server und zeigt, ob WLAN, Leitung oder Server das Problem sind. "
-                    "Ändert nichts am Spielverkehr.",
+                    "Ping, Jitter und Paketverlust zum Server, plus WLAN-Daten und Tipps.",
                     {"hud-self"}, {0.01f, 0.34f}) {
         sub("Netzwerk");
         interval_.visible = [this] { return advanced_.b; };

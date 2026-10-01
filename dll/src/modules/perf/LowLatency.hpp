@@ -10,6 +10,7 @@ public:
     LowLatency()
         : Module("Low Latency", "Shorter frame queue, optional tearing instead of VSync and a precise FPS limiter. Compare before and after with the Latency HUD.",
                  Category::Performance, {"performance"}) {
+        sub("Frame-Timing");
         limit_.visible = [this] { return useLimit_.b; };
     }
 

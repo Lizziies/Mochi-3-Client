@@ -7,7 +7,9 @@
 
 class SessionTimer : public TextHud {
 public:
-    SessionTimer() : TextHud("Session Timer", "How long you have been playing, in total or on the current server.", {"hud-self"}, {0.01f, 0.18f}) {}
+    SessionTimer() : TextHud("Session Timer", "How long you have been playing, in total or on the current server.", {"hud-self"}, {0.01f, 0.18f}) {
+        sub("Timer");
+    }
 
     void onServer(const ServerEvent& ev) override { serverStart_ = ev.joined ? ui::time() : -1; }
 

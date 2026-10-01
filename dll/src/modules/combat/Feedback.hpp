@@ -213,7 +213,7 @@ private:
 class DamageIndicator : public Module {
 public:
     DamageIndicator()
-        : Module("Damage Indicator", "Schadenszahlen, die vom Fadenkreuz aufsteigen, wenn du triffst. Zeigt nur, was du sowieso getroffen hast.",
+        : Module("Damage Indicator", "Schadenszahlen steigen vom Fadenkreuz auf, wenn du triffst.",
                  Category::Pvp, {"info-others"}) {
         sub("Kampf-Anzeigen");
         require(need::combat, need::sigs({"LocalPlayer", "AttackEntity"}));
@@ -283,6 +283,8 @@ public:
             play(e.crit ? critTone_.i : tone_.i, e.crit ? 1.25f : 1.f);
         }
     }
+
+    void onDisable() override { PlaySoundW(nullptr, nullptr, 0); }
 
     void drawSettings() override {
         ImGui::Spacing();

@@ -18,6 +18,7 @@ public:
     LatencyHud()
         : HudModule("Latency", "Misst Frametime und die Zeit vom Klick bis zum nächsten Bild. Zum Vergleichen von Einstellungen.",
                     {"hud-self"}, {0.70f, 0.02f}) {
+        sub("Netzwerk");
         LARGE_INTEGER f;
         QueryPerformanceFrequency(&f);
         qpf_ = double(f.QuadPart);

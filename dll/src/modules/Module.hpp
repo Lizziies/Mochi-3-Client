@@ -57,7 +57,7 @@ public:
     void checkSigs();
 
     RuleLevel rule() const { return rule_; }
-    const std::string& ruleNote() const { return ruleNote_; }
+    const std::string& ruleNote() const { return ruleNote_.empty() && risky_ ? riskNote_ : ruleNote_; }
     void applyRule(RuleLevel level, std::string note);
     bool optionBlocked(const std::string& option) const;
     void setBlockedOptions(std::vector<std::string> opts) { blockedOptions_ = std::move(opts); }
@@ -82,13 +82,20 @@ protected:
     Setting& keySetting(std::string id, std::string label, int def = 0);
     Setting& textSetting(std::string id, std::string label, std::string def);
 
-    void markRisky() { risky_ = true; }
+    void markRisky(std::string note = "Auf vielen Servern nicht erlaubt. Nur einschalten, wenn die Server-Regeln es zulassen.") {
+        risky_ = true;
+        riskNote_ = std::move(note);
+    }
     void sub(std::string name) { sub_ = std::move(name); }
     void needs(unsigned mask) { needs_ = mask; }
     void needs(game::Domain d) { needs_ = unsigned(d); }
     void require(unsigned domains, std::vector<std::string> sigs) {
         needs_ = domains;
         sigs_ = std::move(sigs);
+    }
+    void requireAny(std::vector<std::string> sigs) {
+        sigs_ = std::move(sigs);
+        anySig_ = true;
     }
 
 private:
@@ -105,9 +112,11 @@ private:
     std::deque<Setting> settings_;
     Setting* key_ = nullptr;
     unsigned needs_ = 0;
+    bool anySig_ = false;
     bool enabled_ = false;
     bool wanted_ = false;
     bool risky_ = false;
     RuleLevel rule_ = RuleLevel::Allowed;
     std::string ruleNote_;
+    std::string riskNote_;
 };

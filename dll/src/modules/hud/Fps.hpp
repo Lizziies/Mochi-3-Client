@@ -11,7 +11,9 @@ class Fps : public TextHud {
 public:
     bool defaultEnabled() const override { return true; }
 
-    Fps() : TextHud("FPS", "Shows your frames per second.", {"hud-self"}, {0.01f, 0.02f}) {}
+    Fps() : TextHud("FPS", "Shows your frames per second.", {"hud-self"}, {0.01f, 0.02f}) {
+        sub("Eigene Werte");
+    }
 
     void onFrame() override {
         double ms = dx::frame().frameMs;

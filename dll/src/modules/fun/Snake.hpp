@@ -15,7 +15,9 @@
 
 class Snake : public Module {
 public:
-    Snake() : Module("Snake", "Snake for the queue. Arrow keys/WASD, ESC quits.", Category::Fun, {"cosmetic"}) {}
+    Snake() : Module("Snake", "Snake for the queue. Arrow keys/WASD, ESC quits.", Category::Fun, {"cosmetic"}) {
+        sub("Spiele");
+    }
 
     bool persistent() const override { return false; }
     void onEnable() override { reset(); }

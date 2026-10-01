@@ -20,7 +20,7 @@
 class FovChanger : public Module {
 public:
     FovChanger()
-        : Module("FOV Changer", "Stellt dein Sichtfeld frei ein, auch über die normalen Grenzen hinaus. Sprint- und Trank-Effekte lassen sich abschalten.",
+        : Module("FOV Changer", "Stellt dein Sichtfeld frei ein. Sprint- und Trank-Effekte lassen sich abschalten.",
                  Category::Visual, {"camera"}) {
         sub("Kamera");
         require(0, {fx::sig(fx::Id::Fov)});
@@ -139,7 +139,7 @@ private:
         if (active_ && !remember_.b) level_ = zoom_.f;
     }
 
-    Setting& key_ = keySetting("key", "Zoom-Taste", 'C');
+    Setting& key_ = keySetting("zoomKey", "Zoom-Taste", 'C');
     Setting& mode_ = choice("mode", "Modus", {"Halten", "Umschalten"});
     Setting& zoom_ = slider("zoom", "Zoomstufe", 4.f, 1.5f, 20.f, "%.1fx");
     Setting& base_ = slider("base", "Basis-Sichtfeld", 70.f, 30.f, 120.f, "%.0f");
@@ -202,7 +202,7 @@ private:
         active_ = next;
     }
 
-    Setting& key_ = keySetting("key", "Freelook-Taste", VK_LMENU);
+    Setting& key_ = keySetting("freelookKey", "Freelook-Taste", VK_LMENU);
     Setting& mode_ = choice("mode", "Modus", {"Halten", "Umschalten"});
     Setting& sens_ = slider("sens", "Empfindlichkeit", 1.f, 0.2f, 3.f, "%.2fx");
     Setting& invert_ = toggleSetting("invert", "Y-Achse umkehren", false);
@@ -214,7 +214,7 @@ private:
 class NoViewBobbing : public Module {
 public:
     NoViewBobbing()
-        : Module("No View Bobbing", "Schaltet das Wackeln beim Laufen komplett ab, getrennt für Kamera und Hand, wahlweise nur beim Sprinten oder unter Wasser.",
+        : Module("No View Bobbing", "Schaltet das Wackeln beim Laufen ab, für Kamera und Hand getrennt.",
                  Category::Visual, {"camera"}) {
         sub("Kamera");
         require(0, {fx::sig(fx::Id::ViewBob)});
@@ -287,7 +287,7 @@ private:
 class AutoPerspective : public Module {
 public:
     AutoPerspective()
-        : Module("Auto Perspective", "Wechselt die Perspektive automatisch, etwa beim Gleiten mit Elytra oder beim Bogenspannen, und danach zurück.",
+        : Module("Auto Perspective", "Wechselt die Perspektive automatisch, etwa beim Gleiten oder Bogenspannen.",
                  Category::Visual, {"camera"}) {
         sub("Kamera");
         require(need::player, {fx::sig(fx::Id::Perspective), "LocalPlayer"});
@@ -337,4 +337,22 @@ private:
     Setting& fade_ = toggleSetting("fade", "Sanfter Übergang", true);
     Setting& onlyNight_ = toggleSetting("onlyNight", "Nur nachts", false);
     float current_ = 0.f;
+};
+
+class CinematicCamera : public Module {
+public:
+    CinematicCamera()
+        : Module("Cinematic Camera", "Weiche, gleitende Kamerabewegung wie in Filmaufnahmen. Auf Wunsch nur beim Zoomen.", Category::Visual, {"camera"}) {
+        sub("Kamera");
+        require(0, {fx::sig(fx::Id::LookDelta)});
+    }
+
+    void onFrame() override {
+        if (onlyZoom_.b && !ctx::zooming) return;
+        fx::smooth(fx::Id::LookDelta, 1.f - smoothing_.f);
+    }
+
+private:
+    Setting& smoothing_ = slider("smoothing", "Glättung", 0.7f, 0.f, 0.95f, "%.2f");
+    Setting& onlyZoom_ = toggleSetting("onlyZoom", "Nur beim Zoomen", false);
 };
