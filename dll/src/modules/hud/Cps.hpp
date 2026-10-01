@@ -10,7 +10,7 @@ public:
     bool defaultEnabled() const override { return true; }
 
     Cps() : TextHud("CPS", "Counts your clicks per second.", {"hud-self"}, {0.01f, 0.06f}) {
-        sub("Eigene Werte");
+        sub("Own values");
     }
 
 protected:

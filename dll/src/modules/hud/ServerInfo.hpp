@@ -9,7 +9,7 @@ public:
     bool defaultEnabled() const override { return true; }
 
     ServerInfo() : TextHud("Server Display", "Shows which server you are on.", {"hud-self"}, {0.01f, 0.26f}) {
-        sub("Eigene Werte");
+        sub("Own values");
     }
 
     void onRender(ImDrawList* dl) override {

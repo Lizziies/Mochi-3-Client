@@ -11,9 +11,9 @@
 class ServerProfiles : public Module {
 public:
     ServerProfiles()
-        : Module("Server Profiles", "Wechselt beim Betreten eines Servers automatisch dein Einstellungs-Profil und danach wieder zurück.", Category::Server,
+        : Module("Server Profiles", "Automatically switches your settings profile when you join a server and back afterwards.", Category::Server,
                  {"cosmetic"}) {
-        sub("Profile");
+        sub("Profiles");
     }
 
     void onServer(const ServerEvent& ev) override {
@@ -36,7 +36,7 @@ public:
             if (std::find(all.begin(), all.end(), profile) == all.end() || profile == config::profile()) return;
             previous_ = config::profile();
             config::switchProfile(profile);
-            if (toast_.b) notify::push("Profil gewechselt", profile + " für " + ev.name, notify::Kind::Ok);
+            if (toast_.b) notify::push(i18n::tr("Profile switched"), profile + i18n::tr(" for ") + ev.name, notify::Kind::Ok);
             return;
         }
     }
@@ -47,8 +47,8 @@ private:
         return a == std::string::npos ? "" : s.substr(a, b - a + 1);
     }
 
-    Setting& rules_ = textSetting("rules", "Server=Profil, mit Semikolon trennen", "The Hive=pvp; Zeqa=pvp");
-    Setting& restore_ = toggleSetting("restore", "Beim Verlassen zurückwechseln", true);
-    Setting& toast_ = toggleSetting("toast", "Hinweis anzeigen", true);
+    Setting& rules_ = textSetting("rules", "Server=profile, separate with semicolons", "The Hive=pvp; Zeqa=pvp");
+    Setting& restore_ = toggleSetting("restore", "Switch back when leaving", true);
+    Setting& toast_ = toggleSetting("toast", "Show notice", true);
     std::string previous_;
 };

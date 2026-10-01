@@ -1,6 +1,8 @@
 #include "Inject.hpp"
 #include "core/Log.hpp"
 #include "hook/Dx.hpp"
+#include "render/Ui.hpp"
+#include "sdk/Game.hpp"
 
 #include <windows.h>
 
@@ -27,6 +29,7 @@ std::condition_variable wake;
 std::deque<Job> jobs;
 std::thread worker;
 std::atomic<bool> stopping{false};
+std::deque<Sent> history;
 
 bool extended(int vk) {
     switch (vk) {
@@ -88,6 +91,8 @@ void run() {
 
 }
 
+const std::deque<Sent>& sent() { return history; }
+
 bool ours() { return GetMessageExtraInfo() == (LPARAM)marker; }
 
 bool focused() {
@@ -121,6 +126,12 @@ void tapLater(int vk) {
 
 void say(const std::string& text, int chatKey) {
     if (text.empty() || text.size() > 256) return;
+    history.push_back({text, ui::time(), !game::demo()});
+    if (history.size() > 8) history.pop_front();
+    if (game::demo()) {
+        logger::info("demo: would send '{}'", text);
+        return;
+    }
     std::scoped_lock g(lock);
     if (jobs.size() >= 4) return;
     jobs.push_back({text, chatKey});

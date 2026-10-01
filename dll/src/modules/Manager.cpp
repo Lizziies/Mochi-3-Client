@@ -65,8 +65,10 @@
 #include "post/PostFx.hpp"
 #include "perf/RenderOptions.hpp"
 #include "perf/SystemBoost.hpp"
+#include "server/Hive.hpp"
 #include "server/MatchSummary.hpp"
 #include "server/ServerProfiles.hpp"
+#include "server/Zeqa.hpp"
 #include "visual/Crosshair.hpp"
 #include "world/Waypoints.hpp"
 #include "world/World.hpp"
@@ -216,6 +218,8 @@ void init() {
 
     add<ServerProfiles>();
     add<MatchSummary>();
+    add<HiveUtils>();
+    add<ZeqaUtils>();
     add<InstantInput>();
 
     add<Screenshot>();

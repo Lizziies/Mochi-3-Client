@@ -13,9 +13,9 @@
 class MatchSummary : public Module {
 public:
     MatchSummary()
-        : Module("Match Summary", "Zusammenfassung beim Verlassen eines Servers: Dauer, Treffer, Combo, K/D.", Category::Server,
+        : Module("Match Summary", "Summary when you leave a server: duration, hits, combo, K/D.", Category::Server,
                  {"hud-self"}) {
-        sub("Statistik");
+        sub("Statistics");
         require(need::combat, need::sigs({"LocalPlayer", "AttackEntity"}));
     }
 
@@ -26,18 +26,18 @@ public:
             return;
         }
         auto& c = game::state().combat;
-        std::string body = std::format("Dauer {}", text::clock(float(ui::time() - start_)));
-        if (hits_.b) body += std::format("  ·  {} Treffer", c.hits);
+        std::string body = i18n::fmt("Duration {}", text::clock(float(ui::time() - start_)));
+        if (hits_.b) body += i18n::fmt("  ·  {} hits", c.hits);
         if (accuracy_.b && c.swings > 0) body += std::format(" ({:.0f}%)", 100.f * c.hits / c.swings);
-        if (combo_.b) body += std::format("  ·  Combo {}", c.bestCombo);
+        if (combo_.b) body += i18n::fmt("  ·  Combo {}", c.bestCombo);
         if (kd_.b) body += std::format("  ·  K/D {}/{}", c.kills, c.deaths);
-        notify::push("Zusammenfassung: " + ev.name, body, notify::Kind::Info, 10.f);
+        notify::push(i18n::tr("Summary: ") + ev.name, body, notify::Kind::Info, 10.f);
     }
 
 private:
-    Setting& hits_ = toggleSetting("hits", "Treffer", true);
-    Setting& accuracy_ = toggleSetting("accuracy", "Trefferquote", true);
-    Setting& combo_ = toggleSetting("combo", "Combo-Rekord", true);
-    Setting& kd_ = toggleSetting("kd", "Kills und Tode", true);
+    Setting& hits_ = toggleSetting("hits", "Hits", true);
+    Setting& accuracy_ = toggleSetting("accuracy", "Hit rate", true);
+    Setting& combo_ = toggleSetting("combo", "Combo record", true);
+    Setting& kd_ = toggleSetting("kd", "Kills and deaths", true);
     double start_ = 0.0;
 };

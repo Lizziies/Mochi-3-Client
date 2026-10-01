@@ -33,9 +33,9 @@ inline ImVec2 screenCenter() {
 class HitMarker : public Module {
 public:
     HitMarker()
-        : Module("Hit Marker", "Kurzer Marker am Fadenkreuz, wenn du triffst. Nur eine Anzeige, ändert nichts am Spiel.", Category::Pvp,
+        : Module("Hit Marker", "A short marker at the crosshair when you hit. Display only, changes nothing in the game.", Category::Pvp,
                  {"cosmetic"}) {
-        sub("Treffer-Visuals");
+        sub("Hit visuals");
     }
 
     void onFrame() override {
@@ -96,7 +96,7 @@ public:
 
     void drawSettings() override {
         ImGui::Spacing();
-        if (source_.i == 0 && !game::ready(need::combat)) ImGui::TextDisabled("Treffer-Erkennung braucht die Signatur AttackEntity. Mit \"Klick\" geht es immer.");
+        if (source_.i == 0 && !game::ready(need::combat)) ImGui::TextDisabled(i18n::tr("Hit detection needs the AttackEntity signature. \"Every click\" always works."));
     }
 
 private:
@@ -110,16 +110,16 @@ private:
         if (marks_.size() > 8) marks_.pop_front();
     }
 
-    Setting& source_ = choice("source", "Auslöser", {"Treffer", "Jeder Klick"});
-    Setting& style_ = choice("style", "Form", {"X", "Plus", "Ring", "Punkte"});
-    Setting& size_ = slider("size", "Länge", 7.f, 2.f, 24.f, "%.0f");
-    Setting& gap_ = slider("gap", "Abstand", 5.f, 0.f, 24.f, "%.0f");
-    Setting& thickness_ = slider("thickness", "Dicke", 2.f, 1.f, 5.f, "%.1f");
-    Setting& duration_ = slider("duration", "Dauer (s)", 0.25f, 0.08f, 1.f, "%.2f s");
-    Setting& grow_ = toggleSetting("grow", "Wächst beim Ausblenden", true);
-    Setting& outline_ = toggleSetting("outline", "Umriss", true);
-    Setting& color_ = colorSetting("color", "Farbe", {1.f, 1.f, 1.f, 1.f});
-    Setting& critColor_ = colorSetting("critColor", "Farbe bei Crit", {1.f, 0.49f, 0.71f, 1.f});
+    Setting& source_ = choice("source", "Trigger", {"Hits", "Every click"});
+    Setting& style_ = choice("style", "Shape", {"X", "Plus", "Ring", "Dots"});
+    Setting& size_ = slider("size", "Length", 7.f, 2.f, 24.f, "%.0f");
+    Setting& gap_ = slider("gap", "Gap", 5.f, 0.f, 24.f, "%.0f");
+    Setting& thickness_ = slider("thickness", "Thickness", 2.f, 1.f, 5.f, "%.1f");
+    Setting& duration_ = slider("duration", "Duration (s)", 0.25f, 0.08f, 1.f, "%.2f s");
+    Setting& grow_ = toggleSetting("grow", "Grows while fading", true);
+    Setting& outline_ = toggleSetting("outline", "Outline", true);
+    Setting& color_ = colorSetting("color", "Color", {1.f, 1.f, 1.f, 1.f});
+    Setting& critColor_ = colorSetting("critColor", "Color on crit", {1.f, 0.49f, 0.71f, 1.f});
     std::deque<Mark> marks_;
     int64_t seen_ = 0;
 };
@@ -127,9 +127,9 @@ private:
 class HitEffects : public Module {
 public:
     HitEffects()
-        : Module("Hit Effects", "Partikel und Funken am Fadenkreuz bei Treffern. Nur lokal, nur für dich sichtbar.", Category::Pvp,
+        : Module("Hit Effects", "Particles and sparks at the crosshair on hits. Local only, visible only to you.", Category::Pvp,
                  {"cosmetic"}) {
-        sub("Treffer-Visuals");
+        sub("Hit visuals");
         require(need::combat, need::sigs({"LocalPlayer", "AttackEntity"}));
         critColor_.visible = [this] { return !onlyCrit_.b; };
     }
@@ -152,27 +152,27 @@ public:
     void onRender(ImDrawList* dl) override { particles_.draw(dl); }
 
 private:
-    Setting& style_ = choice("style", "Partikel", {"Punkte", "Herzen", "Funken", "Sterne"}, 1);
-    Setting& count_ = intSlider("count", "Menge", 8, 2, 40);
-    Setting& size_ = slider("size", "Größe", 14.f, 4.f, 40.f, "%.0f");
-    Setting& life_ = slider("life", "Lebensdauer (s)", 0.6f, 0.2f, 2.f, "%.1f s");
-    Setting& speed_ = slider("speed", "Tempo", 220.f, 40.f, 600.f, "%.0f");
-    Setting& gravity_ = slider("gravity", "Schwerkraft", 180.f, -200.f, 600.f, "%.0f");
-    Setting& onlyCrit_ = toggleSetting("onlyCrit", "Nur bei Crit", false);
-    Setting& rainbow_ = toggleSetting("rainbow", "Regenbogen", false);
-    Setting& color_ = colorSetting("color", "Farbe", {1.f, 0.49f, 0.71f, 1.f});
-    Setting& critColor_ = colorSetting("critColor", "Farbe bei Crit", {1.f, 0.85f, 0.4f, 1.f});
-    Setting& offsetX_ = slider("offsetX", "Versatz X", 0.f, -200.f, 200.f, "%.0f");
-    Setting& offsetY_ = slider("offsetY", "Versatz Y", 0.f, -200.f, 200.f, "%.0f");
+    Setting& style_ = choice("style", "Particles", {"Dots", "Hearts", "Sparks", "Stars"}, 1);
+    Setting& count_ = intSlider("count", "Amount", 8, 2, 40);
+    Setting& size_ = slider("size", "Size", 14.f, 4.f, 40.f, "%.0f");
+    Setting& life_ = slider("life", "Lifetime (s)", 0.6f, 0.2f, 2.f, "%.1f s");
+    Setting& speed_ = slider("speed", "Speed", 220.f, 40.f, 600.f, "%.0f");
+    Setting& gravity_ = slider("gravity", "Gravity", 180.f, -200.f, 600.f, "%.0f");
+    Setting& onlyCrit_ = toggleSetting("onlyCrit", "Only on crit", false);
+    Setting& rainbow_ = toggleSetting("rainbow", "Rainbow", false);
+    Setting& color_ = colorSetting("color", "Color", {1.f, 0.49f, 0.71f, 1.f});
+    Setting& critColor_ = colorSetting("critColor", "Color on crit", {1.f, 0.85f, 0.4f, 1.f});
+    Setting& offsetX_ = slider("offsetX", "Offset X", 0.f, -200.f, 200.f, "%.0f");
+    Setting& offsetY_ = slider("offsetY", "Offset Y", 0.f, -200.f, 200.f, "%.0f");
     Particles particles_;
 };
 
 class KillEffects : public Module {
 public:
     KillEffects()
-        : Module("Kill Effects", "Herzchen-Regen und Text auf dem Bildschirm, wenn du einen Kill machst. Nur lokal.", Category::Pvp,
+        : Module("Kill Effects", "A rain of hearts and text on screen when you get a kill. Local only.", Category::Pvp,
                  {"cosmetic"}) {
-        sub("Treffer-Visuals");
+        sub("Hit visuals");
         require(need::combat, need::sigs({"LocalPlayer", "KillEvents"}));
     }
 
@@ -182,7 +182,7 @@ public:
             auto ds = ImGui::GetIO().DisplaySize;
             particles_.burst({ds.x * 0.5f, ds.y * 0.4f}, count_.i, Particles::Shape(style_.i), ImGui::GetColorU32(color_.color), 22.f, 1.2f, 320.f, 120.f);
             if (title_.b) {
-                title_text_ = e.text.empty() ? "Kill!" : "Kill: " + e.text;
+                title_text_ = e.text.empty() ? i18n::tr("Kill!") : i18n::tr("Kill: ") + e.text;
                 title_at_ = ui::time();
             }
         }
@@ -201,10 +201,10 @@ public:
     }
 
 private:
-    Setting& style_ = choice("style", "Partikel", {"Punkte", "Herzen", "Funken", "Sterne"}, 1);
-    Setting& count_ = intSlider("count", "Menge", 28, 5, 120);
-    Setting& title_ = toggleSetting("title", "Text anzeigen", true);
-    Setting& color_ = colorSetting("color", "Farbe", {1.f, 0.49f, 0.71f, 1.f});
+    Setting& style_ = choice("style", "Particles", {"Dots", "Hearts", "Sparks", "Stars"}, 1);
+    Setting& count_ = intSlider("count", "Amount", 28, 5, 120);
+    Setting& title_ = toggleSetting("title", "Show text", true);
+    Setting& color_ = colorSetting("color", "Color", {1.f, 0.49f, 0.71f, 1.f});
     std::string title_text_;
     double title_at_ = -10.0;
     Particles particles_;
@@ -213,9 +213,9 @@ private:
 class DamageIndicator : public Module {
 public:
     DamageIndicator()
-        : Module("Damage Indicator", "Schadenszahlen steigen vom Fadenkreuz auf, wenn du triffst.",
+        : Module("Damage Indicator", "Damage numbers rise from the crosshair when you hit.",
                  Category::Pvp, {"info-others"}) {
-        sub("Kampf-Anzeigen");
+        sub("Combat displays");
         require(need::combat, need::sigs({"LocalPlayer", "AttackEntity"}));
     }
 
@@ -234,7 +234,7 @@ public:
         for (auto& n : numbers_) {
             float k = float((now - n.at) / life_.f);
             if (k >= 1.f) continue;
-            std::string s = n.value > 0.f ? (hearts_.b ? text::num(n.value / 2.f, 1) + " ♥" : text::num(n.value, 1)) : "Treffer";
+            std::string s = n.value > 0.f ? (hearts_.b ? text::num(n.value / 2.f, 1) + " ♥" : text::num(n.value, 1)) : i18n::tr("Hit");
             ImVec4 col = n.crit ? critColor_.color : color_.color;
             col.w *= 1.f - k * k;
             float size = size_.f * ui::scale() * (n.crit ? 1.25f : 1.f) * (1.f + 0.3f * std::max(0.f, 0.25f - k) * 4.f);
@@ -254,16 +254,16 @@ private:
         bool crit;
     };
 
-    Setting& size_ = slider("size", "Größe", 22.f, 10.f, 48.f, "%.0f");
-    Setting& life_ = slider("life", "Dauer (s)", 0.9f, 0.3f, 3.f, "%.1f s");
-    Setting& rise_ = slider("rise", "Aufstieg", 70.f, 10.f, 200.f, "%.0f");
-    Setting& spread_ = slider("spread", "Streuung", 40.f, 0.f, 120.f, "%.0f");
-    Setting& hearts_ = toggleSetting("hearts", "In Herzen anzeigen", false);
-    Setting& shadow_ = toggleSetting("shadow", "Schatten", true);
-    Setting& color_ = colorSetting("color", "Farbe", {1.f, 1.f, 1.f, 1.f});
-    Setting& critColor_ = colorSetting("critColor", "Farbe bei Crit", {1.f, 0.49f, 0.71f, 1.f});
-    Setting& offsetX_ = slider("offsetX", "Versatz X", 40.f, -200.f, 200.f, "%.0f");
-    Setting& offsetY_ = slider("offsetY", "Versatz Y", -20.f, -200.f, 200.f, "%.0f");
+    Setting& size_ = slider("size", "Size", 22.f, 10.f, 48.f, "%.0f");
+    Setting& life_ = slider("life", "Duration (s)", 0.9f, 0.3f, 3.f, "%.1f s");
+    Setting& rise_ = slider("rise", "Rise", 70.f, 10.f, 200.f, "%.0f");
+    Setting& spread_ = slider("spread", "Spread", 40.f, 0.f, 120.f, "%.0f");
+    Setting& hearts_ = toggleSetting("hearts", "Show in hearts", false);
+    Setting& shadow_ = toggleSetting("shadow", "Shadow", true);
+    Setting& color_ = colorSetting("color", "Color", {1.f, 1.f, 1.f, 1.f});
+    Setting& critColor_ = colorSetting("critColor", "Color on crit", {1.f, 0.49f, 0.71f, 1.f});
+    Setting& offsetX_ = slider("offsetX", "Offset X", 40.f, -200.f, 200.f, "%.0f");
+    Setting& offsetY_ = slider("offsetY", "Offset Y", -20.f, -200.f, 200.f, "%.0f");
     std::deque<Num> numbers_;
     std::mt19937 rng_{std::random_device{}()};
 };
@@ -271,9 +271,9 @@ private:
 class HitSound : public Module {
 public:
     HitSound()
-        : Module("Hit Sound", "Spielt bei jedem Treffer einen eigenen Ton ab. Nur lokal, erzeugt kein Netzwerkpaket.", Category::Pvp,
+        : Module("Hit Sound", "Plays your own sound on every hit. Local only, creates no network packet.", Category::Pvp,
                  {"cosmetic"}) {
-        sub("Treffer-Visuals");
+        sub("Hit visuals");
         require(need::combat, need::sigs({"LocalPlayer", "AttackEntity"}));
     }
 
@@ -288,9 +288,9 @@ public:
 
     void drawSettings() override {
         ImGui::Spacing();
-        if (ImGui::SmallButton("Ton anhören")) play(tone_.i, 1.f);
+        if (ImGui::SmallButton(i18n::tr("Play sound"))) play(tone_.i, 1.f);
         ImGui::SameLine();
-        if (ImGui::SmallButton("Crit-Ton anhören")) play(critTone_.i, 1.25f);
+        if (ImGui::SmallButton(i18n::tr("Play crit sound"))) play(critTone_.i, 1.25f);
     }
 
 private:
@@ -321,18 +321,18 @@ private:
         PlaySoundW(reinterpret_cast<LPCWSTR>(wav_.data()), nullptr, SND_MEMORY | SND_ASYNC | SND_NODEFAULT);
     }
 
-    Setting& tone_ = choice("tone", "Ton", {"Ping", "Klack", "Hoch", "Mittel", "Tief"});
-    Setting& critTone_ = choice("critTone", "Ton bei Crit", {"Ping", "Klack", "Hoch", "Mittel", "Tief"}, 2);
-    Setting& volume_ = slider("volume", "Lautstärke", 0.5f, 0.05f, 1.f, "%.2f");
-    Setting& pitch_ = slider("pitch", "Tonhöhe", 1.f, 0.5f, 2.f, "%.2fx");
+    Setting& tone_ = choice("tone", "Sound", {"Ping", "Click", "High", "Medium", "Low"});
+    Setting& critTone_ = choice("critTone", "Sound on crit", {"Ping", "Click", "High", "Medium", "Low"}, 2);
+    Setting& volume_ = slider("volume", "Volume", 0.5f, 0.05f, 1.f, "%.2f");
+    Setting& pitch_ = slider("pitch", "Pitch", 1.f, 0.5f, 2.f, "%.2fx");
     std::vector<uint8_t> wav_;
 };
 
 class TotemPop : public Module {
 public:
     TotemPop()
-        : Module("Totem Pop", "Zeigt eine Meldung und spielt einen Ton, wenn ein Totem bei dir verbraucht wird.", Category::Pvp, {"hud-self"}) {
-        sub("Treffer-Visuals");
+        : Module("Totem Pop", "Shows a message and plays a sound when one of your totems is used up.", Category::Pvp, {"hud-self"}) {
+        sub("Hit visuals");
         require(need::combat, need::sigs({"LocalPlayer", "TotemEvents"}));
     }
 
@@ -352,17 +352,17 @@ public:
         ImVec4 c = color_.color;
         c.w *= 1.f - k * k * k;
         int left = game::state().player.offhand.name == "totem_of_undying" ? game::state().player.offhand.count : 0;
-        std::string s = count_.b ? std::format("Totem verbraucht ({} übrig)", left) : "Totem verbraucht";
+        std::string s = count_.b ? i18n::fmt("Totem used ({} left)", left) : i18n::tr("Totem used");
         draw::textCentered(dl, fonts::bold(), size_.f * ui::scale(), {ds.x * 0.5f, ds.y * 0.28f - k * 20.f}, ImGui::GetColorU32(c), s.c_str());
         if (flash_.b) dl->AddRectFilled({0, 0}, ds, ImGui::GetColorU32(withAlpha(c, 0.12f * (1.f - k))));
     }
 
 private:
-    Setting& duration_ = slider("duration", "Dauer (s)", 1.8f, 0.5f, 5.f, "%.1f s");
-    Setting& size_ = slider("size", "Größe", 28.f, 14.f, 60.f, "%.0f");
-    Setting& count_ = toggleSetting("count", "Verbleibende Totems", true);
-    Setting& flash_ = toggleSetting("flash", "Bildschirm aufblitzen", true);
-    Setting& sound_ = toggleSetting("sound", "Ton", false);
-    Setting& color_ = colorSetting("color", "Farbe", {1.f, 0.85f, 0.4f, 1.f});
+    Setting& duration_ = slider("duration", "Duration (s)", 1.8f, 0.5f, 5.f, "%.1f s");
+    Setting& size_ = slider("size", "Size", 28.f, 14.f, 60.f, "%.0f");
+    Setting& count_ = toggleSetting("count", "Remaining totems", true);
+    Setting& flash_ = toggleSetting("flash", "Flash the screen", true);
+    Setting& sound_ = toggleSetting("sound", "Sound", false);
+    Setting& color_ = colorSetting("color", "Color", {1.f, 0.85f, 0.4f, 1.f});
     double at_ = -10.0;
 };

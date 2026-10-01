@@ -42,10 +42,14 @@ Marker-Signaturen: Namen für Spielfunktionen oder Daten, die der Live-Provider 
 - `ScoreboardData`, `TabListData`, `PackList`, `EntityList`: Scoreboard, Spielerliste, aktive Packs, Entity-Zähler.
 - `KillEvents`, `TotemEvents`, `ItemUseEvents`: Ereignisquellen für Kill, Totem-Verbrauch und Item-Nutzung.
 - `UseState`: `usingItem` und `useProgress` des Spielers (Bogen, Essen).
+- `ActorList`: Spieler in der Nähe (Name, Position, Team) für Opponent Reach und die Team-Ausnahme.
+- `ActorEvent`: eingehendes Entity-Ereignis "verletzt", für die Zeit vom Angriff bis zur Bestätigung des Servers (Hit Ping, Ereignis `Confirm`).
 
 | Name | Gebraucht von |
 |---|---|
-| `AttackEntity` | Reach Counter, Opponent Reach, Combo Counter, Hit Counter, Hit Ping, Session Stats, Hit Info, Hit Effects, Damage Indicator, Hit Sound, Match Summary |
+| `ActorEvent` | Hit Ping |
+| `ActorList` | Opponent Reach |
+| `AttackEntity` | Reach Counter, Combo Counter, Hit Counter, Hit Ping, Session Stats, Hit Info, Hit Effects, Damage Indicator, Hit Sound, Match Summary |
 | `ChatEvents` | Session Stats, Auto GG, Message Logger, Chat Plus |
 | `Effects` | Potion HUD |
 | `EntityList` | Entity Counter |

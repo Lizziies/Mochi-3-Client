@@ -17,9 +17,9 @@ class LatencyBlame : public HudModule {
 public:
     LatencyBlame()
         : HudModule("Lag Analyzer",
-                    "Teilt die Verzögerung in Eingabe, Bild, Netzwerk und Server-Tick auf.",
+                    "Splits the delay into input, frame, network and server tick.",
                     {"hud-self"}, {0.35f, 0.02f}) {
-        sub("Netzwerk");
+        sub("Network");
         LARGE_INTEGER f;
         QueryPerformanceFrequency(&f);
         qpf_ = double(f.QuadPart);
@@ -64,10 +64,10 @@ protected:
         float server = serverTick_.b ? tick_.f * 0.5f : 0.f;
 
         std::array<Part, 4> parts{{
-            {"Eingabe", input, inputColor_.color},
-            {"Bild", render, renderColor_.color},
-            {"Netzwerk", network, netColor_.color},
-            {"Server", server, serverColor_.color},
+            {i18n::tr("Input"), input, inputColor_.color},
+            {i18n::tr("Frame"), render, renderColor_.color},
+            {i18n::tr("Network"), network, netColor_.color},
+            {i18n::tr("Server"), server, serverColor_.color},
         }};
         float total = 0.f;
         for (auto& p : parts) total += p.ms;
@@ -75,7 +75,7 @@ protected:
         float lineH = fonts::hudSize() * s * 1.1f;
         float width = 230 * s, y = 0;
 
-        auto head = count_ ? std::format("Gesamt ca. {:.0f} ms bis zum Treffer", total) : "Klick mal, dann messe ich";
+        std::string head = count_ ? i18n::fmt("About {:.0f} ms in total until the hit", total) : i18n::tr("Click once and I will measure");
         y += drawText(dl, o, s, head, textColor()).y;
 
         float barH = 10 * s;
@@ -105,20 +105,20 @@ protected:
             y += lineH;
         }
         if (verdict_.b && worst && total > 0.f)
-            y += drawText(dl, o + ImVec2(0, y + 2 * s), s, std::format("Größter Anteil: {} ({:.0f} %)", worst->name, 100.f * biggest / total),
+            y += drawText(dl, o + ImVec2(0, y + 2 * s), s, i18n::fmt("Biggest share: {} ({:.0f} %)", worst->name, 100.f * biggest / total),
                           ImGui::GetColorU32(t.textDim)).y;
         return {width, y};
     }
 
 private:
-    Setting& pingMode_ = choice("pingMode", "Netzwerk-Anteil", {"Volle Rundlaufzeit", "Halbe Rundlaufzeit (nur Hinweg)"}, 0);
-    Setting& serverTick_ = toggleSetting("serverTick", "Server-Tick einrechnen", true);
-    Setting& tick_ = slider("tick", "Tick-Raster (ms)", 50.f, 25.f, 100.f, "%.0f");
-    Setting& verdict_ = toggleSetting("verdict", "Größten Anteil nennen", true);
-    Setting& inputColor_ = colorSetting("inputColor", "Farbe Eingabe", {0.55f, 0.91f, 0.69f, 1.f});
-    Setting& renderColor_ = colorSetting("renderColor", "Farbe Bild", {1.f, 0.49f, 0.71f, 1.f});
-    Setting& netColor_ = colorSetting("netColor", "Farbe Netzwerk", {0.71f, 0.61f, 1.f, 1.f});
-    Setting& serverColor_ = colorSetting("serverColor", "Farbe Server", {1.f, 0.82f, 0.49f, 1.f});
+    Setting& pingMode_ = choice("pingMode", "Network share", {"Full round trip", "Half round trip (one way)"}, 0);
+    Setting& serverTick_ = toggleSetting("serverTick", "Include the server tick", true);
+    Setting& tick_ = slider("tick", "Tick interval (ms)", 50.f, 25.f, 100.f, "%.0f");
+    Setting& verdict_ = toggleSetting("verdict", "Name the biggest share", true);
+    Setting& inputColor_ = colorSetting("inputColor", "Color input", {0.55f, 0.91f, 0.69f, 1.f});
+    Setting& renderColor_ = colorSetting("renderColor", "Color frame", {1.f, 0.49f, 0.71f, 1.f});
+    Setting& netColor_ = colorSetting("netColor", "Color network", {0.71f, 0.61f, 1.f, 1.f});
+    Setting& serverColor_ = colorSetting("serverColor", "Color server", {1.f, 0.82f, 0.49f, 1.f});
     std::array<float, 20> ring_{};
     size_t head_ = 0;
     size_t count_ = 0;

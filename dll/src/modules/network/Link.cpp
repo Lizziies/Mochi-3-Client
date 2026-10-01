@@ -1,5 +1,7 @@
 #include "Link.hpp"
 
+#include "I18n.hpp"
+
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <iphlpapi.h>
@@ -54,7 +56,7 @@ static const char* standardName(int phy) {
 
 static std::string bandOf(int channel) {
     if (channel <= 0) return {};
-    if (channel <= 14) return "2,4 GHz";
+    if (channel <= 14) return i18n::tr("2.4 GHz");
     return "5/6 GHz";
 }
 

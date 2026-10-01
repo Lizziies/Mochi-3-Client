@@ -9,9 +9,9 @@
 class StreamerMode : public Module {
 public:
     StreamerMode()
-        : Module("Streamer Mode", "Versteckt per Taste IP, Koordinaten, Server und Chat. Zweiter Druck bringt alles zurück.",
+        : Module("Streamer Mode", "Hides IP, coordinates, server and chat on a key. A second press brings everything back.",
                  Category::Comfort, {"cosmetic"}) {
-        sub("Profile");
+        sub("Profiles");
     }
 
     void onKey(KeyEvent& ev) override {
@@ -38,7 +38,7 @@ private:
             hidden_.push_back(name);
         }
         active_ = true;
-        if (toast_.b) notify::push("Streamer Mode", "Sensible Anzeigen sind aus.", notify::Kind::Info);
+        if (toast_.b) notify::push("Streamer Mode", i18n::tr("Sensitive displays are off."), notify::Kind::Info);
     }
 
     void restore() {
@@ -46,12 +46,12 @@ private:
             if (auto* m = modules::find(name)) m->setEnabled(true);
         hidden_.clear();
         active_ = false;
-        if (toast_.b) notify::push("Streamer Mode", "Anzeigen sind wieder an.", notify::Kind::Info);
+        if (toast_.b) notify::push("Streamer Mode", i18n::tr("Displays are back on."), notify::Kind::Info);
     }
 
-    Setting& hotkey_ = keySetting("hotkey", "Umschalten", 0);
-    Setting& list_ = textSetting("list", "Module, die versteckt werden (Komma)", "IP Display, Coordinates, Server Display, Waypoints, Chat Plus, Death Logger");
-    Setting& toast_ = toggleSetting("toast", "Hinweis anzeigen", true);
+    Setting& hotkey_ = keySetting("hotkey", "Toggle", 0);
+    Setting& list_ = textSetting("list", "Modules that get hidden (comma)", "IP Display, Coordinates, Server Display, Waypoints, Chat Plus, Death Logger");
+    Setting& toast_ = toggleSetting("toast", "Show notice", true);
     std::vector<std::string> hidden_;
     bool active_ = false;
 };

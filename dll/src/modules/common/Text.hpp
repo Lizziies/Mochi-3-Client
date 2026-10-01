@@ -1,5 +1,7 @@
 #pragma once
 
+#include "I18n.hpp"
+
 #include <imgui.h>
 
 #include <algorithm>
@@ -7,6 +9,7 @@
 #include <cmath>
 #include <format>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace text {
@@ -42,8 +45,13 @@ inline std::string pretty(std::string id) {
 }
 
 inline std::string roman(int n) {
-    static const char* r[] = {"", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"};
-    return n >= 0 && n <= 10 ? r[n] : std::to_string(n);
+    if (n <= 0 || n >= 4000) return std::to_string(n);
+    static const std::pair<int, const char*> steps[] = {{1000, "M"}, {900, "CM"}, {500, "D"}, {400, "CD"}, {100, "C"}, {90, "XC"}, {50, "L"},
+                                                         {40, "XL"},  {10, "X"},   {9, "IX"},  {5, "V"},    {4, "IV"},  {1, "I"}};
+    std::string out;
+    for (auto& [value, glyphs] : steps)
+        for (; n >= value; n -= value) out += glyphs;
+    return out;
 }
 
 inline std::string effect(const std::string& id) {
@@ -52,24 +60,37 @@ inline std::string effect(const std::string& id) {
         const char* name;
     };
     static const Pair names[] = {
-        {"speed", "Schnelligkeit"},       {"slowness", "Langsamkeit"},       {"haste", "Eile"},
-        {"mining_fatigue", "Abbaulähmung"}, {"strength", "Stärke"},          {"instant_health", "Sofortheilung"},
-        {"instant_damage", "Sofortschaden"}, {"jump_boost", "Sprungkraft"},  {"nausea", "Übelkeit"},
-        {"regeneration", "Regeneration"}, {"resistance", "Resistenz"},       {"fire_resistance", "Feuerresistenz"},
-        {"water_breathing", "Wasseratmung"}, {"invisibility", "Unsichtbarkeit"}, {"blindness", "Blindheit"},
-        {"night_vision", "Nachtsicht"},   {"hunger", "Hunger"},              {"weakness", "Schwäche"},
-        {"poison", "Vergiftung"},         {"wither", "Wither"},              {"health_boost", "Lebensschub"},
-        {"absorption", "Absorption"},     {"saturation", "Sättigung"},       {"levitation", "Schwebekraft"},
-        {"slow_falling", "Sanftes Fallen"}, {"darkness", "Dunkelheit"},
+        {"speed", "Speed"},       {"slowness", "Slowness"},       {"haste", "Haste"},
+        {"mining_fatigue", "Mining Fatigue"}, {"strength", "Strength"},          {"instant_health", "Instant Health"},
+        {"instant_damage", "Instant Damage"}, {"jump_boost", "Jump Boost"},  {"nausea", "Nausea"},
+        {"regeneration", "Regeneration"}, {"resistance", "Resistance"},       {"fire_resistance", "Fire Resistance"},
+        {"water_breathing", "Water Breathing"}, {"invisibility", "Invisibility"}, {"blindness", "Blindness"},
+        {"night_vision", "Night Vision"},   {"hunger", "Hunger"},              {"weakness", "Weakness"},
+        {"poison", "Poison"},         {"wither", "Wither"},              {"health_boost", "Health Boost"},
+        {"absorption", "Absorption"},     {"saturation", "Saturation"},       {"levitation", "Levitation"},
+        {"slow_falling", "Slow Falling"}, {"darkness", "Darkness"},
     };
     for (auto& p : names)
-        if (id == p.id) return p.name;
+        if (id == p.id) return i18n::tr(p.name);
     return pretty(id);
 }
 
 inline std::string lower(std::string s) {
     std::transform(s.begin(), s.end(), s.begin(), [](unsigned char c) { return (char)std::tolower(c); });
     return s;
+}
+
+inline std::vector<std::string> split(const std::string& in, char sep) {
+    std::vector<std::string> out;
+    size_t from = 0;
+    while (from <= in.size()) {
+        size_t to = in.find(sep, from);
+        if (to == std::string::npos) to = in.size();
+        size_t a = in.find_first_not_of(' ', from), b = in.find_last_not_of(' ', to ? to - 1 : 0);
+        if (a != std::string::npos && a < to && b >= a) out.push_back(in.substr(a, b - a + 1));
+        from = to + 1;
+    }
+    return out;
 }
 
 inline std::string strip(const std::string& s) {

@@ -8,9 +8,9 @@
 class HotbarKeys : public Module {
 public:
     HotbarKeys()
-        : Module("Hotbar Keys", "Belegt die Hotbar-Plätze mit eigenen Tasten, zum Beispiel Maustasten oder Tasten neben WASD.", Category::Comfort, {"input"}) {
-        sub("Bewegung");
-        for (int i = 0; i < 9; i++) keys_[i] = &keySetting("slot" + std::to_string(i + 1), "Platz " + std::to_string(i + 1), 0);
+        : Module("Hotbar Keys", "Assigns your own keys to the hotbar slots, for example mouse buttons or keys next to WASD.", Category::Comfort, {"input"}) {
+        sub("Movement");
+        for (int i = 0; i < 9; i++) keys_[i] = &keySetting("slot" + std::to_string(i + 1), "Slot " + std::to_string(i + 1), 0);
     }
 
     void onKey(KeyEvent& ev) override {

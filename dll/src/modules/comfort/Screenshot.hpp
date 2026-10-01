@@ -15,9 +15,9 @@
 class Screenshot : public Module {
 public:
     Screenshot()
-        : Module("Screenshot+", "Screenshot per Taste, mit oder ohne Mochi-HUD, als PNG oder JPEG.",
+        : Module("Screenshot+", "Screenshot on a key, with or without the Mochi HUD, as PNG or JPEG.",
                  Category::Comfort, {"cosmetic"}) {
-        sub("Aufnahme");
+        sub("Capture");
         quality_.visible = [this] { return format_.i == 1; };
         folder_.visible = [this] { return file_.b; };
         name_.visible = [this] { return file_.b; };
@@ -43,25 +43,25 @@ public:
         bool ok = false;
         if (capture::takeSaved(path, ok)) {
             if (!toast_.b) return;
-            if (ok) notify::push("Screenshot gespeichert", path.filename().string(), notify::Kind::Ok);
-            else notify::push("Screenshot fehlgeschlagen", "Die Datei konnte nicht geschrieben werden.", notify::Kind::Error);
+            if (ok) notify::push(i18n::tr("Screenshot saved"), path.filename().string(), notify::Kind::Ok);
+            else notify::push(i18n::tr("Screenshot failed"), i18n::tr("The file could not be written."), notify::Kind::Error);
         }
     }
 
     void drawSettings() override {
         ImGui::Spacing();
-        if (ImGui::SmallButton("Jetzt aufnehmen")) {
+        if (ImGui::SmallButton(i18n::tr("Capture now"))) {
             due_ = ui::time() + delay_.f;
             armed_ = true;
         }
         ImGui::SameLine();
-        if (ImGui::SmallButton("Ordner öffnen")) {
+        if (ImGui::SmallButton(i18n::tr("Open folder"))) {
             auto dir = folder().wstring();
             std::error_code ec;
             std::filesystem::create_directories(folder(), ec);
             ShellExecuteW(nullptr, L"open", dir.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
         }
-        ImGui::TextDisabled("Ordner: %s", folder().string().c_str());
+        ImGui::TextDisabled(i18n::tr("Folder: %s"), folder().string().c_str());
     }
 
 private:
@@ -75,7 +75,7 @@ private:
     void finish(capture::Image img) {
         if (clipboard_.b) capture::copyToClipboard(img, dx::window());
         if (!file_.b) {
-            if (toast_.b) notify::push("Screenshot kopiert", "In der Zwischenablage.", notify::Kind::Ok);
+            if (toast_.b) notify::push(i18n::tr("Screenshot copied"), i18n::tr("On the clipboard."), notify::Kind::Ok);
             return;
         }
         SYSTEMTIME t;
@@ -87,16 +87,16 @@ private:
                       format_.i == 1 ? capture::Format::Jpeg : capture::Format::Png, quality_.i);
     }
 
-    Setting& key_ = keySetting("shot", "Aufnahme-Taste", VK_F9);
-    Setting& stage_ = choice("stage", "Inhalt", {"Mit Mochi-HUD", "Ohne Mochi-HUD"});
+    Setting& key_ = keySetting("shot", "Capture key", VK_F9);
+    Setting& stage_ = choice("stage", "Content", {"With Mochi HUD", "Without Mochi HUD"});
     Setting& format_ = choice("format", "Format", {"PNG", "JPEG"});
-    Setting& quality_ = intSlider("quality", "JPEG-Qualität", 92, 50, 100);
-    Setting& delay_ = slider("delay", "Verzögerung (s)", 0.f, 0.f, 10.f, "%.1f s");
-    Setting& file_ = toggleSetting("file", "Als Datei speichern", true);
-    Setting& clipboard_ = toggleSetting("clipboard", "In die Zwischenablage kopieren", false);
-    Setting& toast_ = toggleSetting("toast", "Hinweis anzeigen", true);
-    Setting& folder_ = textSetting("folder", "Ordner (leer = Bilder\\Mochi)", "");
-    Setting& name_ = textSetting("name", "Dateiname", "Mochi");
+    Setting& quality_ = intSlider("quality", "JPEG quality", 92, 50, 100);
+    Setting& delay_ = slider("delay", "Delay (s)", 0.f, 0.f, 10.f, "%.1f s");
+    Setting& file_ = toggleSetting("file", "Save as file", true);
+    Setting& clipboard_ = toggleSetting("clipboard", "Copy to the clipboard", false);
+    Setting& toast_ = toggleSetting("toast", "Show notice", true);
+    Setting& folder_ = textSetting("folder", "Folder (empty = Pictures\\Mochi)", "");
+    Setting& name_ = textSetting("name", "File name", "Mochi");
     double due_ = 0.0;
     bool armed_ = false;
 };

@@ -20,9 +20,9 @@
 class FovChanger : public Module {
 public:
     FovChanger()
-        : Module("FOV Changer", "Stellt dein Sichtfeld frei ein. Sprint- und Trank-Effekte lassen sich abschalten.",
+        : Module("FOV Changer", "Set your field of view freely. Sprint and potion effects can be turned off.",
                  Category::Visual, {"camera"}) {
-        sub("Kamera");
+        sub("Camera");
         require(0, {fx::sig(fx::Id::Fov)});
         sprintBonus_.visible = [this] { return !noEffects_.b; };
     }
@@ -43,19 +43,19 @@ public:
     }
 
 private:
-    Setting& fov_ = slider("fov", "Sichtfeld", 90.f, 30.f, 140.f, "%.0f");
-    Setting& noEffects_ = toggleSetting("noEffects", "Sprint- und Trank-Effekte aus", true);
-    Setting& sprintBonus_ = slider("sprintBonus", "Zusatz beim Sprinten", 6.f, 0.f, 30.f, "%.0f");
-    Setting& smooth_ = slider("smooth", "Übergangstempo", 12.f, 1.f, 30.f, "%.0f");
+    Setting& fov_ = slider("fov", "Field of view", 90.f, 30.f, 140.f, "%.0f");
+    Setting& noEffects_ = toggleSetting("noEffects", "Sprint and potion effects off", true);
+    Setting& sprintBonus_ = slider("sprintBonus", "Extra while sprinting", 6.f, 0.f, 30.f, "%.0f");
+    Setting& smooth_ = slider("smooth", "Transition speed", 12.f, 1.f, 30.f, "%.0f");
     float current_ = 0.f;
 };
 
 class JavaDynamicFov : public Module {
 public:
     JavaDynamicFov()
-        : Module("Java Dynamic FOV", "Sichtfeld-Änderungen wie in Java: Sprinten, Schnelligkeit und Bogenspannen verändern das Bild sanft.", Category::Visual,
+        : Module("Java Dynamic FOV", "Java-style FOV changes: sprinting, speed and drawing a bow change the view smoothly.", Category::Visual,
                  {"camera"}) {
-        sub("Kamera");
+        sub("Camera");
         require(need::player, {fx::sig(fx::Id::Fov), "LocalPlayer"});
     }
 
@@ -79,19 +79,19 @@ public:
     }
 
 private:
-    Setting& base_ = slider("base", "Basis-Sichtfeld", 70.f, 30.f, 120.f, "%.0f");
-    Setting& sprint_ = slider("sprint", "Zusatz beim Sprinten", 0.15f, 0.f, 0.5f, "%.2f");
-    Setting& speed_ = slider("speed", "Stärke der Trank-Effekte", 1.f, 0.f, 2.f, "%.1fx");
-    Setting& fly_ = slider("fly", "Zusatz beim Fliegen", 0.1f, 0.f, 0.5f, "%.2f");
-    Setting& bow_ = slider("bow", "Zoom beim Bogenspannen", 0.15f, 0.f, 0.5f, "%.2f");
+    Setting& base_ = slider("base", "Base field of view", 70.f, 30.f, 120.f, "%.0f");
+    Setting& sprint_ = slider("sprint", "Extra while sprinting", 0.15f, 0.f, 0.5f, "%.2f");
+    Setting& speed_ = slider("speed", "Potion effect strength", 1.f, 0.f, 2.f, "%.1fx");
+    Setting& fly_ = slider("fly", "Extra while flying", 0.1f, 0.f, 0.5f, "%.2f");
+    Setting& bow_ = slider("bow", "Zoom when drawing a bow", 0.15f, 0.f, 0.5f, "%.2f");
     float current_ = 1.f;
 };
 
 class Zoom : public Module {
 public:
     Zoom()
-        : Module("Zoom", "Zoom per Taste mit weicher Animation, Scrollrad-Stufen und angepasster Empfindlichkeit.", Category::Visual, {"camera"}) {
-        sub("Kamera");
+        : Module("Zoom", "Zoom on a key with smooth animation, scroll wheel steps and adjusted sensitivity.", Category::Visual, {"camera"}) {
+        sub("Camera");
         require(0, {fx::sig(fx::Id::Fov)});
         step_.visible = [this] { return scroll_.b; };
     }
@@ -151,16 +151,16 @@ private:
         if (active_ && !remember_.b) level_ = zoom_.f;
     }
 
-    Setting& key_ = keySetting("zoomKey", "Zoom-Taste", 'C');
-    Setting& mode_ = choice("mode", "Modus", {"Halten", "Umschalten"});
-    Setting& zoom_ = slider("zoom", "Zoomstufe", 4.f, 1.5f, 20.f, "%.1fx");
-    Setting& base_ = slider("base", "Basis-Sichtfeld", 70.f, 30.f, 120.f, "%.0f");
-    Setting& smooth_ = slider("smooth", "Animationstempo", 14.f, 2.f, 40.f, "%.0f");
-    Setting& scroll_ = toggleSetting("scroll", "Stufe per Mausrad ändern", true);
-    Setting& step_ = slider("step", "Schrittweite", 1.2f, 1.05f, 1.6f, "%.2fx");
-    Setting& remember_ = toggleSetting("remember", "Stufe merken", true);
-    Setting& sens_ = toggleSetting("sens", "Empfindlichkeit beim Zoomen anpassen", true);
-    Setting& vignette_ = slider("vignette", "Dunkler Rand beim Zoomen", 0.f, 0.f, 1.f, "%.2f");
+    Setting& key_ = keySetting("zoomKey", "Zoom key", 'C');
+    Setting& mode_ = choice("mode", "Mode", {"Hold", "Toggle"});
+    Setting& zoom_ = slider("zoom", "Zoom level", 4.f, 1.5f, 20.f, "%.1fx");
+    Setting& base_ = slider("base", "Base field of view", 70.f, 30.f, 120.f, "%.0f");
+    Setting& smooth_ = slider("smooth", "Animation speed", 14.f, 2.f, 40.f, "%.0f");
+    Setting& scroll_ = toggleSetting("scroll", "Change level with the mouse wheel", true);
+    Setting& step_ = slider("step", "Step size", 1.2f, 1.05f, 1.6f, "%.2fx");
+    Setting& remember_ = toggleSetting("remember", "Remember level", true);
+    Setting& sens_ = toggleSetting("sens", "Adjust sensitivity while zooming", true);
+    Setting& vignette_ = slider("vignette", "Dark edge while zooming", 0.f, 0.f, 1.f, "%.2f");
     bool active_ = false;
     float level_ = 4.f;
     float current_ = 1.f;
@@ -169,8 +169,8 @@ private:
 class Freelook : public Module {
 public:
     Freelook()
-        : Module("Freelook", "Kamera frei um dich drehen, während Körper und Laufrichtung bleiben. Auf manchen Servern verboten.", Category::Visual, {"camera"}) {
-        sub("Kamera");
+        : Module("Freelook", "Turn the camera freely around you while your body and walking direction stay. Banned on some servers.", Category::Visual, {"camera"}) {
+        sub("Camera");
         require(need::player, {fx::sig(fx::Id::LookCamera), fx::sig(fx::Id::LookTurn), "LocalPlayer"});
     }
 
@@ -215,10 +215,10 @@ private:
         active_ = next;
     }
 
-    Setting& key_ = keySetting("freelookKey", "Freelook-Taste", VK_LMENU);
-    Setting& mode_ = choice("mode", "Modus", {"Halten", "Umschalten"});
-    Setting& sens_ = slider("sens", "Empfindlichkeit", 1.f, 0.2f, 3.f, "%.2fx");
-    Setting& invert_ = toggleSetting("invert", "Y-Achse umkehren", false);
+    Setting& key_ = keySetting("freelookKey", "Freelook key", VK_LMENU);
+    Setting& mode_ = choice("mode", "Mode", {"Hold", "Toggle"});
+    Setting& sens_ = slider("sens", "Sensitivity", 1.f, 0.2f, 3.f, "%.2fx");
+    Setting& invert_ = toggleSetting("invert", "Invert Y axis", false);
     float yaw_ = 0.f;
     float pitch_ = 0.f;
     bool active_ = false;
@@ -227,9 +227,9 @@ private:
 class NoViewBobbing : public Module {
 public:
     NoViewBobbing()
-        : Module("No View Bobbing", "Schaltet das Wackeln beim Laufen ab, für Kamera und Hand getrennt.",
+        : Module("No View Bobbing", "Turns off the bobbing while walking, separately for camera and hand.",
                  Category::Visual, {"camera"}) {
-        sub("Kamera");
+        sub("Camera");
         require(0, {fx::sig(fx::Id::ViewBob)});
     }
 
@@ -242,16 +242,16 @@ public:
     }
 
 private:
-    Setting& camera_ = toggleSetting("camera", "Kamera-Wackeln aus", true);
-    Setting& hand_ = toggleSetting("hand", "Hand-Wackeln aus", true);
-    Setting& when_ = choice("when", "Wann", {"Immer", "Nur beim Sprinten", "Nur unter Wasser", "Nur beim Gehen"});
+    Setting& camera_ = toggleSetting("camera", "Camera bobbing off", true);
+    Setting& hand_ = toggleSetting("hand", "Hand bobbing off", true);
+    Setting& when_ = choice("when", "When", {"Always", "Only while sprinting", "Only underwater", "Only while walking"});
 };
 
 class MinimalViewBobbing : public Module {
 public:
     MinimalViewBobbing()
-        : Module("Minimal View Bobbing", "Schwächt das Wackeln beim Laufen ab. Die Stärke stellst du selbst ein.", Category::Visual, {"camera"}) {
-        sub("Kamera");
+        : Module("Minimal View Bobbing", "Weakens the bobbing while walking. You set the strength yourself.", Category::Visual, {"camera"}) {
+        sub("Camera");
         require(0, {fx::sig(fx::Id::BobStrength)});
     }
 
@@ -262,15 +262,15 @@ public:
     }
 
 private:
-    Setting& strength_ = slider("strength", "Stärke", 0.3f, 0.f, 1.f, "%.2f");
-    Setting& sprint_ = slider("sprint", "Faktor beim Sprinten", 1.f, 0.f, 2.f, "%.2fx");
+    Setting& strength_ = slider("strength", "Strength", 0.3f, 0.f, 1.f, "%.2f");
+    Setting& sprint_ = slider("sprint", "Factor while sprinting", 1.f, 0.f, 2.f, "%.2fx");
 };
 
 class NoHurtCam : public Module {
 public:
     NoHurtCam()
-        : Module("No Hurt Cam", "Die Kamera wackelt nicht mehr, wenn du getroffen wirst. Die Stärke ist regelbar.", Category::Visual, {"camera"}) {
-        sub("Kamera");
+        : Module("No Hurt Cam", "The camera no longer shakes when you get hit. The strength is adjustable.", Category::Visual, {"camera"}) {
+        sub("Camera");
         require(0, {fx::sig(fx::Id::HurtCam)});
     }
 
@@ -280,29 +280,29 @@ public:
     }
 
 private:
-    Setting& strength_ = slider("strength", "Restliche Stärke", 0.f, 0.f, 1.f, "%.2f");
+    Setting& strength_ = slider("strength", "Remaining strength", 0.f, 0.f, 1.f, "%.2f");
 };
 
 class SmoothSneak : public Module {
 public:
     SmoothSneak()
-        : Module("Smooth Sneak", "Die Kamera springt beim Schleichen nicht mehr nach unten.", Category::Visual, {"camera"}) {
-        sub("Kamera");
+        : Module("Smooth Sneak", "The camera no longer drops when you sneak.", Category::Visual, {"camera"}) {
+        sub("Camera");
         require(0, {fx::sig(fx::Id::SneakCam)});
     }
 
     void onFrame() override { fx::scale(fx::Id::SneakCam, amount_.f); }
 
 private:
-    Setting& amount_ = slider("amount", "Restliche Höhenänderung", 0.f, 0.f, 1.f, "%.2f");
+    Setting& amount_ = slider("amount", "Remaining height change", 0.f, 0.f, 1.f, "%.2f");
 };
 
 class AutoPerspective : public Module {
 public:
     AutoPerspective()
-        : Module("Auto Perspective", "Wechselt die Perspektive automatisch, etwa beim Gleiten oder Bogenspannen.",
+        : Module("Auto Perspective", "Switches the perspective automatically, for example when gliding or drawing a bow.",
                  Category::Visual, {"camera"}) {
-        sub("Kamera");
+        sub("Camera");
         require(need::player, {fx::sig(fx::Id::Perspective), "LocalPlayer"});
     }
 
@@ -321,17 +321,17 @@ public:
     }
 
 private:
-    Setting& glide_ = choice("glide", "Beim Gleiten", {"Nichts ändern", "Erste Person", "Dritte Person hinten", "Dritte Person vorne"}, 2);
-    Setting& bow_ = choice("bow", "Beim Bogenspannen", {"Nichts ändern", "Erste Person", "Dritte Person hinten", "Dritte Person vorne"}, 1);
-    Setting& restore_ = toggleSetting("restore", "Danach zurückwechseln", true);
+    Setting& glide_ = choice("glide", "While gliding", {"Do not change", "First person", "Third person back", "Third person front"}, 2);
+    Setting& bow_ = choice("bow", "While drawing a bow", {"Do not change", "First person", "Third person back", "Third person front"}, 1);
+    Setting& restore_ = toggleSetting("restore", "Switch back afterwards", true);
     int ctxView_ = -1;
 };
 
 class Fullbright : public Module {
 public:
     Fullbright()
-        : Module("Fullbright", "Maximale Helligkeit überall, mit weichem Übergang und optional nur nachts oder in Höhlen.", Category::Visual, {"camera"}) {
-        sub("Welt");
+        : Module("Fullbright", "Maximum brightness everywhere, with a smooth fade and optionally only at night.", Category::Visual, {"camera"}) {
+        sub("World");
         require(0, {fx::sig(fx::Id::Gamma)});
     }
 
@@ -346,17 +346,17 @@ public:
     void onDisable() override { current_ = 0.f; }
 
 private:
-    Setting& level_ = slider("level", "Stufe", 12.f, 1.f, 25.f, "%.0f");
-    Setting& fade_ = toggleSetting("fade", "Sanfter Übergang", true);
-    Setting& onlyNight_ = toggleSetting("onlyNight", "Nur nachts", false);
+    Setting& level_ = slider("level", "Level", 12.f, 1.f, 25.f, "%.0f");
+    Setting& fade_ = toggleSetting("fade", "Smooth fade", true);
+    Setting& onlyNight_ = toggleSetting("onlyNight", "Only at night", false);
     float current_ = 0.f;
 };
 
 class CinematicCamera : public Module {
 public:
     CinematicCamera()
-        : Module("Cinematic Camera", "Weiche, gleitende Kamerabewegung wie in Filmaufnahmen. Auf Wunsch nur beim Zoomen.", Category::Visual, {"camera"}) {
-        sub("Kamera");
+        : Module("Cinematic Camera", "Soft, gliding camera movement like in film shots. Optionally only while zooming.", Category::Visual, {"camera"}) {
+        sub("Camera");
         require(0, {fx::sig(fx::Id::LookDelta)});
     }
 
@@ -366,6 +366,6 @@ public:
     }
 
 private:
-    Setting& smoothing_ = slider("smoothing", "Glättung", 0.7f, 0.f, 0.95f, "%.2f");
-    Setting& onlyZoom_ = toggleSetting("onlyZoom", "Nur beim Zoomen", false);
+    Setting& smoothing_ = slider("smoothing", "Smoothing", 0.7f, 0.f, 0.95f, "%.2f");
+    Setting& onlyZoom_ = toggleSetting("onlyZoom", "Only while zooming", false);
 };

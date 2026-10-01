@@ -15,9 +15,9 @@
 class BlockGame : public Module {
 public:
     BlockGame()
-        : Module("Block Game", "Fallende Blöcke für die Warteschlange. Leertaste lässt fallen, ESC beendet.",
+        : Module("Block Game", "Falling blocks while you queue. Space drops, ESC quits.",
                  Category::Fun, {"cosmetic"}) {
-        sub("Spiele");
+        sub("Games");
     }
 
     bool persistent() const override { return false; }
@@ -205,7 +205,7 @@ private:
 
         dl->AddRectFilled(o - ImVec2(130 * s, 54 * s), o + size + ImVec2(130 * s, 14 * s), theme::col(t.bg, 0.96f), t.rounding * s);
         dl->AddText(fonts::bold(), 20 * s, o - ImVec2(0, 40 * s), theme::col(t.text),
-                    std::format("Block Game  ·  {}  ·  Level {}  ·  Linien {}  ·  Rekord {}", score_, level(), lines_, best_).c_str());
+                    i18n::fmt("Block Game  ·  {}  ·  Level {}  ·  Lines {}  ·  Best {}", score_, level(), lines_, best_).c_str());
         dl->AddRectFilled(o, o + size, theme::col(t.surface), 6 * s);
 
         if (grid_.b)
@@ -226,20 +226,20 @@ private:
             for (auto& c : shapes[kind_][rot_]) block(dl, o + ImVec2((x_ + c[0]) * cs, (y_ + c[1]) * cs), cs, tint(kind_ + 1));
         }
 
-        dl->AddText(fonts::bold(), 15 * s, o + ImVec2(size.x + 14 * s, 0), theme::col(t.textDim), "Weiter");
+        dl->AddText(fonts::bold(), 15 * s, o + ImVec2(size.x + 14 * s, 0), theme::col(t.textDim), i18n::tr("Next"));
         mini(dl, o + ImVec2(size.x + 14 * s, 24 * s), cs * 0.7f, next_);
-        dl->AddText(fonts::bold(), 15 * s, o + ImVec2(-118 * s, 0), theme::col(t.textDim), "Halten");
+        dl->AddText(fonts::bold(), 15 * s, o + ImVec2(-118 * s, 0), theme::col(t.textDim), i18n::tr("Hold"));
         mini(dl, o + ImVec2(-118 * s, 24 * s), cs * 0.7f, held_);
 
-        if (dead_) draw::textCentered(dl, fonts::bold(), 22 * s, o + size * 0.5f, theme::col(t.text), "Leertaste = nochmal, ESC = beenden");
+        if (dead_) draw::textCentered(dl, fonts::bold(), 22 * s, o + size * 0.5f, theme::col(t.text), i18n::tr("Space = again, ESC = quit"));
         else if (paused_) draw::textCentered(dl, fonts::bold(), 22 * s, o + size * 0.5f, theme::col(t.text), "Pause");
     }
 
-    Setting& startLevel_ = intSlider("level", "Start-Level", 1, 1, 15);
-    Setting& cell_ = slider("cell", "Blockgröße", 26.f, 16.f, 40.f, "%.0f");
-    Setting& ghost_ = toggleSetting("ghost", "Schatten des Blocks", true);
-    Setting& grid_ = toggleSetting("grid", "Raster anzeigen", true);
-    Setting& hue_ = slider("hue", "Farbton verschieben", 0.5f, 0.f, 1.f, "%.2f");
+    Setting& startLevel_ = intSlider("level", "Start level", 1, 1, 15);
+    Setting& cell_ = slider("cell", "Block size", 26.f, 16.f, 40.f, "%.0f");
+    Setting& ghost_ = toggleSetting("ghost", "Block shadow", true);
+    Setting& grid_ = toggleSetting("grid", "Show grid", true);
+    Setting& hue_ = slider("hue", "Shift hue", 0.5f, 0.f, 1.f, "%.2f");
 
     std::array<std::array<int, W>, H> board_{};
     std::vector<int> bag_;

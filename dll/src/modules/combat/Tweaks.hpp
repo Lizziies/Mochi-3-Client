@@ -15,8 +15,8 @@
 class HurtColor : public Module {
 public:
     HurtColor()
-        : Module("Hurt Color", "Ändert die rote Farbe, wenn du oder ein Gegner Schaden nehmen.", Category::Pvp, {"cosmetic"}) {
-        sub("Treffer-Visuals");
+        : Module("Hurt Color", "Changes the red tint when you or an opponent take damage.", Category::Pvp, {"cosmetic"}) {
+        sub("Hit visuals");
         require(0, {fx::sig(fx::Id::HurtColor)});
         speed_.visible = [this] { return rainbow_.b; };
         color_.visible = [this] { return !rainbow_.b; };
@@ -33,17 +33,17 @@ public:
     }
 
 private:
-    Setting& color_ = colorSetting("color", "Farbe", {1.f, 0.35f, 0.6f, 1.f});
-    Setting& intensity_ = slider("intensity", "Stärke", 0.6f, 0.05f, 1.f, "%.2f");
-    Setting& rainbow_ = toggleSetting("rainbow", "Regenbogen", false);
-    Setting& speed_ = slider("speed", "Tempo", 1.f, 0.1f, 5.f, "%.1f");
+    Setting& color_ = colorSetting("color", "Color", {1.f, 0.35f, 0.6f, 1.f});
+    Setting& intensity_ = slider("intensity", "Strength", 0.6f, 0.05f, 1.f, "%.2f");
+    Setting& rainbow_ = toggleSetting("rainbow", "Rainbow", false);
+    Setting& speed_ = slider("speed", "Speed", 1.f, 0.1f, 5.f, "%.1f");
 };
 
 class GlintColor : public Module {
 public:
     GlintColor()
-        : Module("Glint Color", "Ändert die Farbe des Verzauberungs-Glanzes auf Items und Rüstung.", Category::Pvp, {"cosmetic"}) {
-        sub("Treffer-Visuals");
+        : Module("Glint Color", "Changes the color of the enchantment glint on items and armor.", Category::Pvp, {"cosmetic"}) {
+        sub("Hit visuals");
         require(0, {fx::sig(fx::Id::GlintColor)});
         speed_.visible = [this] { return rainbow_.b; };
         color_.visible = [this] { return !rainbow_.b; };
@@ -60,17 +60,17 @@ public:
     }
 
 private:
-    Setting& color_ = colorSetting("color", "Farbe", {1.f, 0.49f, 0.71f, 1.f});
-    Setting& rainbow_ = toggleSetting("rainbow", "Regenbogen", false);
-    Setting& speed_ = slider("speed", "Tempo", 1.f, 0.1f, 5.f, "%.1f");
+    Setting& color_ = colorSetting("color", "Color", {1.f, 0.49f, 0.71f, 1.f});
+    Setting& rainbow_ = toggleSetting("rainbow", "Rainbow", false);
+    Setting& speed_ = slider("speed", "Speed", 1.f, 0.1f, 5.f, "%.1f");
 };
 
 class Hitbox : public Module {
 public:
     Hitbox()
-        : Module("Hitbox", "Zeigt die Hitboxen mit dem eigenen Zeichenweg des Spiels, also nicht durch Wände. Farbe einstellbar.",
+        : Module("Hitbox", "Shows hitboxes with the game's own drawing path, so not through walls. Color adjustable.",
                  Category::Pvp, {"info-others"}) {
-        sub("Treffer-Visuals");
+        sub("Hit visuals");
         require(0, {fx::sig(fx::Id::Hitbox)});
         color_.visible = [this] { return !rainbow_.b; };
     }
@@ -87,44 +87,44 @@ public:
     }
 
 private:
-    Setting& color_ = colorSetting("color", "Farbe", {1.f, 0.49f, 0.71f, 1.f});
-    Setting& rainbow_ = toggleSetting("rainbow", "Regenbogen", false);
+    Setting& color_ = colorSetting("color", "Color", {1.f, 0.49f, 0.71f, 1.f});
+    Setting& rainbow_ = toggleSetting("rainbow", "Rainbow", false);
 };
 
 class LowFire : public Module {
 public:
     LowFire()
-        : Module("Low Fire", "Senkt das Feuer-Overlay am unteren Bildrand oder blendet es ganz aus.", Category::Pvp, {"cosmetic"}) {
-        sub("Treffer-Visuals");
+        : Module("Low Fire", "Lowers the fire overlay at the bottom of the screen or hides it completely.", Category::Pvp, {"cosmetic"}) {
+        sub("Hit visuals");
         require(0, {fx::sig(fx::Id::FireHeight)});
     }
 
     void onFrame() override { fx::scale(fx::Id::FireHeight, 1.f - amount_.f); }
 
 private:
-    Setting& amount_ = slider("amount", "Absenken", 0.6f, 0.f, 1.f, "%.2f");
+    Setting& amount_ = slider("amount", "Lower", 0.6f, 0.f, 1.f, "%.2f");
 };
 
 class ParticleMultiplier : public Module {
 public:
     ParticleMultiplier()
-        : Module("Particle Multiplier", "Mehr oder weniger Partikel. Weniger hilft den FPS, mehr sieht schöner aus.", Category::Pvp, {"cosmetic"}) {
-        sub("Treffer-Visuals");
+        : Module("Particle Multiplier", "More or fewer particles. Fewer helps FPS, more looks nicer.", Category::Pvp, {"cosmetic"}) {
+        sub("Hit visuals");
         require(0, {fx::sig(fx::Id::ParticleScale)});
     }
 
     void onFrame() override { fx::set(fx::Id::ParticleScale, amount_.f); }
 
 private:
-    Setting& amount_ = slider("amount", "Menge", 0.5f, 0.f, 4.f, "%.2fx");
+    Setting& amount_ = slider("amount", "Amount", 0.5f, 0.f, 4.f, "%.2fx");
 };
 
 class SensMultiplier : public Module {
 public:
     SensMultiplier()
-        : Module("Sens Multiplier", "Eigene Empfindlichkeit beim Zoomen, Bogenspannen, Blocken, Schleichen und Sprinten.",
+        : Module("Sens Multiplier", "Own sensitivity while zooming, drawing a bow, blocking, sneaking and sprinting.",
                  Category::Pvp, {"input"}) {
-        sub("Eingabe");
+        sub("Input");
         require(0, {fx::sig(fx::Id::Sensitivity)});
     }
 
@@ -140,19 +140,19 @@ public:
     }
 
 private:
-    Setting& base_ = slider("base", "Grundwert", 1.f, 0.2f, 3.f, "%.2fx");
-    Setting& zoom_ = slider("zoom", "Beim Zoomen", 0.6f, 0.1f, 2.f, "%.2fx");
-    Setting& bow_ = slider("bow", "Beim Bogenspannen", 1.f, 0.1f, 2.f, "%.2fx");
-    Setting& block_ = slider("block", "Beim Blocken", 1.f, 0.1f, 2.f, "%.2fx");
-    Setting& sneak_ = slider("sneak", "Beim Schleichen", 1.f, 0.1f, 2.f, "%.2fx");
-    Setting& sprint_ = slider("sprint", "Beim Sprinten", 1.f, 0.1f, 2.f, "%.2fx");
+    Setting& base_ = slider("base", "Base value", 1.f, 0.2f, 3.f, "%.2fx");
+    Setting& zoom_ = slider("zoom", "While zooming", 0.6f, 0.1f, 2.f, "%.2fx");
+    Setting& bow_ = slider("bow", "While drawing a bow", 1.f, 0.1f, 2.f, "%.2fx");
+    Setting& block_ = slider("block", "While blocking", 1.f, 0.1f, 2.f, "%.2fx");
+    Setting& sneak_ = slider("sneak", "While sneaking", 1.f, 0.1f, 2.f, "%.2fx");
+    Setting& sprint_ = slider("sprint", "While sprinting", 1.f, 0.1f, 2.f, "%.2fx");
 };
 
 class BowSensitivity : public Module {
 public:
     BowSensitivity()
-        : Module("Bow Sensitivity", "Eigene Empfindlichkeit, solange du den Bogen spannst, für präziseres Zielen.", Category::Pvp, {"input"}) {
-        sub("Eingabe");
+        : Module("Bow Sensitivity", "Own sensitivity while you draw the bow, for more precise aiming.", Category::Pvp, {"input"}) {
+        sub("Input");
         require(need::player, {fx::sig(fx::Id::Sensitivity), "LocalPlayer"});
     }
 
@@ -162,16 +162,16 @@ public:
     }
 
 private:
-    Setting& factor_ = slider("factor", "Empfindlichkeit", 0.7f, 0.1f, 2.f, "%.2fx");
-    Setting& onlyBow_ = toggleSetting("onlyBow", "Nur mit Bogen", true);
+    Setting& factor_ = slider("factor", "Sensitivity", 0.7f, 0.1f, 2.f, "%.2fx");
+    Setting& onlyBow_ = toggleSetting("onlyBow", "Only with a bow", true);
 };
 
 class SnapLook : public Module {
 public:
     SnapLook()
-        : Module("Snap Look", "Kurzer Blick nach hinten oder zur Seite per Taste, ohne die Blickrichtung zu ändern.",
+        : Module("Snap Look", "A short look behind or to the side on a key, without changing your aim.",
                  Category::Pvp, {"camera"}) {
-        sub("Eingabe");
+        sub("Input");
         require(need::player, {fx::sig(fx::Id::LookCamera), "LocalPlayer"});
     }
 
@@ -192,10 +192,10 @@ public:
     void onDisable() override { active_ = false; }
 
 private:
-    Setting& key_ = keySetting("snapKey", "Blick-Taste", 'V');
-    Setting& mode_ = choice("mode", "Modus", {"Halten", "Umschalten"});
-    Setting& dir_ = choice("dir", "Richtung", {"Hinten", "Links", "Rechts"});
-    Setting& keepPitch_ = toggleSetting("keepPitch", "Neigung beibehalten", true);
+    Setting& key_ = keySetting("snapKey", "Look key", 'V');
+    Setting& mode_ = choice("mode", "Mode", {"Hold", "Toggle"});
+    Setting& dir_ = choice("dir", "Direction", {"Behind", "Left", "Right"});
+    Setting& keepPitch_ = toggleSetting("keepPitch", "Keep pitch", true);
     bool active_ = false;
 };
 
@@ -203,9 +203,9 @@ class NullMovement : public Module {
 public:
     NullMovement()
         : Module("Null Movement",
-                 "Gegenläufige Richtungstasten heben sich nicht auf. Auf vielen Servern verboten.",
+                 "Opposite direction keys no longer cancel each other. Banned on many servers.",
                  Category::Pvp, {"input"}) {
-        sub("Eingabe");
+        sub("Input");
         markRisky();
     }
 
@@ -267,13 +267,13 @@ private:
             }
     }
 
-    Setting& mode_ = choice("mode", "Verhalten", {"Zuletzt gedrückte Taste gewinnt", "Beide neutralisieren"});
-    Setting& horizontal_ = toggleSetting("horizontal", "Links / Rechts", true);
-    Setting& vertical_ = toggleSetting("vertical", "Vor / Zurück", false);
-    Setting& left_ = keySetting("left", "Links", 'A');
-    Setting& right_ = keySetting("right", "Rechts", 'D');
-    Setting& forward_ = keySetting("forward", "Vor", 'W');
-    Setting& back_ = keySetting("back", "Zurück", 'S');
+    Setting& mode_ = choice("mode", "Behavior", {"Last pressed key wins", "Both cancel out"});
+    Setting& horizontal_ = toggleSetting("horizontal", "Left / Right", true);
+    Setting& vertical_ = toggleSetting("vertical", "Forward / Back", false);
+    Setting& left_ = keySetting("left", "Left", 'A');
+    Setting& right_ = keySetting("right", "Right", 'D');
+    Setting& forward_ = keySetting("forward", "Forward", 'W');
+    Setting& back_ = keySetting("back", "Back", 'S');
     bool held_[2][2]{};
     bool cut_[2][2]{};
 };
@@ -281,9 +281,9 @@ private:
 class ItemUseDelayFix : public Module {
 public:
     ItemUseDelayFix()
-        : Module("Item Use Delay Fix", "Verkürzt die Wartezeit zwischen Item-Nutzungen. Auf vielen Servern verboten.",
+        : Module("Item Use Delay Fix", "Shortens the wait between item uses. Banned on many servers.",
                  Category::Pvp, {"timing"}) {
-        sub("Eingabe");
+        sub("Input");
         markRisky();
         require(0, {fx::sig(fx::Id::UseDelay)});
     }
@@ -291,15 +291,15 @@ public:
     void onFrame() override { fx::scale(fx::Id::UseDelay, factor_.f); }
 
 private:
-    Setting& factor_ = slider("factor", "Restliche Wartezeit", 0.5f, 0.f, 1.f, "%.2f");
+    Setting& factor_ = slider("factor", "Remaining wait", 0.5f, 0.f, 1.f, "%.2f");
 };
 
 class FasterInventory : public Module {
 public:
     FasterInventory()
-        : Module("Faster Inventory", "Schnelleres Bewegen von Items im Inventar. Auf vielen Servern verboten.",
+        : Module("Faster Inventory", "Faster moving of items in the inventory. Banned on many servers.",
                  Category::Pvp, {"timing"}) {
-        sub("Eingabe");
+        sub("Input");
         markRisky();
         require(0, {fx::sig(fx::Id::InventoryDelay)});
     }
@@ -307,18 +307,35 @@ public:
     void onFrame() override { fx::scale(fx::Id::InventoryDelay, factor_.f); }
 
 private:
-    Setting& factor_ = slider("factor", "Restliche Wartezeit", 0.5f, 0.f, 1.f, "%.2f");
+    Setting& factor_ = slider("factor", "Remaining wait", 0.5f, 0.f, 1.f, "%.2f");
 };
 
 class InstaHurtAnimation : public Module {
 public:
     InstaHurtAnimation()
-        : Module("Insta Hurt Animation", "Treffer-Animation sofort statt verzögert. Auf vielen Servern verboten.",
+        : Module("Insta Hurt Animation", "Plays the hurt animation of the player you hit right away instead of after the server reply. Banned on many servers.",
                  Category::Pvp, {"timing"}) {
-        sub("Eingabe");
+        sub("Hit feedback");
         markRisky();
         require(0, {fx::sig(fx::Id::HurtAnim)});
+        wants(need::target);
+        excludeTeam_.visible = [] { return game::ready(need::target); };
+        fullArmor_.visible = [] { return game::ready(need::target); };
     }
 
-    void onFrame() override { fx::force(fx::Id::HurtAnim, true); }
+    void onFrame() override {
+        auto& st = game::state();
+        auto& t = st.target;
+        bool filtered = game::ready(need::target) && (excludeTeam_.b || fullArmor_.b);
+        if (filtered) {
+            if (t.kind != game::Target::Kind::Entity || !t.isPlayer) return;
+            if (excludeTeam_.b && st.player.team && t.team == st.player.team) return;
+            if (fullArmor_.b && t.armor < 4) return;
+        }
+        fx::force(fx::Id::HurtAnim, true);
+    }
+
+private:
+    Setting& excludeTeam_ = toggleSetting("excludeTeam", "Exclude team", true);
+    Setting& fullArmor_ = toggleSetting("fullArmor", "Only against full armor", false);
 };

@@ -20,9 +20,9 @@
 class Waypoints : public Module {
 public:
     Waypoints()
-        : Module("Waypoints", "Eigene Markierungen mit Beam, Name und Entfernung, auch als Randpfeil.",
+        : Module("Waypoints", "Your own markers with beam, name and distance, also as an edge arrow.",
                  Category::Visual, {"hud-self"}) {
-        sub("Welt");
+        sub("World");
         require(need::player | game::Domain::Camera, need::sigs({"LocalPlayer"}));
         data_.hidden = true;
         beamHeight_.visible = [this] { return beam_.b; };
@@ -30,7 +30,7 @@ public:
 
     void onKey(KeyEvent& ev) override {
         sync();
-        if (ev.down && !ev.repeat && addKey_.i && ev.vk == addKey_.i) addHere(std::format("Punkt {}", list_.size() + 1));
+        if (ev.down && !ev.repeat && addKey_.i && ev.vk == addKey_.i) addHere(i18n::fmt("Point {}", list_.size() + 1));
     }
 
     void onFrame() override {
@@ -38,8 +38,9 @@ public:
         for (auto& e : game::events())
             if (e.kind == game::EventKind::Death && deathPoint_.b) {
                 auto& pos = game::state().player.pos;
-                std::erase_if(list_, [](const Wp& w) { return w.name == "Tod"; });
-                list_.push_back({"Tod", pos.x, pos.y, pos.z, game::state().player.dimension, {1.f, 0.4f, 0.45f}});
+                std::string death = i18n::tr("Death");
+                std::erase_if(list_, [&](const Wp& w) { return w.name == death; });
+                list_.push_back({death, pos.x, pos.y, pos.z, game::state().player.dimension, {1.f, 0.4f, 0.45f}});
                 save();
             }
     }
@@ -84,7 +85,7 @@ public:
         ImGui::SetNextItemWidth(180);
         ImGui::InputText("##wpname", name_, sizeof(name_));
         ImGui::SameLine();
-        if (ImGui::SmallButton("Hier hinzufügen")) addHere(name_[0] ? name_ : "Punkt");
+        if (ImGui::SmallButton(i18n::tr("Add here"))) addHere(name_[0] ? name_ : i18n::tr("Dot"));
         int remove = -1;
         for (size_t i = 0; i < list_.size(); i++) {
             auto& w = list_[i];
@@ -93,7 +94,7 @@ public:
             ImGui::SameLine();
             ImGui::Text("%s  (%.0f, %.0f, %.0f)", w.name.c_str(), w.x, w.y, w.z);
             ImGui::SameLine();
-            if (ImGui::SmallButton("Löschen")) remove = int(i);
+            if (ImGui::SmallButton(i18n::tr("Delete"))) remove = int(i);
             ImGui::PopID();
         }
         if (remove >= 0) {
@@ -168,18 +169,18 @@ private:
         synced_ = data_.text;
     }
 
-    Setting& addKey_ = keySetting("addKey", "Punkt an meiner Position setzen", 0);
-    Setting& color_ = colorSetting("color", "Standardfarbe", {1.f, 0.49f, 0.71f, 1.f});
-    Setting& iconStyle_ = choice("icon", "Symbol", {"Raute", "Punkt", "Herz"});
-    Setting& distance_ = toggleSetting("distance", "Entfernung zeigen", true);
-    Setting& labelScale_ = slider("labelScale", "Textgröße", 1.f, 0.6f, 2.f, "%.2fx");
-    Setting& beam_ = toggleSetting("beam", "Lichtstrahl", true);
-    Setting& beamHeight_ = slider("beamHeight", "Strahlhöhe", 60.f, 10.f, 256.f, "%.0f");
-    Setting& edge_ = toggleSetting("edge", "Pfeil am Bildschirmrand", true);
-    Setting& fade_ = toggleSetting("fade", "In der Nähe ausblenden", true);
-    Setting& maxDist_ = slider("maxDist", "Maximale Entfernung (0 = unbegrenzt)", 0.f, 0.f, 2000.f, "%.0f");
-    Setting& deathPoint_ = toggleSetting("death", "Todespunkt automatisch setzen", true);
-    Setting& data_ = textSetting("data", "Daten", "[]");
+    Setting& addKey_ = keySetting("addKey", "Set a point at my position", 0);
+    Setting& color_ = colorSetting("color", "Default color", {1.f, 0.49f, 0.71f, 1.f});
+    Setting& iconStyle_ = choice("icon", "Icon", {"Diamond", "Dot", "Heart"});
+    Setting& distance_ = toggleSetting("distance", "Show distance", true);
+    Setting& labelScale_ = slider("labelScale", "Text size", 1.f, 0.6f, 2.f, "%.2fx");
+    Setting& beam_ = toggleSetting("beam", "Light beam", true);
+    Setting& beamHeight_ = slider("beamHeight", "Beam height", 60.f, 10.f, 256.f, "%.0f");
+    Setting& edge_ = toggleSetting("edge", "Arrow at the screen edge", true);
+    Setting& fade_ = toggleSetting("fade", "Fade out when close", true);
+    Setting& maxDist_ = slider("maxDist", "Maximum distance (0 = unlimited)", 0.f, 0.f, 2000.f, "%.0f");
+    Setting& deathPoint_ = toggleSetting("death", "Set the death point automatically", true);
+    Setting& data_ = textSetting("data", "Data", "[]");
     std::vector<Wp> list_;
     std::string synced_ = "[]";
     char name_[64] = "";

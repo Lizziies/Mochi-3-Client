@@ -13,9 +13,9 @@ class FrameLimiter : public Module {
 public:
     FrameLimiter()
         : Module("Frame Limiter",
-                 "Präziser FPS-Limiter, drosselt im Hintergrund und im Menü.",
+                 "Precise FPS limiter, throttles in the background and in the menu.",
                  Category::Performance, {"performance"}) {
-        sub("Frame-Timing");
+        sub("Frame timing");
         fps_.visible = [this] { return mode_.i == 0; };
         offset_.visible = [this] { return mode_.i == 1; };
         bgFps_.visible = [this] { return background_.b; };
@@ -33,10 +33,10 @@ public:
 
     void drawSettings() override {
         ImGui::Spacing();
-        if (effective_ > 0.f) ImGui::TextDisabled("Aktives Limit: %.0f FPS  ·  Monitor: %d Hz", effective_, refresh());
-        else ImGui::TextDisabled("Kein Limit aktiv  ·  Monitor: %d Hz", refresh());
+        if (effective_ > 0.f) ImGui::TextDisabled(i18n::tr("Active limit: %.0f FPS  ·  Monitor: %d Hz"), effective_, refresh());
+        else ImGui::TextDisabled(i18n::tr("No limit active  ·  Monitor: %d Hz"), refresh());
         float ms = (float)dx::frame().frameMs;
-        if (ms > 0.f) ImGui::TextDisabled("Letzter Frame: %.2f ms (%.0f FPS)", ms, 1000.f / ms);
+        if (ms > 0.f) ImGui::TextDisabled(i18n::tr("Last frame: %.2f ms (%.0f FPS)"), ms, 1000.f / ms);
     }
 
 private:
@@ -65,12 +65,12 @@ private:
         return 60;
     }
 
-    Setting& mode_ = choice("mode", "Limit", {"Fester Wert", "Bildwiederholrate minus Abzug", "Aus"}, 1);
-    Setting& fps_ = slider("fps", "FPS-Limit", 240.f, 30.f, 1000.f, "%.0f");
-    Setting& offset_ = slider("offset", "Abzug (FPS)", 3.f, 0.f, 20.f, "%.0f");
-    Setting& background_ = toggleSetting("background", "Im Hintergrund drosseln", true);
-    Setting& bgFps_ = slider("bgFps", "Hintergrund-Limit", 30.f, 5.f, 120.f, "%.0f");
-    Setting& menu_ = toggleSetting("menu", "Bei offenem Menü drosseln", false);
-    Setting& menuFps_ = slider("menuFps", "Menü-Limit", 90.f, 30.f, 240.f, "%.0f");
+    Setting& mode_ = choice("mode", "Limit", {"Fixed value", "Refresh rate minus offset", "Off"}, 1);
+    Setting& fps_ = slider("fps", "FPS limit", 240.f, 30.f, 1000.f, "%.0f");
+    Setting& offset_ = slider("offset", "Offset (FPS)", 3.f, 0.f, 20.f, "%.0f");
+    Setting& background_ = toggleSetting("background", "Throttle in the background", true);
+    Setting& bgFps_ = slider("bgFps", "Background limit", 30.f, 5.f, 120.f, "%.0f");
+    Setting& menu_ = toggleSetting("menu", "Throttle while the menu is open", false);
+    Setting& menuFps_ = slider("menuFps", "Menu limit", 90.f, 30.f, 240.f, "%.0f");
     float effective_ = 0.f;
 };

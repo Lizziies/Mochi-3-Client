@@ -4,14 +4,14 @@
 
 #include <string>
 
-inline int countItems(const std::string& name, int aux = -1, bool hotbarOnly = false) {
+inline int countItems(const std::string& name, int aux = -1, bool hotbarOnly = false, bool offhand = true) {
     auto& p = game::state().player;
     int n = 0;
     auto add = [&](const game::Item& it) {
         if (!it.empty() && it.name == name && (aux < 0 || it.aux == aux)) n += it.count;
     };
     for (auto& it : p.hotbar) add(it);
-    add(p.offhand);
+    if (offhand) add(p.offhand);
     if (!hotbarOnly)
         for (auto& it : p.main) add(it);
     return n;

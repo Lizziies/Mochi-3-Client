@@ -51,6 +51,36 @@ static void flushQueued() {
     }
 }
 
+struct Step {
+    double at;
+    char kind;
+    int a, b;
+    bool done;
+};
+
+static std::vector<Step> loadScript() {
+    std::vector<Step> out;
+    const char* env = std::getenv("TESTHOST_SCRIPT");
+    if (!env) return out;
+    std::string all = env;
+    size_t from = 0;
+    while (from < all.size()) {
+        size_t to = all.find(';', from);
+        if (to == std::string::npos) to = all.size();
+        Step s{};
+        char kind = 0;
+        int a = 0, b = 0;
+        if (std::sscanf(all.substr(from, to - from).c_str(), "%lf:%c:%d,%d", &s.at, &kind, &a, &b) >= 2) {
+            s.kind = kind;
+            s.a = a;
+            s.b = b;
+            out.push_back(s);
+        }
+        from = to + 1;
+    }
+    return out;
+}
+
 int wmain(int argc, wchar_t** argv) {
     if (argc < 2) {
         std::printf("usage: testhost <Mochi.dll> [seconds]\n");
@@ -104,6 +134,7 @@ int wmain(int argc, wchar_t** argv) {
     std::printf("LoadLibrary -> %p (err %lu)\n", (void*)mochi, mochi ? 0 : GetLastError());
     std::fflush(stdout);
 
+    auto script = loadScript();
     DWORD start = GetTickCount();
     int step = 0;
     int frames = 0;
@@ -140,6 +171,21 @@ int wmain(int argc, wchar_t** argv) {
             {18, "back", [] { key(VK_ESCAPE, true); key(VK_ESCAPE, false); }},
             {21, "unload", [] { key(VK_CONTROL, true); key('L', true); key('L', false); key(VK_CONTROL, false); }},
         };
+        for (auto& s : script) {
+            if (s.done || t < s.at) continue;
+            s.done = true;
+            if (s.kind == 'k') {
+                key(s.a, true);
+                key(s.a, false);
+            } else if (s.kind == 'c') {
+                click(s.a, s.b);
+            } else if (s.kind == 'u') {
+                key(VK_CONTROL, true);
+                key('L', true);
+                key('L', false);
+                key(VK_CONTROL, false);
+            }
+        }
         if (!manual && step < (int)(sizeof(actions) / sizeof(actions[0])) && t > actions[step].at) {
             actions[step].run();
             std::printf("action %s\n", actions[step].name);

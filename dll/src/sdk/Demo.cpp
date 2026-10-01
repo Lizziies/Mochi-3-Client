@@ -11,7 +11,7 @@ namespace {
 
 constexpr unsigned all = unsigned(Domain::Player) | unsigned(Domain::Inventory) | unsigned(Domain::Effects) | unsigned(Domain::Target) |
                          unsigned(Domain::World) | unsigned(Domain::Combat) | unsigned(Domain::Chat) | unsigned(Domain::Scoreboard) |
-                         unsigned(Domain::Tab) | unsigned(Domain::Camera);
+                         unsigned(Domain::Tab) | unsigned(Domain::Camera) | unsigned(Domain::Others);
 
 class Demo : public Provider {
 public:
@@ -31,6 +31,8 @@ public:
         target(s);
         chatter(s, ev);
         uses(ev);
+        nearby(s);
+        confirms(ev);
         effects(s, dt);
         scoreboard(s);
     }
@@ -49,7 +51,7 @@ private:
     void setup(State& s) {
         init_ = true;
         auto& p = s.player;
-        p.name = "MochiSpieler";
+        p.name = "MochiPlayer";
         p.pos = {128.5f, 64.f, -42.5f};
         p.hotbar[0] = item("diamond_sword", 1, 1561, 0, true);
         p.hotbar[1] = item("bow", 1, 384, 0, true);
@@ -156,17 +158,19 @@ private:
             ev.push_back({EventKind::Swing});
             if (dist_(rng_) < 0.72) {
                 Event e{EventKind::Hit};
-                e.reach = 2.2f + dist_(rng_) * 0.95f;
+                e.reach = std::max(0.5f, oppDist_ - 0.3f + (float(dist_(rng_)) - 0.5f) * 0.2f);
                 e.crit = dist_(rng_) < 0.2;
                 e.value = e.crit ? 9.f : 6.f;
-                e.text = "Gegner";
+                e.text = "Opponent";
                 ev.push_back(e);
+                float ms = float(s.world.ping) + float(dist_(rng_)) * 12.f;
+                acks_.push_back({t_ + ms / 1000.0, ms, e.reach});
                 opponentHp_ -= e.value * 0.5f;
                 auto& sword = p.hotbar[0];
                 sword.damage = std::min(sword.maxDamage - 1, sword.damage + 1);
                 if (opponentHp_ <= 0.f) {
                     Event k{EventKind::Kill};
-                    k.text = "Gegner";
+                    k.text = "Opponent";
                     ev.push_back(k);
                     opponentHp_ = 20.f;
                 }
@@ -179,8 +183,8 @@ private:
             if (dist_(rng_) < 0.45) {
                 Event e{EventKind::Hurt};
                 e.value = 1.5f + dist_(rng_) * 3.f;
-                e.reach = 2.3f + dist_(rng_) * 0.9f;
-                e.text = "Gegner";
+                e.reach = std::max(0.5f, oppDist_ - 0.3f);
+                e.text = "Opponent";
                 ev.push_back(e);
                 p.health -= e.value;
                 for (auto& a : p.armor) a.damage = std::min(a.maxDamage - 1, a.damage + (dist_(rng_) < 0.3 ? 1 : 0));
@@ -198,6 +202,40 @@ private:
             }
         }
         p.blocking = std::fmod(t_, 3.0) < 0.5;
+    }
+
+    void nearby(State& s) {
+        auto& p = s.player;
+        p.team = 1;
+        oppDist_ = 2.9f + 0.45f * std::sin(float(t_) * 1.7f);
+        float yaw = p.yaw * 0.0174533f;
+        Vec3 fwd{-std::sin(yaw), 0.f, std::cos(yaw)};
+        auto place = [&](const char* name, float ahead, float side, int team) {
+            Other o;
+            o.name = name;
+            o.team = team;
+            o.pos = {p.pos.x + fwd.x * ahead - fwd.z * side, p.pos.y, p.pos.z + fwd.z * ahead + fwd.x * side};
+            s.others.push_back(o);
+        };
+        s.others.clear();
+        place("Teammate", 1.8f, -1.2f, 1);
+        place("Opponent", oppDist_, 0.f, 2);
+        place("Bystander", 8.f, 3.f, 3);
+    }
+
+    void confirms(std::vector<Event>& ev) {
+        for (size_t i = 0; i < acks_.size();) {
+            if (acks_[i].due > t_) {
+                i++;
+                continue;
+            }
+            Event e{EventKind::Confirm};
+            e.value = acks_[i].ms;
+            e.reach = acks_[i].reach;
+            e.text = "Opponent";
+            ev.push_back(e);
+            acks_.erase(acks_.begin() + long(i));
+        }
     }
 
     void survival(State& s, double dt) {
@@ -229,9 +267,11 @@ private:
         double phase = std::fmod(t_, 16.0);
         if (phase > 4.0 && phase < 12.0) {
             t.kind = Target::Kind::Entity;
-            t.name = "Gegner";
+            t.name = "Opponent";
             t.isPlayer = true;
-            t.distance = 2.4f + 0.6f * std::sin(float(t_) * 3.f);
+            t.distance = std::max(0.5f, oppDist_ - 0.3f);
+            t.team = 2;
+            t.armor = std::fmod(t_, 32.0) < 24.0 ? 4 : 3;
             t.health = std::max(0.f, opponentHp_);
             t.maxHealth = 20.f;
             t.pos = {s.player.pos.x + 2.f, s.player.pos.y, s.player.pos.z};
@@ -249,10 +289,60 @@ private:
         }
     }
 
+    struct Line {
+        double at;
+        const char* text;
+    };
+
+    void script(std::vector<Event>& ev, const Line* lines, size_t count, double period) {
+        double now = std::fmod(t_, period), prev = scriptPhase_;
+        scriptPhase_ = now;
+        for (size_t i = 0; i < count; i++) {
+            double at = lines[i].at;
+            bool fire = now >= prev ? (at > prev && at <= now) : (at > prev || at <= now);
+            if (!fire) continue;
+            Event e{EventKind::Chat};
+            e.text = lines[i].text;
+            ev.push_back(std::move(e));
+        }
+    }
+
+    void serverChat(const std::string& server, std::vector<Event>& ev) {
+        static const Line hive[] = {
+            {3, "§e[!] §fGet Hive+ for extra perks at shop.playhive.com"},
+            {6, "§a» §7Steve joined the game"},
+            {9, "§7[§6Hive+§7] §eAlex§f: hello everyone"},
+            {11, "Luna: gg"},
+            {14, "§bMika §7sent you a friend request. §eType /friend accept Mika"},
+            {17, "§6Mika §7invited you to their party! §e/party accept Mika"},
+            {20, "§eVote for a map: §bAquatic§7, §bLighthouse§7, §bCastle"},
+            {25, "§eYou are the §cMurderer§e!"},
+            {32, "§7Teaming is not allowed. §cNo Teaming§7!"},
+            {40, "§cYou have been eliminated!"},
+            {50, "§a§lGame OVER!"},
+            {55, "§7Custom server code: §eHVE42X"},
+        };
+        static const Line zeqa[] = {
+            {3, "§e[!] §fJoin our discord at discord.gg/zeqa"},
+            {6, "§a+ §7Steve joined the server"},
+            {10, "§bAlex §7sent you a duel request. §eType /duel accept Alex"},
+            {14, "§bMika §7sent you a friend request. §eType /friend accept Mika"},
+            {20, "§7Alex has a §c5§7 kill streak!"},
+            {28, "§a§lAlex §7has won the duel!"},
+        };
+        if (server == "The Hive") script(ev, hive, std::size(hive), 60.0);
+        else script(ev, zeqa, std::size(zeqa), 40.0);
+    }
+
     void chatter(State& s, std::vector<Event>& ev) {
+        const auto& server = demoServer();
+        if (server == "The Hive" || server == "Zeqa") {
+            serverChat(server, ev);
+            return;
+        }
         if (t_ < nextChat_) return;
-        static const char* lines[] = {"<Luna> gg", "<Max> wer hat die Perle?", "§eDas Spiel beginnt in 5 Sekunden", "<Kiki> nice kill",
-                                      "§6Runde 3 von 5 startet", "<Noah> lag?", "§aMochi Wars: Du hast gewonnen!"};
+        static const char* lines[] = {"<Luna> gg", "<Max> who has the pearl?", "§eThe game starts in 5 seconds", "<Kiki> nice kill",
+                                      "§6Round 3 of 5 is starting", "<Noah> lag?", "§aMochi Wars: You won!"};
         Event e{EventKind::Chat};
         e.text = lines[chatIdx_++ % 7];
         ev.push_back(e);
@@ -292,13 +382,28 @@ private:
 
     void scoreboard(State& s) {
         s.scoreboard.lines.clear();
+        s.scoreboard.title = "Mochi Wars";
+        if (demoServer() == "The Hive") {
+            s.scoreboard.title = "BED WARS";
+            s.scoreboard.lines.push_back({"Mode: Solos", 0});
+            s.scoreboard.lines.push_back({"Map: Aquatic", 0});
+            s.scoreboard.lines.push_back({"Kills", s.combat.kills});
+            return;
+        }
         s.scoreboard.lines.push_back({"Kills", s.combat.kills});
-        s.scoreboard.lines.push_back({"Tode", s.combat.deaths});
-        s.scoreboard.lines.push_back({"Spieler", s.world.players});
-        s.scoreboard.lines.push_back({"Runde", 3});
+        s.scoreboard.lines.push_back({"Deaths", s.combat.deaths});
+        s.scoreboard.lines.push_back({"Players", s.world.players});
+        s.scoreboard.lines.push_back({"Round", 3});
         s.scoreboard.lines.push_back({"mochi.example", 0});
     }
 
+    struct Ack {
+        double due;
+        float ms;
+        float reach;
+    };
+    std::vector<Ack> acks_;
+    float oppDist_ = 3.f;
     std::mt19937 rng_{1234};
     std::uniform_real_distribution<double> dist_{0.0, 1.0};
     bool init_ = false;
@@ -310,6 +415,7 @@ private:
     double nextChat_ = 2.0;
     double nextUse_ = 5.0;
     int chatIdx_ = 0;
+    double scriptPhase_ = -1.0;
     float opponentHp_ = 20.f;
     bool fighting_ = false;
     bool drawing_ = false;

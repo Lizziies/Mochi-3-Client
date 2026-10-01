@@ -18,9 +18,9 @@
 class Pet : public HudModule {
 public:
     Pet()
-        : HudModule("Pet", "Kleines Mochi-Haustier im HUD: wippt, freut sich über Treffer, schläft bei Ruhe.", {"cosmetic"},
+        : HudModule("Pet", "A little Mochi pet in the HUD: bounces, cheers on hits, sleeps when idle.", {"cosmetic"},
                     {0.90f, 0.82f}) {
-        sub("Spiele");
+        sub("Games");
         background_.b = false;
     }
 
@@ -96,11 +96,11 @@ protected:
     }
 
 private:
-    Setting& size_ = slider("size", "Größe", 60.f, 30.f, 140.f, "%.0f");
-    Setting& color_ = colorSetting("color", "Farbe", {1.f, 0.93f, 0.95f, 1.f});
-    Setting& sleepy_ = toggleSetting("sleepy", "Schläft bei Inaktivität", true);
-    Setting& sleepAfter_ = slider("sleepAfter", "Einschlafen nach (s)", 20.f, 5.f, 120.f, "%.0f s");
-    Setting& hearts_ = toggleSetting("hearts", "Herzchen bei Treffern", true);
+    Setting& size_ = slider("size", "Size", 60.f, 30.f, 140.f, "%.0f");
+    Setting& color_ = colorSetting("color", "Color", {1.f, 0.93f, 0.95f, 1.f});
+    Setting& sleepy_ = toggleSetting("sleepy", "Sleeps when idle", true);
+    Setting& sleepAfter_ = slider("sleepAfter", "Falls asleep after (s)", 20.f, 5.f, 120.f, "%.0f s");
+    Setting& hearts_ = toggleSetting("hearts", "Hearts on hits", true);
     Particles particles_;
     float joy_ = 0.f;
     bool burst_ = false;
@@ -112,8 +112,8 @@ private:
 class Petals : public Module {
 public:
     Petals()
-        : Module("Petals", "Sakura-Blütenblätter fallen sanft über den Bildschirm.", Category::Fun, {"cosmetic"}) {
-        sub("Spiele");
+        : Module("Petals", "Sakura petals fall gently across the screen.", Category::Fun, {"cosmetic"}) {
+        sub("Games");
     }
 
     void onRender(ImDrawList* dl) override {
@@ -159,13 +159,13 @@ private:
         return p;
     }
 
-    Setting& count_ = intSlider("count", "Anzahl", 40, 5, 200);
-    Setting& speed_ = slider("speed", "Fallgeschwindigkeit", 1.f, 0.2f, 4.f, "%.1fx");
+    Setting& count_ = intSlider("count", "Count", 40, 5, 200);
+    Setting& speed_ = slider("speed", "Fall speed", 1.f, 0.2f, 4.f, "%.1fx");
     Setting& wind_ = slider("wind", "Wind", 10.f, -80.f, 80.f, "%.0f");
-    Setting& size_ = slider("size", "Größe", 1.f, 0.5f, 3.f, "%.1fx");
-    Setting& opacity_ = slider("opacity", "Deckkraft", 0.8f, 0.1f, 1.f, "%.2f");
-    Setting& color_ = colorSetting("color", "Farbe", {1.f, 0.72f, 0.82f, 1.f});
-    Setting& menuOnly_ = toggleSetting("menuOnly", "Nur bei offenem Menü", false);
+    Setting& size_ = slider("size", "Size", 1.f, 0.5f, 3.f, "%.1fx");
+    Setting& opacity_ = slider("opacity", "Opacity", 0.8f, 0.1f, 1.f, "%.2f");
+    Setting& color_ = colorSetting("color", "Color", {1.f, 0.72f, 0.82f, 1.f});
+    Setting& menuOnly_ = toggleSetting("menuOnly", "Only while the menu is open", false);
     std::vector<P> list_;
     std::mt19937 rng_{std::random_device{}()};
 };

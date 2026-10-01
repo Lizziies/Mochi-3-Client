@@ -26,7 +26,7 @@ HudModule::HudModule(std::string name, std::string description, std::vector<std:
 
 ImVec2 HudModule::position() const {
     auto ds = ImGui::GetIO().DisplaySize;
-    return {x_.f * ds.x, y_.f * ds.y};
+    return {x_.f * ds.x, y_.f * ds.y - (growsUp() ? lastSize_.y : 0.f)};
 }
 
 void HudModule::setPosition(ImVec2 p) {
@@ -35,7 +35,7 @@ void HudModule::setPosition(ImVec2 p) {
     p.x = std::clamp(p.x, 0.f, std::max(0.f, ds.x - lastSize_.x));
     p.y = std::clamp(p.y, 0.f, std::max(0.f, ds.y - lastSize_.y));
     x_.f = p.x / ds.x;
-    y_.f = p.y / ds.y;
+    y_.f = (p.y + (growsUp() ? lastSize_.y : 0.f)) / ds.y;
     config::markDirty();
 }
 
@@ -49,15 +49,21 @@ void HudModule::onRender(ImDrawList* dl) {
     ImVec2 pos = position();
     float pad = padding_.f * s;
 
+    int firstVtx = dl->VtxBuffer.Size;
     dl->ChannelsSplit(2);
     dl->ChannelsSetCurrent(1);
     ImVec2 inner = content(dl, pos + ImVec2(pad, pad), s);
     ImVec2 size = inner + ImVec2(pad * 2, pad * 2);
-    lastSize_ = size;
 
     dl->ChannelsSetCurrent(0);
     if (background_.b) dl->AddRectFilled(pos, pos + size, ImGui::GetColorU32(bgColor_.color), rounding_.f * s);
     dl->ChannelsMerge();
+
+    if (growsUp() && size.y != lastSize_.y) {
+        float dy = lastSize_.y - size.y;
+        for (int i = firstVtx; i < dl->VtxBuffer.Size; i++) dl->VtxBuffer[i].pos.y += dy;
+    }
+    lastSize_ = size;
 }
 
 ImVec2 HudModule::textSize(float scale, const std::string& text) const {

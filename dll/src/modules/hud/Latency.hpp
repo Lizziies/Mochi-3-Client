@@ -16,9 +16,9 @@
 class LatencyHud : public HudModule {
 public:
     LatencyHud()
-        : HudModule("Latency Meter", "Misst Frametime und die Zeit vom Klick bis zum nächsten Bild. Zum Vergleichen von Einstellungen.",
+        : HudModule("Latency Meter", "Measures frame time and the time from click to the next frame. Use it to compare settings.",
                     {"hud-self"}, {0.70f, 0.02f}) {
-        sub("Netzwerk");
+        sub("Network");
         LARGE_INTEGER f;
         QueryPerformanceFrequency(&f);
         qpf_ = double(f.QuadPart);
@@ -54,20 +54,20 @@ protected:
         if (clickCount_) avgClick /= clickCount_;
 
         y += drawText(dl, o, s, std::format("Frame {:.2f} ms", fi.frameMs), textColor()).y;
-        y += drawText(dl, o + ImVec2(0, y), s, clickCount_ ? std::format("Klick → Bild {:.1f} ms", avgClick) : "Klick → Bild: klick mal", accentColor()).y;
+        y += drawText(dl, o + ImVec2(0, y), s, clickCount_ ? i18n::fmt("Click to frame {:.1f} ms", avgClick) : i18n::tr("Click to frame: click once"), accentColor()).y;
         if (lowShown_.b) {
             std::array<float, 300> sorted = times_;
             std::sort(sorted.begin(), sorted.end(), std::greater<>());
             float worst = 0.f;
             for (int i = 0; i < 3; i++) worst += sorted[i];
             worst /= 3.f;
-            y += drawText(dl, o + ImVec2(0, y), s, std::format("1% Low {:.0f} FPS  ·  Spitze {:.1f} ms", worst > 0 ? 1000.f / worst : 0.f, sorted[0]),
+            y += drawText(dl, o + ImVec2(0, y), s, i18n::fmt("1% low {:.0f} FPS  ·  peak {:.1f} ms", worst > 0 ? 1000.f / worst : 0.f, sorted[0]),
                           textColor()).y;
         }
         if (cost_.b)
-            y += drawText(dl, o + ImVec2(0, y), s, std::format("Overlay {:.2f} ms pro Frame", modules::costMs()), textColor()).y;
-        std::string mode = std::format("{}  ·  {}  ·  {} Puffer", fi.lowLatencyActive ? "Low-Latency an" : "Low-Latency aus",
-                                       dx::tuning().allowTearing && fi.tearingSupported ? "Tearing" : "VSync/Standard", fi.bufferCount);
+            y += drawText(dl, o + ImVec2(0, y), s, i18n::fmt("Overlay {:.2f} ms per frame", modules::costMs()), textColor()).y;
+        std::string mode = i18n::fmt("{}  ·  {}  ·  {} buffered", i18n::tr(fi.lowLatencyActive ? "Low latency on" : "Low latency off"),
+                                       dx::tuning().allowTearing && fi.tearingSupported ? "Tearing" : i18n::tr("VSync/default"), fi.bufferCount);
         float small = fonts::hudSize() * s * 0.7f;
         dl->AddText(fonts::hud(), small, o + ImVec2(0, y + 2 * s), theme::col(t.textDim), mode.c_str());
         y += small + 6 * s;
@@ -92,9 +92,9 @@ protected:
     }
 
 private:
-    Setting& lowShown_ = toggleSetting("low", "1% Low und Spitze", true);
-    Setting& cost_ = toggleSetting("cost", "Overlay-Kosten", true);
-    Setting& flashTest_ = toggleSetting("flash", "Flash-Test (weißes Quadrat bei Klick)", false);
+    Setting& lowShown_ = toggleSetting("low", "1% low and peak", true);
+    Setting& cost_ = toggleSetting("cost", "Overlay cost", true);
+    Setting& flashTest_ = toggleSetting("flash", "Flash test (white square on click)", false);
     std::array<float, 300> times_{};
     size_t head_ = 0;
     std::array<float, 20> clicks_{};

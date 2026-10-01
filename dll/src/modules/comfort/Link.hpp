@@ -13,7 +13,7 @@
 class MumbleLink : public Module {
 public:
     MumbleLink()
-        : Module("Mumble Link", "Sendet deine Position an Mumble für Sprachchat nach Abstand.", Category::Comfort,
+        : Module("Mumble Link", "Sends your position to Mumble for distance-based voice chat.", Category::Comfort,
                  {"hud-self"}) {
         sub("Audio");
         require(need::player, need::sigs({"LocalPlayer"}));
@@ -76,8 +76,8 @@ private:
         wchar_t description[2048];
     };
 
-    Setting& flipZ_ = toggleSetting("flipZ", "Z-Achse umkehren (Mumble ist linkshändig)", true);
-    Setting& context_ = choice("context", "Gruppe", {"Pro Server", "Alle zusammen"});
+    Setting& flipZ_ = toggleSetting("flipZ", "Flip the Z axis (Mumble is left-handed)", true);
+    Setting& context_ = choice("context", "Group", {"Per server", "Everyone together"});
     Linked* mem_ = nullptr;
     HANDLE map_ = nullptr;
 };
@@ -85,13 +85,13 @@ private:
 class GuiScale : public Module {
 public:
     GuiScale()
-        : Module("GUI Scale", "Skaliert die Oberfläche des Spiels in feinen Schritten, über die normalen Stufen hinaus.", Category::Comfort, {"cosmetic"}) {
-        sub("HUD-Teile");
+        : Module("GUI Scale", "Scales the game's interface in fine steps, beyond the normal levels.", Category::Comfort, {"cosmetic"}) {
+        sub("HUD parts");
         require(0, {fx::sig(fx::Id::GuiScale)});
     }
 
     void onFrame() override { fx::set(fx::Id::GuiScale, scale_.f); }
 
 private:
-    Setting& scale_ = slider("scale", "Skalierung", 1.f, 0.5f, 4.f, "%.2fx");
+    Setting& scale_ = slider("scale", "Scale", 1.f, 0.5f, 4.f, "%.2fx");
 };

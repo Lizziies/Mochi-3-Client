@@ -30,6 +30,7 @@ enum class Domain : unsigned {
     Scoreboard = 128,
     Tab = 256,
     Camera = 512,
+    Others = 1024,
 };
 
 constexpr unsigned operator|(Domain a, Domain b) { return unsigned(a) | unsigned(b); }
@@ -62,7 +63,8 @@ enum class View { First, Back, Front };
 enum class Mode { Survival, Creative, Adventure, Spectator };
 
 struct Player {
-    std::string name = "Spieler";
+    std::string name = "Player";
+    int team = 0;
     Vec3 pos;
     Vec3 vel;
     float eyeHeight = 1.62f;
@@ -113,6 +115,8 @@ struct Target {
     int blockZ = 0;
     float distance = 0.f;
     bool isPlayer = false;
+    int team = 0;
+    int armor = 0;
     float health = 0.f;
     float maxHealth = 20.f;
     float breakProgress = 0.f;
@@ -161,7 +165,7 @@ struct Combat {
     float damageTaken = 0.f;
     float lastReach = 0.f;
     float bestReach = 0.f;
-    float opponentReach = 0.f;
+    std::string lastTarget;
     double lastHitAt = -100.0;
     double lastHurtAt = -100.0;
     bool lastCrit = false;
@@ -169,6 +173,13 @@ struct Combat {
     bool hasDeath = false;
     std::array<float, 10> reaches{};
     int reachCount = 0;
+};
+
+struct Other {
+    std::string name;
+    Vec3 pos;
+    float health = 20.f;
+    int team = 0;
 };
 
 struct Camera {
@@ -179,7 +190,7 @@ struct Camera {
     float aspect = 16.f / 9.f;
 };
 
-enum class EventKind { Hit, Hurt, Kill, Death, TotemPop, Swing, BowRelease, ItemUse, Chat, Respawn };
+enum class EventKind { Hit, Hurt, Kill, Death, TotemPop, Swing, BowRelease, ItemUse, Chat, Respawn, Confirm };
 
 struct Event {
     EventKind kind = EventKind::Hit;
@@ -201,6 +212,7 @@ struct State {
     std::vector<ChatLine> chat;
     Scoreboard scoreboard;
     std::vector<TabEntry> tab;
+    std::vector<Other> others;
     std::string server;
     unsigned have = 0;
     bool inWorld = false;

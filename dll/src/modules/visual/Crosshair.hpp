@@ -18,7 +18,7 @@ class Crosshair : public Module {
 public:
     Crosshair()
         : Module("Custom Crosshair",
-                 "Eigenes Fadenkreuz mit vielen Formen, Pixel-Editor und Dynamik.",
+                 "Your own crosshair with many shapes, a pixel editor and dynamics.",
                  Category::Visual, {"cosmetic"}) {
         sub("Crosshair");
         grid_.hidden = true;
@@ -78,7 +78,7 @@ public:
 
     void drawSettings() override {
         ImGui::Spacing();
-        ImGui::TextDisabled("Pixel-Editor (wird bei Form \"Eigenes Raster\" benutzt)");
+        ImGui::TextDisabled(i18n::tr("Pixel editor (used for the shape \"Custom grid\")"));
         editor();
     }
 
@@ -284,73 +284,73 @@ private:
                 }
             }
 
-        ImGui::TextDisabled("Linksklick malt, Rechtsklick löscht");
-        const char* names[] = {"Hauptfarbe", "Zweitfarbe", "Schwarz"};
+        ImGui::TextDisabled(i18n::tr("Left click paints, right click erases"));
+        const char* names[] = {"Main color", "Second color", "Black"};
         for (int i = 0; i < 3; i++) {
             if (i) ImGui::SameLine();
-            if (ImGui::RadioButton(names[i], brush_ == i + 1)) brush_ = i + 1;
+            if (ImGui::RadioButton(i18n::tr(names[i]), brush_ == i + 1)) brush_ = i + 1;
         }
-        if (ImGui::SmallButton("Leeren")) grid_.text.assign(cells * cells, '0');
+        if (ImGui::SmallButton(i18n::tr("Clear"))) grid_.text.assign(cells * cells, '0');
         ImGui::SameLine();
-        if (ImGui::SmallButton("Spiegeln")) {
+        if (ImGui::SmallButton(i18n::tr("Mirror"))) {
             for (int y = 0; y < cells; y++) std::reverse(grid_.text.begin() + y * cells, grid_.text.begin() + (y + 1) * cells);
         }
         ImGui::SameLine();
-        if (ImGui::SmallButton("Hoch")) shift(0, -1);
+        if (ImGui::SmallButton(i18n::tr("High"))) shift(0, -1);
         ImGui::SameLine();
-        if (ImGui::SmallButton("Runter")) shift(0, 1);
+        if (ImGui::SmallButton(i18n::tr("Down"))) shift(0, 1);
         ImGui::SameLine();
-        if (ImGui::SmallButton("Links")) shift(-1, 0);
+        if (ImGui::SmallButton(i18n::tr("Left"))) shift(-1, 0);
         ImGui::SameLine();
-        if (ImGui::SmallButton("Rechts")) shift(1, 0);
+        if (ImGui::SmallButton(i18n::tr("Right"))) shift(1, 0);
 
-        ImGui::TextDisabled("Vorlagen");
-        const char* presets[] = {"Kreuz", "Plus", "Ring", "Herz", "X"};
+        ImGui::TextDisabled(i18n::tr("Presets"));
+        const char* presets[] = {"Cross", "Plus", "Ring", "Heart", "X"};
         for (int i = 0; i < 5; i++) {
             if (i) ImGui::SameLine();
-            if (ImGui::SmallButton(presets[i])) grid_.text = preset(i);
+            if (ImGui::SmallButton(i18n::tr(presets[i]))) grid_.text = preset(i);
         }
-        if (ImGui::SmallButton("Code kopieren")) ImGui::SetClipboardText(exportCode().c_str());
+        if (ImGui::SmallButton(i18n::tr("Copy code"))) ImGui::SetClipboardText(exportCode().c_str());
         ImGui::SameLine();
-        if (ImGui::SmallButton("Code einfügen")) {
+        if (ImGui::SmallButton(i18n::tr("Paste code"))) {
             const char* clip = ImGui::GetClipboardText();
             if (clip) importCode(clip);
         }
     }
 
-    Setting& style_ = choice("style", "Form", {"Kreuz", "Punkt", "Kreis", "Kreuz + Punkt", "Herz", "T-Form", "Quadrat", "Raute", "Dreieck", "Eigenes Raster"});
-    Setting& size_ = slider("size", "Größe", 8.f, 2.f, 40.f, "%.0f");
-    Setting& cell_ = slider("cell", "Pixelgröße", 2.f, 1.f, 6.f, "%.1f");
-    Setting& gap_ = slider("gap", "Abstand", 2.f, 0.f, 16.f, "%.0f");
-    Setting& thickness_ = slider("thickness", "Dicke", 2.f, 1.f, 8.f, "%.1f");
-    Setting& opacity_ = slider("opacity", "Deckkraft", 1.f, 0.1f, 1.f, "%.2f");
-    Setting& color_ = colorSetting("color", "Farbe", {1.f, 1.f, 1.f, 0.95f});
-    Setting& rainbow_ = toggleSetting("rainbow", "Regenbogen", false);
-    Setting& rainbowSpeed_ = slider("rainbowSpeed", "Regenbogen-Tempo", 1.f, 0.1f, 5.f, "%.1f");
-    Setting& centerDot_ = toggleSetting("centerDot", "Mittelpunkt", false);
-    Setting& outline_ = toggleSetting("outline", "Umriss", true);
-    Setting& outlineWidth_ = slider("outlineWidth", "Umriss-Dicke", 1.f, 0.5f, 4.f, "%.1f");
-    Setting& outlineColor_ = colorSetting("outlineColor", "Umriss-Farbe", {0.f, 0.f, 0.f, 0.8f});
-    Setting& clickColor_ = toggleSetting("clickColor", "Farbe beim Klicken", true);
-    Setting& activeColor_ = colorSetting("activeColor", "Klickfarbe / Zweitfarbe", {1.f, 0.49f, 0.71f, 1.f});
-    Setting& clickPulse_ = toggleSetting("pulse", "Pulsieren beim Klicken", true);
-    Setting& dynamic_ = toggleSetting("dynamic", "Dynamisch (Laufen, Springen, Schleichen)", false);
-    Setting& moveSpread_ = slider("moveSpread", "Aufweiten beim Laufen", 3.f, 0.f, 16.f, "%.1f");
-    Setting& jumpSpread_ = slider("jumpSpread", "Aufweiten beim Springen", 4.f, 0.f, 16.f, "%.1f");
-    Setting& sneakShrink_ = slider("sneakShrink", "Zusammenziehen beim Schleichen", 2.f, 0.f, 8.f, "%.1f");
-    Setting& clickSpread_ = slider("clickSpread", "Aufweiten beim Klicken", 2.f, 0.f, 16.f, "%.1f");
-    Setting& hideVanilla_ = toggleSetting("hideVanilla", "Original-Fadenkreuz ausblenden", true);
-    Setting& hideThird_ = toggleSetting("hideThird", "In dritter Person ausblenden", true);
-    Setting& hideScreens_ = toggleSetting("hideScreens", "In Inventar, Chat und Pause ausblenden", true);
-    Setting& targetOn_ = toggleSetting("targetOn", "Farbe beim Anvisieren eines Gegners", false);
-    Setting& playersOnly_ = toggleSetting("playersOnly", "Nur bei Spielern", true);
-    Setting& targetColor_ = colorSetting("targetColor", "Farbe beim Anvisieren", {1.f, 0.35f, 0.4f, 1.f});
-    Setting& rotation_ = slider("rotation", "Drehung", 0.f, 0.f, 360.f, "%.0f°");
-    Setting& spin_ = toggleSetting("spin", "Dauerdrehung", false);
-    Setting& spinSpeed_ = slider("spinSpeed", "Dreh-Tempo (°/s)", 90.f, 10.f, 720.f, "%.0f");
-    Setting& offsetX_ = slider("offsetX", "Versatz X", 0.f, -100.f, 100.f, "%.0f");
-    Setting& offsetY_ = slider("offsetY", "Versatz Y", 0.f, -100.f, 100.f, "%.0f");
-    Setting& grid_ = textSetting("grid", "Raster", preset(0));
+    Setting& style_ = choice("style", "Shape", {"Cross", "Dot", "Circle", "Cross + dot", "Heart", "T shape", "Square", "Diamond", "Triangle", "Custom grid"});
+    Setting& size_ = slider("size", "Size", 8.f, 2.f, 40.f, "%.0f");
+    Setting& cell_ = slider("cell", "Pixel size", 2.f, 1.f, 6.f, "%.1f");
+    Setting& gap_ = slider("gap", "Gap", 2.f, 0.f, 16.f, "%.0f");
+    Setting& thickness_ = slider("thickness", "Thickness", 2.f, 1.f, 8.f, "%.1f");
+    Setting& opacity_ = slider("opacity", "Opacity", 1.f, 0.1f, 1.f, "%.2f");
+    Setting& color_ = colorSetting("color", "Color", {1.f, 1.f, 1.f, 0.95f});
+    Setting& rainbow_ = toggleSetting("rainbow", "Rainbow", false);
+    Setting& rainbowSpeed_ = slider("rainbowSpeed", "Rainbow speed", 1.f, 0.1f, 5.f, "%.1f");
+    Setting& centerDot_ = toggleSetting("centerDot", "Center dot", false);
+    Setting& outline_ = toggleSetting("outline", "Outline", true);
+    Setting& outlineWidth_ = slider("outlineWidth", "Outline thickness", 1.f, 0.5f, 4.f, "%.1f");
+    Setting& outlineColor_ = colorSetting("outlineColor", "Outline color", {0.f, 0.f, 0.f, 0.8f});
+    Setting& clickColor_ = toggleSetting("clickColor", "Color while clicking", true);
+    Setting& activeColor_ = colorSetting("activeColor", "Click color / second color", {1.f, 0.49f, 0.71f, 1.f});
+    Setting& clickPulse_ = toggleSetting("pulse", "Pulse while clicking", true);
+    Setting& dynamic_ = toggleSetting("dynamic", "Dynamic (walking, jumping, sneaking)", false);
+    Setting& moveSpread_ = slider("moveSpread", "Spread while walking", 3.f, 0.f, 16.f, "%.1f");
+    Setting& jumpSpread_ = slider("jumpSpread", "Spread while jumping", 4.f, 0.f, 16.f, "%.1f");
+    Setting& sneakShrink_ = slider("sneakShrink", "Shrink while sneaking", 2.f, 0.f, 8.f, "%.1f");
+    Setting& clickSpread_ = slider("clickSpread", "Spread while clicking", 2.f, 0.f, 16.f, "%.1f");
+    Setting& hideVanilla_ = toggleSetting("hideVanilla", "Hide the original crosshair", true);
+    Setting& hideThird_ = toggleSetting("hideThird", "Hide in third person", true);
+    Setting& hideScreens_ = toggleSetting("hideScreens", "Hide in inventory, chat and pause", true);
+    Setting& targetOn_ = toggleSetting("targetOn", "Color when aiming at an opponent", false);
+    Setting& playersOnly_ = toggleSetting("playersOnly", "Only for players", true);
+    Setting& targetColor_ = colorSetting("targetColor", "Color when aiming", {1.f, 0.35f, 0.4f, 1.f});
+    Setting& rotation_ = slider("rotation", "Rotation", 0.f, 0.f, 360.f, "%.0f°");
+    Setting& spin_ = toggleSetting("spin", "Constant spin", false);
+    Setting& spinSpeed_ = slider("spinSpeed", "Spin speed (°/s)", 90.f, 10.f, 720.f, "%.0f");
+    Setting& offsetX_ = slider("offsetX", "Offset X", 0.f, -100.f, 100.f, "%.0f");
+    Setting& offsetY_ = slider("offsetY", "Offset Y", 0.f, -100.f, 100.f, "%.0f");
+    Setting& grid_ = textSetting("grid", "Grid", preset(0));
 
     ImVec2 center_{0, 0};
     float pulse_ = 0.f;

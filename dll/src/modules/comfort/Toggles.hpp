@@ -17,9 +17,9 @@
 class StickyKey : public HudModule {
 public:
     StickyKey(std::string name, std::string desc, int defaultKey, ImVec2 pos, const char* onText, const char* offText)
-        : HudModule(std::move(name), std::move(desc), {"input"}, pos), key_(keySetting("gameKey", "Taste im Spiel", defaultKey)),
-          onText_(textSetting("onText", "Text wenn aktiv", onText)), offText_(textSetting("offText", "Text wenn aus", offText)) {
-        sub("Bewegung");
+        : HudModule(std::move(name), std::move(desc), {"input"}, pos), key_(keySetting("gameKey", "Key in game", defaultKey)),
+          onText_(textSetting("onText", "Text when on", onText)), offText_(textSetting("offText", "Text when off", offText)) {
+        sub("Movement");
         background_.b = true;
     }
 
@@ -71,14 +71,14 @@ protected:
     Setting& key_;
     Setting& onText_;
     Setting& offText_;
-    Setting& always_ = toggleSetting("always", "Auch anzeigen, wenn aus", false);
+    Setting& always_ = toggleSetting("always", "Also show when off", false);
     bool held_ = false;
     bool autoHeld_ = false;
 };
 
 class ToggleSprint : public StickyKey {
 public:
-    ToggleSprint() : StickyKey("Toggle Sprint", "Sprinten bleibt an, bis du die Taste noch einmal drückst.", VK_LCONTROL, {0.01f, 0.90f}, "[Sprint: an]", "[Sprint: aus]") {}
+    ToggleSprint() : StickyKey("Toggle Sprint", "Sprinting stays on until you press the key again.", VK_LCONTROL, {0.01f, 0.90f}, i18n::tr("[Sprint: on]"), i18n::tr("[Sprint: off]")) {}
 
 protected:
     int mode() const override { return mode_.i; }
@@ -95,13 +95,13 @@ protected:
     }
 
 private:
-    Setting& mode_ = choice("mode", "Modus", {"Taste umschalten", "Automatisch beim Vorwärtsgehen"});
-    Setting& forward_ = keySetting("forward", "Vorwärts-Taste", 'W');
+    Setting& mode_ = choice("mode", "Mode", {"Toggle with the key", "Automatic while walking forward"});
+    Setting& forward_ = keySetting("forward", "Forward key", 'W');
 };
 
 class ToggleSneak : public StickyKey {
 public:
-    ToggleSneak() : StickyKey("Toggle Sneak", "Schleichen bleibt an, bis du die Schleich-Taste noch einmal drückst.", VK_LSHIFT, {0.01f, 0.94f}, "[Schleichen: an]", "[Schleichen: aus]") {}
+    ToggleSneak() : StickyKey("Toggle Sneak", "Sneaking stays on until you press the sneak key again.", VK_LSHIFT, {0.01f, 0.94f}, i18n::tr("[Sneak: on]"), i18n::tr("[Sneak: off]")) {}
 
 protected:
     int mode() const override { return 0; }
@@ -114,10 +114,10 @@ public:
         sub("Chat");
         for (int i = 0; i < slots; i++) {
             std::string n = std::to_string(i + 1);
-            keys_[i] = &keySetting("key" + n, "Taste " + n, 0);
-            texts_[i] = &textSetting("text" + n, command ? "Befehl " + n : "Text " + n, "");
+            keys_[i] = &keySetting("key" + n, "Key " + n, 0);
+            texts_[i] = &textSetting("text" + n, command ? "Command " + n : "Text " + n, "");
         }
-        chatKey_ = &keySetting("chatKey", "Chat-Taste im Spiel", 'T');
+        chatKey_ = &keySetting("chatKey", "Chat key in game", 'T');
     }
 
     void onKey(KeyEvent& ev) override {
@@ -140,23 +140,23 @@ private:
 
 class CommandHotkey : public SlotHotkeys {
 public:
-    CommandHotkey() : SlotHotkeys("Command Hotkey", "Tastenkürzel für Chat-Befehle wie /hub. Öffnet den Chat wie ein Spieler und sendet den Befehl.", true) {}
+    CommandHotkey() : SlotHotkeys("Command Hotkey", "Hotkeys for chat commands like /hub. Opens the chat like a player and sends the command.", true) {}
 };
 
 class TextHotkey : public SlotHotkeys {
 public:
-    TextHotkey() : SlotHotkeys("Text Hotkey", "Tastenkürzel für fertige Chat-Nachrichten.", false) {}
+    TextHotkey() : SlotHotkeys("Text Hotkey", "Hotkeys for ready-made chat messages.", false) {}
 };
 
 class ProfileHotkeys : public Module {
 public:
     ProfileHotkeys()
-        : Module("Profile Hotkeys", "Wechselt per Taste zwischen deinen gespeicherten Einstellungs-Profilen.", Category::Comfort, {"cosmetic"}) {
-        sub("Profile");
+        : Module("Profile Hotkeys", "Switches between your saved settings profiles on a key.", Category::Comfort, {"cosmetic"}) {
+        sub("Profiles");
         for (int i = 0; i < slots; i++) {
             std::string n = std::to_string(i + 1);
-            keys_[i] = &keySetting("key" + n, "Taste " + n, 0);
-            names_[i] = &textSetting("profile" + n, "Profil " + n, "");
+            keys_[i] = &keySetting("key" + n, "Key " + n, 0);
+            names_[i] = &textSetting("profile" + n, "Profile " + n, "");
         }
     }
 
@@ -166,11 +166,11 @@ public:
             if (!keys_[i]->i || ev.vk != keys_[i]->i || names_[i]->text.empty()) continue;
             auto all = config::profiles();
             if (std::find(all.begin(), all.end(), names_[i]->text) == all.end()) {
-                notify::push("Profil nicht gefunden", names_[i]->text, notify::Kind::Warn);
+                notify::push(i18n::tr("Profile not found"), names_[i]->text, notify::Kind::Warn);
                 continue;
             }
             config::switchProfile(names_[i]->text);
-            notify::push("Profil gewechselt", names_[i]->text, notify::Kind::Ok);
+            notify::push(i18n::tr("Profile switched"), names_[i]->text, notify::Kind::Ok);
             return;
         }
     }
@@ -179,8 +179,8 @@ public:
         ImGui::Spacing();
         std::string list;
         for (auto& p : config::profiles()) list += (list.empty() ? "" : ", ") + p;
-        ImGui::TextDisabled("Vorhandene Profile: %s", list.c_str());
-        ImGui::TextDisabled("Aktiv: %s", config::profile().c_str());
+        ImGui::TextDisabled(i18n::tr("Available profiles: %s"), list.c_str());
+        ImGui::TextDisabled(i18n::tr("Active: %s"), config::profile().c_str());
     }
 
 private:

@@ -26,9 +26,9 @@ inline ImVec4 rainbow(float speed, float sat = 0.6f) {
 class BlockOutline : public Module {
 public:
     BlockOutline()
-        : Module("Block Outline", "Eigener Umriss für den Block, den du anschaust: Farbe, Dicke, Füllung, Regenbogen und Pulsieren.", Category::Visual,
+        : Module("Block Outline", "Your own outline for the block you look at: color, thickness, fill, rainbow and pulsing.", Category::Visual,
                  {"cosmetic"}) {
-        sub("Welt");
+        sub("World");
         require(need::target | game::Domain::Camera, need::sigs({"LocalPlayer", "Target"}));
         fillColor_.visible = [this] { return fill_.b; };
         color_.visible = [this] { return !rainbow_.b; };
@@ -83,23 +83,23 @@ public:
     }
 
 private:
-    Setting& thickness_ = slider("thickness", "Dicke", 2.f, 1.f, 6.f, "%.1f");
-    Setting& grow_ = slider("grow", "Abstand zum Block", 0.003f, 0.f, 0.05f, "%.3f");
-    Setting& color_ = colorSetting("color", "Farbe", {1.f, 0.49f, 0.71f, 1.f});
-    Setting& rainbow_ = toggleSetting("rainbow", "Regenbogen", false);
-    Setting& pulse_ = toggleSetting("pulse", "Pulsieren", false);
-    Setting& speed_ = slider("speed", "Tempo", 1.f, 0.1f, 5.f, "%.1f");
-    Setting& fill_ = toggleSetting("fill", "Flächen füllen", false);
-    Setting& fillColor_ = colorSetting("fillColor", "Füllfarbe", {1.f, 0.49f, 0.71f, 0.18f});
-    Setting& hideVanilla_ = toggleSetting("hideVanilla", "Original-Umriss ausblenden", true);
+    Setting& thickness_ = slider("thickness", "Thickness", 2.f, 1.f, 6.f, "%.1f");
+    Setting& grow_ = slider("grow", "Distance to the block", 0.003f, 0.f, 0.05f, "%.3f");
+    Setting& color_ = colorSetting("color", "Color", {1.f, 0.49f, 0.71f, 1.f});
+    Setting& rainbow_ = toggleSetting("rainbow", "Rainbow", false);
+    Setting& pulse_ = toggleSetting("pulse", "Pulse", false);
+    Setting& speed_ = slider("speed", "Speed", 1.f, 0.1f, 5.f, "%.1f");
+    Setting& fill_ = toggleSetting("fill", "Fill the faces", false);
+    Setting& fillColor_ = colorSetting("fillColor", "Fill color", {1.f, 0.49f, 0.71f, 0.18f});
+    Setting& hideVanilla_ = toggleSetting("hideVanilla", "Hide the original outline", true);
 };
 
 class TimeChanger : public Module {
 public:
     TimeChanger()
-        : Module("Time Changer", "Stellt die Tageszeit nur bei dir ein: fest, laufend oder Sonnenuntergang.",
+        : Module("Time Changer", "Sets the time of day only for you: fixed, running or sunset.",
                  Category::Visual, {"cosmetic"}) {
-        sub("Welt");
+        sub("World");
         require(0, {fx::sig(fx::Id::TimeOfDay)});
         hour_.visible = [this] { return mode_.i == 0; };
         speed_.visible = [this] { return mode_.i == 1; };
@@ -118,17 +118,17 @@ public:
     }
 
 private:
-    Setting& mode_ = choice("mode", "Modus", {"Feste Uhrzeit", "Laufend", "Sonnenuntergang"});
-    Setting& hour_ = slider("hour", "Uhrzeit", 12.f, 0.f, 24.f, "%.1f Uhr");
-    Setting& speed_ = slider("speed", "Minuten pro Tag", 2.f, 0.2f, 20.f, "%.1f");
+    Setting& mode_ = choice("mode", "Mode", {"Fixed time", "Running", "Sunset"});
+    Setting& hour_ = slider("hour", "Time of day", 12.f, 0.f, 24.f, i18n::tr("%.1f h"));
+    Setting& speed_ = slider("speed", "Minutes per day", 2.f, 0.2f, 20.f, "%.1f");
     float cycle_ = 6.f;
 };
 
 class WeatherChanger : public Module {
 public:
     WeatherChanger()
-        : Module("Weather Changer", "Wetter nur bei dir ändern: Regen und Gewitter abschalten oder erzwingen.", Category::Visual, {"cosmetic"}) {
-        sub("Welt");
+        : Module("Weather Changer", "Change the weather only for you: turn rain and thunder off or force them.", Category::Visual, {"cosmetic"}) {
+        sub("World");
         require(0, {fx::sig(fx::Id::Rain)});
         rainLevel_.visible = [this] { return mode_.i == 2; };
     }
@@ -151,15 +151,15 @@ public:
     }
 
 private:
-    Setting& mode_ = choice("mode", "Wetter", {"Klar", "Nur Gewitter aus", "Regen", "Gewitter"});
-    Setting& rainLevel_ = slider("level", "Regenstärke", 0.6f, 0.05f, 1.f, "%.2f");
+    Setting& mode_ = choice("mode", "Weather", {"Clear", "Thunder off only", "Rain", "Thunderstorm"});
+    Setting& rainLevel_ = slider("level", "Rain strength", 0.6f, 0.05f, 1.f, "%.2f");
 };
 
 class EnvironmentChanger : public Module {
 public:
     EnvironmentChanger()
-        : Module("Environment Changer", "Himmel, Nebel und Wolken einzeln abschalten, nur für dich.", Category::Visual, {"cosmetic"}) {
-        sub("Welt");
+        : Module("Environment Changer", "Turn off sky, fog and clouds one by one, only for you.", Category::Visual, {"cosmetic"}) {
+        sub("World");
         require(0, {fx::sig(fx::Id::Fog)});
     }
 
@@ -171,17 +171,17 @@ public:
     }
 
 private:
-    Setting& noFog_ = toggleSetting("noFog", "Nebel aus", true);
-    Setting& noClouds_ = toggleSetting("noClouds", "Wolken aus", false);
-    Setting& noSky_ = toggleSetting("noSky", "Himmel aus", false);
-    Setting& noVignette_ = toggleSetting("noVignette", "Vignette aus", true);
+    Setting& noFog_ = toggleSetting("noFog", "Fog off", true);
+    Setting& noClouds_ = toggleSetting("noClouds", "Clouds off", false);
+    Setting& noSky_ = toggleSetting("noSky", "Sky off", false);
+    Setting& noVignette_ = toggleSetting("noVignette", "Vignette off", true);
 };
 
 class FogColor : public Module {
 public:
     FogColor()
-        : Module("Fog Color", "Eigene Nebelfarbe, auf Wunsch als Regenbogen.", Category::Visual, {"cosmetic"}) {
-        sub("Welt");
+        : Module("Fog Color", "Your own fog color, optionally as a rainbow.", Category::Visual, {"cosmetic"}) {
+        sub("World");
         require(0, {fx::sig(fx::Id::FogColor)});
         color_.visible = [this] { return !rainbow_.b; };
         speed_.visible = [this] { return rainbow_.b; };
@@ -193,16 +193,16 @@ public:
     }
 
 private:
-    Setting& color_ = colorSetting("color", "Farbe", {1.f, 0.7f, 0.85f, 1.f});
-    Setting& rainbow_ = toggleSetting("rainbow", "Regenbogen", false);
-    Setting& speed_ = slider("speed", "Tempo", 1.f, 0.1f, 5.f, "%.1f");
+    Setting& color_ = colorSetting("color", "Color", {1.f, 0.7f, 0.85f, 1.f});
+    Setting& rainbow_ = toggleSetting("rainbow", "Rainbow", false);
+    Setting& speed_ = slider("speed", "Speed", 1.f, 0.1f, 5.f, "%.1f");
 };
 
 class WaterColor : public Module {
 public:
     WaterColor()
-        : Module("Water Color", "Eigene Wasserfarbe, zum Beispiel klares Türkis oder Rosa.", Category::Visual, {"cosmetic"}) {
-        sub("Welt");
+        : Module("Water Color", "Your own water color, for example clear turquoise or pink.", Category::Visual, {"cosmetic"}) {
+        sub("World");
         require(0, {fx::sig(fx::Id::WaterColor)});
         color_.visible = [this] { return !rainbow_.b; };
         speed_.visible = [this] { return rainbow_.b; };
@@ -214,16 +214,16 @@ public:
     }
 
 private:
-    Setting& color_ = colorSetting("color", "Farbe", {0.45f, 0.85f, 0.95f, 1.f});
-    Setting& rainbow_ = toggleSetting("rainbow", "Regenbogen", false);
-    Setting& speed_ = slider("speed", "Tempo", 1.f, 0.1f, 5.f, "%.1f");
+    Setting& color_ = colorSetting("color", "Color", {0.45f, 0.85f, 0.95f, 1.f});
+    Setting& rainbow_ = toggleSetting("rainbow", "Rainbow", false);
+    Setting& speed_ = slider("speed", "Speed", 1.f, 0.1f, 5.f, "%.1f");
 };
 
 class ChunkBorder : public Module {
 public:
     ChunkBorder()
-        : Module("Chunk Border", "Zeigt die Chunk-Grenzen um dich als Linien, mit Unterchunks, Reichweite und Farben.", Category::Visual, {"cosmetic"}) {
-        sub("Welt");
+        : Module("Chunk Border", "Shows the chunk borders around you as lines, with sub-chunks, range and colors.", Category::Visual, {"cosmetic"}) {
+        sub("World");
         require(need::player | game::Domain::Camera, need::sigs({"LocalPlayer"}));
     }
 
@@ -268,23 +268,23 @@ public:
     }
 
 private:
-    Setting& key_ = keySetting("toggle", "Ein/Aus-Taste", 0);
-    Setting& radius_ = intSlider("radius", "Reichweite (Chunks)", 1, 0, 3);
-    Setting& onlyCurrent_ = toggleSetting("onlyCurrent", "Nur aktueller Chunk", false);
-    Setting& range_ = slider("range", "Höhe über und unter dir", 24.f, 4.f, 80.f, "%.0f");
-    Setting& subchunks_ = toggleSetting("subchunks", "Unterchunk-Ebenen", true);
-    Setting& thickness_ = slider("thickness", "Dicke", 1.5f, 1.f, 4.f, "%.1f");
-    Setting& color_ = colorSetting("color", "Farbe Nachbarchunks", {1.f, 0.82f, 0.49f, 0.7f});
-    Setting& edgeColor_ = colorSetting("edge", "Farbe aktueller Chunk", {1.f, 0.49f, 0.71f, 0.95f});
-    Setting& subColor_ = colorSetting("sub", "Farbe Ebenen", {0.7f, 0.6f, 1.f, 0.5f});
+    Setting& key_ = keySetting("toggle", "On/off key", 0);
+    Setting& radius_ = intSlider("radius", "Range (chunks)", 1, 0, 3);
+    Setting& onlyCurrent_ = toggleSetting("onlyCurrent", "Current chunk only", false);
+    Setting& range_ = slider("range", "Height above and below you", 24.f, 4.f, 80.f, "%.0f");
+    Setting& subchunks_ = toggleSetting("subchunks", "Sub-chunk levels", true);
+    Setting& thickness_ = slider("thickness", "Thickness", 1.5f, 1.f, 4.f, "%.1f");
+    Setting& color_ = colorSetting("color", "Color neighbor chunks", {1.f, 0.82f, 0.49f, 0.7f});
+    Setting& edgeColor_ = colorSetting("edge", "Color current chunk", {1.f, 0.49f, 0.71f, 0.95f});
+    Setting& subColor_ = colorSetting("sub", "Color levels", {0.7f, 0.6f, 1.f, 0.5f});
     bool visible_ = true;
 };
 
 class HideHand : public Module {
 public:
     HideHand()
-        : Module("Hide Hand", "Blendet Hand und Item in der Ego-Perspektive aus, für freie Sicht oder Screenshots.", Category::Visual, {"cosmetic"}) {
-        sub("Modell");
+        : Module("Hide Hand", "Hides hand and item in first person, for a clear view or screenshots.", Category::Visual, {"cosmetic"}) {
+        sub("Model");
         require(0, {fx::sig(fx::Id::HideHand)});
     }
 
@@ -296,16 +296,16 @@ public:
     }
 
 private:
-    Setting& main_ = toggleSetting("main", "Haupthand ausblenden", true);
-    Setting& offhand_ = toggleSetting("offhand", "Nebenhand ausblenden", true);
-    Setting& onlyEmpty_ = toggleSetting("onlyEmpty", "Nur bei leerer Hand", false);
+    Setting& main_ = toggleSetting("main", "Hide main hand", true);
+    Setting& offhand_ = toggleSetting("offhand", "Hide offhand", true);
+    Setting& onlyEmpty_ = toggleSetting("onlyEmpty", "Only with an empty hand", false);
 };
 
 class ViewModel : public Module {
 public:
     ViewModel()
-        : Module("View Model", "Position, Größe und Drehung von Hand und Item in der Ego-Perspektive frei einstellen.", Category::Visual, {"cosmetic"}) {
-        sub("Modell");
+        : Module("View Model", "Freely set position, size and rotation of hand and item in first person.", Category::Visual, {"cosmetic"}) {
+        sub("Model");
         require(0, {fx::sig(fx::Id::HandMatrix)});
     }
 
@@ -318,21 +318,21 @@ private:
     Setting& x_ = slider("x", "Position X", 0.f, -1.f, 1.f, "%.2f");
     Setting& y_ = slider("y", "Position Y", 0.f, -1.f, 1.f, "%.2f");
     Setting& z_ = slider("z", "Position Z", 0.f, -1.f, 1.f, "%.2f");
-    Setting& uniform_ = slider("scale", "Größe gesamt", 1.f, 0.3f, 2.f, "%.2fx");
-    Setting& sx_ = slider("sx", "Breite", 1.f, 0.3f, 2.f, "%.2fx");
-    Setting& sy_ = slider("sy", "Höhe", 1.f, 0.3f, 2.f, "%.2fx");
-    Setting& sz_ = slider("sz", "Tiefe", 1.f, 0.3f, 2.f, "%.2fx");
-    Setting& rx_ = slider("rx", "Drehung X", 0.f, -180.f, 180.f, "%.0f°");
-    Setting& ry_ = slider("ry", "Drehung Y", 0.f, -180.f, 180.f, "%.0f°");
-    Setting& rz_ = slider("rz", "Drehung Z", 0.f, -180.f, 180.f, "%.0f°");
+    Setting& uniform_ = slider("scale", "Overall size", 1.f, 0.3f, 2.f, "%.2fx");
+    Setting& sx_ = slider("sx", "Width", 1.f, 0.3f, 2.f, "%.2fx");
+    Setting& sy_ = slider("sy", "Height", 1.f, 0.3f, 2.f, "%.2fx");
+    Setting& sz_ = slider("sz", "Depth", 1.f, 0.3f, 2.f, "%.2fx");
+    Setting& rx_ = slider("rx", "Rotation X", 0.f, -180.f, 180.f, "%.0f°");
+    Setting& ry_ = slider("ry", "Rotation Y", 0.f, -180.f, 180.f, "%.0f°");
+    Setting& rz_ = slider("rz", "Rotation Z", 0.f, -180.f, 180.f, "%.0f°");
 };
 
 class Animations : public Module {
 public:
     Animations()
-        : Module("Animations", "Schwung- und Block-Animationen im 1.8-Stil, kleineres Item, eigene Schwunggeschwindigkeit.",
+        : Module("Animations", "1.8-style swing and block animations, smaller item, own swing speed.",
                  Category::Visual, {"cosmetic"}) {
-        sub("Modell");
+        sub("Model");
         require(0, {fx::sig(fx::Id::HandMatrix)});
     }
 
@@ -350,8 +350,8 @@ public:
     }
 
 private:
-    Setting& itemScale_ = slider("scale", "Item-Größe", 0.85f, 0.4f, 1.5f, "%.2fx");
-    Setting& lowered_ = toggleSetting("lowered", "Hand tiefer halten", true);
-    Setting& blockPose_ = toggleSetting("block", "Block-Pose beim Blocken", true);
-    Setting& swing_ = slider("swing", "Schwunggeschwindigkeit", 1.f, 0.4f, 2.5f, "%.2fx");
+    Setting& itemScale_ = slider("scale", "Item size", 0.85f, 0.4f, 1.5f, "%.2fx");
+    Setting& lowered_ = toggleSetting("lowered", "Hold the hand lower", true);
+    Setting& blockPose_ = toggleSetting("block", "Block pose while blocking", true);
+    Setting& swing_ = slider("swing", "Swing speed", 1.f, 0.4f, 2.5f, "%.2fx");
 };
