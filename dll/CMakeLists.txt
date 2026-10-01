@@ -44,7 +44,7 @@ target_compile_definitions(Mochi PRIVATE
     IMGUI_DEFINE_MATH_OPERATORS
 )
 
-target_link_libraries(Mochi PRIVATE d3d11 d3d12 dxgi d3dcompiler ws2_32 winhttp version psapi winmm dwmapi)
+target_link_libraries(Mochi PRIVATE d3d11 d3d12 dxgi d3dcompiler ws2_32 winhttp version psapi winmm dwmapi ole32)
 
 if(MSVC)
     set_property(TARGET Mochi PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")

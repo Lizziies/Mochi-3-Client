@@ -80,6 +80,7 @@ public:
 
     float anim = 0.f;
     float hover = 0.f;
+    float costMs = 0.f;
 
 protected:
     Setting& toggleSetting(std::string id, std::string label, bool def);

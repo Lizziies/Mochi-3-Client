@@ -2,6 +2,7 @@
 #include "Hook.hpp"
 #include "core/Client.hpp"
 #include "core/Guard.hpp"
+#include "system/Mice.hpp"
 #include "system/Tweaks.hpp"
 #include "core/Log.hpp"
 #include "modules/Manager.hpp"
@@ -75,6 +76,7 @@ static bool handleRaw(LPARAM lp) {
 
     auto& m = raw->data.mouse;
     int64_t t = qpc();
+    mice::onRaw(raw->header.hDevice, m.lLastX, m.lLastY, t);
     bool cancel = false;
 
     if (!(m.usFlags & MOUSE_MOVE_ABSOLUTE) && (m.lLastX || m.lLastY)) {

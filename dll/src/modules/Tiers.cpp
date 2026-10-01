@@ -11,7 +11,7 @@ constexpr std::string_view core[] = {
     "CPS", "FPS", "Ping Counter", "Keystrokes", "Armor HUD", "Potion HUD", "Coordinates", "Toggle Sprint",
     "Toggle Sneak", "Reach Counter", "Combo Counter", "Zoom", "Fullbright", "Freelook", "FOV Changer", "Hurt Color",
     "No Hurt Cam", "No View Bobbing", "Custom Crosshair", "Block Outline", "Animations", "Block Hit", "Render Options", "Auto GG",
-    "Scoreboard", "GUI Scale", "Instant Hit", "Low Latency", "Latency Meter", "Network Monitor", "Frame Limiter", "Performance Lock", "Hive Utils",
+    "Scoreboard", "GUI Scale", "Instant Hit", "Low Latency", "Latency Meter", "Network Monitor", "Frame Limiter", "Performance Lock", "Mouse Sync", "Hive Utils",
 };
 
 constexpr std::string_view expected[] = {
@@ -23,7 +23,7 @@ constexpr std::string_view expected[] = {
     "Player Notifier", "Chunk Border", "Break Progress", "Cinematic Camera", "Snap Look", "Auto Perspective",
     "Sens Multiplier", "Bow Sensitivity", "Stopwatch", "Memory", "Experience Info", "Durability Warning",
     "Streamer Mode", "Server Profiles", "Crystal Optimizer", "Better Chat", "View Model", "Saturation / Hue", "Screenshot+", "Target HUD",
-    "Session Timer", "Day Counter", "Hide Hand", "Entity Counter", "Zeqa Utils",
+    "Session Timer", "Day Counter", "Hide Hand", "Entity Counter", "Zeqa Utils", "Music",
 };
 
 constexpr std::string_view extras[] = {

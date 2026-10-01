@@ -27,6 +27,7 @@ void dispatchMouse(MouseEvent& ev);
 void dispatchServer(const ServerEvent& ev);
 void refreshSigs();
 float costMs();
+const Module* slowest();
 
 struct Motion {
     int x = 0;

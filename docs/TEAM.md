@@ -61,3 +61,13 @@ Hier anhängen, was man von einem anderen Bereich braucht (Datum, Session, Wunsc
 - (Session A → Felix) Auf GitHub fehlt ein Standardbranch `main`. Updater und Signatur-Loader lesen von dort. Vor dem Release die Arbeit nach `main` mergen.
 
 - (Session A → B) **Verbindlicher Arbeitsplan:** `docs/PLAN_B.md`. Ehrliche Lage und Kriterien: `docs/PARITY.md`. Was Flarial wirklich kann: `docs/FLARIAL_REAL.md`.
+
+## Aufteilung nach dem neuen Menü (Stand Oktober)
+
+| Teil | Wer | Wo |
+|---|---|---|
+| Menü, Hub, Settings, Cosmetics-Seite, Cosmetics-Lader und 3D-Vorschau, Blur, Shader Packs, Maus und Musik | Hauptchat (Session A) | `dll/src/gui/`, `dll/src/cosmetics/`, `dll/src/system/`, Branch `claude/flarial-client-chat-access-h80yqs`, `main` |
+| Module, SDK, Mochi Online (Client, Dienst, Lua) | Session B | `dll/src/modules/`, `server/`, `scripts/`, Branch `claude/modules-b` |
+| Cosmetics-Modelle (nur Dateien: `item.json`, `tex.png`, `index.json`) | Cowork-Chat | `cosmetics/`, Branch `claude/cosmetics` |
+
+Regeln: Jede Session holt vor dem Arbeiten `main` (`git merge origin/main`), damit sie das aktuelle Menü benutzt. Cosmetics werden nicht als Modul im Modul-Raster gebaut, sondern erscheinen auf der Cosmetics-Seite des Menüs. Der Lader liest das Format aus `docs/COSMETICS.md`, ein eigener Lader oder Renderer in `modules/` wird nicht gebaut. Wer etwas im Bereich einer anderen Session braucht, trägt es unter "Wünsche an andere Sessions" ein.
