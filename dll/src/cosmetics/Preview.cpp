@@ -367,6 +367,24 @@ void drawPreview(ImDrawList* dl, ImVec2 center, float unit, float yaw, float pit
         V3 normal(V3 n) const { return bone ? rotateXyz(n, deg) : n; }
     };
 
+    ImVec4 skin{0.86f, 0.66f, 0.54f, 1.f};
+    ImVec4 legs{body.x * 0.5f, body.y * 0.5f, body.z * 0.5f, 1.f};
+    ImVec4 dark{0.2f, 0.14f, 0.16f, 1.f};
+    struct Part {
+        V3 o, s;
+        ImVec4 c;
+    };
+    float arm = look.slim ? 3.f : 4.f;
+    const Part figure[] = {{{-4, 24, -4}, {8, 8, 8}, skin},  {{-4, 12, -2}, {8, 12, 4}, body},       {{-4 - arm, 12, -2}, {arm, 12, 4}, skin},
+                           {{4, 12, -2}, {arm, 12, 4}, skin}, {{-4, 0, -2}, {4, 12, 4}, legs},        {{0, 0, -2}, {4, 12, 4}, legs},
+                           {{-2.8f, 27.f, 4.f}, {1.6f, 1.8f, 0.05f}, dark}, {{1.2f, 27.f, 4.f}, {1.6f, 1.8f, 0.05f}, dark}};
+    auto insideBody = [&](V3 p) {
+        for (int i = 0; i < 6; i++) {
+            const Part& b = figure[i];
+            if (p.x > b.o.x + 0.05f && p.x < b.o.x + b.s.x - 0.05f && p.y > b.o.y + 0.05f && p.y < b.o.y + b.s.y - 0.05f && p.z > b.o.z + 0.05f && p.z < b.o.z + b.s.z - 0.05f) return true;
+        }
+        return false;
+    };
     auto emitCube = [&](const Cube& cube, const Place& place, const Item* item, ImVec4 tint, float alpha) {
         std::vector<Face> faces;
         addFaces(faces, cube);
@@ -404,6 +422,7 @@ void drawPreview(ImDrawList* dl, ImVec2 center, float unit, float yaw, float pit
                     at(a1, b0, pts[1], tex[1]);
                     at(a1, b1, pts[2], tex[2]);
                     at(a0, b1, pts[3], tex[3]);
+                    if (item && insideBody((pts[0] + pts[1] + pts[2] + pts[3]) * 0.25f)) continue;
                     push(pts, place.normal(f.normal), item != nullptr, tint, alpha, textured ? item->texture : nullptr, !item || item->texel <= 1.f, tex);
                 }
         }
@@ -440,17 +459,6 @@ void drawPreview(ImDrawList* dl, ImVec2 center, float unit, float yaw, float pit
         }
     };
 
-    ImVec4 skin{0.86f, 0.66f, 0.54f, 1.f};
-    ImVec4 legs{body.x * 0.5f, body.y * 0.5f, body.z * 0.5f, 1.f};
-    ImVec4 dark{0.2f, 0.14f, 0.16f, 1.f};
-    struct Part {
-        V3 o, s;
-        ImVec4 c;
-    };
-    float arm = look.slim ? 3.f : 4.f;
-    const Part figure[] = {{{-4, 24, -4}, {8, 8, 8}, skin},  {{-4, 12, -2}, {8, 12, 4}, body},       {{-4 - arm, 12, -2}, {arm, 12, 4}, skin},
-                           {{4, 12, -2}, {arm, 12, 4}, skin}, {{-4, 0, -2}, {4, 12, 4}, legs},        {{0, 0, -2}, {4, 12, 4}, legs},
-                           {{-2.8f, 27.f, 4.f}, {1.6f, 1.8f, 0.05f}, dark}, {{1.2f, 27.f, 4.f}, {1.6f, 1.8f, 0.05f}, dark}};
     for (auto& p : figure) emitCube({p.o, p.s, {}, 0, 0, -1}, Place{}, nullptr, p.c, 1.f);
 
     for (auto& w : worn) {
