@@ -58,8 +58,8 @@ All bodies are JSON, all answers are JSON. Everything except `hello` and `health
 |---|---|
 | `POST /v1/hello` | `{name, secret, client, visible, style, worn}` signs in and returns `{token, ttl, style, worn}`. The `secret` is a random 48 character hex string the client creates once and keeps. The first install that uses a gamertag owns it, others get 403 until it has been silent for 30 days. |
 | `POST /v1/profile` | `{visible, style, worn}` saves the look. Anything that is not a known field is dropped, there is no free text. |
-| `POST /v1/presence` | `{server}` heartbeat, every 60 seconds. |
-| `POST /v1/lookup` | `{names: [...]}` (at most 100) returns `{users: [{name, style, worn}], online}` for visible users seen in the last 150 seconds. |
+| `POST /v1/presence` | `{server}` heartbeat, every 2 minutes, this is also what keeps a user listed. |
+| `POST /v1/lookup` | `{names: [...]}` (at most 100) returns `{users: [{name, style, worn}]}` for visible users seen in the last 5 minutes. |
 | `POST /v1/bye` | ends the session and hides the user. |
 | `POST /v1/forget` | deletes everything stored about the gamertag. |
 | `POST /v1/admin/block` | `{name, reason}` with header `X-Admin-Key`, blocks a gamertag. |

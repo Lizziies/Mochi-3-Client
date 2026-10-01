@@ -1,7 +1,6 @@
 import { cleanServer, cleanStyle, cleanWorn, keyOf, nameOk } from './validate.js';
 
-const online = 150;
-const touchEvery = 45;
+const online = 300;
 const sessionTtl = 12 * 3600;
 const reclaimAfter = 30 * 86400;
 const maxBody = 16 * 1024;
@@ -98,10 +97,9 @@ async function presence(body, auth, store, now) {
 async function lookup(body, auth, store, now) {
   const names = Array.isArray(body.names) ? body.names.filter(nameOk).slice(0, 100) : [];
   const keys = [...new Set(names.map(keyOf))];
-  if (now - auth.player.seen >= touchEvery) await store.savePlayer({ ...auth.player, seen: now });
   const found = await store.lookup(keys, now - online);
   const users = found.map((p) => ({ name: p.name, style: p.style, worn: p.worn }));
-  return json({ users, online: await store.count(now - online) });
+  return json({ users });
 }
 
 async function bye(auth, store, now) {

@@ -82,19 +82,20 @@ test('lookup returns only visible users that were seen recently', async () => {
   assert.deepEqual(r.data.users.map((u) => u.name).sort(), ['Kiki', 'Luna']);
   assert.equal(r.data.users.find((u) => u.name === 'Kiki').style.heart, false);
   assert.equal(r.data.users.find((u) => u.name === 'Kiki').style.heartColor, '#00ff00');
-  assert.equal(r.data.online, 2);
 
-  clock += 400;
+  clock += 200;
+  await call('/v1/presence', { server: 'x' }, luna);
+  clock += 200;
   const later = await call('/v1/lookup', { names: ['Kiki', 'Luna'] }, luna);
   assert.deepEqual(later.data.users.map((u) => u.name), ['Luna']);
 });
 
-test('lookup keeps seen fresh and drops silent users', async () => {
+test('presence keeps a user listed and silent users drop out', async () => {
   const luna = await login('Luna');
   await login('Kiki', secretB);
-  clock += 100;
-  await call('/v1/lookup', { names: [] }, luna);
-  clock += 100;
+  clock += 150;
+  await call('/v1/presence', { server: 'x' }, luna);
+  clock += 250;
   const r = await call('/v1/lookup', { names: ['Kiki', 'Luna'] }, luna);
   assert.deepEqual(r.data.users.map((u) => u.name), ['Luna']);
 });

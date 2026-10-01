@@ -63,3 +63,7 @@ Entscheidungen beim Bauen:
 - **Einwilligung:** Das Modul ist standardmäßig aus. Wer es einschaltet, stimmt zu und bekommt dabei eine Meldung, was gesendet wird. "Für andere sichtbar" ist getrennt einstellbar: wer es ausschaltet, sieht andere, wird aber selbst nicht aufgelistet.
 - **Ohne Adresse:** Im Demo-Modus zeigt der Client erfundene Nutzer. Ohne Demo und ohne Adresse passiert nichts und das Modul sagt es.
 - **Kein freier Text:** Der Dienst kennt nur Modus, Farben, Tempo, Herz an/aus und Herzfarbe. Alles andere im Profil wird verworfen.
+
+## Verbrauch (Gratis-Tarif)
+
+Der Client fragt sparsam: Herzschlag alle 2 Minuten, Nachschlagen nur für Namen, die er noch nicht kennt (Mochi-Nutzer werden alle 2 Minuten, Nicht-Nutzer alle 5 Minuten neu gefragt, höchstens alle 15 Sekunden). Pro Spieler und Stunde sind das grob 30 bis 100 Aufrufe. Mit 100 Spielern, die je 2 Stunden am Tag spielen, sind das etwa 6.000 bis 20.000 Aufrufe und 12.000 geschriebene Zeilen pro Tag, das Gratis-Limit von Cloudflare (100.000 Aufrufe, 100.000 Schreibzugriffe) reicht grob bis 500 Spieler.
