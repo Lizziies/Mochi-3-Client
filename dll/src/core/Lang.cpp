@@ -3,6 +3,10 @@
 namespace {
 
 const i18n::Entry entries[] = {
+    {"MODULES", "MODULE"},
+    {"Edit HUD", "HUD bearbeiten"},
+    {"Appearance", "Aussehen"},
+    {"All modules", "Alle Module"},
     {"unknown", "unbekannt"},
     {"Modules", "Module"},
     {"Appearance", "Aussehen"},
