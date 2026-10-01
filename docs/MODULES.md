@@ -193,7 +193,7 @@ Nicht gebaut: nur echte Cheats mit Kampfvorteil (siehe CLAUDE.md, Hard rules).
 
 ## Umsetzungsstand (Session B)
 
-Alle 171 Module sind in `dll/src/modules/Manager.cpp` registriert, bauen mit MinGW und laufen unter Wine mit den Demo-Daten (Modul "Game Support") ohne Absturz. Im echten Spiel getestet ist noch keins. "Braucht" nennt die Signaturen, ohne die das Modul grau bleibt; bei "einer von" reicht eine. Namen mit `fx.` sind Effekt-Kanäle, andere sind Daten-Signaturen, siehe `docs/SDK.md`. "Stufe" ist die Einordnung in `Tiers.cpp`, "Einst." die Zahl der sichtbaren Einstellungen. Die Tabelle entsteht mit `tools/modules_doc.py` aus einem Modul-Dump.
+Alle 173 Module sind in `dll/src/modules/Manager.cpp` registriert, bauen mit MinGW und laufen unter Wine mit den Demo-Daten (Modul "Game Support") ohne Absturz. Im echten Spiel getestet ist noch keins. "Braucht" nennt die Signaturen, ohne die das Modul grau bleibt; bei "einer von" reicht eine. Namen mit `fx.` sind Effekt-Kanäle, andere sind Daten-Signaturen, siehe `docs/SDK.md`. "Stufe" ist die Einordnung in `Tiers.cpp`, "Einst." die Zahl der sichtbaren Einstellungen. Die Tabelle entsteht mit `tools/modules_doc.py` aus einem Modul-Dump.
 
 ### HUD (63)
 
@@ -221,6 +221,29 @@ Alle 171 Module sind in `dll/src/modules/Manager.cpp` registriert, bauen mit Min
 | Scoreboard | HUD parts | Kern | 30 | `ScoreboardData` | – |
 | Subtitles | HUD parts | Erwartet | 38 | `LocalPlayer`, `SoundEvents` | – |
 | Tab List | HUD parts | Erwartet | 45 | `TabListData` | info-others |
+| Better Hunger Bar | Info displays | Erwartet | 33 | `LocalPlayer`, `Inventory` | – |
+| CPS | Info displays | Kern | 27 | nichts | – |
+| Clock | Info displays | Erwartet | 33 | nichts | – |
+| Coordinates | Info displays | Kern | 43 | `LocalPlayer` | – |
+| Day Counter | Info displays | Erwartet | 30 | `Level` | – |
+| Debug Menu | Info displays | Erwartet | 25 | nichts | – |
+| Direction HUD | Info displays | Erwartet | 43 | `LocalPlayer` | – |
+| Experience Info | Info displays | Erwartet | 29 | `LocalPlayer` | – |
+| FPS | Info displays | Kern | 28 | nichts | – |
+| Fall Predictor | Info displays | Erwartet | 32 | `LocalPlayer` | – |
+| Health Display | Info displays | Weitere | 32 | `LocalPlayer` | – |
+| Held Item | Info displays | Weitere | 32 | `LocalPlayer`, `Inventory` | – |
+| IP Display | Info displays | Erwartet | 30 | nichts | – |
+| Keystrokes | Info displays | Kern | 62 | nichts | – |
+| Look Angles | Info displays | Weitere | 29 | `LocalPlayer` | – |
+| Low Health Indicator | Info displays | Erwartet | 6 | `LocalPlayer` | – |
+| Mouse Strokes | Info displays | Erwartet | 28 | nichts | – |
+| Pack Display | Info displays | Weitere | 26 | `Level`, `PackList` | – |
+| Paperdoll | Info displays | Erwartet | 33 | `LocalPlayer`, `Inventory` | – |
+| Server Display | Info displays | Erwartet | 28 | nichts | – |
+| Speed Display | Info displays | Erwartet | 31 | `LocalPlayer` | – |
+| Stats HUD | Info displays | Extras | 38 | nichts | – |
+| Watermark | Info displays | Extras | 31 | nichts | – |
 | Armor HUD | Inventory info | Kern | 38 | `LocalPlayer`, `Inventory` | – |
 | Arrow Counter | Inventory info | Erwartet | 31 | `LocalPlayer`, `Inventory` | – |
 | Durability Warning | Inventory info | Erwartet | 10 | `LocalPlayer`, `Inventory` | – |
@@ -236,29 +259,6 @@ Alle 171 Module sind in `dll/src/modules/Manager.cpp` registriert, bauen mit Min
 | Latency Meter | Network | Kern | 28 | nichts | – |
 | Network Monitor | Network | Kern | 52 | nichts | – |
 | Ping Counter | Network | Kern | 31 | nichts | – |
-| Better Hunger Bar | Own values | Erwartet | 33 | `LocalPlayer`, `Inventory` | – |
-| CPS | Own values | Kern | 27 | nichts | – |
-| Clock | Own values | Erwartet | 33 | nichts | – |
-| Coordinates | Own values | Kern | 43 | `LocalPlayer` | – |
-| Day Counter | Own values | Erwartet | 30 | `Level` | – |
-| Debug Menu | Own values | Erwartet | 25 | nichts | – |
-| Direction HUD | Own values | Erwartet | 43 | `LocalPlayer` | – |
-| Experience Info | Own values | Erwartet | 29 | `LocalPlayer` | – |
-| FPS | Own values | Kern | 28 | nichts | – |
-| Fall Predictor | Own values | Erwartet | 32 | `LocalPlayer` | – |
-| Health Display | Own values | Weitere | 32 | `LocalPlayer` | – |
-| Held Item | Own values | Weitere | 32 | `LocalPlayer`, `Inventory` | – |
-| IP Display | Own values | Erwartet | 30 | nichts | – |
-| Keystrokes | Own values | Kern | 62 | nichts | – |
-| Look Angles | Own values | Weitere | 29 | `LocalPlayer` | – |
-| Low Health Indicator | Own values | Erwartet | 6 | `LocalPlayer` | – |
-| Mouse Strokes | Own values | Erwartet | 28 | nichts | – |
-| Pack Display | Own values | Weitere | 26 | `Level`, `PackList` | – |
-| Paperdoll | Own values | Erwartet | 33 | `LocalPlayer`, `Inventory` | – |
-| Server Display | Own values | Erwartet | 28 | nichts | – |
-| Speed Display | Own values | Erwartet | 31 | `LocalPlayer` | – |
-| Stats HUD | Own values | Extras | 38 | nichts | – |
-| Watermark | Own values | Extras | 31 | nichts | – |
 | Pomodoro | Timer | Extras | 38 | nichts | – |
 | Session Timer | Timer | Erwartet | 27 | nichts | – |
 | Stopwatch | Timer | Erwartet | 28 | nichts | – |
@@ -362,7 +362,7 @@ Alle 171 Module sind in `dll/src/modules/Manager.cpp` registriert, bauen mit Min
 | Profile Hotkeys | Profiles | Weitere | 9 | nichts | – |
 | Streamer Mode | Profiles | Erwartet | 4 | nichts | – |
 
-### Performance (6)
+### Performance (7)
 
 | Modul | Unterkategorie | Stufe | Einst. | Braucht | Hinweis |
 |---|---|---|---|---|---|
@@ -370,6 +370,7 @@ Alle 171 Module sind in `dll/src/modules/Manager.cpp` registriert, bauen mit Min
 | Game Support | Diagnostics | Weitere | 3 | nichts | – |
 | Frame Limiter | Frame timing | Kern | 8 | nichts | – |
 | Low Latency | Frame timing | Kern | 5 | nichts | – |
+| Performance Lock | Frame timing | Kern | 3 | nichts | – |
 | System Boost | Frame timing | Weitere | 4 | nichts | – |
 | Render Options | Graphics | Kern | 14 | einer von `fx.clouds`, `fx.particles`, `fx.blockEntities`, `fx.shadows`, `fx.sky`, `fx.fog`, `fx.vignette`, `fx.rain`, `fx.renderEntities`, `fx.renderTerrain`, `fx.hideHand`, `fx.hideHud` | – |
 
@@ -397,11 +398,12 @@ Alle 171 Module sind in `dll/src/modules/Manager.cpp` registriert, bauen mit Min
 | Deepfry | Post effects | Extras | 4 | nichts | – |
 | Upside Down | Post effects | Extras | 3 | nichts | – |
 
-### Client (4)
+### Client (5)
 
 | Modul | Unterkategorie | Stufe | Einst. | Braucht | Hinweis |
 |---|---|---|---|---|---|
 | ClickGUI | – | Weitere | 1 | nichts | – |
+| Client Settings | Client | Weitere | 8 | nichts | – |
 | Config Sharing | Platform | Erwartet | 2 | nichts | – |
 | Discord Rich Presence | Platform | Erwartet | 10 | nichts | – |
 | Lua Scripts | Platform | Erwartet | 3 | nichts | – |

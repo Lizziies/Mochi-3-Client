@@ -32,3 +32,4 @@ Kurze Chronik, damit jede neue Session weiß, was schon passiert ist.
 - Phase 5: Discord Rich Presence, Lua-Skripte mit Sandbox, Config Sharing, Skript-Liste von GitHub, `docs/SCRIPTING.md`.
 - Phase 6: Hotbar Armor, Fall Predictor, Inventory Viewer, Arrow Trail, Black Bars, Left Hand, Gamemode Hotkeys, Third Person Nametag.
 - Phase 7: Politur, Modul-Dump und Doku-Generator, `tools/cross.sh tour`, Nachträge in PARITY.md und FEATURES.md.
+- Merge von main in modules-b (Client Settings, HUD-Editor-Einrasten, Self-Test, "Info displays"), Konflikte in Chat/Clock/Compose/Cps/GameInfo/Keystrokes aufgelöst, Self-Test grün, fehlende deutsche Texte ergänzt, MODULES.md neu erzeugt.
