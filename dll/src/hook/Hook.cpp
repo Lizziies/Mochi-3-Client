@@ -1,0 +1,64 @@
+#include "Hook.hpp"
+#include "core/Log.hpp"
+
+#include <windows.h>
+#include <MinHook.h>
+
+#include <vector>
+
+namespace hook {
+
+static std::vector<void*> targets;
+
+bool init() {
+    auto s = MH_Initialize();
+    if (s != MH_OK && s != MH_ERROR_ALREADY_INITIALIZED) {
+        logger::error("minhook init failed: {}", MH_StatusToString(s));
+        return false;
+    }
+    return true;
+}
+
+void shutdown() {
+    disableAll();
+    MH_Uninitialize();
+    targets.clear();
+}
+
+bool create(const char* name, void* target, void* detour, void** original) {
+    if (!target) {
+        logger::warn("hook {}: no target", name);
+        return false;
+    }
+    auto s = MH_CreateHook(target, detour, original);
+    if (s != MH_OK) {
+        logger::error("hook {}: {}", name, MH_StatusToString(s));
+        return false;
+    }
+    targets.push_back(target);
+    logger::info("hook {} at {}", name, target);
+    return true;
+}
+
+bool enableAll() {
+    return MH_EnableHook(MH_ALL_HOOKS) == MH_OK;
+}
+
+void disableAll() {
+    MH_DisableHook(MH_ALL_HOOKS);
+}
+
+void* vfunc(void* object, int index) {
+    if (!object) return nullptr;
+    auto vtable = *static_cast<void***>(object);
+    return vtable[index];
+}
+
+void* exported(const wchar_t* module, const char* name) {
+    HMODULE m = GetModuleHandleW(module);
+    if (!m) m = LoadLibraryW(module);
+    if (!m) return nullptr;
+    return reinterpret_cast<void*>(GetProcAddress(m, name));
+}
+
+}
