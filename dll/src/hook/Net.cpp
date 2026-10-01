@@ -28,6 +28,7 @@ static std::map<std::string, int> counts;
 static ULONGLONG windowStart = 0;
 static int windowSends = 0;
 static int lastRate = 0;
+static int streak = 0;
 
 static std::string ipOf(const sockaddr* sa) {
     char buf[64]{};
@@ -66,6 +67,7 @@ static void count(const sockaddr* to, int len) {
     ULONGLONG now = GetTickCount64();
     if (now - windowStart >= 1000) {
         lastRate = windowSends;
+        streak = lastRate >= 12 && now - windowStart < 2500 ? streak + 1 : 0;
         windowSends = 0;
         windowStart = now;
     }
@@ -116,7 +118,7 @@ void install() {
 
 bool session() {
     std::scoped_lock g(lock);
-    return GetTickCount64() - windowStart < 3000 && std::max(lastRate, windowSends) >= 12;
+    return GetTickCount64() - windowStart < 3000 && streak >= 3;
 }
 
 std::vector<Peer> drain() {

@@ -147,7 +147,7 @@ const i18n::Entry entries[] = {
     {"Pin modules", "Module anpinnen"},
     {"Free", "Gratis"},
     {"Language, tag, look", "Sprache, Tag, Aussehen"},
-    {"Right Shift again: full menu  ·  Esc: close", "Rechts-Shift noch einmal: ganzes Menü  ·  Esc: schließen"},
+    {"Right Shift or Esc: close", "Rechts-Shift oder Esc: schließen"},
     {"Shader Packs", "Shader Packs"},
     {"Loads shaders on top of the game image, also on servers. Four looks are built in, your own .hlsl files go into the shaders folder. Only changes what you see.", "Lädt Shader über das Spielbild, auch auf Servern. Vier Looks sind eingebaut, eigene .hlsl-Dateien kommen in den Ordner shaders. Ändert nur, was du siehst."},
     {"Reload shaders", "Shader neu laden"},

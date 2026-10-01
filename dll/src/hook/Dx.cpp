@@ -46,7 +46,6 @@ struct Buffer {
     ID3D11Resource* wrapped = nullptr;
     ID3D11RenderTargetView* rtv = nullptr;
 };
-static std::vector<Buffer> buffers;
 static ID3D11RenderTargetView* rtv11 = nullptr;
 
 static LARGE_INTEGER qpf{};
@@ -65,38 +64,55 @@ static int64_t now() {
     return t.QuadPart;
 }
 
-static void dropTargets() {
-    for (auto& b : buffers) {
-        release(b.rtv);
-        release(b.wrapped);
+static ID3D12Fence* fence = nullptr;
+static HANDLE fenceEvent = nullptr;
+static UINT64 fenceValue = 0;
+
+// 11on12 keeps its references to the swapchain buffers until the queue has finished the work that used them,
+// and ResizeBuffers fails (the game then aborts) while any reference is left
+static void waitGpu() {
+    if (!queue) return;
+    if (!fence) {
+        ID3D12Device* device = nullptr;
+        if (FAILED(queue->GetDevice(IID_PPV_ARGS(&device)))) return;
+        HRESULT hr = device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence));
+        device->Release();
+        if (FAILED(hr)) return;
+        fenceEvent = CreateEventW(nullptr, FALSE, FALSE, nullptr);
     }
-    buffers.clear();
+    UINT64 value = ++fenceValue;
+    if (FAILED(queue->Signal(fence, value)) || fence->GetCompletedValue() >= value) return;
+    if (SUCCEEDED(fence->SetEventOnCompletion(value, fenceEvent))) WaitForSingleObject(fenceEvent, 2000);
+}
+
+static void dropTargets() {
     release(rtv11);
     if (ctx) {
         ctx->ClearState();
         ctx->Flush();
     }
+    if (current == Api::Dx12) waitGpu();
 }
 
-static bool buildTargets12(IDXGISwapChain* sc) {
+static void releaseBuffer(Buffer& b) {
+    release(b.rtv);
+    release(b.wrapped);
+}
+
+static bool wrapBuffer(IDXGISwapChain* sc, UINT index, Buffer& out) {
     DXGI_SWAP_CHAIN_DESC desc{};
     sc->GetDesc(&desc);
     info.bufferCount = (int)desc.BufferCount;
-    buffers.resize(desc.BufferCount);
 
-    for (UINT i = 0; i < desc.BufferCount; i++) {
-        ID3D12Resource* res = nullptr;
-        if (FAILED(sc->GetBuffer(i, IID_PPV_ARGS(&res)))) return false;
+    ID3D12Resource* res = nullptr;
+    if (FAILED(sc->GetBuffer(index, IID_PPV_ARGS(&res)))) return false;
 
-        D3D11_RESOURCE_FLAGS flags{D3D11_BIND_RENDER_TARGET};
-        HRESULT hr = on12->CreateWrappedResource(res, &flags, D3D12_RESOURCE_STATE_PRESENT,
-                                                 D3D12_RESOURCE_STATE_PRESENT, IID_PPV_ARGS(&buffers[i].wrapped));
-        res->Release();
-        if (FAILED(hr)) return false;
-
-        if (FAILED(d11->CreateRenderTargetView(buffers[i].wrapped, nullptr, &buffers[i].rtv))) return false;
-    }
-    return true;
+    D3D11_RESOURCE_FLAGS flags{D3D11_BIND_RENDER_TARGET};
+    HRESULT hr = on12->CreateWrappedResource(res, &flags, D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_PRESENT,
+                                             IID_PPV_ARGS(&out.wrapped));
+    res->Release();
+    if (FAILED(hr)) return false;
+    return SUCCEEDED(d11->CreateRenderTargetView(out.wrapped, nullptr, &out.rtv));
 }
 
 static bool buildTargets11(IDXGISwapChain* sc) {
@@ -257,22 +273,26 @@ static void draw(IDXGISwapChain* sc) {
     applyLatency(sc);
 
     if (current == Api::Dx12) {
-        if (buffers.empty() && !buildTargets12(sc)) {
-            dropTargets();
-            return;
-        }
         IDXGISwapChain3* sc3 = nullptr;
         if (FAILED(sc->QueryInterface(IID_PPV_ARGS(&sc3)))) return;
         UINT idx = sc3->GetCurrentBackBufferIndex();
         sc3->Release();
-        if (idx >= buffers.size()) return;
 
-        auto& b = buffers[idx];
+        // wrapped for this frame only: nothing may hold a swapchain buffer between frames, the game resizes,
+        // toggles fullscreen and recreates its swapchain behind our back
+        Buffer b;
+        if (!wrapBuffer(sc, idx, b)) {
+            releaseBuffer(b);
+            return;
+        }
         on12->AcquireWrappedResources(&b.wrapped, 1);
         ctx->OMSetRenderTargets(1, &b.rtv, nullptr);
         ui::frame();
         ctx->OMSetRenderTargets(0, nullptr, nullptr);
         on12->ReleaseWrappedResources(&b.wrapped, 1);
+        ctx->ClearState();
+        ctx->Flush();
+        releaseBuffer(b);
         ctx->Flush();
     } else {
         if (!rtv11 && !buildTargets11(sc)) return;
@@ -425,6 +445,9 @@ void uninstall() {
     release(on12);
     release(ctx);
     release(d11);
+    release(fence);
+    if (fenceEvent) CloseHandle(fenceEvent);
+    fenceEvent = nullptr;
     release(queue);
     if (limiterTimer) CloseHandle(limiterTimer);
     limiterTimer = nullptr;

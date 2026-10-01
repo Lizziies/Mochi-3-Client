@@ -99,7 +99,7 @@ int wmain(int argc, wchar_t** argv) {
     wc.lpfnWndProc = proc;
     wc.hInstance = GetModuleHandleW(nullptr);
     wc.lpszClassName = L"TestHost";
-    wc.hCursor = LoadCursorW(nullptr, IDC_ARROW);
+    wc.hCursor = LoadCursorW(nullptr, MAKEINTRESOURCEW(32512));
     RegisterClassExW(&wc);
 
     if (const char* size = std::getenv("TESTHOST_SIZE")) std::sscanf(size, "%dx%d", &viewW, &viewH);

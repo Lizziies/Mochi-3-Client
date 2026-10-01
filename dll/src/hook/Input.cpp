@@ -138,8 +138,10 @@ static bool handleRaw(LPARAM lp) {
     return cancel;
 }
 
+static bool isPointerMessage(UINT msg) { return msg >= 0x0240 && msg <= 0x0253; }
+
 static bool isMouseMessage(UINT msg) {
-    return (msg >= WM_MOUSEFIRST && msg <= WM_MOUSELAST) || msg == WM_INPUT;
+    return (msg >= WM_MOUSEFIRST && msg <= WM_MOUSELAST) || msg == WM_INPUT || isPointerMessage(msg);
 }
 
 static bool isKeyMessage(UINT msg) {
@@ -242,7 +244,7 @@ static bool process(HWND w, UINT msg, WPARAM wp, LPARAM lp, LRESULT& result) {
         }
     }
     if (take && (isMouseMessage(msg) || isKeyMessage(msg))) {
-        result = msg == WM_INPUT ? DefWindowProcW(w, msg, wp, lp) : 0;
+        result = msg == WM_INPUT || isPointerMessage(msg) ? DefWindowProcW(w, msg, wp, lp) : 0;
         return true;
     }
     return false;
@@ -320,11 +322,25 @@ static UINT WINAPI getRawInputBuffer(PRAWINPUT data, PUINT size, UINT header) {
 }
 
 static bool pumpedInput(const MSG& m) {
-    return (m.message >= WM_KEYFIRST && m.message <= WM_KEYLAST) ||
-           (m.message >= WM_MOUSEFIRST && m.message <= WM_MOUSELAST) || m.message == WM_INPUT;
+    return (m.message >= WM_KEYFIRST && m.message <= WM_KEYLAST) || isMouseMessage(m.message);
+}
+
+static void noteStray(const MSG& m) {
+    static std::mutex lock;
+    static std::vector<std::pair<HWND, UINT>> seen;
+    std::scoped_lock g(lock);
+    for (auto& s : seen)
+        if (s.first == m.hwnd && s.second == m.message) return;
+    if (seen.size() > 64) return;
+    seen.push_back({m.hwnd, m.message});
+    wchar_t cls[64]{};
+    GetClassNameW(m.hwnd, cls, 64);
+    logger::info("pump: input message 0x{:04X} for window {} class '{}' (game window {})", m.message,
+                 (void*)m.hwnd, logger::narrow(cls), (void*)target);
 }
 
 static void swallow(MSG* m, int slot) {
+    if (m && ui::capturing() && !oursDepth && pumpedInput(*m) && m->hwnd != target) noteStray(*m);
     if (!m || m->hwnd != target || !pumpedInput(*m) || oursDepth) return;
     bool down = false;
     int eat = eatSlot(m->message, m->wParam, m->lParam, down);
@@ -337,6 +353,10 @@ static void swallow(MSG* m, int slot) {
     });
     if (!handled) return;
     spy[slot]++;
+    if (isPointerMessage(m->message)) {
+        spy[7]++;
+        DefWindowProcW(m->hwnd, m->message, m->wParam, m->lParam);
+    }
     m->message = WM_NULL;
 }
 
@@ -355,12 +375,12 @@ static BOOL WINAPI getMessage(LPMSG m, HWND w, UINT lo, UINT hi) {
 static void flushSpy(int64_t now) {
     if (now - spyAt < qpf.QuadPart) return;
     spyAt = now;
-    int n[7];
+    int n[8];
     int total = 0;
-    for (int i = 0; i < 7; i++) total += n[i] = spy[i].exchange(0);
+    for (int i = 0; i < 8; i++) total += n[i] = spy[i].exchange(0);
     if (total)
-        logger::info("menu open, game polled: GetCursorPos={} GetAsyncKeyState={} GetKeyState={} RawData={} RawBuffer={} Peek={} GetMessage={}",
-                     n[0], n[1], n[2], n[3], n[4], n[5], n[6]);
+        logger::info("menu open, game polled: GetCursorPos={} GetAsyncKeyState={} GetKeyState={} RawData={} RawBuffer={} Peek={} GetMessage={} Pointer={}",
+                     n[0], n[1], n[2], n[3], n[4], n[5], n[6], n[7]);
 }
 
 bool gameplay() {
@@ -382,8 +402,34 @@ bool gameplay() {
     return on;
 }
 
+static void logInputImports() {
+    auto base = reinterpret_cast<uintptr_t>(GetModuleHandleW(nullptr));
+    auto* dos = reinterpret_cast<IMAGE_DOS_HEADER*>(base);
+    auto* nt = reinterpret_cast<IMAGE_NT_HEADERS*>(base + dos->e_lfanew);
+    auto& dir = nt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT];
+    if (!dir.VirtualAddress) return;
+
+    static const char* words[] = {"Raw", "Cursor", "Mouse", "Keyboard", "Input", "Pointer", "Hid", "GetKey", "Capture", "Gamepad"};
+    std::string out;
+    for (auto* d = reinterpret_cast<IMAGE_IMPORT_DESCRIPTOR*>(base + dir.VirtualAddress); d->Name; d++) {
+        std::string dll = reinterpret_cast<const char*>(base + d->Name);
+        auto* thunk = reinterpret_cast<IMAGE_THUNK_DATA*>(base + (d->OriginalFirstThunk ? d->OriginalFirstThunk : d->FirstThunk));
+        for (; thunk->u1.AddressOfData; thunk++) {
+            if (IMAGE_SNAP_BY_ORDINAL(thunk->u1.Ordinal)) continue;
+            std::string fn = reinterpret_cast<IMAGE_IMPORT_BY_NAME*>(base + thunk->u1.AddressOfData)->Name;
+            for (auto* w : words)
+                if (fn.find(w) != std::string::npos) {
+                    out += dll + "!" + fn + " ";
+                    break;
+                }
+        }
+    }
+    logger::info("game imports (input related): {}", out);
+}
+
 bool install(HWND window) {
     QueryPerformanceFrequency(&qpf);
+    guard::call("imports", logInputImports);
     target = window;
     original = reinterpret_cast<WNDPROC>(SetWindowLongPtrW(window, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(proc)));
     if (!original) {

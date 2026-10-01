@@ -77,17 +77,13 @@ void toggle() {
         setOpen(true);
         return;
     }
-    if (!isOpen) {
-        current = Page::Hub;
-        search[0] = 0;
-        setOpen(true);
+    if (isOpen) {
+        setOpen(false);
         return;
     }
-    if (current == Page::Hub) {
-        go(Page::Modules);
-        return;
-    }
-    setOpen(false);
+    current = Page::Hub;
+    search[0] = 0;
+    setOpen(true);
 }
 
 void showModule(Module* m) {
@@ -352,7 +348,7 @@ static void drawHub(float anim) {
             shownCount++;
         }
     }
-    const char* foot = i18n::tr("Right Shift again: full menu  ·  Esc: close");
+    const char* foot = i18n::tr("Right Shift or Esc: close");
     ImVec2 fs = ImGui::CalcTextSize(foot);
     dl->AddText({pos.x + (size.x - fs.x) * 0.5f, pos.y + size.y - 28 * s}, theme::col(t.textDim, 0.7f), foot);
     endWindow();

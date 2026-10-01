@@ -401,6 +401,11 @@ void frame(ImDrawList* hud) {
     post::submit(hud);
     capture::submit(hud, capture::Stage::Game);
     bool inWorld = game::state().inWorld;
+    static bool wasInWorld = false;
+    if (inWorld != wasInWorld) {
+        wasInWorld = inWorld;
+        logger::info("in world: {}", inWorld);
+    }
     for (size_t i = 0; i < list.size(); i++) {
         auto& m = list[i];
         if (!m->enabled()) continue;
