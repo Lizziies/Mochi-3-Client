@@ -1,0 +1,60 @@
+#pragma once
+
+#include "Settings.hpp"
+
+#include <imgui.h>
+
+#include <string>
+#include <vector>
+
+namespace ui {
+
+constexpr float width = 960.f;
+constexpr float height = 600.f;
+constexpr float titleHeight = 40.f;
+constexpr float controlsWidth = 96.f;
+
+enum class Page { Start, Versions, Settings, About };
+enum class Phase { Idle, Updating, Starting, Waiting, Injecting, Done, Failed };
+
+struct GameVersion {
+    std::string name;
+    bool preview = false;
+    bool installed = false;
+    bool supported = false;
+    bool active = false;
+};
+
+struct State {
+    Page page = Page::Start;
+    Phase phase = Phase::Idle;
+    float progress = 0.f;
+    std::string status;
+
+    std::string clientVersion;
+    std::string latestVersion;
+    std::string gameVersion;
+    std::string changelog;
+    bool updateAvailable = false;
+    bool gameSupported = true;
+
+    std::vector<GameVersion> versions;
+    Settings settings;
+    char dllPath[260] = {};
+};
+
+struct Events {
+    bool play = false;
+    bool update = false;
+    bool minimize = false;
+    bool close = false;
+    bool browseDll = false;
+    bool openLogs = false;
+    bool openFolder = false;
+    bool settingsChanged = false;
+};
+
+void setFonts(ImFont* regular, ImFont* bold);
+void draw(State& state, Events& events);
+
+}
