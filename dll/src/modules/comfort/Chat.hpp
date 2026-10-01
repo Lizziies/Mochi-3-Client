@@ -466,7 +466,7 @@ protected:
             x += colW + 12 * s;
             total = x;
         }
-        return {std::max(total - 12 * s, 60.f * s), per * rowH};
+        return {std::max(total - 12 * s, 60.f * s), std::min(per, int(list.size())) * rowH};
     }
 
 private:

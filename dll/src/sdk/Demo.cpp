@@ -92,6 +92,7 @@ private:
             e.ping = 20 + (i * 17) % 90;
             s.tab.push_back(e);
         }
+        s.tab.push_back({"MochiPlayer", 32});
         opponentHp_ = 20.f;
     }
 
