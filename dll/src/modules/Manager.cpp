@@ -13,6 +13,10 @@
 
 #include "client/ClickGui.hpp"
 #include "client/SigStatus.hpp"
+#include "combat/Counters.hpp"
+#include "combat/Feedback.hpp"
+#include "combat/Target.hpp"
+#include "combat/Tweaks.hpp"
 #include "comfort/Screenshot.hpp"
 #include "fun/BlockGame.hpp"
 #include "fun/DvdScreen.hpp"
@@ -22,6 +26,8 @@
 #include "hud/Clock.hpp"
 #include "hud/Cps.hpp"
 #include "hud/Fps.hpp"
+#include "hud/GameInfo.hpp"
+#include "hud/Inventory.hpp"
 #include "hud/Keystrokes.hpp"
 #include "hud/Latency.hpp"
 #include "hud/Memory.hpp"
@@ -76,6 +82,25 @@ void init() {
     add<Memory>();
     add<LatencyHud>();
     add<ServerInfo>();
+    add<IpDisplay>();
+    add<Coordinates>();
+    add<DirectionHud>();
+    add<SpeedDisplay>();
+    add<LookAngles>();
+    add<HealthDisplay>();
+    add<ExperienceInfo>();
+    add<DayCounter>();
+    add<PackDisplay>();
+    add<HeldItem>();
+    add<ArmorHud>();
+    add<PotionHud>();
+    add<PotCounter>();
+    add<ArrowCounter>();
+    add<TotemCounter>();
+    add<ItemCounter>();
+    add<DurabilityWarning>();
+    add<LowHealth>();
+    add<BetterHunger>();
     add<PingCounter>();
     add<Network>();
     add<LatencyBlame>();
@@ -89,8 +114,39 @@ void init() {
     add<NightShift>();
     add<MotionBlur>();
 
+    add<BreakProgress>();
     add<Crosshair>();
 
+    add<ReachCounter>();
+    add<OpponentReach>();
+    add<ComboCounter>();
+    add<HitCounter>();
+    add<HitPing>();
+    add<SessionStats>();
+    add<HitInfo>();
+    add<EntityCounter>();
+    add<TargetHud>();
+    add<Waila>();
+    add<BowCharge>();
+    add<CooldownIndicator>();
+    add<DamageIndicator>();
+    add<HitMarker>();
+    add<HitEffects>();
+    add<KillEffects>();
+    add<HitSound>();
+    add<TotemPop>();
+    add<Hitbox>();
+    add<HurtColor>();
+    add<GlintColor>();
+    add<LowFire>();
+    add<ParticleMultiplier>();
+    add<SensMultiplier>();
+    add<BowSensitivity>();
+    add<SnapLook>();
+    add<NullMovement>();
+    add<ItemUseDelayFix>();
+    add<FasterInventory>();
+    add<InstaHurtAnimation>();
     add<CpsLimiter>();
     add<NoScroll>();
     add<InstantInput>();

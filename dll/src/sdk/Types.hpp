@@ -162,7 +162,6 @@ struct Combat {
     float lastReach = 0.f;
     float bestReach = 0.f;
     float opponentReach = 0.f;
-    float lastHitPing = 0.f;
     double lastHitAt = -100.0;
     double lastHurtAt = -100.0;
     bool lastCrit = false;

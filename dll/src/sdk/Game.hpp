@@ -34,6 +34,7 @@ bool has(Domain d);
 void lease(unsigned mask, int delta);
 
 void resetCombat();
+void resetCombo();
 std::optional<ImVec2> project(const Vec3& p);
 
 }

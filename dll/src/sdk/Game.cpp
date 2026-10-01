@@ -108,7 +108,6 @@ static void absorb(const Event& e) {
         c.bestReach = std::max(c.bestReach, e.reach);
         c.reaches[size_t(c.reachCount) % c.reaches.size()] = e.reach;
         c.reachCount++;
-        c.lastHitPing = float(cur.world.ping);
         c.lastHitAt = e.time;
         break;
     case EventKind::Swing: c.swings++; break;
@@ -166,6 +165,8 @@ void update() {
 }
 
 void resetCombat() { cur.combat = Combat{}; }
+
+void resetCombo() { cur.combat.combo = 0; }
 
 std::optional<ImVec2> project(const Vec3& p) {
     const auto& c = cur.camera;

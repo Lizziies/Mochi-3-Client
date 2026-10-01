@@ -30,6 +30,7 @@ public:
         world(s, dt);
         target(s);
         chatter(s, ev);
+        uses(ev);
         effects(s, dt);
         scoreboard(s);
     }
@@ -259,6 +260,14 @@ private:
         (void)s;
     }
 
+    void uses(std::vector<Event>& ev) {
+        if (t_ < nextUse_) return;
+        nextUse_ = t_ + 7.0 + dist_(rng_) * 4.0;
+        Event e{EventKind::ItemUse};
+        e.item = dist_(rng_) < 0.7 ? "ender_pearl" : "chorus_fruit";
+        ev.push_back(e);
+    }
+
     void effects(State& s, double) {
         auto& list = s.player.effects;
         list.clear();
@@ -299,6 +308,7 @@ private:
     double hurtTimer_ = 0.0;
     double respawnAt_ = 0.0;
     double nextChat_ = 2.0;
+    double nextUse_ = 5.0;
     int chatIdx_ = 0;
     float opponentHp_ = 20.f;
     bool fighting_ = false;

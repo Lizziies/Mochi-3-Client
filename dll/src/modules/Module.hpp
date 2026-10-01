@@ -86,6 +86,10 @@ protected:
     void sub(std::string name) { sub_ = std::move(name); }
     void needs(unsigned mask) { needs_ = mask; }
     void needs(game::Domain d) { needs_ = unsigned(d); }
+    void require(unsigned domains, std::vector<std::string> sigs) {
+        needs_ = domains;
+        sigs_ = std::move(sigs);
+    }
 
 private:
     Setting& add(Setting s);

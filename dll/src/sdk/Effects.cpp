@@ -38,6 +38,7 @@ constexpr Info table[count] = {
     {"fx.vignette", "Vignette", Kind::Flag},
     {"fx.fire", "Feuer-Overlay", Kind::Value},
     {"fx.hitbox", "Hitboxen", Kind::Flag},
+    {"fx.hitboxColor", "Hitbox-Farbe", Kind::Data},
     {"fx.glintColor", "Glanzfarbe", Kind::Data},
     {"fx.hurtColor", "Trefferfarbe", Kind::Data},
     {"fx.fogColor", "Nebelfarbe", Kind::Out},
@@ -278,6 +279,18 @@ void out(Id id, std::initializer_list<float> values) {
 
 void transform(Id id, game::Vec3 move, game::Vec3 scale, game::Vec3 rotateDeg) {
     auto& r = req(id);
+    if (r.mode == Matrix) {
+        r.v[0] += move.x;
+        r.v[1] += move.y;
+        r.v[2] += move.z;
+        r.v[3] *= scale.x;
+        r.v[4] *= scale.y;
+        r.v[5] *= scale.z;
+        r.v[6] += rotateDeg.x;
+        r.v[7] += rotateDeg.y;
+        r.v[8] += rotateDeg.z;
+        return;
+    }
     r.mode = Matrix;
     r.len = 9;
     r.v = {move.x, move.y, move.z, scale.x, scale.y, scale.z, rotateDeg.x, rotateDeg.y, rotateDeg.z};

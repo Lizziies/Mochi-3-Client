@@ -30,6 +30,7 @@ enum class Id {
     Vignette,
     FireHeight,
     Hitbox,
+    HitboxColor,
     GlintColor,
     HurtColor,
     FogColor,
