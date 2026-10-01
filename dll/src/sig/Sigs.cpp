@@ -180,7 +180,7 @@ static std::string scanCacheName() {
 }
 
 static void load() {
-    std::string display = "unbekannt";
+    std::string display = "unknown";
     auto keys = versionKeys(display);
     logger::info("minecraft {}", display);
 

@@ -3,6 +3,7 @@
 namespace {
 
 const i18n::Entry entries[] = {
+    {"unknown", "unbekannt"},
     {"Modules", "Module"},
     {"Appearance", "Aussehen"},
     {"Profiles", "Profile"},

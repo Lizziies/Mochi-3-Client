@@ -3,11 +3,13 @@
 #include <dxgi.h>
 
 #include <cmath>
+#include <cstdlib>
 #include <cstdio>
 #include <string>
 #include <vector>
 
 static HWND hwnd;
+static int viewW = 1280, viewH = 720;
 static bool running = true;
 
 static LRESULT CALLBACK proc(HWND w, UINT m, WPARAM wp, LPARAM lp) {
@@ -63,15 +65,17 @@ int wmain(int argc, wchar_t** argv) {
     wc.hCursor = LoadCursorW(nullptr, IDC_ARROW);
     RegisterClassExW(&wc);
 
-    RECT r{0, 0, 1280, 720};
+    if (const char* size = std::getenv("TESTHOST_SIZE")) std::sscanf(size, "%dx%d", &viewW, &viewH);
+    bool manual = std::getenv("TESTHOST_MANUAL") != nullptr;
+    RECT r{0, 0, viewW, viewH};
     AdjustWindowRect(&r, WS_OVERLAPPEDWINDOW, FALSE);
     hwnd = CreateWindowExW(0, wc.lpszClassName, L"TestHost", WS_OVERLAPPEDWINDOW | WS_VISIBLE, 0, 0, r.right - r.left,
                            r.bottom - r.top, nullptr, nullptr, wc.hInstance, nullptr);
 
     DXGI_SWAP_CHAIN_DESC sd{};
     sd.BufferCount = 2;
-    sd.BufferDesc.Width = 1280;
-    sd.BufferDesc.Height = 720;
+    sd.BufferDesc.Width = viewW;
+    sd.BufferDesc.Height = viewH;
     sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
     sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
     sd.OutputWindow = hwnd;
@@ -115,7 +119,7 @@ int wmain(int argc, wchar_t** argv) {
         float sky = 0.5f + 0.1f * std::sin(t);
         float color[4] = {0.35f, sky, 0.9f, 1.f};
         ctx->OMSetRenderTargets(1, &rtv, nullptr);
-        D3D11_VIEWPORT vp{0, 0, 1280, 720, 0, 1};
+        D3D11_VIEWPORT vp{0, 0, (float)viewW, (float)viewH, 0, 1};
         ctx->RSSetViewports(1, &vp);
         ctx->ClearRenderTargetView(rtv, color);
 
@@ -136,7 +140,7 @@ int wmain(int argc, wchar_t** argv) {
             {18, "back", [] { key(VK_ESCAPE, true); key(VK_ESCAPE, false); }},
             {21, "unload", [] { key(VK_CONTROL, true); key('L', true); key('L', false); key(VK_CONTROL, false); }},
         };
-        if (step < (int)(sizeof(actions) / sizeof(actions[0])) && t > actions[step].at) {
+        if (!manual && step < (int)(sizeof(actions) / sizeof(actions[0])) && t > actions[step].at) {
             actions[step].run();
             std::printf("action %s\n", actions[step].name);
             std::fflush(stdout);

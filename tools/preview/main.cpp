@@ -107,6 +107,7 @@ int main(int argc, char** argv) {
     state.latestVersion = "0.2.0";
     state.updateAvailable = std::getenv("UPDATE") != nullptr;
     state.gameVersion = "1.26.31";
+    state.managerInstalled = std::getenv("MANAGER") != nullptr;
     state.changelog = "Neues Menü mit weichem Scrollen\nLatenz-Overlay und WLAN-Modul\nNo View Bobbing\nServer-Regeln für Hive und Lifeboat\nBessere Standardwerte für FPS";
     state.versions = {{"1.26.31", false, true, true, true},
                       {"1.26.30", false, false, true, false},

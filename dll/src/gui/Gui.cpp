@@ -670,7 +670,7 @@ static void drawInfo() {
 
     widgets::sectionTitle("Minecraft");
     auto st = sigs::stats();
-    ImGui::Text(i18n::tr("Version: %s"), st.gameVersion.c_str());
+    ImGui::Text(i18n::tr("Version: %s"), i18n::tr(st.gameVersion.c_str()));
     ImGui::Text(i18n::tr("Signatures: %d of %d found"), st.found, st.total);
     ImGui::TextColored(t.textDim, i18n::tr("Source: %s"), i18n::tr(st.source.c_str()));
     int unavailable = 0;

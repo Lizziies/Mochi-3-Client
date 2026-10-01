@@ -12,7 +12,7 @@ uintptr_t address(const std::string& name);
 int offset(const std::string& name, int fallback = -1);
 
 struct Stats {
-    std::string gameVersion = "unbekannt";
+    std::string gameVersion = "unknown";
     std::string source = "–";
     int found = 0;
     int total = 0;

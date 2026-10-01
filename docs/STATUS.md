@@ -1,5 +1,36 @@
 # Status
 
+Stand: 2026-10-01 abends. Wird nach jedem Arbeitsschritt aktualisiert.
+
+## Überblick
+
+| Bereich | Stand | Anmerkung |
+|---|---|---|
+| DLL-Kern, Renderer (DX11/DX12), Crash-Guard, Config | gebaut, unter Wine getestet | DX12 und echtes Minecraft noch nicht getestet |
+| Client-Menü | fertig im Look | 4 Seiten, Kategorie-Pillen, Animationen, Englisch/Deutsch |
+| Module | 110 registriert von 135 Ziel | 42 laufen ohne Signaturen (Overlay), 68 warten auf Signaturen |
+| Spiel-Schnittstelle (SDK) | gebaut von Session B | Demo-Daten laufen, Live-Provider wartet auf Signaturen |
+| Launcher | lauffähig | Fenster, Injector, Updater, Auto-Inject, Selbst-Update, Versionsverwaltung über LeviLauncher |
+| Release-Pipeline | geschrieben, noch nie gelaufen | GitHub Action baut DLL und Launcher mit MinGW, Prüfsummen |
+| Sprachen | fertig für Launcher und Client | B's neue Module noch teils deutsch, Übersetzungs-Durchlauf offen |
+| Signaturen | 0 | nur am PC mit Minecraft + Ghidra möglich |
+| Test im echten Minecraft | offen | Anleitung in `docs/PC_TEST.md` |
+| Lua-Scripting | nicht gebaut | |
+| Version-Switcher | über LeviLauncher | eigener Downloader nicht geplant für Release 1 |
+
+## Nächste Schritte
+
+1. Test zuhause nach `docs/PC_TEST.md` (kein Terminal nötig), Log schicken.
+2. Signaturen am PC finden (Claude Code), `sigs/<version>.json` committen.
+3. Deutsche Texte der neuen Module übersetzen (Durchlauf, wenn Session B fertig ist).
+4. Pre-Release `v0.1.0-alpha.1` erzeugen, damit die exe zum Download bereitliegt.
+
+---
+
+## Frühere Einträge
+
+# Status
+
 Stand: 2026-10-01. Diese Datei wird nach jedem Arbeitsschritt aktualisiert.
 
 ## Gesamtfortschritt: ca. 15 %
