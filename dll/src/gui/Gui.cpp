@@ -456,6 +456,17 @@ static void drawTopBar(float right) {
     ImGui::SetCursorScreenPos({rowMin.x, rowMax.y + 14 * s});
 }
 
+static std::string fitText(ImFont* font, float size, std::string text, float maxW) {
+    auto width = [&](const std::string& t) { return font->CalcTextSizeA(size, FLT_MAX, 0.f, t.c_str()).x; };
+    if (width(text) <= maxW) return text;
+    while (!text.empty()) {
+        do text.pop_back();
+        while (!text.empty() && (static_cast<unsigned char>(text.back()) & 0xC0) == 0x80);
+        if (width(text + "…") <= maxW) break;
+    }
+    return text + "…";
+}
+
 static void smoothScroll() {
     ImGuiID id = ImGui::GetCurrentWindow()->ID;
     auto* store = ImGui::GetStateStorage();
@@ -740,18 +751,16 @@ static void drawSettingsPanel(ImVec2 origin, ImVec2 size) {
         float h = 52 * s;
         dl->AddRectFilled(cp, cp + ImVec2(half, h), theme::col(t.surfaceHover, 0.55f), 12 * s);
         dl->AddText(fonts::bold(), 14.5f * s, cp + ImVec2(12 * s, 8 * s), theme::col(t.text), i18n::tr("Hold mode"));
-        dl->PushClipRect(cp, cp + ImVec2(half - 62 * s, h), true);
-        dl->AddText(fonts::regular(), 12.f * s, cp + ImVec2(12 * s, 28 * s), theme::col(t.textDim), i18n::tr("Only on while the key is held"));
-        dl->PopClipRect();
+        dl->AddText(fonts::regular(), 12.f * s, cp + ImVec2(12 * s, 28 * s), theme::col(t.textDim),
+                    fitText(fonts::regular(), 12.f * s, i18n::tr("Only on while the key is held"), half - 74 * s).c_str());
         ImGui::SetCursorScreenPos(cp + ImVec2(half - 54 * s, 14 * s));
         widgets::toggle("hold", m.hold().b);
 
         ImVec2 kp = cp + ImVec2(half + 10 * s, 0);
         dl->AddRectFilled(kp, kp + ImVec2(half, h), theme::col(t.surfaceHover, 0.55f), 12 * s);
         dl->AddText(fonts::bold(), 14.5f * s, kp + ImVec2(12 * s, 8 * s), theme::col(t.text), i18n::tr("Keybind"));
-        dl->PushClipRect(kp, kp + ImVec2(half - 118 * s, h), true);
-        dl->AddText(fonts::regular(), 12.f * s, kp + ImVec2(12 * s, 28 * s), theme::col(t.textDim), i18n::tr("Click, then press a key"));
-        dl->PopClipRect();
+        dl->AddText(fonts::regular(), 12.f * s, kp + ImVec2(12 * s, 28 * s), theme::col(t.textDim),
+                    fitText(fonts::regular(), 12.f * s, i18n::tr("Click, then press a key"), half - 130 * s).c_str());
         ImGui::SetCursorScreenPos(kp + ImVec2(half - 112 * s, 12 * s));
         widgets::keyCapture("key", m.keybind().i);
         ImGui::EndChild();
@@ -976,6 +985,10 @@ static void drawInfo() {
         widgets::hint("Shown behind your own name in Better Chat and in the Tab List. Only you see it, nothing is sent to the server.");
         for (auto& st : cs->settings())
             if (st.shown() && st.id != "key") widgets::setting(st);
+        if (auto* chat = modules::find("Better Chat")) {
+            if (!chat->available()) widgets::hint("Better Chat needs game data for this version. Until then the tag only shows in the Tab List.");
+            else if (!chat->userEnabled() && widgets::button("Turn on Better Chat", {0, 0}, true)) chat->setEnabled(true);
+        }
     }
 
     widgets::sectionTitle("Keys");

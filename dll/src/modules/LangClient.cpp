@@ -80,6 +80,8 @@ const i18n::Entry entries[] = {
     {"Command 12", "Befehl 12"},
     {"Text 12", "Text 12"},
     {"Profile 12", "Profil 12"},
+    {"Better Chat needs game data for this version. Until then the tag only shows in the Tab List.", "Better Chat braucht Spieldaten für diese Version. Bis dahin erscheint das Tag nur in der Tab-Liste."},
+    {"Turn on Better Chat", "Better Chat einschalten"},
 };
 
 i18n::Table table(entries);
