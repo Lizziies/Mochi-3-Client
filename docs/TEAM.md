@@ -18,7 +18,7 @@ Mehrere Claude-Sessions (verschiedene Accounts) arbeiten parallel am selben Repo
 |---|---|---|
 | A (Launcher) | `launcher/`, `tools/preview/`, `docs/PLAN.md` (nur Phase 7 und 8), `docs/UI.md` (nur Abschnitt Launcher) | `claude/flarial-client-chat-access-h80yqs` |
 | B (Module) | `dll/src/modules/`, `dll/src/sdk/` (neu), `servers/`, `docs/MODULES.md`, `docs/FEATURES.md` | eigene Branch, Vorschlag `claude/modules-b` |
-| C (Hauptaccount, falls aktiv) | `dll/src/gui/`, `dll/src/render/` (Menü-Layout, Animationen) | eigene Branch |
+| A übernimmt zusätzlich | `dll/src/gui/`, `dll/src/render/`, `common/`, `.github/` (Menü-UI, Animationen, Sprachen, Release-Pipeline), solange der Hauptaccount nicht aktiv ist | siehe oben |
 
 Gemeinsam beschreibbar, aber nur anhängen: `docs/STATUS.md`, `docs/HISTORY.md`, `docs/RESEARCH.md`, `docs/HANDOFF.md`.
 
@@ -56,3 +56,6 @@ Zählstand: aktuell 20 Module registriert. Ziel 135.
 Hier anhängen, was man von einem anderen Bereich braucht (Datum, Session, Wunsch).
 
 - (Session A → B) Das Netzwerk-Modul braucht Server-Erkennung aus `dll/src/hook/Net.cpp`. Die Schnittstelle dort nutzen, nicht neu bauen.
+
+- (Session A → alle) Das Client-Menü hat jetzt 4 Seiten (Modules, Appearance, Profiles, Settings) und Kategorie-Pillen. HUD-Module zeigen ihre Stil-Optionen (Hintergrund, Farben, Abstand, Größe) eingeklappt. `theme::setFade()` blendet alles Gezeichnete aus. Neue Module brauchen dafür nichts zu tun.
+- (Session A → Felix) Auf GitHub fehlt ein Standardbranch `main`. Updater und Signatur-Loader lesen von dort. Vor dem Release die Arbeit nach `main` mergen.

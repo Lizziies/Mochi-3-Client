@@ -1,0 +1,49 @@
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: install toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake g++-mingw-w64-x86-64-posix
+
+      - name: build
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          cat > mingw.cmake <<'EOF'
+          set(CMAKE_SYSTEM_NAME Windows)
+          set(CMAKE_SYSTEM_PROCESSOR x86_64)
+          set(CMAKE_C_COMPILER x86_64-w64-mingw32-gcc-posix)
+          set(CMAKE_CXX_COMPILER x86_64-w64-mingw32-g++-posix)
+          set(CMAKE_RC_COMPILER x86_64-w64-mingw32-windres)
+          set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+          EOF
+          for part in dll launcher; do
+            cmake -S $part -B build/$part -DCMAKE_TOOLCHAIN_FILE=$PWD/mingw.cmake -DCMAKE_BUILD_TYPE=Release -DMOCHI_VERSION="$version"
+            cmake --build build/$part -j"$(nproc)"
+          done
+          mkdir out
+          cp build/dll/Mochi.dll build/launcher/MochiLauncher.exe out/
+          cd out
+          sha256sum Mochi.dll MochiLauncher.exe > checksums.txt
+
+      - name: publish
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            out/Mochi.dll
+            out/MochiLauncher.exe
+            out/checksums.txt
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          generate_release_notes: true

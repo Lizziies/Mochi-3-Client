@@ -8,6 +8,8 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     set(CMAKE_BUILD_TYPE Release)
 endif()
 
+set(MOCHI_VERSION "0.1.0" CACHE STRING "Client version")
+
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS src/*.cpp)
 list(APPEND SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/../common/I18n.cpp)
 file(GLOB MINHOOK_SOURCES lib/minhook/src/*.c lib/minhook/src/hde/hde64.c)
@@ -33,6 +35,7 @@ target_include_directories(Mochi PRIVATE
 )
 
 target_compile_definitions(Mochi PRIVATE
+    MOCHI_VERSION="${MOCHI_VERSION}"
     WIN32_LEAN_AND_MEAN
     NOMINMAX
     UNICODE

@@ -1,5 +1,6 @@
 #include "Ui.hpp"
 
+#include "Build.hpp"
 #include "I18n.hpp"
 
 #include <algorithm>
@@ -208,7 +209,25 @@ void card(ImDrawList* dl, ImVec2 min, ImVec2 max, ImVec4 fill = surface) {
 }
 
 Page lastPage = Page::Start;
-float pageT = 1.f;
+float pageAge = 10.f;
+
+struct Reveal {
+    ImDrawList* dl;
+    int start;
+    float shift;
+    float before;
+
+    Reveal(ImDrawList* list, int index) : dl(list), start(list->VtxBuffer.Size), before(fade) {
+        float e = easeOut((pageAge - index * 0.07f) / 0.38f);
+        shift = (1.f - e) * 18.f;
+        fade = before * e;
+    }
+
+    ~Reveal() {
+        for (int i = start; i < dl->VtxBuffer.Size; i++) dl->VtxBuffer[i].pos.y += shift;
+        fade = before;
+    }
+};
 
 const char* playLabel(Phase p) {
     switch (p) {
@@ -237,20 +256,19 @@ void sidebar(ImDrawList* dl, State& s, Events& ev) {
         {tr("Home"), Icon::Play, Page::Start},
         {tr("Versions"), Icon::Layers, Page::Versions},
         {tr("Settings"), Icon::Sliders, Page::Settings},
-        {tr("About"), Icon::Info, Page::About},
     };
 
     float rowH = 48.f, top = 118.f;
     float& marker = *ImGui::GetStateStorage()->GetFloatRef(ImGui::GetID("marker"), top);
     int active = 0;
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 3; i++)
         if (items[i].page == s.page) active = i;
     marker = approach(marker, top + active * (rowH + 4.f), 14.f);
 
     dl->AddRectFilled({14.f, marker}, {218.f, marker + rowH}, col(accent, 0.16f), 14.f);
     dl->AddRectFilled({14.f, marker + 12.f}, {18.f, marker + rowH - 12.f}, col(accent), 3.f);
 
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 3; i++) {
         float y = top + i * (rowH + 4.f);
         bool hovered, held;
         if (region(items[i].name, {14.f, y}, {218.f, y + rowH}, hovered, held)) s.page = items[i].page;
@@ -308,6 +326,7 @@ void progressBar(ImDrawList* dl, ImVec2 min, ImVec2 max, float value, bool indet
 }
 
 void hero(ImDrawList* dl, State& s, Events& ev) {
+    Reveal reveal(dl, 0);
     ImVec2 min{264.f, 62.f}, max{928.f, 292.f};
     gradient(dl, min, max, mix(accent, deep, 0.15f), deep, 24.f);
 
@@ -337,6 +356,7 @@ void hero(ImDrawList* dl, State& s, Events& ev) {
 }
 
 void infoCard(ImDrawList* dl, State& s, Events& ev) {
+    Reveal reveal(dl, 2);
     ImVec2 min{264.f, 312.f}, max{540.f, 576.f};
     card(dl, min, max);
     label(dl, bold, 18.f, {min.x + 22.f, min.y + 18.f}, col(text), "Status");
@@ -362,6 +382,7 @@ void infoCard(ImDrawList* dl, State& s, Events& ev) {
 }
 
 void changelogCard(ImDrawList* dl, State& s) {
+    Reveal reveal(dl, 3);
     ImVec2 min{556.f, 312.f}, max{928.f, 576.f};
     card(dl, min, max);
     std::string title = i18n::fmt("What's new in {}", s.latestVersion.empty() ? s.clientVersion : s.latestVersion);
@@ -386,9 +407,13 @@ void header(ImDrawList* dl, const char* title, const char* subtitle) {
 }
 
 void versions(ImDrawList* dl, State& s) {
-    header(dl, tr("Versions"), tr("Which Minecraft version do you want to play?"));
+    {
+        Reveal r(dl, 0);
+        header(dl, tr("Versions"), tr("Which Minecraft version do you want to play?"));
+    }
     float y = 136.f;
     for (size_t i = 0; i < s.versions.size() && y < 450.f; i++, y += 70.f) {
+        Reveal r(dl, int(i) + 1);
         auto& v = s.versions[i];
         ImVec2 min{264.f, y}, max{928.f, y + 60.f};
         card(dl, min, max);
@@ -405,6 +430,7 @@ void versions(ImDrawList* dl, State& s) {
         }
     }
 
+    Reveal note(dl, 6);
     ImVec2 min{264.f, 480.f}, max{928.f, 576.f};
     dl->AddRectFilled(min, max, col(warn, 0.08f), 18.f);
     dl->AddRect(min, max, col(warn, 0.35f), 18.f, 0, 1.5f);
@@ -431,62 +457,69 @@ int segment(const char* id, ImVec2 pos, const char* const* names, int count, int
     return result;
 }
 
-bool settingRow(ImDrawList* dl, const char* id, float y, const char* title, const char* desc, bool& value) {
-    ImVec2 min{264.f, y}, max{928.f, y + 68.f};
+bool settingRow(ImDrawList* dl, const char* id, float y, int index, const char* title, const char* desc, bool& value) {
+    Reveal r(dl, index);
+    ImVec2 min{264.f, y}, max{928.f, y + 56.f};
     card(dl, min, max);
-    label(dl, bold, 17.f, {min.x + 22.f, min.y + 13.f}, col(text), title);
-    label(dl, regular, 14.f, {min.x + 22.f, min.y + 38.f}, col(dim), desc);
-    return toggle(id, {max.x - 22.f - 48.f, min.y + 21.f}, value);
+    label(dl, bold, 16.f, {min.x + 22.f, min.y + 9.f}, col(text), title);
+    label(dl, regular, 14.f, {min.x + 22.f, min.y + 31.f}, col(dim), desc);
+    return toggle(id, {max.x - 22.f - 48.f, min.y + 15.f}, value);
 }
 
 void settings(ImDrawList* dl, State& s, Events& ev) {
-    header(dl, tr("Settings"), tr("How the launcher should behave."));
+    {
+        Reveal r(dl, 0);
+        header(dl, tr("Settings"), tr("How the launcher should behave."));
+    }
     bool changed = false;
 
-    ImVec2 lmin{264.f, 136.f}, lmax{928.f, 204.f};
-    card(dl, lmin, lmax);
-    label(dl, bold, 17.f, {lmin.x + 22.f, lmin.y + 13.f}, col(text), tr("Language"));
-    label(dl, regular, 14.f, {lmin.x + 22.f, lmin.y + 38.f}, col(dim), tr("Auto follows your Windows language."));
-    const char* names[] = {tr("Auto"), "English", "Deutsch"};
-    int now = int(i18n::chosen());
-    int pick = segment("lang", {lmax.x - 22.f - 276.f, lmin.y + 18.f}, names, 3, now);
-    if (pick != now) i18n::choose(i18n::Lang(pick));
-
-    changed |= settingRow(dl, "beta", 214.f, tr("Beta updates"), tr("Get new versions earlier, even if they may still have bugs."), s.settings.beta);
-    changed |= settingRow(dl, "auto", 292.f, tr("Connect automatically"), tr("Connects the client as soon as Minecraft has started."), s.settings.autoInject);
-    changed |= settingRow(dl, "close", 370.f, tr("Close launcher afterwards"), tr("Closes this window once the client has loaded."), s.settings.closeAfterInject);
-
-    ImVec2 min{264.f, 448.f}, max{928.f, 548.f};
-    card(dl, min, max);
-    label(dl, bold, 17.f, {min.x + 22.f, min.y + 13.f}, col(text), tr("Custom DLL (for developers)"));
-    label(dl, regular, 14.f, {min.x + 22.f, min.y + 38.f}, col(dim), tr("Leave empty for the normal version."));
-    ImVec2 fmin{min.x + 22.f, min.y + 62.f}, fmax{max.x - 150.f, min.y + 90.f};
-    dl->AddRectFilled(fmin, fmax, col(hex(0x1A0F1E)), 10.f);
-    ImGui::SetCursorScreenPos({fmin.x + 10.f, fmin.y + 4.f});
-    ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
-    ImGui::PushStyleColor(ImGuiCol_Text, text);
-    ImGui::SetNextItemWidth(fmax.x - fmin.x - 20.f);
-    if (ImGui::InputText("##dll", s.dllPath, sizeof(s.dllPath))) {
-        s.settings.customDll = s.dllPath;
-        changed = true;
+    {
+        Reveal r(dl, 1);
+        ImVec2 lmin{264.f, 130.f}, lmax{928.f, 186.f};
+        card(dl, lmin, lmax);
+        label(dl, bold, 16.f, {lmin.x + 22.f, lmin.y + 9.f}, col(text), tr("Language"));
+        label(dl, regular, 14.f, {lmin.x + 22.f, lmin.y + 31.f}, col(dim), tr("Auto follows your Windows language."));
+        const char* names[] = {tr("Auto"), "English", "Deutsch"};
+        int now = int(i18n::chosen());
+        int pick = segment("lang", {lmax.x - 22.f - 276.f, lmin.y + 12.f}, names, 3, now);
+        if (pick != now) i18n::choose(i18n::Lang(pick));
     }
-    ImGui::PopStyleColor(2);
-    if (button("browse", {max.x - 134.f, min.y + 60.f}, {max.x - 22.f, min.y + 92.f}, tr("Browse"), false)) ev.browseDll = true;
+
+    changed |= settingRow(dl, "beta", 194.f, 2, tr("Beta updates"), tr("Get new versions earlier, even if they may still have bugs."), s.settings.beta);
+    changed |= settingRow(dl, "auto", 258.f, 3, tr("Connect automatically"), tr("Connects the client as soon as Minecraft has started."), s.settings.autoInject);
+    changed |= settingRow(dl, "close", 322.f, 4, tr("Close launcher afterwards"), tr("Closes this window once the client has loaded."), s.settings.closeAfterInject);
+
+    {
+        Reveal r(dl, 5);
+        ImVec2 min{264.f, 386.f}, max{928.f, 470.f};
+        card(dl, min, max);
+        label(dl, bold, 16.f, {min.x + 22.f, min.y + 9.f}, col(text), tr("Custom DLL (for developers)"));
+        label(dl, regular, 14.f, {min.x + 22.f, min.y + 31.f}, col(dim), tr("Leave empty for the normal version."));
+        ImVec2 fmin{min.x + 22.f, min.y + 50.f}, fmax{max.x - 150.f, min.y + 76.f};
+        dl->AddRectFilled(fmin, fmax, col(hex(0x1A0F1E)), 10.f);
+        ImGui::SetCursorScreenPos({fmin.x + 10.f, fmin.y + 3.f});
+        ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
+        ImGui::PushStyleColor(ImGuiCol_Text, text);
+        ImGui::SetNextItemWidth(fmax.x - fmin.x - 20.f);
+        if (ImGui::InputText("##dll", s.dllPath, sizeof(s.dllPath))) {
+            s.settings.customDll = s.dllPath;
+            changed = true;
+        }
+        ImGui::PopStyleColor(2);
+        if (button("browse", {max.x - 134.f, min.y + 48.f}, {max.x - 22.f, min.y + 78.f}, tr("Browse"), false)) ev.browseDll = true;
+    }
+
+    {
+        Reveal r(dl, 6);
+        ImVec2 min{264.f, 482.f}, max{928.f, 580.f};
+        card(dl, min, max);
+        pixelHeart(dl, {min.x + 20.f, min.y + 18.f}, 3.f);
+        label(dl, bold, 16.f, {min.x + 62.f, min.y + 14.f}, col(text), (std::string("Mochi Launcher ") + build::version).c_str());
+        label(dl, regular, 13.f, {min.x + 62.f, min.y + 38.f}, col(dim), tr("Mochi is an independent project and is not affiliated with Mojang or Microsoft."));
+        if (button("logs", {min.x + 22.f, max.y - 38.f}, {min.x + 162.f, max.y - 10.f}, tr("Open logs"), false)) ev.openLogs = true;
+        if (button("folder", {min.x + 172.f, max.y - 38.f}, {min.x + 312.f, max.y - 10.f}, tr("Open folder"), false)) ev.openFolder = true;
+    }
     ev.settingsChanged |= changed;
-}
-
-void about(ImDrawList* dl, Events& ev) {
-    ImVec2 min{264.f, 62.f}, max{928.f, 330.f};
-    card(dl, min, max);
-    pixelHeart(dl, {min.x + 34.f, min.y + 34.f}, 8.f);
-    label(dl, bold, 32.f, {min.x + 150.f, min.y + 40.f}, col(text), "Mochi Launcher");
-    label(dl, regular, 16.f, {min.x + 150.f, min.y + 84.f}, col(dim), tr("Free PvP client for Minecraft Bedrock on Windows."));
-    label(dl, regular, 15.f, {min.x + 34.f, min.y + 160.f}, col(dim), tr("Mochi is an independent project and is not affiliated with Mojang or Microsoft."));
-    label(dl, regular, 15.f, {min.x + 34.f, min.y + 190.f}, col(dim), tr("The client only adds helpful displays and gives no unfair advantage."));
-    label(dl, regular, 15.f, {min.x + 34.f, min.y + 220.f}, col(dim), tr("Your antivirus may warn about injectors. That is normal, only download from the official page."));
-
-    if (button("logs", {264.f, 354.f}, {464.f, 396.f}, tr("Open logs"), false)) ev.openLogs = true;
-    if (button("folder", {480.f, 354.f}, {680.f, 396.f}, tr("Open folder"), false)) ev.openFolder = true;
 }
 
 }
@@ -509,19 +542,15 @@ void draw(State& s, Events& ev) {
 
     if (s.page != lastPage) {
         lastPage = s.page;
-        pageT = 0.f;
+        pageAge = 0.f;
     }
-    pageT = std::min(1.f, pageT + ImGui::GetIO().DeltaTime / 0.28f);
-    float e = easeOut(pageT);
+    pageAge += ImGui::GetIO().DeltaTime;
 
     fade = 1.f;
     sidebar(dl, s, ev);
     titlebar(dl, ev);
 
-    fade = e;
     ImGui::SetCursorScreenPos({0, 0});
-    float shift = (1.f - e) * 26.f;
-    int start = dl->VtxBuffer.Size;
     switch (s.page) {
     case Page::Start:
         hero(dl, s, ev);
@@ -530,10 +559,8 @@ void draw(State& s, Events& ev) {
         break;
     case Page::Versions: versions(dl, s); break;
     case Page::Settings: settings(dl, s, ev); break;
-    case Page::About: about(dl, ev); break;
+    case Page::About: break;
     }
-    for (int i = start; i < dl->VtxBuffer.Size; i++) dl->VtxBuffer[i].pos.x += shift;
-    fade = 1.f;
 
     ImGui::End();
     ImGui::PopStyleColor();

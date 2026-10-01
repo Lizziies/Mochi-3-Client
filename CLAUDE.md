@@ -21,6 +21,7 @@ Arbeitstitel "Mochi" — vor dem ersten Release umbenennen (global suchen/ersetz
 - `docs/SERVERS.md` — per-server module rules, auto-blocking on join.
 - `docs/STATUS.md` — what works, percent done, next steps. Update after every work step.
 - `docs/RESEARCH.md` — other clients, Felix's wishes. Put every new insight here.
+- `docs/UPDATES.md` — how client, launcher, signatures and Minecraft updates work, downgrade plan.
 - `docs/LAUNCH.md` — what makes Mochi stand out, release checklist, open risks.
 
 ## Hard rules
@@ -31,6 +32,7 @@ Arbeitstitel "Mochi" — vor dem ersten Release umbenennen (global suchen/ersetz
 4. Never distribute Minecraft files. The version switcher downloads only through the user's own Microsoft entitlement.
 5. A missing signature must never crash the game. The module goes grey in the GUI with "not available on this version".
 6. Every hook body runs inside the crash guard (see PLAN.md, core/guard).
+7. A game module only counts as done when it changes the game while it is on: its hook must be installed and verified (log line plus visible effect), not just drawn in the menu. If the hook is missing the module is grey, never silently inactive. Overlay modules are the only ones allowed to be pure drawing.
 
 ## Code style
 
