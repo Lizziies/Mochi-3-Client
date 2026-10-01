@@ -11,7 +11,7 @@ constexpr std::string_view core[] = {
     "CPS", "FPS", "Ping Counter", "Keystrokes", "Armor HUD", "Potion HUD", "Coordinates", "Toggle Sprint",
     "Toggle Sneak", "Reach Counter", "Combo Counter", "Zoom", "Fullbright", "Freelook", "FOV Changer", "Hurt Color",
     "No Hurt Cam", "No View Bobbing", "Custom Crosshair", "Block Outline", "Animations", "Block Hit", "Render Options", "Auto GG",
-    "Scoreboard", "GUI Scale", "Instant Hit", "Low Latency", "Latency Meter", "Network Monitor", "Frame Limiter", "Hive Utils",
+    "Scoreboard", "GUI Scale", "Instant Hit", "Low Latency", "Latency Meter", "Network Monitor", "Frame Limiter", "Performance Lock", "Hive Utils",
 };
 
 constexpr std::string_view expected[] = {

@@ -1,4 +1,5 @@
 #include "Config.hpp"
+#include "modules/SelfTest.hpp"
 #include "Log.hpp"
 #include "Paths.hpp"
 #include "gui/Theme.hpp"
@@ -64,6 +65,7 @@ void load() {
 }
 
 void save() {
+    if (selftest::active()) return;
     json mods = json::object();
     for (auto& m : modules::all()) mods[m->name()] = m->save();
     write(fileFor(active), {{"theme", theme::save()}, {"modules", mods}});

@@ -110,6 +110,9 @@ static void deriveFromPlayer() {
 
 constexpr double hitGap = 0.48;
 
+// the target keeps its damage immunity for 10 ticks, a second click inside that is no new hit
+constexpr double hitWindow = 0.48;
+
 static void absorb(const Event& e) {
     auto& c = cur.combat;
     switch (e.kind) {

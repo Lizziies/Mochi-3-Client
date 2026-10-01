@@ -18,7 +18,7 @@ public:
     Keystrokes()
         : HudModule("Keystrokes", "Shows WASD, space and the mouse buttons live. Glow, borders, custom texts, spacing and animation speed.", {"hud-self"},
                     {0.01f, 0.62f}) {
-        sub("Own values");
+        sub("Info displays");
         background_.b = false;
         cpsFormat_.visible = [this] { return cpsInside_.b; };
         glowColor_.visible = [this] { return glowPressed_.b; };

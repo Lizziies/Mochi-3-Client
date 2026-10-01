@@ -99,6 +99,7 @@ private:
             face(e);
             s.tab.push_back(e);
         }
+        s.tab.push_back({"MochiPlayer", 32});
         opponentHp_ = 20.f;
     }
 
@@ -468,9 +469,9 @@ private:
         }
         if (t_ < nextChat_) return;
         static const char* lines[] = {"<Luna> gg", "<Max> who has the pearl?", "§eThe game starts in 5 seconds", "<Kiki> nice kill",
-                                      "§6Round 3 of 5 is starting", "<Noah> lag?", "§aMochi Wars: You won!"};
+                                      "§6Round 3 of 5 is starting", "<Noah> lag?", "§aMochi Wars: You won!", "<MochiPlayer> good luck!"};
         Event e{EventKind::Chat};
-        e.text = lines[chatIdx_++ % 7];
+        e.text = lines[chatIdx_++ % 8];
         ev.push_back(e);
         nextChat_ = t_ + 4.0 + dist_(rng_) * 4.0;
         (void)s;

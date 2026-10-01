@@ -89,7 +89,7 @@ public:
     FallPredictor()
         : GameText("Fall Predictor", "Shows how far you have fallen and how much damage you would take if you landed now.", need::player, need::sigs({"LocalPlayer"}),
                    {"hud-self"}, {0.45f, 0.40f}) {
-        sub("Own values");
+        sub("Info displays");
         warn_.visible = [this] { return colored_.b; };
     }
 

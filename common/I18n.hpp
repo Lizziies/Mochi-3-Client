@@ -33,6 +33,7 @@ void load();
 void save();
 
 const char* tr(const char* en);
+bool known(const char* en);
 
 template <class... Args>
 std::string fmt(const char* en, Args&&... args) {

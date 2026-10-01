@@ -87,6 +87,8 @@ void save() {
     std::ofstream(file(), std::ios::trunc) << code(pick);
 }
 
+bool known(const char* en) { return german().count(en) > 0; }
+
 const char* tr(const char* en) {
     if (active() != Lang::German) return en;
     auto& map = german();

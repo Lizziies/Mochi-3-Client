@@ -265,13 +265,15 @@ static void loop(int gen) {
             port = cfg.port;
             bool ok = resolve(host, port, method == Method::Icmp, target);
             if (ok && method == Method::RakNet) ok = raknet.open(reinterpret_cast<sockaddr*>(&target.addr), target.len);
-            std::scoped_lock g(lock);
-            samples.clear();
-            spikes.clear();
-            shown = Snapshot{};
-            shown.running = true;
-            shown.resolved = ok;
-            shown.target = host;
+            {
+                std::scoped_lock g(lock);
+                samples.clear();
+                spikes.clear();
+                shown = Snapshot{};
+                shown.running = true;
+                shown.resolved = ok;
+                shown.target = host;
+            }
             if (!ok) {
                 wanted.clear();
                 sleepWhile(2000, gen);

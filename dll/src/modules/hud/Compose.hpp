@@ -32,7 +32,7 @@ public:
     StatsHud()
         : HudModule("Stats HUD", "One block with selectable lines: FPS, CPS, Ping, position, health, clock, RAM.",
                     {"hud-self"}, {0.01f, 0.36f}) {
-        sub("Own values");
+        sub("Info displays");
     }
 
     void onDisable() override {
@@ -125,7 +125,7 @@ public:
     Watermark()
         : HudModule("Watermark", "Client logo with heart and version as text, pill or gradient.", {"cosmetic"},
                     {0.005f, 0.005f}) {
-        sub("Own values");
+        sub("Info displays");
         background_.b = false;
         text_.visible = [this] { return custom_.b; };
     }
@@ -190,7 +190,7 @@ public:
     DebugMenu()
         : Module("Debug Menu", "Java-style debug display (F3) with performance, position, world, target, system, server and time blocks and a frametime graph.",
                  Category::Hud, {"hud-self"}) {
-        sub("Own values");
+        sub("Info displays");
         graphWidth_.visible = [this] { return graph_.b; };
         graphHeight_.visible = [this] { return graph_.b; };
         graphAnchor_.visible = [this] { return graph_.b; };

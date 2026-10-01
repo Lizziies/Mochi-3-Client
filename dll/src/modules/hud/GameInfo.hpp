@@ -25,7 +25,7 @@ public:
     Coordinates()
         : GameList("Coordinates", "Shows your position, optionally with chunk, biome, facing and Nether conversion.", need::player,
                    need::sigs({"LocalPlayer"}), {"hud-self"}, {0.01f, 0.30f}) {
-        sub("Own values");
+        sub("Info displays");
     }
 
     void onFrame() override {
@@ -128,7 +128,7 @@ public:
     DirectionHud()
         : GameList("Direction HUD", "Compass with direction, degrees and view angle, as text or as a bar with waypoints.", need::player,
                    need::sigs({"LocalPlayer"}), {"hud-self"}, {0.40f, 0.10f}) {
-        sub("Own values");
+        sub("Info displays");
         for (Setting* st : {&width_, &pxPerDeg_, &fade_, &tickStep_, &ordinals_, &cardinalSize_, &ordinalSize_, &degrees_, &waypoints_, &arrowColor_, &cardinalColor_,
                             &ordinalColor_, &tickColor_})
             st->visible = [this] { return style_.i == 1; };
@@ -250,7 +250,7 @@ public:
     SpeedDisplay()
         : GameText("Speed Display", "Shows your speed in blocks per second.", need::player, need::sigs({"LocalPlayer"}), {"hud-self"},
                    {0.01f, 0.34f}) {
-        sub("Own values");
+        sub("Info displays");
     }
 
     void onFrame() override {
@@ -293,7 +293,7 @@ class LookAngles : public GameText {
 public:
     LookAngles()
         : GameText("Look Angles", "Shows yaw and pitch of your view direction.", need::player, need::sigs({"LocalPlayer"}), {"hud-self"}, {0.01f, 0.38f}) {
-        sub("Own values");
+        sub("Info displays");
     }
 
 protected:
@@ -316,7 +316,7 @@ public:
     HealthDisplay()
         : GameText("Health Display", "Shows your health as a number, hearts or bar, with absorption.", need::player, need::sigs({"LocalPlayer"}),
                    {"hud-self"}, {0.01f, 0.42f}) {
-        sub("Own values");
+        sub("Info displays");
     }
 
 protected:
@@ -350,7 +350,7 @@ public:
     ExperienceInfo()
         : GameList("Experience Info", "Shows your level and the progress to the next level.", need::player, need::sigs({"LocalPlayer"}),
                    {"hud-self"}, {0.01f, 0.46f}) {
-        sub("Own values");
+        sub("Info displays");
         percent_.visible = [this] { return mode_.i == 0 || mode_.i == 1; };
         bar_.visible = [this] { return mode_.i == 0 || mode_.i == 1; };
     }
@@ -398,7 +398,7 @@ class DayCounter : public GameText {
 public:
     DayCounter()
         : GameText("Day Counter", "Shows the game day and the world time.", need::world, need::sigs({"Level"}), {"hud-self"}, {0.01f, 0.50f}) {
-        sub("Own values");
+        sub("Info displays");
     }
 
     void onFrame() override {
@@ -430,7 +430,7 @@ private:
 class IpDisplay : public TextHud {
 public:
     IpDisplay() : TextHud("IP Display", "Shows the server address. Can be hidden for streamers.", {"hud-self"}, {0.01f, 0.54f}) {
-        sub("Own values");
+        sub("Info displays");
     }
 
     void onKey(KeyEvent& ev) override {
@@ -467,7 +467,7 @@ public:
     PackDisplay()
         : GameList("Pack Display", "Shows which resource packs are active.", need::world, need::sigs({"Level", "PackList"}), {"hud-self"},
                    {0.01f, 0.58f}) {
-        sub("Own values");
+        sub("Info displays");
     }
 
 protected:
@@ -497,7 +497,7 @@ public:
     HeldItem()
         : GameList("Held Item", "Shows the item in your hand with count and durability.", need::inventory, need::sigs({"LocalPlayer", "Inventory"}),
                    {"hud-self"}, {0.01f, 0.62f}) {
-        sub("Own values");
+        sub("Info displays");
     }
 
 protected:

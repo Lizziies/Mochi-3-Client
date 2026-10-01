@@ -7,6 +7,8 @@
 #include "gui/Theme.hpp"
 #include "hook/Input.hpp"
 #include "modules/HudModule.hpp"
+#include "modules/Manager.hpp"
+#include "modules/client/ClientSettings.hpp"
 #include "modules/common/Colors.hpp"
 #include "modules/common/Icons.hpp"
 #include "modules/common/Nick.hpp"
@@ -300,7 +302,8 @@ protected:
             dl->PushClipRect(o + ImVec2(0, y), o + ImVec2(w, y + lineH + 2), true);
             std::string shownText = nick::replaceIn(l->text);
             if (colors_.b) {
-                for (auto& seg : text::colored(shownText, base)) {
+                auto* cs = modules::get<ClientSettings>();
+                for (auto& seg : text::colored(cs ? cs->tagged(shownText, true) : shownText, base)) {
                     ImVec4 c = ImGui::ColorConvertU32ToFloat4(seg.color);
                     c.w *= a;
                     x += drawText(dl, o + ImVec2(x, y), s, seg.text, ImGui::GetColorU32(c)).x;
@@ -474,6 +477,7 @@ protected:
         std::vector<game::TabEntry> list = st.tab;
         if (sort_.i == 0) std::sort(list.begin(), list.end(), [](auto& a, auto& b) { return text::lower(a.name) < text::lower(b.name); });
         else if (sort_.i == 1) std::sort(list.begin(), list.end(), [](auto& a, auto& b) { return a.ping < b.ping; });
+        auto* cs = modules::get<ClientSettings>();
         int per = columns_.i > 0 ? int((list.size() + size_t(columns_.i) - 1) / size_t(columns_.i)) : rows_.i;
         per = std::max(per, 1);
         int cols = std::max(1, int((list.size() + size_t(per) - 1) / size_t(per)));
@@ -507,7 +511,8 @@ protected:
             for (int r = 0; r < per; r++) {
                 size_t i = size_t(c * per + r);
                 if (i >= list.size()) break;
-                float w = textSize(s, list[i].name).x + (heads_.b ? rowH : 0.f) + (platform_.b ? rowH : 0.f) + (ping_.b ? 56.f * s : 8.f * s);
+                std::string extra = list[i].name == st.player.name && cs ? cs->tabTag() : "";
+                float w = textSize(s, list[i].name).x + (extra.empty() ? 0.f : textSize(s, extra).x + 6 * s) + (heads_.b ? rowH : 0.f) + (platform_.b ? rowH : 0.f) + (ping_.b ? 56.f * s : 8.f * s);
                 colW = std::max(colW, w);
             }
             for (int r = 0; r < per; r++) {
@@ -530,7 +535,10 @@ protected:
                 }
                 ImU32 nameColor = marked ? ImGui::GetColorU32(highlightColor_.color) : me ? accentColor() : textColor();
                 if (nick::mine(e.name)) nameColor = nick::colorOf(nick::color, nameColor);
-                drawText(dl, row + ImVec2(cx, spacing_.f * s * 0.5f), s, nick::show(e.name), nameColor);
+                std::string shownName = nick::show(e.name);
+                drawText(dl, row + ImVec2(cx, spacing_.f * s * 0.5f), s, shownName, nameColor);
+                std::string tabTag = me && cs ? cs->tabTag() : "";
+                if (!tabTag.empty()) drawText(dl, row + ImVec2(cx + textSize(s, shownName).x + 6 * s, spacing_.f * s * 0.5f), s, tabTag, ImGui::GetColorU32(cs->tagColor()));
                 if (ping_.b) {
                     ImVec4 c4 = rampColor(float(e.ping), 40.f, 200.f, good_.color, mid_.color, bad_.color);
                     if (pingBars_.b) {
@@ -550,7 +558,7 @@ protected:
             total = x;
         }
         (void)head;
-        return {std::max({total - 12 * s, 60.f * s, headerW}), y0 + per * rowH};
+        return {std::max({total - 12 * s, 60.f * s, headerW}), y0 + std::min(per, int(list.size())) * rowH};
     }
 
 private:

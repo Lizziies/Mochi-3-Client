@@ -412,7 +412,7 @@ class LowHealth : public Module {
 public:
     LowHealth()
         : Module("Low Health Indicator", "A red, pulsing screen edge when your health is low.", Category::Hud, {"hud-self"}) {
-        sub("Own values");
+        sub("Info displays");
         require(need::player, need::sigs({"LocalPlayer"}));
     }
 
@@ -449,7 +449,7 @@ public:
     BetterHunger()
         : GameList("Better Hunger Bar", "Shows hunger and saturation as a bar and previews what the food in your hand gives.", need::player | game::Domain::Inventory,
                    need::sigs({"LocalPlayer", "Inventory"}), {"hud-self"}, {0.01f, 0.86f}) {
-        sub("Own values");
+        sub("Info displays");
     }
 
 protected:

@@ -24,8 +24,12 @@ struct Toast {
 
 static std::mutex lock;
 static std::deque<Toast> toasts;
+static bool muted = false;
+
+void setMuted(bool on) { muted = on; }
 
 void push(std::string title, std::string body, Kind kind, float seconds) {
+    if (muted && kind != Kind::Error) return;
     std::scoped_lock g(lock);
     toasts.push_back({std::move(title), std::move(body), kind, seconds});
     while (toasts.size() > 5) toasts.pop_front();

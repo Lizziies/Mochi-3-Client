@@ -262,8 +262,10 @@ bool setting(Setting& s) {
 
     ImGui::PushID(s.id.c_str());
     ImGui::AlignTextToFramePadding();
-    ImGui::TextUnformatted(i18n::tr(s.label.c_str()));
-    ImGui::SameLine(labelW);
+    const char* label = i18n::tr(s.label.c_str());
+    ImGui::TextUnformatted(label);
+    bool stacked = s.type != SettingType::Bool && ImGui::CalcTextSize(label).x > labelW - 12 * sc;
+    if (!stacked) ImGui::SameLine(labelW);
     ImGui::SetNextItemWidth(-1);
 
     switch (s.type) {
@@ -320,10 +322,15 @@ bool setting(Setting& s) {
     case SettingType::Text: {
         char buf[256];
         snprintf(buf, sizeof(buf), "%s", s.text.c_str());
+        auto& t = theme::current();
+        ImGui::PushStyleColor(ImGuiCol_FrameBg, t.surfaceHover);
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 8 * sc);
         if (ImGui::InputText("##v", buf, sizeof(buf))) {
             s.text = buf;
             changed = true;
         }
+        ImGui::PopStyleVar();
+        ImGui::PopStyleColor();
         break;
     }
     }

@@ -10,7 +10,7 @@
 class Clock : public TextHud {
 public:
     Clock() : TextHud("Clock", "Shows the real time, the game time or both, with date options.", {"hud-self"}, {0.01f, 0.10f}) {
-        sub("Own values");
+        sub("Info displays");
         dateFormat_.visible = [this] { return date_.b; };
         weekday_.visible = [this] { return date_.b; };
         gameDay_.visible = [this] { return mode_.i != 0; };

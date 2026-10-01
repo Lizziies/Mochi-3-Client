@@ -1,0 +1,52 @@
+<!doctype html><meta charset=utf-8><link rel=stylesheet href=common.css>
+<style>
+.top{position:absolute;left:150px;right:150px;top:60px;height:64px;border-radius:20px;background:var(--panel);display:flex;align-items:center;padding:0 20px;gap:22px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.tabs{display:flex;gap:6px;flex:1}
+.tab{padding:9px 16px;border-radius:12px;color:var(--dim);font-size:15px;font-weight:600}
+.tab.on{background:var(--card2);color:var(--text)}
+.search{width:300px;height:38px;border-radius:12px;background:var(--card);display:flex;align-items:center;padding:0 14px;color:var(--dim);font-size:14px;gap:8px}
+.list{position:absolute;left:150px;top:140px;width:690px;bottom:60px;border-radius:20px;background:var(--panel);padding:14px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.grp{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--pink);margin:14px 10px 6px;font-weight:700}
+.row{display:flex;align-items:center;gap:14px;padding:10px 12px;border-radius:12px;margin-bottom:3px}
+.row:hover,.row.sel{background:var(--card)}
+.row .ic{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#ff8f8f,#ffb0c8);flex:none}
+.row .n{flex:1;font-weight:600;font-size:15px}.row .n small{display:block;font-weight:400;color:var(--dim);font-size:12px;margin-top:1px}
+.row .g{color:var(--dim);font-size:18px}
+.lock{opacity:.45}
+.drawer{position:absolute;right:150px;top:140px;width:590px;bottom:60px;border-radius:20px;background:var(--panel);padding:22px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.drawer h2{font-size:24px;display:flex;justify-content:space-between;align-items:center}
+.drawer p{color:var(--dim);font-size:14px;margin:6px 0 16px}
+.set{display:flex;align-items:center;justify-content:space-between;padding:12px 4px;border-bottom:1px solid rgba(255,255,255,.06);font-size:15px}
+.sl{width:260px;height:6px;border-radius:9px;background:var(--off);position:relative}.sl i{position:absolute;left:0;top:0;bottom:0;width:62%;background:linear-gradient(90deg,var(--pink),var(--pink2));border-radius:9px}.sl i:after{content:"";position:absolute;right:-8px;top:-6px;width:18px;height:18px;border-radius:50%;background:#fff}
+.cols{display:flex;gap:10px;margin:14px 0}.chip{padding:8px 14px;border-radius:12px;background:var(--card);font-size:13px;color:var(--dim)}
+.sw{width:26px;height:26px;border-radius:8px;background:var(--pink)}
+.btn{display:inline-block;padding:10px 20px;border-radius:12px;background:var(--card);font-weight:600;font-size:14px;margin-right:8px}
+</style>
+<div class=scene><i style="left:120px;top:520px;width:200px;height:120px"></i><i style="left:900px;top:560px;width:300px;height:160px"></i></div><div class=dim></div>
+<div class=hud style="left:24px;top:24px">FPS <b>144</b></div><div class=hud style="left:24px;top:70px">CPS <b>9 | 4</b></div>
+<div class=top><div class=logo><span class=heart>♥</span>Mochi</div>
+<div class=tabs><div class="tab on">PvP</div><div class=tab>HUD</div><div class=tab>Visual</div><div class=tab>Comfort</div><div class=tab>Performance</div><div class=tab>Server</div><div class=tab>★ Favorites</div></div>
+<div class=search>⌕ Search modules…  <span class=key style="margin-left:auto">Ctrl K</span></div><div class="pill pink">Edit HUD</div></div>
+<div class=list>
+<div class=grp>Combat displays</div>
+<div class="row sel"><div class=ic></div><div class=n>CPS<small>Counts your clicks per second.</small></div><span class=key>R</span><div class="tog on"></div><span class=g>⚙</span></div>
+<div class=row><div class=ic></div><div class=n>Combo Counter<small>Hits in a row until the opponent hits you.</small></div><span class=key>–</span><div class="tog on"></div><span class=g>⚙</span></div>
+<div class=row><div class=ic></div><div class=n>Reach Counter<small>Distance of your last hit.</small></div><span class=key>–</span><div class="tog"></div><span class=g>⚙</span></div>
+<div class="row lock"><div class=ic></div><div class=n>Hit Ping<small>Needs game data for this version.</small></div><span class=key>🔒</span><div class="tog"></div><span class=g>⚙</span></div>
+<div class=grp>Hit visuals</div>
+<div class=row><div class=ic></div><div class=n>Hitbox<small>Shows hitboxes, adjustable color.</small></div><span class=key>–</span><div class="tog"></div><span class=g>⚙</span></div>
+<div class=row><div class=ic></div><div class=n>Hurt Color<small>Color of the red hit flash.</small></div><span class=key>–</span><div class="tog on"></div><span class=g>⚙</span></div>
+<div class=grp>Movement</div>
+<div class=row><div class=ic></div><div class=n>Toggle Sprint<small>Sprint stays on until you press the key again.</small></div><span class=key>Ctrl</span><div class="tog on"></div><span class=g>⚙</span></div>
+<div class=row><div class=ic></div><div class=n>Toggle Sneak</div><span class=key>Shift</span><div class="tog"></div><span class=g>⚙</span></div>
+</div>
+<div class=drawer><h2>CPS <div class="tog on"></div></h2><p>Counts your clicks per second.</p>
+<div class=set>Display<span class=chip>Left | Right ▾</span></div>
+<div class=set>Background<div class="tog on"></div></div>
+<div class=set>Corner radius<div class=sl><i></i></div></div>
+<div class=set>Size<div class=sl><i style="width:35%"></i></div></div>
+<div class=set>Text color<div class=sw></div></div>
+<div class=set>Hold mode<div class=tog></div></div>
+<div class=set>Keybind<span class=key style="font-size:14px;padding:6px 12px">Right Shift</span></div>
+<div style="margin-top:20px"><span class=btn>Reset</span><span class=btn>Reset position</span><span class="btn" style="background:linear-gradient(90deg,var(--pink),var(--pink2));color:#3a0f26">Edit HUD</span></div></div>
+<div class=lbl>Vorschlag A · Palette: schnell, eine Liste, alles auf einen Blick</div>

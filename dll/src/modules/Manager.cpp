@@ -1,5 +1,6 @@
 #include "I18n.hpp"
 #include "Manager.hpp"
+#include "SelfTest.hpp"
 #include "core/Guard.hpp"
 #include "core/Log.hpp"
 #include "gui/Gui.hpp"
@@ -17,6 +18,7 @@
 #include "camera/Camera.hpp"
 #include "camera/Hand.hpp"
 #include "client/ClickGui.hpp"
+#include "client/ClientSettings.hpp"
 #include "client/SigStatus.hpp"
 #include "combat/Counters.hpp"
 #include "combat/Feedback.hpp"
@@ -69,6 +71,7 @@
 #include "perf/Auto.hpp"
 #include "perf/FrameLimiter.hpp"
 #include "perf/LowLatency.hpp"
+#include "perf/PerformanceLock.hpp"
 #include "perf/Tuning.hpp"
 #include "platform/Presence.hpp"
 #include "platform/Scripts.hpp"
@@ -112,6 +115,7 @@ static void add() {
 void init() {
     game::init();
     add<ClickGui>();
+    add<ClientSettings>();
 
     add<Fps>();
     add<Cps>();
@@ -280,6 +284,7 @@ void init() {
     add<AutoProfile>();
     add<BackgroundLoad>();
     add<SystemBoost>();
+    add<PerformanceLock>();
     add<SigStatus>();
 
     add<Snake>();
@@ -345,11 +350,13 @@ Module* find(const std::string& name) {
 }
 
 static void fault(Module& m) {
+    logger::error("module fault: {}", m.name());
     m.setEnabled(false);
     notify::push(i18n::tr("Module disabled"), i18n::fmt("{} had an error. See the log for details.", m.name()), notify::Kind::Error);
 }
 
 void frame(ImDrawList* hud) {
+    selftest::tick();
     if (sigs::takeChanged()) refreshSigs();
     rules::tick();
 
