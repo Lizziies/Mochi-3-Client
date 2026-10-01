@@ -70,7 +70,7 @@ Arten pro Kanal (Standard, pro Signatur mit dem Offset `<sig>.kind` überschreib
 - **Value**: Funktion gibt einen Float zurück. Der Hook ersetzt, skaliert oder addiert.
 - **Flag**: Funktion gibt bool/int zurück. Der Hook erzwingt den Wert.
 - **Skip**: Funktion wird nicht aufgerufen, solange das Modul aktiv ist.
-- **Out**: Original wird aufgerufen, danach schreibt der Hook Floats in den Zeiger-Parameter (mit dem Offset  davor). Bei  glättet der Hook die Blickbewegung (Zeiger auf zwei Floats, vor dem Original). Der Index des Parameters steht im Offset `<sig>.arg` (Standard 1 = `rdx`). Bei `fx.handMatrix` ist es eine 4x4-Matrix (Spaltenmajor, mit `<sig>.rowMajor = 1` für Zeilenmajor), die verschoben/skaliert/gedreht wird.
+- **Out**: Original wird aufgerufen, danach schreibt der Hook Floats in den Zeiger-Parameter (mit dem Offset `<sig>.before = 1` davor). Bei `fx.lookDelta` glättet der Hook die Blickbewegung (Zeiger auf zwei Floats, vor dem Original). Der Index des Parameters steht im Offset `<sig>.arg` (Standard 1 = `rdx`). Bei `fx.handMatrix` ist es eine 4x4-Matrix (Spaltenmajor, mit `<sig>.rowMajor = 1` für Zeilenmajor), die verschoben/skaliert/gedreht wird.
 - **Int**: wie Flag, aber der Hook gibt einen Integer zurück (zum Beispiel die Perspektive).
 - **Data**: die Signatur zeigt auf Daten (Float oder Float4), die direkt überschrieben und beim Abschalten zurückgesetzt werden.
 
