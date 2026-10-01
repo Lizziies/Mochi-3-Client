@@ -22,6 +22,7 @@ cbuffer P : register(b0)
     float4 d;
     float4 e;
     float4 night;
+    float4 f;
 };
 
 Texture2D src : register(t0);
@@ -79,6 +80,19 @@ float4 ps(VOut i) : SV_Target
     float aspect = texel.y / texel.x;
 
     float3 col = tap(uv);
+    if (f.x > 0.5)
+    {
+        float2 px = e.xy;
+        float jitter = frac(52.9829189 * frac(dot(i.pos.xy, float2(0.06711056, 0.00583715))));
+        float3 acc = 0;
+        [loop] for (int k = 0; k < 40; k++)
+        {
+            float rad = sqrt((k + 0.5) / 40.0) * f.x;
+            float ang = k * 2.399963 + jitter * 6.2831853;
+            acc += tap(uv + float2(cos(ang), sin(ang)) * rad * px);
+        }
+        col = acc / 40.0;
+    }
 
     if (b.y > 0.0)
     {
@@ -155,7 +169,7 @@ float4 ps(VOut i) : SV_Target
 )";
 
 struct Constants {
-    float a[4], b[4], tint[4], c[4], d[4], e[4], night[4];
+    float a[4], b[4], tint[4], c[4], d[4], e[4], night[4], f[4];
 };
 
 struct Gpu {
@@ -359,6 +373,7 @@ static void pass(ID3D11Device* dev, ID3D11DeviceContext* ctx) {
             std::memcpy(k.d, d, sizeof(d));
             std::memcpy(k.e, e, sizeof(e));
             std::memcpy(k.night, p.night, sizeof(k.night));
+            k.f[0] = p.blur;
             std::memcpy(m.pData, &k, sizeof(k));
             ctx->Unmap(gpu.cb, 0);
         }
@@ -399,7 +414,7 @@ static void callback(const ImDrawList*, const ImDrawCmd*) {
 bool Params::active() const {
     return saturation != 1.f || hue != 0.f || brightness != 0.f || contrast != 1.f || gamma != 1.f || sharpen > 0.f ||
            fry > 0.f || flip > 0.5f || tint[3] > 0.f || night[3] > 0.f || vignette > 0.f || colorMode != 0 ||
-           dof > 0.f || (dirSamples > 1 && (dir[0] != 0.f || dir[1] != 0.f)) || blend > 0.f;
+           dof > 0.f || blur > 0.5f || (dirSamples > 1 && (dir[0] != 0.f || dir[1] != 0.f)) || blend > 0.f;
 }
 
 Params& params() { return frameParams; }

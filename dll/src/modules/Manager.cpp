@@ -138,6 +138,7 @@ void init() {
     add<ScreenTint>();
     add<Sharpen>();
     add<DepthOfField>();
+    add<Blur>();
     add<ColorFilter>();
     add<NightShift>();
     add<MotionBlur>();
@@ -302,6 +303,7 @@ void frame(ImDrawList* hud) {
         if (!guard::call(m->name().c_str(), [&] { m->onFrame(); })) fault(*m);
     }
 
+    post::params().blur = std::max(post::params().blur, gui::menuBlurPx());
     post::submit(hud);
     capture::submit(hud, capture::Stage::Game);
     for (auto& m : list) {

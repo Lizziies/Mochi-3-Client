@@ -203,7 +203,7 @@ static void drawGeneral() {
     ImGui::Dummy({0, 6 * s});
 
     widgets::sectionTitle("Menu");
-    settingRows({"motion", "notifications"});
+    settingRows({"motion", "menuBlur", "notifications"});
     if (auto* menu = modules::get<ClickGui>()) widgets::setting(menu->keybind());
     widgets::hint("Ctrl+L: unload client · F1: hide HUD · ESC: back · right-click a key: clear");
     ImGui::EndChild();

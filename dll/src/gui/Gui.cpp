@@ -6,6 +6,7 @@
 #include "Widgets.hpp"
 #include "core/Config.hpp"
 #include "modules/Manager.hpp"
+#include "modules/client/ClientSettings.hpp"
 #include "modules/Tiers.hpp"
 #include "render/Draw.hpp"
 #include "render/Fonts.hpp"
@@ -96,6 +97,12 @@ bool editingHud() { return hudEdit; }
 void setEditingHud(bool on) {
     hudEdit = on;
     if (on) isOpen = false;
+}
+
+float menuBlurPx() {
+    auto* cs = modules::get<ClientSettings>();
+    float strength = cs ? cs->menuBlur() : 0.f;
+    return strength * 22.f * ui::scale() * std::clamp(openAnim, 0.f, 1.f);
 }
 
 bool wantsInput() { return isOpen || hudEdit || keyboardClaim; }
@@ -224,25 +231,32 @@ static void drawHub(float anim) {
     auto ds = ImGui::GetIO().DisplaySize;
     float e = draw::easeOutBack(std::clamp(anim, 0.f, 1.f));
     bool anyFav = std::any_of(modules::all().begin(), modules::all().end(), [](auto& m) { return m->favorite() && m->category() != Category::Client; });
-    ImVec2 size{std::min(1040 * s, ds.x * 0.88f), (anyFav ? 440.f : 352.f) * s};
-    ImVec2 pos = (ds - size) * 0.5f + ImVec2(0, (1.f - e) * 28 * s);
+    ImVec2 size{std::min(720 * s, ds.x * 0.8f), (anyFav ? 330.f : 252.f) * s};
+    ImVec2 pos = (ds - size) * 0.5f + ImVec2(0, (1.f - e) * 22 * s);
     float fade = std::clamp(anim, 0.f, 1.f);
     theme::setFade(fade);
     beginWindow("##mochi_hub", pos, size, fade);
     auto* dl = ImGui::GetWindowDrawList();
 
-    float pad = 26 * s;
-    drawLogo(dl, pos + ImVec2(pad, 20 * s));
+    float pad = 20 * s;
+    float topY = pos.y + 16 * s;
+    drawLogo(dl, {pos.x + pad, topY - 2 * s});
 
-    float topY = pos.y + 22 * s;
-    ImGui::SetCursorScreenPos({pos.x + 190 * s, topY});
-    ImGui::SetNextItemWidth(size.x - 190 * s - 330 * s);
+    float rx = pos.x + size.x - pad;
+    float bw = 92 * s, bh = 34 * s;
+    ImGui::SetCursorScreenPos({rx - bw, topY});
+    if (widgets::button("Edit HUD", {bw, bh}, true)) setEditingHud(true);
+    if (circleButton("hubclose", {rx - bw - 10 * s - bh, topY}, bh, true, 0)) setOpen(false);
+
+    float sx = pos.x + pad + 150 * s;
+    ImGui::SetCursorScreenPos({sx, topY});
+    ImGui::SetNextItemWidth(rx - bw - 10 * s - bh - 10 * s - sx);
     if (focusSearch) {
         ImGui::SetKeyboardFocusHere();
         focusSearch = false;
     }
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 99.f);
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {16 * s, (36 * s - ImGui::GetFontSize()) * 0.5f});
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {14 * s, (bh - ImGui::GetFontSize()) * 0.5f});
     bool typed = ImGui::InputTextWithHint("##hubsearch", i18n::tr("Type to search modules …"), search, sizeof(search));
     bool enter = ImGui::IsItemDeactivated() && ImGui::IsKeyPressed(ImGuiKey_Enter);
     ImGui::PopStyleVar(2);
@@ -252,11 +266,6 @@ static void drawHub(float anim) {
         go(Page::Modules);
         snprintf(search, sizeof(search), "%s", keep);
     }
-
-    float rx = pos.x + size.x - pad;
-    ImGui::SetCursorScreenPos({rx - 120 * s, topY});
-    if (widgets::button("Edit HUD", {120 * s, 36 * s}, true)) setEditingHud(true);
-    if (circleButton("hubclose", {rx - 120 * s - 46 * s, topY}, 36 * s, true, 0)) setOpen(false);
 
     auto& mods = modules::all();
     int ready = 0, total = 0, favs = 0;
@@ -272,36 +281,37 @@ static void drawHub(float anim) {
         {"Cosmetics", Page::Cosmetics, 6, {0.79f, 0.63f, 1.f, 1.f}},
         {"Settings", Page::Settings, 12, {0.49f, 0.78f, 1.f, 1.f}},
     };
-    std::string subs[4] = {i18n::fmt("{} modules · {} ready", total, ready),
-                           favs ? i18n::fmt("{} starred", favs) : std::string(i18n::tr("Star modules to pin them here")),
-                           i18n::tr("Wings, capes, bandanas · free"), i18n::tr("Language, chat tag, look")};
+    std::string subs[4] = {i18n::fmt("{} · {} ready", total, ready),
+                           favs ? i18n::fmt("{} starred", favs) : std::string(i18n::tr("Pin modules")),
+                           i18n::tr("Free"), i18n::tr("Language, tag, look")};
 
-    float gap = 16 * s;
+    float gap = 10 * s;
     float cw = (size.x - pad * 2 - gap * 3) / 4.f;
-    float ch = 220 * s;
-    float cy = pos.y + 86 * s;
+    float ch = 124 * s;
+    float cy = pos.y + 64 * s;
     static float hover[4] = {};
     for (int i = 0; i < 4; i++) {
         float stagger = draw::motion() ? draw::easeOutCubic(std::clamp((anim - i * 0.08f) / 0.5f, 0.f, 1.f)) : 1.f;
-        ImVec2 p{pos.x + pad + i * (cw + gap), cy + (1.f - stagger) * 18 * s};
+        ImVec2 p{pos.x + pad + i * (cw + gap), cy + (1.f - stagger) * 14 * s};
         ImGui::SetCursorScreenPos(p);
         ImGui::PushID(i);
         bool clicked = ImGui::InvisibleButton("card", {cw, ch});
         bool hov = ImGui::IsItemHovered();
         ImGui::PopID();
         hover[i] = draw::approach(hover[i], hov ? 1.f : 0.f, 16.f * t.animSpeed);
-        ImVec2 a = p - ImVec2(0, hover[i] * 4 * s), b = a + ImVec2(cw, ch);
+        ImVec2 a = p - ImVec2(0, hover[i] * 3 * s), b = a + ImVec2(cw, ch);
         const HubCard& c = cards[i];
         theme::setFade(fade * stagger);
-        float r = 20 * s;
-        if (hover[i] > 0.01f) draw::glow(dl, a, b, r, theme::col(c.color, 0.28f * hover[i]), 12 * s);
-        draw::gradientRect(dl, a, b, theme::col(theme::mix(t.surface, c.color, 0.20f + 0.08f * hover[i])), theme::col(theme::mix(t.surface, c.color, 0.05f)), r);
-        dl->AddRect(a, b, theme::col(c.color, 0.25f + 0.35f * hover[i]), r, 0, 1.2f * s);
-        ImVec2 gc{b.x - 54 * s, b.y - 54 * s};
-        if (c.glyphKind == 100) star(dl, gc, 30 * s, theme::col(c.color, 0.55f + 0.2f * hover[i]), true);
-        else glyph(dl, c.glyphKind, gc, 30 * s, theme::col(c.color, 0.55f + 0.2f * hover[i]));
-        dl->AddText(fonts::bold(), 24.f * s, a + ImVec2(20 * s, 20 * s), theme::col(t.text), i18n::tr(c.title));
-        dl->AddText(fonts::regular(), 13.5f * s, a + ImVec2(20 * s, 54 * s), theme::col(t.textDim), subs[i].c_str(), nullptr, cw - 40 * s);
+        float r = 16 * s;
+        if (hover[i] > 0.01f) draw::glow(dl, a, b, r, theme::col(c.color, 0.26f * hover[i]), 10 * s);
+        draw::gradientRect(dl, a, b, theme::col(theme::mix(t.surface, c.color, 0.2f + 0.08f * hover[i])), theme::col(theme::mix(t.surface, c.color, 0.06f)), r);
+        dl->AddRect(a, b, theme::col(c.color, 0.22f + 0.35f * hover[i]), r, 0, 1.2f * s);
+        ImVec2 gc{(a.x + b.x) * 0.5f, a.y + 38 * s};
+        ImU32 gcol = theme::col(c.color, 0.8f + 0.2f * hover[i]);
+        if (c.glyphKind == 100) star(dl, gc, 17 * s, gcol, true);
+        else glyph(dl, c.glyphKind, gc, 17 * s, gcol);
+        draw::textCentered(dl, fonts::bold(), 17.f * s, {gc.x, a.y + 76 * s}, theme::col(t.text), i18n::tr(c.title));
+        draw::textCentered(dl, fonts::regular(), 12.5f * s, {gc.x, a.y + 98 * s}, theme::col(t.textDim), subs[i].c_str());
         if (clicked) {
             if (i == 1) onlyFavorites = true;
             else if (i == 0) onlyFavorites = false;
@@ -310,36 +320,37 @@ static void drawHub(float anim) {
     }
     theme::setFade(fade);
 
-    float py = cy + ch + 22 * s;
-    std::vector<Module*> favList;
-    for (auto& m : mods)
-        if (m->favorite() && m->category() != Category::Client) favList.push_back(m.get());
-    if (!favList.empty()) {
-        dl->AddText(fonts::bold(), 12.f * s, {pos.x + pad, py}, theme::col(t.textDim, 0.8f), i18n::tr("QUICK SWITCHES"));
-        float x = pos.x + pad, y = py + 22 * s;
-        for (size_t i = 0; i < favList.size() && i < 12; i++) {
-            Module& m = *favList[i];
+    float y = cy + ch + 14 * s;
+    if (anyFav) {
+        float x = pos.x + pad;
+        int rows = 0;
+        int shownCount = 0;
+        for (auto& mp : mods) {
+            Module& m = *mp;
+            if (!m.favorite() || m.category() == Category::Client || shownCount >= 10) continue;
             const char* name = i18n::tr(m.name().c_str());
             ImVec2 ts = ImGui::CalcTextSize(name);
-            float w = ts.x + 78 * s;
+            float w = ts.x + 74 * s;
             if (x + w > pos.x + size.x - pad) {
                 x = pos.x + pad;
-                y += 40 * s;
+                y += 38 * s;
+                if (++rows >= 2) break;
             }
-            dl->AddRectFilled({x, y}, {x + w, y + 34 * s}, theme::col(t.surface), 17 * s);
-            dl->AddText({x + 14 * s, y + (34 * s - ts.y) * 0.5f}, theme::col(t.text), name);
-            ImGui::SetCursorScreenPos({x + w - 52 * s, y + 6 * s});
+            dl->AddRectFilled({x, y}, {x + w, y + 32 * s}, theme::col(t.surface), 16 * s);
+            dl->AddText({x + 13 * s, y + (32 * s - ts.y) * 0.5f}, theme::col(t.text), name);
+            ImGui::SetCursorScreenPos({x + w - 50 * s, y + 5 * s});
             ImGui::PushID(m.name().c_str());
             bool locked = !m.available() || m.rule() == RuleLevel::Block;
             bool on = m.userEnabled() && !locked;
             if (widgets::toggle("q", on, !locked) && !locked) m.setEnabled(on);
             ImGui::PopID();
             x += w + 8 * s;
+            shownCount++;
         }
     }
-    const char* foot = i18n::tr("Right Shift again opens the full menu · Esc closes");
+    const char* foot = i18n::tr("Right Shift again: full menu  ·  Esc: close");
     ImVec2 fs = ImGui::CalcTextSize(foot);
-    dl->AddText({pos.x + (size.x - fs.x) * 0.5f, pos.y + size.y - 30 * s}, theme::col(t.textDim, 0.7f), foot);
+    dl->AddText({pos.x + (size.x - fs.x) * 0.5f, pos.y + size.y - 28 * s}, theme::col(t.textDim, 0.7f), foot);
     endWindow();
 }
 
@@ -348,7 +359,7 @@ static void drawFrame(float anim) {
     float s = ui::scale();
     auto ds = ImGui::GetIO().DisplaySize;
     float e = draw::easeOutBack(std::clamp(anim, 0.f, 1.f));
-    ImVec2 size{std::min(1520 * s, ds.x * 0.88f), std::min(900 * s, ds.y * 0.86f)};
+    ImVec2 size{std::min(1360 * s, ds.x * 0.86f), std::min(820 * s, ds.y * 0.84f)};
     ImVec2 pos = (ds - size) * 0.5f + ImVec2(0, (1.f - e) * 24 * s);
     float fade = std::clamp(anim, 0.f, 1.f);
     theme::setFade(fade);

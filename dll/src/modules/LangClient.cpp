@@ -119,6 +119,15 @@ const i18n::Entry entries[] = {
     {"No favorites yet. Click the star next to a module.", "Noch keine Favoriten. Klicke auf den Stern neben einem Modul."},
     {"Watermark in the inventory", "Watermark im Inventar"},
     {"Default HUD size", "Standard-Größe der HUD-Module"},
+    {"Menu background blur", "Hintergrund-Unschärfe im Menü"},
+    {"Blur", "Unschärfe"},
+    {"Blurs the game image, always or only while a menu, the inventory or the chat is open.", "Macht das Spielbild unscharf, immer oder nur bei offenem Menü, Inventar oder Chat."},
+    {"Only in menus", "Nur in Menüs"},
+    {"{} · {} ready", "{} · {} bereit"},
+    {"Pin modules", "Module anpinnen"},
+    {"Free", "Gratis"},
+    {"Language, tag, look", "Sprache, Tag, Aussehen"},
+    {"Right Shift again: full menu  ·  Esc: close", "Rechts-Shift noch einmal: ganzes Menü  ·  Esc: schließen"},
 };
 
 i18n::Table table(entries);

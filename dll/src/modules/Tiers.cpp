@@ -16,7 +16,7 @@ constexpr std::string_view core[] = {
 
 constexpr std::string_view expected[] = {
     "Clock", "Direction HUD", "Speed Display", "Server Display", "IP Display", "Paperdoll", "Tab List", "Hitbox",
-    "Motion Blur", "Waypoints", "Debug Menu", "Mouse Strokes", "Arrow Counter", "Pot Counter", "Totem Counter",
+    "Motion Blur", "Blur", "Waypoints", "Debug Menu", "Mouse Strokes", "Arrow Counter", "Pot Counter", "Totem Counter",
     "Item Counter", "Opponent Reach", "Hit Ping", "Low Health Indicator", "Better Hunger Bar", "Waila",
     "Command Hotkey", "Text Hotkey", "Disable Mouse Wheel", "Java Dynamic FOV", "Minimal View Bobbing",
     "Particle Multiplier", "Time Changer", "Weather Changer", "Environment Changer", "Death Logger",

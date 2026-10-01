@@ -22,6 +22,7 @@ struct Params {
     float dir[2] = {0.f, 0.f};
     int dirSamples = 0;
     float blend = 0.f;
+    float blur = 0.f;
 
     bool active() const;
 };

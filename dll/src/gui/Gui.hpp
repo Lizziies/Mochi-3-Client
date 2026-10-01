@@ -15,6 +15,8 @@ void showModule(Module* m);
 bool editingHud();
 void setEditingHud(bool on);
 
+float menuBlurPx();
+
 bool wantsInput();
 bool wantsCursor();
 bool capturesKeyboard();

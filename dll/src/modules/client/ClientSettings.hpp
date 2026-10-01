@@ -73,6 +73,7 @@ public:
 
     ImVec4 tagColor() const { return tagColor_.color; }
     Setting& equipped() { return cosmetics_; }
+    float menuBlur() const { return menuBlur_.f; }
 
 private:
     static size_t nameEnd(const std::string& line, const std::string& me) {
@@ -94,6 +95,7 @@ private:
     Setting& notifications_ = toggleSetting("notifications", "Notifications", true);
     Setting& invMark_ = toggleSetting("invMark", "Watermark in the inventory", true);
     Setting& motion_ = toggleSetting("motion", "Animations", true);
+    Setting& menuBlur_ = slider("menuBlur", "Menu background blur", 0.7f, 0.f, 1.f, "%.2f");
     Setting& hudScale_ = slider("hudScale", "Default HUD size", 1.f, 0.6f, 1.6f, "%.2fx");
     Setting& cosmetics_ = textSetting("cosmetics", "Equipped cosmetics", "");
 };

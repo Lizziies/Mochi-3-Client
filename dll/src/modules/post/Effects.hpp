@@ -1,6 +1,7 @@
 #pragma once
 
 #include "PostFx.hpp"
+#include "gui/Gui.hpp"
 #include "modules/Manager.hpp"
 #include "modules/Module.hpp"
 #include "render/Ui.hpp"
@@ -132,6 +133,26 @@ public:
 
 private:
     Setting& amount_ = slider("amount", "Strength", 0.5f, 0.f, 1.f, "%.2f");
+};
+
+class Blur : public Module {
+public:
+    Blur()
+        : Module("Blur", "Blurs the game image, always or only while a menu, the inventory or the chat is open.",
+                 Category::Visual, {"cosmetic"}) {
+        sub("Post effects");
+    }
+
+    void onFrame() override {
+        bool menu = gui::open() || game::state().screen != game::Screen::None;
+        if (when_.i == 1 && !menu) return;
+        float px = amount_.f * 24.f * ui::scale();
+        post::params().blur = std::max(post::params().blur, px);
+    }
+
+private:
+    Setting& amount_ = slider("amount", "Strength", 0.5f, 0.05f, 1.f, "%.2f");
+    Setting& when_ = choice("when", "When", {"Always", "Only in menus"}, 1);
 };
 
 class ColorFilter : public Module {
