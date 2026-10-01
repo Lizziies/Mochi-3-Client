@@ -18,6 +18,7 @@ constexpr unsigned board = unsigned(game::Domain::Scoreboard);
 constexpr unsigned tab = unsigned(game::Domain::Tab);
 constexpr unsigned camera = unsigned(game::Domain::Camera);
 constexpr unsigned others = unsigned(game::Domain::Others);
+constexpr unsigned light = unsigned(game::Domain::Light);
 
 inline std::vector<std::string> sigs(std::initializer_list<const char*> names) {
     std::vector<std::string> out;

@@ -85,6 +85,14 @@ constexpr Info table[count] = {
     {"fx.handMatrixThird", "Hand transform in third person", Kind::Out},
     {"fx.renderEntities", "Draw entities", Kind::Flag},
     {"fx.renderTerrain", "Draw terrain", Kind::Flag},
+    {"fx.itemPhysicsData", "Item physics values", Kind::Data},
+    {"fx.nametagText", "Nametag text color", Kind::Data},
+    {"fx.nametagBackground", "Nametag background color", Kind::Data},
+    {"fx.hotbarOffset", "Hotbar position", Kind::Out},
+    {"fx.titleOffset", "Title position", Kind::Out},
+    {"fx.bossbarOffset", "Boss bar position", Kind::Out},
+    {"fx.hideCoordinates", "Original coordinates display", Kind::Skip},
+    {"fx.hideDayCounter", "Original day counter", Kind::Skip},
 };
 
 enum Mode { None, Set, Scale, Add, Force, Skipped, Out, Matrix, Smooth };

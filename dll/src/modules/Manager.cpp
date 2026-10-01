@@ -23,6 +23,10 @@
 #include "combat/Tweaks.hpp"
 #include "comfort/Chat.hpp"
 #include "comfort/Link.hpp"
+#include "comfort/Lock.hpp"
+#include "comfort/Nick.hpp"
+#include "comfort/Skin.hpp"
+#include "comfort/Packs.hpp"
 #include "comfort/Screenshot.hpp"
 #include "comfort/Streamer.hpp"
 #include "comfort/Toggles.hpp"
@@ -33,6 +37,9 @@
 #include "fun/Pets.hpp"
 #include "fun/Snake.hpp"
 #include "hud/Clock.hpp"
+#include "hud/HotbarAnim.hpp"
+#include "hud/Movable.hpp"
+#include "hud/Subtitles.hpp"
 #include "hud/Cps.hpp"
 #include "hud/Compose.hpp"
 #include "hud/Fps.hpp"
@@ -71,6 +78,8 @@
 #include "server/ServerProfiles.hpp"
 #include "server/Zeqa.hpp"
 #include "visual/Crosshair.hpp"
+#include "world/Entities.hpp"
+#include "world/LightOverlay.hpp"
 #include "world/Waypoints.hpp"
 #include "world/World.hpp"
 
@@ -220,6 +229,21 @@ void init() {
 
     add<ServerProfiles>();
     add<MatchSummary>();
+    add<InventoryLock>();
+    add<ModernKeybinds>();
+    add<JavaInventoryHotkeys>();
+    add<PackChanger>();
+    add<Nick>();
+    add<HotbarAnimation>();
+    add<ItemPhysics>();
+    add<NametagModifier>();
+    add<TntTimer>();
+    add<LightOverlay>();
+    add<Subtitles>();
+    add<MovableHotbar>();
+    add<MovableTitle>();
+    add<MovableBossbar>();
+    add<SkinStealer>();
     add<HiveUtils>();
     add<ZeqaUtils>();
     add<HiveStats>();

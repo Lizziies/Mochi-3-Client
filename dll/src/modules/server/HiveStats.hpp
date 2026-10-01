@@ -6,6 +6,7 @@
 #include "modules/common/Colors.hpp"
 #include "modules/common/GameHud.hpp"
 #include "modules/common/Needs.hpp"
+#include "modules/common/Nick.hpp"
 #include "modules/common/Text.hpp"
 #include "modules/server/HiveApi.hpp"
 #include "modules/server/ServerChat.hpp"
@@ -97,7 +98,7 @@ protected:
             Row r;
             r.mine = e.name == game::state().player.name;
             r.marked = highlight_.b && std::find(mark.begin(), mark.end(), text::lower(e.name)) != mark.end();
-            r.text.push_back(e.name);
+            r.text.push_back(nick::show(e.name));
             r.color.push_back(nameColor(e.name, r));
             for (auto& c : cols) {
                 std::string cell = "–";

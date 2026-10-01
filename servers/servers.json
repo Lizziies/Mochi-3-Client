@@ -42,7 +42,8 @@
         "Target HUD",
         "Hotbar Keys",
         "Hive Utils",
-        "Kill Cleanup"
+        "Kill Cleanup",
+        "Light Overlay"
       ]
     },
     {
@@ -61,7 +62,8 @@
         "Snap Look",
         "Command Hotkey",
         "Text Hotkey",
-        "Kill Cleanup"
+        "Kill Cleanup",
+        "Light Overlay"
       ]
     },
     {

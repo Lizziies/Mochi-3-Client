@@ -31,6 +31,7 @@ enum class Domain : unsigned {
     Tab = 256,
     Camera = 512,
     Others = 1024,
+    Light = 2048,
 };
 
 constexpr unsigned operator|(Domain a, Domain b) { return unsigned(a) | unsigned(b); }
@@ -121,6 +122,9 @@ struct Target {
     float health = 0.f;
     float maxHealth = 20.f;
     float breakProgress = 0.f;
+    float fuse = 0.f;
+    int skinSize = 0;
+    std::vector<uint32_t> skin;
 };
 
 struct World {
@@ -192,6 +196,18 @@ struct Other {
     int team = 0;
 };
 
+struct LightGrid {
+    int radius = 0;
+    int baseX = 0;
+    int baseY = 0;
+    int baseZ = 0;
+    std::vector<uint8_t> level;
+
+    int size() const { return radius * 2 + 1; }
+    bool valid() const { return radius > 0 && level.size() == size_t(size() * size()); }
+    int at(int dx, int dz) const { return level[size_t((dz + radius) * size() + dx + radius)]; }
+};
+
 struct Camera {
     Vec3 pos;
     float yaw = 0.f;
@@ -200,7 +216,7 @@ struct Camera {
     float aspect = 16.f / 9.f;
 };
 
-enum class EventKind { Hit, Hurt, Kill, Death, TotemPop, Swing, BowRelease, ItemUse, Chat, Respawn, Confirm };
+enum class EventKind { Hit, Hurt, Kill, Death, TotemPop, Swing, BowRelease, ItemUse, Chat, Respawn, Confirm, Sound };
 
 struct Event {
     EventKind kind = EventKind::Hit;
@@ -210,6 +226,8 @@ struct Event {
     bool crit = false;
     bool crystal = false;
     uintptr_t actor = 0;
+    bool hasPos = false;
+    Vec3 pos;
     std::string text;
     std::string item;
 };
@@ -225,6 +243,7 @@ struct State {
     Scoreboard scoreboard;
     std::vector<TabEntry> tab;
     std::vector<Other> others;
+    LightGrid light;
     std::string server;
     unsigned have = 0;
     bool inWorld = false;

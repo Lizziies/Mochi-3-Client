@@ -11,7 +11,7 @@ namespace {
 
 constexpr unsigned all = unsigned(Domain::Player) | unsigned(Domain::Inventory) | unsigned(Domain::Effects) | unsigned(Domain::Target) |
                          unsigned(Domain::World) | unsigned(Domain::Combat) | unsigned(Domain::Chat) | unsigned(Domain::Scoreboard) |
-                         unsigned(Domain::Tab) | unsigned(Domain::Camera) | unsigned(Domain::Others);
+                         unsigned(Domain::Tab) | unsigned(Domain::Camera) | unsigned(Domain::Others) | unsigned(Domain::Light);
 
 class Demo : public Provider {
 public:
@@ -31,7 +31,9 @@ public:
         target(s);
         chatter(s, ev);
         uses(ev);
+        sounds(s, ev);
         nearby(s);
+        light(s);
         confirms(ev);
         effects(s, dt);
         scoreboard(s);
@@ -237,6 +239,43 @@ private:
         p.blocking = std::fmod(t_, 3.0) < 0.5;
     }
 
+    void sounds(State& s, std::vector<Event>& ev) {
+        if (t_ < nextSound_) return;
+        nextSound_ = t_ + 0.5 + dist_(rng_) * 1.4;
+        static const char* ids[] = {"step.stone", "random.hurt", "random.door_open", "random.explode", "random.bow", "random.chestopen", "random.levelup", "mob.zombie.say"};
+        Event e{EventKind::Sound};
+        e.text = ids[soundIdx_++ % 8];
+        double a = dist_(rng_) * 6.2832;
+        float d = 3.f + float(dist_(rng_)) * 12.f;
+        e.hasPos = true;
+        e.pos = {s.player.pos.x + std::cos(float(a)) * d, s.player.pos.y, s.player.pos.z + std::sin(float(a)) * d};
+        e.value = d;
+        ev.push_back(std::move(e));
+    }
+
+    void light(State& s) {
+        auto& g = s.light;
+        const int r = 8;
+        if (g.radius != r) {
+            g.radius = r;
+            g.level.assign(size_t((2 * r + 1) * (2 * r + 1)), 0);
+        }
+        g.baseX = int(std::floor(s.player.pos.x));
+        g.baseY = int(std::floor(s.player.pos.y)) - 1;
+        g.baseZ = int(std::floor(s.player.pos.z));
+        static const int torches[][2] = {{-5, -4}, {3, 5}, {6, -2}, {-2, 2}};
+        for (int dz = -r; dz <= r; dz++)
+            for (int dx = -r; dx <= r; dx++) {
+                int wx = g.baseX + dx, wz = g.baseZ + dz;
+                int best = ((wx * 7 + wz * 13) % 5 == 0) ? 3 : 0;
+                for (auto& t : torches) {
+                    int d = std::abs(dx - t[0]) + std::abs(dz - t[1]);
+                    best = std::max(best, 14 - d);
+                }
+                g.level[size_t((dz + r) * (2 * r + 1) + dx + r)] = uint8_t(std::clamp(best, 0, 15));
+            }
+    }
+
     void nearby(State& s) {
         auto& p = s.player;
         p.team = 1;
@@ -304,11 +343,23 @@ private:
             t.name = "Opponent";
             t.isPlayer = true;
             t.distance = std::max(0.5f, oppDist_ - 0.3f);
+            t.skinSize = 64;
+            t.skin.assign(64 * 64, 0u);
+            for (int y = 0; y < 16; y++)
+                for (int x = 0; x < 32; x++) t.skin[size_t(y * 64 + x)] = (y < 8 ? 0xFF3A2A1Au : 0xFFC89A78u) | (x % 8 == 3 && y % 8 == 4 ? 0x00FFFFFFu : 0u);
             t.team = 2;
             t.armor = std::fmod(t_, 32.0) < 24.0 ? 4 : 3;
             t.health = std::max(0.f, opponentHp_);
             t.maxHealth = 20.f;
             t.pos = {s.player.pos.x + 2.f, s.player.pos.y, s.player.pos.z};
+        } else if (phase > 12.2 && phase < 13.9) {
+            t.kind = Target::Kind::Entity;
+            t.name = "tnt";
+            t.isPlayer = false;
+            t.distance = 4.f;
+            t.fuse = float(std::max(0.0, 4.0 - (phase - 12.2) * 2.4));
+            float yaw = s.player.yaw * 0.0174533f;
+            t.pos = {s.player.pos.x - std::sin(yaw) * 4.f, s.player.pos.y + 0.5f, s.player.pos.z + std::cos(yaw) * 4.f};
         } else if (phase > 14.5) {
             t.kind = Target::Kind::Block;
             t.name = "stone";
@@ -450,6 +501,8 @@ private:
     double nextUse_ = 5.0;
     int chatIdx_ = 0;
     double scriptPhase_ = -1.0;
+    double nextSound_ = 1.0;
+    int soundIdx_ = 0;
     double crystalTimer_ = 3.0;
     int crystalIdx_ = 0;
     float opponentHp_ = 20.f;

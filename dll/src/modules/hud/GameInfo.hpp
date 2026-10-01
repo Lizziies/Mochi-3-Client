@@ -28,6 +28,10 @@ public:
         sub("Own values");
     }
 
+    void onFrame() override {
+        if (hideOriginal_.b) fx::skip(fx::Id::HideCoordinates);
+    }
+
     void onKey(KeyEvent& ev) override {
         if (!ev.down || ev.repeat) return;
         if (ev.vk == hideKey_.i && hideKey_.i) hidden_ = !hidden_;
@@ -115,6 +119,7 @@ private:
     Setting& hideKey_ = keySetting("hideKey", "Hide (streamer)", 0);
     Setting& copyKey_ = keySetting("copyKey", "Copy position to the clipboard", 0);
     Setting& copyFormat_ = choice("copyFormat", "Copy format", {"x y z", "x, y, z", "X: x Y: y Z: z"});
+    Setting& hideOriginal_ = toggleSetting("hideOriginal", "Hide the game's own coordinates", false);
     bool hidden_ = false;
 };
 
@@ -396,6 +401,10 @@ public:
         sub("Own values");
     }
 
+    void onFrame() override {
+        if (hideOriginal_.b) fx::skip(fx::Id::HideDayCounter);
+    }
+
 protected:
     std::string label() const override { return i18n::tr("Day"); }
 
@@ -415,6 +424,7 @@ private:
     Setting& time_ = toggleSetting("time", "Game time", true);
     Setting& twelve_ = toggleSetting("twelve", "12-hour format", false);
     Setting& phase_ = toggleSetting("phase", "Day or night", false);
+    Setting& hideOriginal_ = toggleSetting("hideOriginal", "Hide the game's own day counter", false);
 };
 
 class IpDisplay : public TextHud {

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/Log.hpp"
 #include "core/Paths.hpp"
 #include "gui/Gui.hpp"
 #include "gui/Notify.hpp"
@@ -8,6 +9,7 @@
 #include "modules/HudModule.hpp"
 #include "modules/common/Colors.hpp"
 #include "modules/common/Icons.hpp"
+#include "modules/common/Nick.hpp"
 #include "modules/common/GameHud.hpp"
 #include "modules/common/Needs.hpp"
 #include "modules/common/Text.hpp"
@@ -19,6 +21,7 @@
 #include "sdk/Inject.hpp"
 
 #include <windows.h>
+#include <mmsystem.h>
 
 #include <algorithm>
 #include <ctime>
@@ -128,6 +131,10 @@ public:
             if (stamp_.b) out << std::format("[{:02}:{:02}:{:02}] ", t.wHour, t.wMinute, t.wSecond);
             if (server_.b && !game::state().server.empty()) out << "[" << game::state().server << "] ";
             out << line << "\n";
+            if (clean_.b) {
+                std::ofstream cleanOut(dir / std::filesystem::path(std::format("chat-{:04}-{:02}-{:02}.clean.txt", t.wYear, t.wMonth, t.wDay)), std::ios::app);
+                cleanOut << text::strip(e.text) << "\n";
+            }
         }
     }
 
@@ -135,6 +142,7 @@ private:
     Setting& colors_ = toggleSetting("strip", "Remove color codes", true);
     Setting& stamp_ = toggleSetting("stamp", "Timestamp", true);
     Setting& server_ = toggleSetting("server", "Prefix the server name", false);
+    Setting& clean_ = toggleSetting("clean", "Also write a clean file (no colors, no time)", false);
     Setting& filter_ = textSetting("filter", "Only lines containing (empty = all)", "");
 };
 
@@ -209,12 +217,30 @@ public:
         background_.b = false;
         highlightWords_.visible = [this] { return highlight_.b; };
         highlightColor_.visible = [this] { return highlight_.b; };
+        mentionWords_.visible = [this] { return mention_.b; };
+        mentionSound_.visible = [this] { return mention_.b; };
+        mentionFile_.visible = [this] { return mention_.b && mentionSound_.i == 2; };
     }
 
     bool defaultEnabled() const override { return false; }
 
     void onFrame() override {
         if (hideVanilla_.b) fx::skip(fx::Id::HideChat);
+        if (!mention_.b) return;
+        for (auto& e : game::events()) {
+            if (e.kind != game::EventKind::Chat) continue;
+            std::string line = text::lower(text::strip(e.text));
+            auto& me = game::state().player.name;
+            std::string name = text::lower(me);
+            if (!name.empty() && (line.rfind("<" + name + ">", 0) == 0 || line.rfind(name + ":", 0) == 0)) continue;
+            bool hit = !name.empty() && line.find(name) != std::string::npos;
+            for (auto& w : srv::words(mentionWords_.text))
+                if (line.find(w) != std::string::npos) hit = true;
+            if (hit && ui::time() - lastMention_ > 1.0) {
+                lastMention_ = ui::time();
+                ping();
+            }
+        }
     }
 
     void onRender(ImDrawList* dl) override {
@@ -272,14 +298,15 @@ protected:
             if (hit) dl->AddRectFilled(o + ImVec2(0, y), o + ImVec2(w, y + lineH), ImGui::GetColorU32(withAlpha(highlightColor_.color, 0.25f * a)), 3 * s);
 
             dl->PushClipRect(o + ImVec2(0, y), o + ImVec2(w, y + lineH + 2), true);
+            std::string shownText = nick::replaceIn(l->text);
             if (colors_.b) {
-                for (auto& seg : text::colored(l->text, base)) {
+                for (auto& seg : text::colored(shownText, base)) {
                     ImVec4 c = ImGui::ColorConvertU32ToFloat4(seg.color);
                     c.w *= a;
                     x += drawText(dl, o + ImVec2(x, y), s, seg.text, ImGui::GetColorU32(c)).x;
                 }
             } else {
-                x += drawText(dl, o + ImVec2(x, y), s, text::strip(l->text), base).x;
+                x += drawText(dl, o + ImVec2(x, y), s, text::strip(shownText), base).x;
             }
             if (count > 1) drawText(dl, o + ImVec2(x + 4 * s, y), s, std::format("x{}", count), ImGui::GetColorU32(withAlpha(theme::current().accent, a)));
             dl->PopClipRect();
@@ -289,7 +316,24 @@ protected:
     }
 
 private:
+    void ping() const {
+        if (mentionSound_.i == 2) {
+            std::wstring file = logger::widen(mentionFile_.text);
+            if (!file.empty() && PlaySoundW(file.c_str(), nullptr, SND_FILENAME | SND_ASYNC)) return;
+        }
+        if (mentionSound_.i == 1) {
+            PlaySoundA("SystemExclamation", nullptr, SND_ALIAS | SND_ASYNC);
+            return;
+        }
+        MessageBeep(MB_ICONASTERISK);
+    }
+
     Setting& width_ = slider("width", "Width", 420.f, 200.f, 900.f, "%.0f");
+    Setting& mention_ = toggleSetting("mention", "Sound when someone mentions you", false);
+    Setting& mentionWords_ = textSetting("mentionWords", "More words ( @here, comma)", "@here, @everyone");
+    Setting& mentionSound_ = choice("mentionSound", "Mention sound", {"System ding", "System alert", "Own WAV file"});
+    Setting& mentionFile_ = textSetting("mentionFile", "WAV file path", "");
+    double lastMention_ = -100.0;
     Setting& lines_ = intSlider("lines", "Visible lines", 10, 3, 30);
     Setting& fade_ = slider("fade", "Visible for (s)", 10.f, 3.f, 60.f, "%.0f s");
     Setting& stamp_ = toggleSetting("stamp", "Timestamp", false);
@@ -485,7 +529,8 @@ protected:
                     cx += rowH;
                 }
                 ImU32 nameColor = marked ? ImGui::GetColorU32(highlightColor_.color) : me ? accentColor() : textColor();
-                drawText(dl, row + ImVec2(cx, spacing_.f * s * 0.5f), s, e.name, nameColor);
+                if (nick::mine(e.name)) nameColor = nick::colorOf(nick::color, nameColor);
+                drawText(dl, row + ImVec2(cx, spacing_.f * s * 0.5f), s, nick::show(e.name), nameColor);
                 if (ping_.b) {
                     ImVec4 c4 = rampColor(float(e.ping), 40.f, 200.f, good_.color, mid_.color, bad_.color);
                     if (pingBars_.b) {

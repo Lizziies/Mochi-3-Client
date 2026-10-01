@@ -76,6 +76,14 @@ enum class Id {
     HandMatrixThird,
     RenderEntities,
     RenderTerrain,
+    ItemPhysicsData,
+    NametagText,
+    NametagBackground,
+    HotbarOffset,
+    TitleOffset,
+    BossbarOffset,
+    HideCoordinates,
+    HideDayCounter,
     Count
 };
 
