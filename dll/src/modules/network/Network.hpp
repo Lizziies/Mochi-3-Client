@@ -14,7 +14,7 @@
 class Network : public HudModule {
 public:
     Network()
-        : HudModule("Network",
+        : HudModule("Network Monitor",
                     "Ping, Jitter und Paketverlust zum Server, plus WLAN-Daten und Tipps.",
                     {"hud-self"}, {0.01f, 0.34f}) {
         sub("Netzwerk");

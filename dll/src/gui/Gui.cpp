@@ -126,6 +126,11 @@ bool wantsCursor() { return isOpen || hudEdit; }
 bool capturesKeyboard() { return isOpen || widgets::capturingKey() || keyboardClaim || ImGui::GetIO().WantTextInput; }
 void claimKeyboard() { keyboardClaimNext = true; }
 
+static Category catOf(const Module& m) {
+    int c = modules::displayCategory(m.name());
+    return c >= 0 ? Category(c) : m.category();
+}
+
 static bool visible(const Module& m) {
     if (m.category() == Category::Client) return false;
     return showMore || search[0] || modules::tierOf(m.name()) <= 2;
@@ -133,7 +138,7 @@ static bool visible(const Module& m) {
 
 static bool matches(const Module& m) {
     if (!visible(m)) return false;
-    if (category >= 0 && (int)m.category() != category) return false;
+    if (category >= 0 && (int)catOf(m) != category) return false;
     if (!search[0]) return true;
     auto lower = [](std::string s) {
         std::transform(s.begin(), s.end(), s.begin(), [](unsigned char c) { return (char)std::tolower(c); });
@@ -222,7 +227,7 @@ static void glyph(ImDrawList* dl, int kind, ImVec2 c, float r, ImU32 col) {
     }
 }
 
-static bool railItem(const char* label, int cat, bool active, int count, float width) {
+static bool railItem(const char* label, int cat, bool active, int usable, int count, float width) {
     auto& t = theme::current();
     float s = ui::scale();
     ImVec2 p = ImGui::GetCursorScreenPos();
@@ -243,10 +248,10 @@ static bool railItem(const char* label, int cat, bool active, int count, float w
     ImVec2 ts = ImGui::CalcTextSize(text);
     dl->AddText({p.x + 46 * s + nudge, p.y + (size.y - ts.y) * 0.5f}, theme::col(theme::mix(t.textDim, t.text, active ? 1.f : a)), text);
     if (count > 0) {
-        char buf[16];
-        snprintf(buf, sizeof(buf), "%d", count);
+        char buf[24];
+        snprintf(buf, sizeof(buf), "%d/%d", usable, count);
         ImVec2 cs = ImGui::CalcTextSize(buf);
-        dl->AddText({p.x + size.x - cs.x - 12 * s, p.y + (size.y - cs.y) * 0.5f}, theme::col(t.textDim, 0.7f), buf);
+        dl->AddText({p.x + size.x - cs.x - 12 * s, p.y + (size.y - cs.y) * 0.5f}, theme::col(usable ? t.textDim : t.off, 0.8f), buf);
     }
     return clicked;
 }
@@ -311,18 +316,21 @@ static void drawSidebar(float width) {
         const char* label;
         int cat;
         int count;
+        int usable;
     };
     static const Category order[] = {Category::Hud, Category::Visual, Category::Pvp, Category::Comfort,
                                      Category::Performance, Category::Server, Category::Fun};
     std::vector<Row> rows;
-    int total = 0;
+    int total = 0, totalUsable = 0;
     for (auto c : order) {
-        int n = (int)std::count_if(modules::all().begin(), modules::all().end(), [c](auto& m) { return m->category() == c && visible(*m); });
+        int n = (int)std::count_if(modules::all().begin(), modules::all().end(), [c](auto& m) { return catOf(*m) == c && visible(*m); });
+        int usable = (int)std::count_if(modules::all().begin(), modules::all().end(), [c](auto& m) { return catOf(*m) == c && visible(*m) && m->available(); });
         if (!n) continue;
         total += n;
-        rows.push_back({categoryName(c), (int)c, n});
+        totalUsable += usable;
+        rows.push_back({categoryName(c), (int)c, n, usable});
     }
-    rows.insert(rows.begin(), {"All modules", -1, total});
+    rows.insert(rows.begin(), {"All modules", -1, total, totalUsable});
 
     float rowW = width - 20 * s;
     float step = 38 * s + ImGui::GetStyle().ItemSpacing.y;
@@ -343,7 +351,7 @@ static void drawSidebar(float width) {
         dl->AddRectFilled({a.x, a.y + 10 * s}, {a.x + 3 * s, b.y - 10 * s}, theme::col(t.accent, markerOn), 2 * s);
     }
     for (size_t i = 0; i < rows.size(); i++) {
-        if (railItem(rows[i].label, rows[i].cat, page == Page::Modules && (int)i == active, rows[i].count, rowW)) {
+        if (railItem(rows[i].label, rows[i].cat, page == Page::Modules && (int)i == active, rows[i].usable, rows[i].count, rowW)) {
             page = Page::Modules;
             category = rows[i].cat;
             selected = nullptr;
@@ -528,9 +536,9 @@ static void drawCard(Module& m, ImVec2 size, bool isSelected) {
     float pad = 14 * s;
     float badge = 40 * s;
     ImVec2 bmin = min + ImVec2(pad, pad);
-    ImVec4 cc = catColor((int)m.category());
+    ImVec4 cc = catColor((int)catOf(m));
     draw::gradientRect(dl, bmin, bmin + ImVec2(badge, badge), theme::col(cc, 0.95f * dim), theme::col(theme::mix(cc, t.accent2, 0.5f), 0.95f * dim), 11 * s);
-    glyph(dl, (int)m.category(), bmin + ImVec2(badge, badge) * 0.5f, 9 * s, theme::col(t.bg, 0.9f));
+    glyph(dl, (int)catOf(m), bmin + ImVec2(badge, badge) * 0.5f, 9 * s, theme::col(t.bg, 0.9f));
 
     float tx = min.x + pad + badge + 12 * s;
     float tw = max.x - tx - pad - 20 * s;
@@ -595,13 +603,15 @@ static void drawGrid(float width) {
 
     std::vector<Module*> list;
     for (auto& m : modules::all())
-        if (matches(*m) && m->category() != Category::Client) list.push_back(m.get());
+        if (matches(*m)) list.push_back(m.get());
 
     std::map<std::string, int> subRank;
-    for (auto* m : list) subRank.emplace(std::to_string((int)m->category()) + "|" + m->sub(), (int)subRank.size());
+    for (auto* m : list) subRank.emplace(std::to_string((int)catOf(*m)) + "|" + m->sub(), (int)subRank.size());
     std::stable_sort(list.begin(), list.end(), [&](Module* a, Module* b) {
-        if (a->category() != b->category()) return (int)a->category() < (int)b->category();
-        return subRank[std::to_string((int)a->category()) + "|" + a->sub()] < subRank[std::to_string((int)b->category()) + "|" + b->sub()];
+        bool la = !a->available() || a->rule() == RuleLevel::Block, lb = !b->available() || b->rule() == RuleLevel::Block;
+        if (la != lb) return !la;
+        if (catOf(*a) != catOf(*b)) return (int)catOf(*a) < (int)catOf(*b);
+        return subRank[std::to_string((int)catOf(*a)) + "|" + a->sub()] < subRank[std::to_string((int)catOf(*b)) + "|" + b->sub()];
     });
 
     if (list.empty()) widgets::hint("Nothing found.");
@@ -611,10 +621,17 @@ static void drawGrid(float width) {
     float y = 2 * s;
     int col = 0;
     std::string lastHeader = "\x01";
+    bool lockedStarted = false;
     for (size_t i = 0; i < list.size(); i++) {
         Module* m = list[i];
-        std::string header = category < 0 ? std::string(categoryName(m->category())) : std::string();
-        if (!m->sub().empty()) header += (header.empty() ? "" : "  ·  ") + std::string(i18n::tr(m->sub().c_str()));
+        bool locked = !m->available() || m->rule() == RuleLevel::Block;
+        std::string header;
+        if (locked) {
+            header = i18n::tr("Waiting for game data");
+        } else {
+            header = category < 0 ? std::string(categoryName(catOf(*m))) : std::string();
+            if (!m->sub().empty()) header += (header.empty() ? "" : "  ·  ") + std::string(i18n::tr(m->sub().c_str()));
+        }
         if (header != lastHeader) {
             if (col != 0) {
                 y += size.y + gap;
@@ -622,8 +639,16 @@ static void drawGrid(float width) {
             }
             if (!header.empty()) {
                 if (i) y += 6 * s;
-                ImGui::GetWindowDrawList()->AddText(fonts::bold(), 13.f * s, origin + ImVec2(2 * s, y), theme::col(theme::mix(t.textDim, catColor((int)m->category()), 0.6f)), header.c_str());
+                auto* dlh = ImGui::GetWindowDrawList();
+                ImVec4 hc = locked ? t.warn : theme::mix(t.textDim, catColor((int)catOf(*m)), 0.6f);
+                dlh->AddText(fonts::bold(), 13.f * s, origin + ImVec2(2 * s, y), theme::col(hc), header.c_str());
                 y += 24 * s;
+                if (locked && !lockedStarted) {
+                    lockedStarted = true;
+                    dlh->AddText(fonts::regular(), 12.5f * s, origin + ImVec2(2 * s, y - 8 * s),
+                                 theme::col(t.textDim), i18n::tr("These modules need game data for your Minecraft version. They unlock as soon as it is available."));
+                    y += 16 * s;
+                }
             }
             lastHeader = header;
         }
@@ -666,11 +691,11 @@ static void drawSettingsPanel(ImVec2 origin, ImVec2 size) {
         auto* dl = ImGui::GetWindowDrawList();
         ImVec2 hp = ImGui::GetCursorScreenPos();
         float badge = 46 * s;
-        ImVec4 cc = catColor((int)m.category());
+        ImVec4 cc = catColor((int)catOf(m));
         draw::gradientRect(dl, hp, hp + ImVec2(badge, badge), theme::col(cc), theme::col(theme::mix(cc, t.accent2, 0.5f)), 12 * s);
-        glyph(dl, (int)m.category(), hp + ImVec2(badge, badge) * 0.5f, 10 * s, theme::col(t.bg, 0.9f));
+        glyph(dl, (int)catOf(m), hp + ImVec2(badge, badge) * 0.5f, 10 * s, theme::col(t.bg, 0.9f));
         dl->AddText(fonts::bold(), 22 * s, hp + ImVec2(badge + 14 * s, 1 * s), theme::col(t.text), i18n::tr(m.name().c_str()));
-        std::string cat = categoryName(m.category());
+        std::string cat = categoryName(catOf(m));
         if (!m.sub().empty()) cat += "  ·  " + std::string(i18n::tr(m.sub().c_str()));
         dl->AddText(fonts::regular(), 13.5f * s, hp + ImVec2(badge + 14 * s, 30 * s), theme::col(t.textDim), cat.c_str());
 

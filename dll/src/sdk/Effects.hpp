@@ -56,6 +56,7 @@ enum class Id {
     HurtAnim,
     BlockOutline,
     SwingSpeed,
+    CrystalHide,
     Count
 };
 

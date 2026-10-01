@@ -4,7 +4,7 @@ Alles, was Module vom Spiel lesen oder ins Spiel schreiben, läuft über `dll/sr
 
 ## Demo-Daten
 
-Im Modul "Sig Status" (Kategorie Performance) gibt es den Schalter "Demo-Daten". Dann liefert `sdk/Demo.cpp` simulierte Spielwerte (Position, Leben, Rüstung, Tränke, Kämpfe mit Treffern, Chat, Scoreboard, Tab-Liste, Weltzeit). Alle Spiel-Module werden dabei benutzbar, die Effekt-Kanäle (siehe unten) werden angefordert, aber nichts im Spiel verändert. Zum Testen der HUDs und Einstellungen am PC ohne Signaturen. Standard ist aus.
+Im Modul "Game Support" (Kategorie Performance) gibt es den Schalter "Demo-Daten". Dann liefert `sdk/Demo.cpp` simulierte Spielwerte (Position, Leben, Rüstung, Tränke, Kämpfe mit Treffern, Chat, Scoreboard, Tab-Liste, Weltzeit). Alle Spiel-Module werden dabei benutzbar, die Effekt-Kanäle (siehe unten) werden angefordert, aber nichts im Spiel verändert. Zum Testen der HUDs und Einstellungen am PC ohne Signaturen. Standard ist aus.
 
 ## Daten lesen (`sdk/Game.hpp`, `sdk/Live.cpp`)
 

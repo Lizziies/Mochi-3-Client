@@ -35,4 +35,4 @@ Spiel-Module (Zoom, Fullbright, Hitbox, Armor HUD …) brauchen Adressen aus der
 2. Es findet die Signaturen für deine Minecraft-Version und schreibt `sigs/<version>.json`.
 3. Commit, Push. Danach lädt jeder Client die Signaturen automatisch, ohne neues Release.
 
-Die Demo-Daten im Modul "Sig Status" (Einschalter) lassen alle Spiel-Module mit simulierten Werten laufen, damit man sie ohne Signaturen im Menü ausprobieren kann. Im echten Spiel greifen sie erst mit Signaturen.
+Die Demo-Daten im Modul "Game Support" (Einschalter) lassen alle Spiel-Module mit simulierten Werten laufen, damit man sie ohne Signaturen im Menü ausprobieren kann. Im echten Spiel greifen sie erst mit Signaturen.

@@ -10,8 +10,8 @@ namespace {
 constexpr std::string_view core[] = {
     "CPS", "FPS", "Ping Counter", "Keystrokes", "Armor HUD", "Potion HUD", "Coordinates", "Toggle Sprint",
     "Toggle Sneak", "Reach Counter", "Combo Counter", "Zoom", "Fullbright", "Freelook", "FOV Changer", "Hurt Color",
-    "No Hurt Cam", "No View Bobbing", "Custom Crosshair", "Block Outline", "Animations", "Render Options", "Auto GG",
-    "Scoreboard", "GUI Scale", "Instant Input", "Low Latency", "Latency", "Network", "Frame Limiter",
+    "No Hurt Cam", "No View Bobbing", "Custom Crosshair", "Block Outline", "Animations", "Block Hit", "Render Options", "Auto GG",
+    "Scoreboard", "GUI Scale", "Instant Hit", "Low Latency", "Latency Meter", "Network Monitor", "Frame Limiter",
 };
 
 constexpr std::string_view expected[] = {
@@ -22,7 +22,7 @@ constexpr std::string_view expected[] = {
     "Particle Multiplier", "Time Changer", "Weather Changer", "Environment Changer", "Death Logger",
     "Player Notifier", "Chunk Border", "Break Progress", "Cinematic Camera", "Snap Look", "Auto Perspective",
     "Sens Multiplier", "Bow Sensitivity", "Stopwatch", "Memory", "Experience Info", "Durability Warning",
-    "Streamer Mode", "Server Profiles", "Chat Plus", "View Model", "Saturation / Hue", "Screenshot+", "Target HUD",
+    "Streamer Mode", "Server Profiles", "Crystal Optimizer", "Better Chat", "View Model", "Saturation / Hue", "Screenshot+", "Target HUD",
     "Session Timer", "Day Counter", "Hide Hand", "Entity Counter",
 };
 
@@ -32,6 +32,13 @@ constexpr std::string_view extras[] = {
     "Stats HUD", "Night Shift", "Sharpen", "Color Filter", "Brightness / Contrast", "Screen Tint", "Deepfry",
     "Upside Down", "Depth of Field", "Background Load", "Auto Profile", "Damage Indicator", "Hit Marker",
     "Bow Charge", "Cooldown Indicator",
+};
+
+constexpr std::string_view pvp[] = {
+    "CPS", "Keystrokes", "Mouse Strokes", "Combo Counter", "Reach Counter", "Opponent Reach", "Hit Ping", "Armor HUD",
+    "Potion HUD", "Pot Counter", "Arrow Counter", "Totem Counter", "Target HUD", "Hitbox", "Hurt Color", "Animations",
+    "Low Health Indicator", "Auto GG", "Toggle Sprint", "Toggle Sneak", "Snap Look", "Block Hit", "Crystal Optimizer", "Instant Hit", "CPS Limiter",
+    "Hit Counter", "Null Movement", "Faster Inventory", "Item Use Delay Fix", "Insta Hurt Animation",
 };
 
 const std::unordered_map<std::string_view, int>& table() {
@@ -45,6 +52,12 @@ const std::unordered_map<std::string_view, int>& table() {
     return map;
 }
 
+}
+
+int displayCategory(const std::string& name) {
+    for (auto n : pvp)
+        if (n == name) return 2;
+    return -1;
 }
 
 int tierOf(const std::string& name) {

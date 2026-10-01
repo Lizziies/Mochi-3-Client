@@ -17,7 +17,7 @@ const char* categoryName(Category c) {
     case Category::Comfort: return i18n::tr("Comfort");
     case Category::Performance: return i18n::tr("Performance");
     case Category::Server: return i18n::tr("Server");
-    case Category::Fun: return i18n::tr("Fun");
+    case Category::Fun: return i18n::tr("Extras");
     case Category::Client: return i18n::tr("Client");
     }
     return "";

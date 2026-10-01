@@ -209,7 +209,7 @@ private:
 class ChatPlus : public HudModule {
 public:
     ChatPlus()
-        : HudModule("Chat Plus", "Eigener, verschiebbarer Chat mit Zeitstempeln, Filter und Hervorhebung.",
+        : HudModule("Better Chat", "Eigener, verschiebbarer Chat mit Zeitstempeln, Filter und Hervorhebung.",
                     {"hud-self"}, {0.01f, 0.55f}) {
         sub("Chat");
         require(need::chat, need::sigs({"ChatEvents"}));

@@ -3,6 +3,16 @@
 namespace {
 
 const i18n::Entry entries[] = {
+    {"1.8-style sword blocking pose while you hold right click, with the swing on top.", "Schwert-Blockpose im 1.8-Stil, solange du die rechte Maustaste hältst, mit Schwung obendrauf."},
+    {"Pose strength", "Pose-Stärke"},
+    {"Hold the item lower", "Item tiefer halten"},
+    {"Hides an end crystal on your screen the moment you hit it, so the next placement feels faster. Client side only, sends nothing extra.", "Blendet einen End-Crystal auf deinem Bildschirm aus, sobald du ihn triffst, damit sich das nächste Platzieren schneller anfühlt. Nur clientseitig, sendet nichts Zusätzliches."},
+    {"Some servers count crystal tweaks as an advantage. Only use it where the server rules allow it.", "Manche Server werten Crystal-Anpassungen als Vorteil. Nur nutzen, wo die Server-Regeln es erlauben."},
+    {"Animations", "Animationen"},
+    {"Crystal PvP", "Crystal-PvP"},
+    {"Waiting for game data", "Wartet auf Spieldaten"},
+    {"These modules need game data for your Minecraft version. They unlock as soon as it is available.", "Diese Module brauchen Spieldaten für deine Minecraft-Version. Sie werden freigeschaltet, sobald diese vorliegen."},
+    {"Extras", "Extras"},
     {"Enabled", "Aktiv"},
     {"Disabled", "Aus"},
     {"Unavailable", "Nicht verfügbar"},

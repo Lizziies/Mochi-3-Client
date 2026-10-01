@@ -44,13 +44,13 @@ Ziel: Alle Features der anderen Clients erfassen, nach Wichtigkeit für PvP-Spie
 | No Hurt Cam | ✔ | (Latite ✔) | ✔ | |
 | Custom Crosshair | ✔ | ✔ | ✔ | |
 | Block Outline | ✔ | ✔ | ✔ | |
-| **Animations (1.8-Look, Block Hit, Swing)** | ✔ (Animations, BlockHit, SwingAnimations) | ◐ | ◐ | Wir haben "Animations" und View Model, aber **Block Hit** und Swing als eigene Optionen fehlen. Sehr gefragt |
+| **Animations (1.8-Look, Swing)** und **Block Hit** | ✔ (Animations, BlockHit, SwingAnimations) | ◐ | ✔ (gesperrt) | "Animations" und eigenes Modul "Block Hit" sind da, brauchen aber die Hand-Signatur |
 | Render Options / FPS-Boost | ✔ | ✔ | ✔ | |
 | Auto GG | ✔ | ✔ | ✔ | |
 | Scoreboard verschieben/aufräumen | ✔ (Movable, Clear) | ✔ | ✔ | |
 | GUI Scale | ✔ | (Latite ✔) | ✔ | |
 | Raw Input / Instant Input | ✔ (Raw Input Buffer, laut früherer Recherche nur Stub) | – | ◐ | Wir haben Instant Input. **Raw Input Buffer** als eigener Name fehlt. Unser Alleinstellungsmerkmal |
-| **Hive Utils (Auto-Requeue)** | ✔ | ✔ (Skript HiveAutoQueue) | ✖ | **Wichtig für Hive-Spieler, fehlt komplett** |
+| **Hive Utils (Auto-Requeue)** | ✔ | ✔ (Skript HiveAutoQueue) | ✖ | **Wichtig für Hive-Spieler, fehlt komplett. Zuständig: Session B** |
 | HUD-Editor, Config-Profile, Suche | ✔ | ✔ | ✔ | |
 | Server-Regeln | – | – | ➕ | unser Plus |
 
@@ -103,7 +103,7 @@ Ziel: Alle Features der anderen Clients erfassen, nach Wichtigkeit für PvP-Spie
 | **Discord RPC** | ✔ | ✔ (Skript) | ✖ | Fehlt, beliebt |
 | **Scripting / Marketplace** | ✔ | ✔ (Lua, bezahlt) | ✖ | Phase 9, bei Onix Hauptargument |
 | Theme / Farben anpassen | ✔ | ✔ | ✔ | |
-| **Crystal Optimizer** | ✔ (neu) | – | ✖ | Für Crystal-PvP. Vorher Server-Regeln prüfen (kann als Vorteil gelten), nur mit Warnhinweis |
+| **Crystal Optimizer** | ✔ (neu) | – | ✔ (gesperrt, server-rules) | Für Crystal-PvP. Vorher Server-Regeln prüfen (kann als Vorteil gelten), nur mit Warnhinweis |
 | Stopwatch, Memory | ✔ | ✔ | ✔ | |
 | Experience Info, Durability Warning | ✔ | ✔ | ✔ | |
 
@@ -173,3 +173,17 @@ Diese Module erzeugen im PvP-Menü Rauschen. Vorschlag: nicht löschen, sondern 
 - Jedes Modul bekommt eine Stufe. Das Menü zeigt standardmäßig **nur Stufe 1 und 2**. Ein Schalter "Mehr Module anzeigen" blendet Stufe 3 und 4 ein.
 - Kategorien aufräumen: HUD, Kamera & Sicht, Kampf, Komfort, Server, Extras.
 - Im Einstellungs-Menü pro Modul feste Gruppen wie bei Flarial: **General, Text/Style, Colors, Misc**, plus **Hold Mode** und **Keybind** und die Knöpfe **Reset all** und **Reset position**.
+
+## Umbenennungen (bekannte Namen wie bei den großen Clients)
+
+| Alt | Neu |
+|---|---|
+| Instant Input | Instant Hit |
+| Latency | Latency Meter |
+| Latency Blame | Lag Analyzer |
+| Network | Network Monitor |
+| Chat Plus | Better Chat |
+| Sig Status | Game Support |
+| Fun (Kategorie) | Extras |
+
+PvP-Kategorie im Menü enthält jetzt alle Kampf-Module: CPS, Keystrokes, Combo, Reach, Opponent Reach, Hit Ping, Armor/Potion HUD, Pot/Arrow/Totem Counter, Target HUD, Hitbox, Hurt Color, Animations, Block Hit, Crystal Optimizer, Toggle Sprint/Sneak, Instant Hit, Auto GG u. a.

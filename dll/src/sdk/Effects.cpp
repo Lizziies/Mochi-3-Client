@@ -64,6 +64,7 @@ constexpr Info table[count] = {
     {"fx.hurtAnim", "Treffer-Animation", Kind::Flag},
     {"fx.blockOutline", "Original-Blockumriss", Kind::Skip},
     {"fx.swingSpeed", "Schwung-Dauer", Kind::Value},
+    {"fx.crystalHide", "Crystal sofort ausblenden", Kind::Flag},
 };
 
 enum Mode { None, Set, Scale, Add, Force, Skipped, Out, Matrix, Smooth };

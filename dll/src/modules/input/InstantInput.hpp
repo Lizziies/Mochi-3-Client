@@ -12,7 +12,7 @@
 class InstantInput : public Module {
 public:
     InstantInput()
-        : Module("Instant Input",
+        : Module("Instant Hit",
                  "Kürzt die lokale Kette Klick bis Bild. Erzeugt keine Klicks. Auf manchen Servern verboten.",
                  Category::Pvp, {"input", "timing"}) {
         sub("Eingabe");

@@ -3,43 +3,106 @@
   "servers": [
     {
       "name": "Zeqa",
-      "match": ["zeqa.net"]
+      "match": [
+        "zeqa.net"
+      ]
     },
     {
       "name": "The Hive",
-      "match": ["hivebedrock.network", "playhive.com"],
+      "match": [
+        "hivebedrock.network",
+        "playhive.com"
+      ],
       "rules": "https://support.playhive.com/allowed-and-denied-mods/",
-      "block": ["Freelook"],
-      "blockOptions": { "Auto GG": ["onKill"] },
-      "warn": ["Entity Counter", "Null Movement", "Faster Inventory", "Item Use Delay Fix",
-               "Insta Hurt Animation", "Opponent Reach", "Hit Ping", "Instant Input", "Snap Look",
-               "Waypoints", "Command Hotkey", "Text Hotkey", "Damage Indicator", "Target HUD",
-               "Hotbar Keys"]
+      "block": [
+        "Freelook"
+      ],
+      "blockOptions": {
+        "Auto GG": [
+          "onKill"
+        ]
+      },
+      "warn": [
+        "Entity Counter",
+        "Null Movement",
+        "Faster Inventory",
+        "Item Use Delay Fix",
+        "Insta Hurt Animation",
+        "Opponent Reach",
+        "Hit Ping",
+        "Instant Hit",
+        "Snap Look",
+        "Waypoints",
+        "Command Hotkey",
+        "Text Hotkey",
+        "Damage Indicator",
+        "Target HUD",
+        "Hotbar Keys"
+      ]
     },
     {
       "name": "CubeCraft",
-      "match": ["cubecraft.net"],
+      "match": [
+        "cubecraft.net"
+      ],
       "rules": "https://www.cubecraft.net/threads/allowed-mods-and-clients.228596/",
-      "warn": ["Faster Inventory", "Java Inventory Hotkeys", "Item Use Delay Fix", "Null Movement",
-               "Insta Hurt Animation", "Instant Input", "Snap Look", "Command Hotkey",
-               "Text Hotkey"]
+      "warn": [
+        "Faster Inventory",
+        "Java Inventory Hotkeys",
+        "Item Use Delay Fix",
+        "Null Movement",
+        "Insta Hurt Animation",
+        "Instant Hit",
+        "Snap Look",
+        "Command Hotkey",
+        "Text Hotkey"
+      ]
     },
     {
       "name": "Lifeboat",
-      "match": ["lbsg.net"],
+      "match": [
+        "lbsg.net"
+      ],
       "rules": "https://www.lbsg.net/in-game-rules/index.html",
-      "block": ["Null Movement", "Faster Inventory", "Item Use Delay Fix", "Insta Hurt Animation",
-                "Instant Input"],
-      "warnTags": ["info-others", "input", "timing", "chat"],
-      "notice": "Mochi ist auf Lifeboat noch nicht offiziell freigegeben."
+      "block": [
+        "Null Movement",
+        "Faster Inventory",
+        "Item Use Delay Fix",
+        "Insta Hurt Animation",
+        "Instant Hit"
+      ],
+      "warnTags": [
+        "info-others",
+        "input",
+        "timing",
+        "chat"
+      ],
+      "notice": "Mochi ist auf Lifeboat noch nicht offiziell freigegeben.",
+      "warn": [
+        "Crystal Optimizer"
+      ]
     },
     {
       "name": "Galaxite",
-      "match": ["galaxite.net"],
+      "match": [
+        "galaxite.net"
+      ],
       "rules": "https://www.galaxite.net/rules/",
-      "block": ["Null Movement", "Faster Inventory", "Item Use Delay Fix", "Insta Hurt Animation",
-                "Instant Input"],
-      "warnTags": ["info-others", "input", "timing"]
+      "block": [
+        "Null Movement",
+        "Faster Inventory",
+        "Item Use Delay Fix",
+        "Insta Hurt Animation",
+        "Instant Hit"
+      ],
+      "warnTags": [
+        "info-others",
+        "input",
+        "timing"
+      ],
+      "warn": [
+        "Crystal Optimizer"
+      ]
     }
   ]
 }

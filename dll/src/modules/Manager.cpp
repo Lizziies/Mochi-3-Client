@@ -18,6 +18,7 @@
 #include "combat/Counters.hpp"
 #include "combat/Feedback.hpp"
 #include "combat/Target.hpp"
+#include "combat/Pvp.hpp"
 #include "combat/Tweaks.hpp"
 #include "comfort/Chat.hpp"
 #include "comfort/Link.hpp"
@@ -188,6 +189,8 @@ void init() {
     add<BowSensitivity>();
     add<SnapLook>();
     add<NullMovement>();
+    add<BlockHit>();
+    add<CrystalOptimizer>();
     add<ItemUseDelayFix>();
     add<FasterInventory>();
     add<InstaHurtAnimation>();
@@ -239,6 +242,10 @@ void init() {
         if (m->alwaysOn()) m->setEnabled(true);
 
     logger::info("{} modules registered", list.size());
+    std::string locked, open;
+    for (auto& m : list) (m->available() ? open : locked) += m->name() + "; ";
+    logger::info("usable: {}", open);
+    logger::info("locked: {}", locked);
 }
 
 void shutdown() {

@@ -10,7 +10,7 @@
 class SigStatus : public Module {
 public:
     SigStatus()
-        : Module("Sig Status",
+        : Module("Game Support",
                  "Zeigt, welche Module auf dieser Version laufen. Hier gibt es auch Demo-Daten.",
                  Category::Performance, {"performance"}) {
         sub("Diagnose");
