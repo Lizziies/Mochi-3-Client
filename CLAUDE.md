@@ -30,7 +30,7 @@ Arbeitstitel "Mochi" — vor dem ersten Release umbenennen (global suchen/ersetz
 2. Legit only. No reach, killaura, aim assist, autoclicker, velocity, scaffold, ESP through walls, or anything that sends packets the vanilla client wouldn't. Modules marked `server-rules` in MODULES.md ship disabled by default with a warning in their description.
 3. Do not copy code from Flarial (AGPL-3.0) or decompiled Onix. Reading them to understand an approach is fine; write our own implementation. Signatures are facts about the game binary and may be re-derived, but find them ourselves and verify them.
 4. Never distribute Minecraft files. The version switcher downloads only through the user's own Microsoft entitlement.
-5. A missing signature must never crash the game. The module goes grey in the GUI with "not available on this version".
+5. A missing signature must never crash the game. The module goes grey in the GUI with "not available on this version". Grey is only the safety net. At release no module may still be grey: fix it, solve it another way or remove it (`docs/PLAN_HOME.md`).
 6. Every hook body runs inside the crash guard (see PLAN.md, core/guard).
 7. A game module only counts as done when it changes the game while it is on: its hook must be installed and verified (log line plus visible effect), not just drawn in the menu. If the hook is missing the module is grey, never silently inactive. Overlay modules are the only ones allowed to be pure drawing.
 
