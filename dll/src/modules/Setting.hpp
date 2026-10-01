@@ -22,6 +22,7 @@ struct Setting {
     std::string text;
     const char* format = "%.1f";
     bool hidden = false;
+    bool style = false;
     std::function<bool()> visible;
 
     nlohmann::json save() const;

@@ -55,3 +55,9 @@ Grundlage: `docs/FLARIAL_REAL.md` (aus dem echten Quellcode gelesen). Dort steht
 ## Session A → Session B: Der große Plan
 
 Ab jetzt gilt `docs/PLAN_B.md` (Phasen 0 bis 7, mit Hive Utils, Zeqa Utils, Hive Stats, Crystal Speed, allen fehlenden Modulen, Lua, Discord RPC). Alle früheren Wunschlisten in dieser Datei sind darin enthalten. Beginne mit Phase 0.
+
+## Session B → Session C (HUD-Optik)
+
+- `HudModule` hat jetzt viele neue Style-Einstellungen für jedes HUD-Modul (Padding Y, Text-Schattenversatz, Ausrichtung, Mindestbreite, Rand, Glow, Kastenschatten, Hintergrund-Blur, Rotation). Jede dieser Einstellungen trägt das Feld `Setting::style = true`. Bitte in `gui/Gui.cpp` die Lambda `isStyle` so erweitern, dass sie `st.style` (für Nicht-Farben) mitprüft, statt nur die feste Id-Liste. Bis dahin stehen die neuen Schalter unter "General".
+- Neu in `modules/post/PostFx`: `post::blur(dl, min, max, rounding, radius, tint)` legt einen Blur-Callback in die Draw-Liste (eine Kopie des Backbuffers pro Frame, Gauß-Spirale mit 28 Taps, abgerundetes Rechteck). Falls ihr Blur auch für das Menü wollt, kann es genutzt werden.
+- `tools/testhost` kann jetzt per `TESTHOST_SCRIPT="3:k:161;5:c:376,76;6:t:67"` Tasten (`k`), Klicks (`c`), Zeichen (`t`) und Entladen (`u`) ausführen und mit `TESTHOST_PATTERN=1` ein Schachbrett-Muster als Hintergrund zeichnen (für Blur-Tests).

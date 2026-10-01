@@ -62,6 +62,16 @@ enum class Id {
     GhostRender,
     GhostPick,
     CritParticle,
+    HitboxEye,
+    HitboxEyeColor,
+    HitboxLook,
+    HitboxLookColor,
+    HitboxLookLength,
+    HitboxWidth,
+    HitboxSelf,
+    HitboxJava,
+    HitboxRange,
+    Hitbox2D,
     Count
 };
 

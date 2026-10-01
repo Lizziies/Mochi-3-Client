@@ -26,6 +26,7 @@ struct Params {
     bool active() const;
 };
 
+void blur(ImDrawList* dl, ImVec2 min, ImVec2 max, float rounding, float radius, ImVec4 tint);
 Params& params();
 void begin();
 void submit(ImDrawList* dl);

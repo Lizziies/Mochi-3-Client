@@ -1,6 +1,7 @@
 #pragma once
 
 #include "gui/Gui.hpp"
+#include "gui/Notify.hpp"
 #include "gui/Theme.hpp"
 #include "modules/common/Colors.hpp"
 #include "modules/common/GameHud.hpp"
@@ -14,6 +15,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstring>
 #include <format>
 
 class Coordinates : public GameList {
@@ -29,7 +31,10 @@ public:
         if (ev.vk == hideKey_.i && hideKey_.i) hidden_ = !hidden_;
         if (ev.vk == copyKey_.i && copyKey_.i) {
             auto& p = game::state().player.pos;
-            ImGui::SetClipboardText(std::format("{} {} {}", int(std::floor(p.x)), int(std::floor(p.y)), int(std::floor(p.z))).c_str());
+            int x = int(std::floor(p.x)), y = int(std::floor(p.y)), z = int(std::floor(p.z));
+            std::string out = copyFormat_.i == 1 ? std::format("{}, {}, {}", x, y, z) : copyFormat_.i == 2 ? std::format("X: {} Y: {} Z: {}", x, y, z) : std::format("{} {} {}", x, y, z);
+            ImGui::SetClipboardText(out.c_str());
+            notify::push(i18n::tr("Copied"), out, notify::Kind::Ok, 2.f);
         }
     }
 
@@ -38,9 +43,10 @@ protected:
         auto& p = game::state().player;
         float y = 0.f, w = 0.f;
         auto line = [&](const std::string& label, const std::string& value, ImU32 col) {
-            ImVec2 a = drawText(dl, o + ImVec2(0, y), s, label, accentColor());
-            ImVec2 b = drawText(dl, o + ImVec2(a.x + 6 * s, y), s, value, col);
-            w = std::max(w, a.x + 6 * s + b.x);
+            ImVec2 a = label.empty() ? ImVec2(0, 0) : drawText(dl, o + ImVec2(0, y), s, label, accentColor());
+            float gap = label.empty() ? 0.f : 6 * s;
+            ImVec2 b = drawText(dl, o + ImVec2(a.x + gap, y), s, value, col);
+            w = std::max(w, a.x + gap + b.x);
             y += std::max(a.y, b.y);
         };
         if (hidden_) {
@@ -49,16 +55,23 @@ protected:
         }
         float px = p.pos.x, py = p.pos.y, pz = p.pos.z;
         auto fmt = [&](float v) { return blocks_.b ? std::to_string(int(std::floor(v))) : text::num(v, decimals_.i); };
-        if (layout_.i == 0) {
-            line("XYZ", fmt(px) + " / " + fmt(py) + " / " + fmt(pz), textColor());
+        auto speed = [&](float v) { return std::format(" ({}{:.1f}/s)", v >= 0.f ? "+" : "-", std::fabs(v)); };
+        std::string yText = fmt(py) + (ySpeed_.b ? speed(p.vel.y) : "");
+        if (!format_.text.empty()) {
+            std::string out = format_.text;
+            for (auto& [key, val] : {std::pair<const char*, std::string>{"{D}", dimension(p.dimension)}, {"{X}", fmt(px)}, {"{Y}", yText}, {"{Z}", fmt(pz)}})
+                for (size_t at = out.find(key); at != std::string::npos; at = out.find(key, at + val.size())) out.replace(at, std::strlen(key), val);
+            line("", out, textColor());
+        } else if (layout_.i == 0) {
+            line("XYZ", fmt(px) + " / " + yText + " / " + fmt(pz), textColor());
         } else {
             line("X", fmt(px), ImGui::GetColorU32(xColor_.color));
-            line("Y", fmt(py), ImGui::GetColorU32(yColor_.color));
+            line("Y", yText, ImGui::GetColorU32(yColor_.color));
             line("Z", fmt(pz), ImGui::GetColorU32(zColor_.color));
         }
         if (nether_.b && p.dimension != 2) {
             float k = p.dimension == 1 ? 8.f : 1.f / 8.f;
-            line(p.dimension == 1 ? i18n::tr("Overworld") : "Nether", fmt(px * k) + " / " + fmt(pz * k), textColor());
+            line(dimension(p.dimension == 1 ? 0 : 1), fmt(px * k) + " / " + fmt(pz * k), textColor());
         }
         if (chunk_.b) line("Chunk", std::format("{} {}", int(std::floor(px / 16.f)), int(std::floor(pz / 16.f))), textColor());
         if (inChunk_.b) line(i18n::tr("In chunk"), std::format("{} {} {}", int(std::floor(px)) & 15, int(std::floor(py)) & 15, int(std::floor(pz)) & 15), textColor());
@@ -68,16 +81,28 @@ protected:
     }
 
 private:
+    std::string dimension(int d) const {
+        static const char* full[] = {"Overworld", "Nether", "The End"};
+        static const char* shortName[] = {"OW", "N", "E"};
+        int i = std::clamp(d, 0, 2);
+        if (dimFormat_.i == 1) return i18n::tr(shortName[i]);
+        if (dimFormat_.i == 2) return std::to_string(i == 1 ? -1 : i == 2 ? 1 : 0);
+        return i18n::tr(full[i]);
+    }
+
     static std::string compass(float yaw) {
         static const char* names[] = {"North", "Northeast", "East", "Southeast", "South", "Southwest", "West", "Northwest"};
         float bearing = std::fmod(yaw + 180.f + 360.f, 360.f);
         return i18n::tr(names[int(std::floor((bearing + 22.5f) / 45.f)) % 8]);
     }
 
+    Setting& format_ = textSetting("format", "Format ({D} {X} {Y} {Z}, empty = layout)", "");
     Setting& layout_ = choice("layout", "Layout", {"One line", "Stacked"});
+    Setting& dimFormat_ = choice("dimFormat", "Dimension name", {"Full name", "Short", "Number"});
+    Setting& ySpeed_ = toggleSetting("ySpeed", "Vertical speed (+/-)", false);
     Setting& decimals_ = intSlider("decimals", "Decimals", 1, 0, 4);
     Setting& blocks_ = toggleSetting("blocks", "Block coordinates only", false);
-    Setting& nether_ = toggleSetting("nether", "Nether conversion", false);
+    Setting& nether_ = toggleSetting("nether", "Coordinates of the other dimension", false);
     Setting& chunk_ = toggleSetting("chunk", "Chunk", false);
     Setting& inChunk_ = toggleSetting("inChunk", "Position in chunk", false);
     Setting& facing_ = toggleSetting("facing", "Compass direction", false);
@@ -87,6 +112,7 @@ private:
     Setting& zColor_ = colorSetting("zColor", "Color Z", {0.6f, 0.75f, 1.f, 1.f});
     Setting& hideKey_ = keySetting("hideKey", "Hide (streamer)", 0);
     Setting& copyKey_ = keySetting("copyKey", "Copy position to the clipboard", 0);
+    Setting& copyFormat_ = choice("copyFormat", "Copy format", {"x y z", "x, y, z", "X: x Y: y Z: z"});
     bool hidden_ = false;
 };
 

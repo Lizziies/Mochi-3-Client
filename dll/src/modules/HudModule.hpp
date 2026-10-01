@@ -3,6 +3,8 @@
 #include "Module.hpp"
 
 #include <string>
+#include <utility>
+#include <vector>
 
 class HudModule : public Module {
 public:
@@ -27,6 +29,9 @@ protected:
     ImU32 textColor() const;
     ImU32 accentColor() const;
 
+    float textAlign() const { return float(align_.i) * 0.5f; }
+    float minWidth(float scale) const { return minWidth_.f * scale; }
+
     Setting& background_;
     Setting& bgColor_;
     Setting& textColor_;
@@ -34,6 +39,22 @@ protected:
     Setting& rounding_;
     Setting& padding_;
     Setting& shadow_;
+    Setting& padY_;
+    Setting& shadowOffset_;
+    Setting& align_;
+    Setting& minWidth_;
+    Setting& border_;
+    Setting& borderColor_;
+    Setting& borderWidth_;
+    Setting& glow_;
+    Setting& glowColor_;
+    Setting& glowSize_;
+    Setting& dropShadow_;
+    Setting& dropShadowColor_;
+    Setting& dropShadowSize_;
+    Setting& blur_;
+    Setting& blurRadius_;
+    Setting& rotation_;
 
 private:
     Setting& x_;
@@ -49,6 +70,7 @@ public:
 protected:
     virtual std::string label() const { return ""; }
     virtual std::string value() = 0;
+    virtual void tokens(std::vector<std::pair<std::string, std::string>>&) {}
     Setting& format_ = textSetting("format", "Format ({label} {value})", "");
     virtual ImU32 valueColor() const { return textColor(); }
     ImVec2 content(ImDrawList* dl, ImVec2 origin, float scale) override;

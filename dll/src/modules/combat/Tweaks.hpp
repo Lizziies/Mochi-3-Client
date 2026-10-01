@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/Config.hpp"
 #include "hook/Input.hpp"
 #include "modules/Module.hpp"
 #include "modules/common/Context.hpp"
@@ -68,11 +69,28 @@ private:
 class Hitbox : public Module {
 public:
     Hitbox()
-        : Module("Hitbox", "Shows hitboxes with the game's own drawing path, so not through walls. Color adjustable.",
+        : Module("Hitbox", "Shows hitboxes with the game's own drawing path, so never through walls. Box style, thickness, opacity, eye and look lines, range, your own box and Java size.",
                  Category::Pvp, {"info-others"}) {
         sub("Hit visuals");
         require(0, {fx::sig(fx::Id::Hitbox)});
         color_.visible = [this] { return !rainbow_.b; };
+        style_.visible = [] { return fx::available(fx::Id::Hitbox2D); };
+        width_.visible = [] { return fx::available(fx::Id::HitboxWidth); };
+        range_.visible = [] { return fx::available(fx::Id::HitboxRange); };
+        self_.visible = [] { return fx::available(fx::Id::HitboxSelf); };
+        eye_.visible = [] { return fx::available(fx::Id::HitboxEye); };
+        eyeColor_.visible = [this] { return eye_.b && fx::available(fx::Id::HitboxEyeColor); };
+        look_.visible = [] { return fx::available(fx::Id::HitboxLook); };
+        lookLength_.visible = [this] { return look_.b && fx::available(fx::Id::HitboxLookLength); };
+        lookColor_.visible = [this] { return look_.b && fx::available(fx::Id::HitboxLookColor); };
+        java_.visible = [] { return fx::available(fx::Id::HitboxJava); };
+        javaKey_.visible = [] { return fx::available(fx::Id::HitboxJava); };
+    }
+
+    void onKey(KeyEvent& ev) override {
+        if (!ev.down || ev.repeat || !javaKey_.i || ev.vk != javaKey_.i) return;
+        java_.b = !java_.b;
+        config::markDirty();
     }
 
     void onFrame() override {
@@ -83,12 +101,38 @@ public:
             ImGui::ColorConvertHSVtoRGB(std::fmod(float(ui::time()) * 0.3f, 1.f), 0.7f, 1.f, r, g, b);
             c = {r, g, b, 1.f};
         }
-        fx::out(fx::Id::HitboxColor, {c.x, c.y, c.z, c.w});
+        fx::out(fx::Id::HitboxColor, {c.x, c.y, c.z, c.w * opacity_.f});
+        if (style_.i == 1) fx::force(fx::Id::Hitbox2D, true);
+        fx::set(fx::Id::HitboxWidth, width_.f);
+        fx::set(fx::Id::HitboxRange, range_.f);
+        if (self_.b) fx::force(fx::Id::HitboxSelf, true);
+        if (java_.b) fx::force(fx::Id::HitboxJava, true);
+        if (eye_.b) {
+            fx::force(fx::Id::HitboxEye, true);
+            fx::out(fx::Id::HitboxEyeColor, {eyeColor_.color.x, eyeColor_.color.y, eyeColor_.color.z, eyeColor_.color.w * opacity_.f});
+        }
+        if (look_.b) {
+            fx::force(fx::Id::HitboxLook, true);
+            fx::set(fx::Id::HitboxLookLength, lookLength_.f);
+            fx::out(fx::Id::HitboxLookColor, {lookColor_.color.x, lookColor_.color.y, lookColor_.color.z, lookColor_.color.w * opacity_.f});
+        }
     }
 
 private:
-    Setting& color_ = colorSetting("color", "Color", {1.f, 0.49f, 0.71f, 1.f});
+    Setting& style_ = choice("style", "Box style", {"3D box", "Flat (2D)"});
+    Setting& opacity_ = slider("opacity", "Opacity", 1.f, 0.1f, 1.f, "%.2f");
+    Setting& width_ = slider("width", "Line thickness", 2.f, 0.5f, 8.f, "%.1f");
+    Setting& range_ = slider("range", "Range (blocks)", 30.f, 5.f, 30.f, "%.0f");
+    Setting& self_ = toggleSetting("self", "Show your own hitbox", false);
     Setting& rainbow_ = toggleSetting("rainbow", "Rainbow", false);
+    Setting& eye_ = toggleSetting("eye", "Eye line", false);
+    Setting& look_ = toggleSetting("look", "Look direction line", false);
+    Setting& lookLength_ = slider("lookLength", "Look line length", 3.f, 0.5f, 10.f, "%.1f");
+    Setting& java_ = toggleSetting("java", "Java-style size (+0.1)", false);
+    Setting& javaKey_ = keySetting("javaKey", "Java size key", 0);
+    Setting& color_ = colorSetting("color", "Color", {1.f, 0.49f, 0.71f, 1.f});
+    Setting& eyeColor_ = colorSetting("eyeColor", "Eye line color", {1.f, 0.3f, 0.3f, 1.f});
+    Setting& lookColor_ = colorSetting("lookColor", "Look line color", {0.3f, 0.5f, 1.f, 1.f});
 };
 
 class LowFire : public Module {

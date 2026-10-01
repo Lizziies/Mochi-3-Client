@@ -71,6 +71,16 @@ constexpr Info table[count] = {
     {"fx.ghostRender", "Hide locally removed entities", Kind::Ghost},
     {"fx.ghostPick", "Ignore locally removed entities when aiming", Kind::Filter},
     {"fx.critParticle", "Critical hit particles", Kind::Flag},
+    {"fx.hitboxEye", "Hitbox eye line", Kind::Flag},
+    {"fx.hitboxEyeColor", "Hitbox eye line color", Kind::Data},
+    {"fx.hitboxLook", "Hitbox look line", Kind::Flag},
+    {"fx.hitboxLookColor", "Hitbox look line color", Kind::Data},
+    {"fx.hitboxLookLength", "Hitbox look line length", Kind::Data},
+    {"fx.hitboxWidth", "Hitbox line width", Kind::Data},
+    {"fx.hitboxSelf", "Own hitbox", Kind::Flag},
+    {"fx.hitboxJava", "Java hitbox size", Kind::Flag},
+    {"fx.hitboxRange", "Hitbox range", Kind::Data},
+    {"fx.hitbox2D", "Flat hitbox", Kind::Flag},
 };
 
 enum Mode { None, Set, Scale, Add, Force, Skipped, Out, Matrix, Smooth };

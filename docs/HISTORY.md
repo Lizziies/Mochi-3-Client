@@ -26,3 +26,4 @@ Kurze Chronik, damit jede neue Session weiß, was schon passiert ist.
 - Phase 1 (Teil 1): Hive Utils und Zeqa Utils, gemeinsame Chat-Hilfen in `modules/server/ServerChat.hpp`, Demo-Server mit Skript-Chat, `tools/testhost` kann per `TESTHOST_SCRIPT` Tasten und Klicks ausführen.
 - Phase 1 (Teil 2): Hive Stats, Hive Leaderboard (`modules/server/HiveApi.*`), Auto-GG-Endwörter pro Server, NetherGames und Mineville in `servers.json`, Pivot für HUD-Module.
 - Phase 2: Crystal Optimizer mit Geisterliste, Kill Cleanup, Crit-Partikel im Particle Multiplier, `Hit`-Ereignisse tragen Actor-Zeiger und Crystal-Flag.
+- Phase 3 (Teil 1): Hitbox-Kanäle und -Einstellungen, gemeinsame HUD-Optik mit Blur-Pass, Keystrokes und Coordinates in die Tiefe, Platzhalter.

@@ -126,9 +126,27 @@ int wmain(int argc, wchar_t** argv) {
 
     ID3D11Texture2D* back = nullptr;
     sc->GetBuffer(0, IID_PPV_ARGS(&back));
+    ID3D11Texture2D* pattern = nullptr;
+    if (const char* wantPattern = std::getenv("TESTHOST_PATTERN"); wantPattern && *wantPattern) {
+        std::vector<unsigned> px(size_t(viewW) * viewH);
+        for (int y = 0; y < viewH; y++)
+            for (int x = 0; x < viewW; x++) {
+                bool a = ((x / 32) + (y / 32)) % 2 == 0;
+                unsigned r = a ? 230 : 40, g = unsigned(60 + (x * 160) / viewW), b = unsigned(80 + (y * 150) / viewH);
+                px[size_t(y) * viewW + x] = 0xFF000000u | (b << 16) | (g << 8) | r;
+            }
+        D3D11_TEXTURE2D_DESC td{};
+        td.Width = viewW;
+        td.Height = viewH;
+        td.MipLevels = td.ArraySize = 1;
+        td.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+        td.SampleDesc.Count = 1;
+        td.Usage = D3D11_USAGE_DEFAULT;
+        D3D11_SUBRESOURCE_DATA init{px.data(), UINT(viewW * 4), 0};
+        dev->CreateTexture2D(&td, &init, &pattern);
+    }
     ID3D11RenderTargetView* rtv = nullptr;
     dev->CreateRenderTargetView(back, nullptr, &rtv);
-    back->Release();
 
     HMODULE mochi = LoadLibraryW(argv[1]);
     std::printf("LoadLibrary -> %p (err %lu)\n", (void*)mochi, mochi ? 0 : GetLastError());
@@ -153,6 +171,7 @@ int wmain(int argc, wchar_t** argv) {
         D3D11_VIEWPORT vp{0, 0, (float)viewW, (float)viewH, 0, 1};
         ctx->RSSetViewports(1, &vp);
         ctx->ClearRenderTargetView(rtv, color);
+        if (pattern) ctx->CopyResource(back, pattern);
 
         sc->Present(0, 0);
         frames++;
