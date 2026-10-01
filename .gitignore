@@ -10,3 +10,4 @@ obj/
 CMakeSettings.json
 __pycache__/
 dev-data/
+build-*/
