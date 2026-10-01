@@ -1,0 +1,15 @@
+.top{position:absolute;left:110px;right:110px;top:46px;height:64px;border-radius:20px;background:var(--panel);display:flex;align-items:center;padding:0 20px;gap:18px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.tabs{display:flex;gap:4px;flex:1}.tab{white-space:nowrap;padding:9px 12px;border-radius:12px;color:var(--dim);font-size:15px;font-weight:600}.tab.on{background:var(--card2);color:var(--text)}
+.search{width:230px;height:38px;border-radius:12px;background:var(--card);display:flex;align-items:center;padding:0 14px;color:var(--dim);font-size:14px;gap:8px}
+.view{display:flex;background:var(--card);border-radius:12px;padding:3px}.view span{white-space:nowrap;padding:6px 12px;border-radius:9px;font-size:13px;color:var(--dim);font-weight:600}.view .on{background:linear-gradient(90deg,var(--pink),var(--pink2));color:#3a0f26}
+.body{position:absolute;left:110px;right:110px;top:126px;bottom:50px;border-radius:20px;background:var(--panel);box-shadow:0 20px 60px rgba(0,0,0,.5);overflow:hidden}
+.sl{width:200px;height:6px;border-radius:9px;background:var(--off);position:relative}.sl i{position:absolute;left:0;top:0;bottom:0;width:60%;background:linear-gradient(90deg,var(--pink),var(--pink2));border-radius:9px}.sl i:after{content:"";position:absolute;right:-8px;top:-6px;width:18px;height:18px;border-radius:50%;background:#fff}
+.set{display:flex;align-items:center;justify-content:space-between;padding:13px 4px;border-bottom:1px solid rgba(255,255,255,.06);font-size:15px}
+.chip{padding:7px 14px;border-radius:12px;background:var(--card);font-size:13px;color:var(--dim)}
+h2{font-size:24px}
+.sec{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--pink);margin:18px 0 6px;font-weight:700}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.cc{background:var(--card);border-radius:18px;padding:16px;font-size:14px}
+.cc .pv{height:130px;border-radius:12px;margin-bottom:12px;background:linear-gradient(180deg,#5e86c4,#7aa7e0);display:flex;align-items:center;justify-content:center;font-size:42px}
+.cc b{display:block;font-size:15px}.cc small{color:var(--dim)}
+.pill,.top .pill{white-space:nowrap}.search{width:190px}.logo{white-space:nowrap}
