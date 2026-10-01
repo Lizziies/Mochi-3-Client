@@ -46,6 +46,7 @@
 #include "hud/SessionTimer.hpp"
 #include "hud/Stopwatch.hpp"
 #include "input/CpsLimiter.hpp"
+#include "input/HotbarKeys.hpp"
 #include "input/InstantInput.hpp"
 #include "input/NoScroll.hpp"
 #include "network/LatencyBlame.hpp"
@@ -192,6 +193,7 @@ void init() {
     add<InstaHurtAnimation>();
     add<CpsLimiter>();
     add<NoScroll>();
+    add<HotbarKeys>();
     add<ToggleSprint>();
     add<ToggleSneak>();
     add<CommandHotkey>();

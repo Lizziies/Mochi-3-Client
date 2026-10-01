@@ -123,6 +123,18 @@ public:
         if (sens_.b) fx::scale(fx::Id::Sensitivity, 1.f / std::pow(current_, 0.85f));
     }
 
+    void onRender(ImDrawList* dl) override {
+        if (vignette_.f <= 0.f || current_ <= 1.02f) return;
+        float k = std::clamp((current_ - 1.f) / 3.f, 0.f, 1.f) * vignette_.f;
+        auto ds = ImGui::GetIO().DisplaySize;
+        float e = std::min(ds.x, ds.y) * 0.35f;
+        ImU32 solid = IM_COL32(0, 0, 0, int(200 * k)), clear = IM_COL32(0, 0, 0, 0);
+        dl->AddRectFilledMultiColor({0, 0}, {ds.x, e}, solid, solid, clear, clear);
+        dl->AddRectFilledMultiColor({0, ds.y - e}, {ds.x, ds.y}, clear, clear, solid, solid);
+        dl->AddRectFilledMultiColor({0, 0}, {e, ds.y}, solid, clear, clear, solid);
+        dl->AddRectFilledMultiColor({ds.x - e, 0}, {ds.x, ds.y}, clear, solid, solid, clear);
+    }
+
     void onDisable() override {
         active_ = false;
         ctx::zooming = false;
@@ -148,6 +160,7 @@ private:
     Setting& step_ = slider("step", "Schrittweite", 1.2f, 1.05f, 1.6f, "%.2fx");
     Setting& remember_ = toggleSetting("remember", "Stufe merken", true);
     Setting& sens_ = toggleSetting("sens", "Empfindlichkeit beim Zoomen anpassen", true);
+    Setting& vignette_ = slider("vignette", "Dunkler Rand beim Zoomen", 0.f, 0.f, 1.f, "%.2f");
     bool active_ = false;
     float level_ = 4.f;
     float current_ = 1.f;

@@ -219,7 +219,7 @@ const auto detours = makeTable(std::make_index_sequence<count>{});
 
 Kind kindOf(size_t i) {
     int o = sigs::offset(std::string(table[i].sig) + ".kind", -1);
-    return o >= 0 && o <= int(Kind::Data) ? Kind(o) : table[i].kind;
+    return o >= 0 && o <= int(Kind::Int) ? Kind(o) : table[i].kind;
 }
 
 void restorePatch(Slot& sl) {

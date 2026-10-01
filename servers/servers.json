@@ -13,7 +13,8 @@
       "blockOptions": { "Auto GG": ["onKill"] },
       "warn": ["Entity Counter", "Null Movement", "Faster Inventory", "Item Use Delay Fix",
                "Insta Hurt Animation", "Opponent Reach", "Hit Ping", "Instant Input", "Snap Look",
-               "Waypoints", "Command Hotkey", "Text Hotkey", "Damage Indicator", "Target HUD"]
+               "Waypoints", "Command Hotkey", "Text Hotkey", "Damage Indicator", "Target HUD",
+               "Hotbar Keys"]
     },
     {
       "name": "CubeCraft",
