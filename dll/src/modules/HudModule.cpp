@@ -4,6 +4,7 @@
 #include "render/Fonts.hpp"
 
 #include <algorithm>
+#include <cstring>
 
 HudModule::HudModule(std::string name, std::string description, std::vector<std::string> tags, ImVec2 defaultPos)
     : Module(std::move(name), std::move(description), Category::Hud, std::move(tags)),
@@ -81,6 +82,14 @@ ImU32 HudModule::accentColor() const {
 ImVec2 TextHud::content(ImDrawList* dl, ImVec2 origin, float scale) {
     std::string l = label();
     std::string v = value();
+    if (!format_.text.empty()) {
+        std::string out = format_.text;
+        for (auto& [key, val] : {std::pair<const char*, std::string&>{"{label}", l}, {"{value}", v}})
+            for (size_t at = out.find(key); at != std::string::npos; at = out.find(key, at + val.size()))
+                out.replace(at, std::strlen(key), val);
+        auto sz = drawText(dl, origin, scale, out, valueColor());
+        return sz;
+    }
     ImVec2 at = origin;
     float h = 0;
     if (!l.empty()) {

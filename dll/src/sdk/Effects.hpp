@@ -57,6 +57,8 @@ enum class Id {
     BlockOutline,
     SwingSpeed,
     CrystalHide,
+    CrystalSimple,
+    CrystalNoBase,
     Count
 };
 

@@ -37,3 +37,17 @@ Felix will keine unnötigen PvP-Spielereien mehr, sondern die Standard-Module vo
 - **Als Nächstes bauen, in dieser Reihenfolge:** Hive Utils (Auto-Requeue), Animations ausbauen (Block Hit, Swing, 1.8-Look), Movable Chat/Title/Bossbar/Hotbar/Day Counter/Coordinates, Clear/Compact Chat, Inventory Lock, Java Inventory Hotkeys, Modern Keybind Handling, Nametag Modifier + Nick, Item Physics, TNT Timer, Light Overlay, Skin Stealer, Pack Changer, Subtitles, Discord RPC. Danach Lua-Scripting.
 - Neue Module in `Tiers.cpp` eintragen (Stufe 1 oder 2), sonst landen sie unter "Mehr Module".
 - Module haben jetzt `hold()` (Hold-Modus) und `captureDefaults()`/`resetSettings()` (Reset all). Neue Einstellungen werden im Menü automatisch in General/Style/Colors gruppiert (Farben = SettingType::Color).
+
+## Session A → Session B: Parität mit Flarial (Pflicht, vor allem anderen)
+
+Grundlage: `docs/FLARIAL_REAL.md` (aus dem echten Quellcode gelesen). Dort steht pro Modul, was Flarial wirklich kann und was bei uns fehlt. Reihenfolge:
+
+1. **Hive Utils** komplett (Auto-Requeue, Solo, Team-Ausscheiden, Taste, Map Avoider, Rollen-Requeue, Death-Limit, Custom-Server-Code kopieren, Chat aufräumen, Auto-Accept, Auto Map Vote). Eigenes großes Modul, Serverregel nur Hive.
+2. **Hitbox ausbauen:** 2D-Modus, Dicke (fest oder entfernungsabhängig), Deckkraft, Augenlinie, Blickrichtungslinie (Länge, Farbe), sich selbst zeigen, Java-Umschaltung.
+3. **Keystrokes:** Glow, Rand, Leertasten-Breite/-Höhe, Tastenabstand, eigene Texte für WASD und LMB/RMB, CPS-Text, Highlight-Tempo.
+4. **Modulspezifische Platzhalter** für das neue Feld "Format" in `TextHud` (`{lmb}`, `{rmb}`, `{X}`, `{Y}`, `{Z}`, `{D}`).
+5. **Coordinates:** vertikaler Modus mit Geschwindigkeit, Koordinaten der anderen Dimension, Taste zum Kopieren.
+6. **Neu bauen:** Inventory Lock (nur Werkzeuge, Doppelklick-Droppen), Modern Keybind Handling, Item Physics, TNT Timer, Nametag Modifier, Java Inventory Hotkeys.
+7. **Kleine Lücken:** Zoom (Hand und Module ausblenden, Cinematic-Balken), Cinematic Camera (Balken), Auto Perspective (Schwimmen, Emote), Particle Multiplier ("Normal Hit Crit"), Swing Animations (Swing Angle), Hotbar-Auswahl-Animation, Render Options (Entities, Terrain, Item in Hand), Tab List (Köpfe, Plattform-Icons, Hervorhebung), Chat (Erwähnungs-Ton), View Model (Item-FOV, dritte Person), Custom Crosshair (PNG-Import).
+8. **Nicht bauen:** FPS-/Ping-Spoof (zeigt falsche Zahlen).
+9. Combo Counter (480-ms-Regel, 15-s-Reset, Negatives), Reach Counter (15-s-Reset), Hit Ping (Zeit Angriff bis Server-Bestätigung), Opponent Reach (nächster Spieler im Radius) bitte gegen die Beschreibung in `FLARIAL_REAL.md` prüfen und angleichen.

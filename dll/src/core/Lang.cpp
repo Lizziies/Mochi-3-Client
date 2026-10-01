@@ -3,6 +3,11 @@
 namespace {
 
 const i18n::Entry entries[] = {
+    {"Makes end crystals easier to see and hit: no spin and bobbing, no base, optionally hidden the moment you hit them. Client side only, sends nothing extra.", "Macht End-Crystals leichter sichtbar und treffbar: kein Drehen und Wippen, kein Sockel, auf Wunsch sofort weg, wenn du sie triffst. Nur clientseitig, sendet nichts Zusätzliches."},
+    {"No spin and bobbing", "Kein Drehen und Wippen"},
+    {"Hide the bedrock base", "Bedrock-Sockel ausblenden"},
+    {"Hide when hit", "Beim Treffen ausblenden"},
+    {"Format ({label} {value})", "Format ({label} {value})"},
     {"1.8-style sword blocking pose while you hold right click, with the swing on top.", "Schwert-Blockpose im 1.8-Stil, solange du die rechte Maustaste hältst, mit Schwung obendrauf."},
     {"Pose strength", "Pose-Stärke"},
     {"Hold the item lower", "Item tiefer halten"},

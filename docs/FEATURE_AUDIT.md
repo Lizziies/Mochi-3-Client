@@ -2,6 +2,8 @@
 
 Ziel: Alle Features der anderen Clients erfassen, nach Wichtigkeit für PvP-Spieler sortieren und mit unserem Stand abgleichen. Wir haben viele Dinge gebaut, die keiner braucht, und gleichzeitig Standard-Module vergessen. Diese Datei ist die Grundlage, um das zu korrigieren.
 
+> **Wichtig:** In dieser Datei bedeutet ✔ nur, dass es bei uns ein Modul mit diesem Namen gibt. Ob es genauso viel kann wie das Original, steht in `docs/FLARIAL_REAL.md` (aus dem echten Flarial-Quellcode gelesen, 62 Module). Dort sind die tatsächlichen Lücken.
+
 ## Quellen
 
 - **Flarial:** vollständige Modul-Registrierung aus dem Quellcode (`flarialmc/dll-oss`, `Manager.cpp`, 129 Einträge, ✔ gelesen). Dazu aus dem Changelog und aus Nutzer-Screenshots: Crystal Optimizer, Quality of Life (inkl. Pack Changer), Shader Loader, MC GUI Scale, Nametag. Die Zahl "140+" der Webseite enthält Android-Module.

@@ -38,12 +38,21 @@ class CrystalOptimizer : public Module {
 public:
     CrystalOptimizer()
         : Module("Crystal Optimizer",
-                 "Hides an end crystal on your screen the moment you hit it, so the next placement feels faster. Client side only, sends nothing extra.",
+                 "Makes end crystals easier to see and hit: no spin and bobbing, no base, optionally hidden the moment you hit them. Client side only, sends nothing extra.",
                  Category::Pvp, {"info-others", "timing"}) {
         sub("Crystal PvP");
         markRisky("Some servers count crystal tweaks as an advantage. Only use it where the server rules allow it.");
-        require(0, {fx::sig(fx::Id::CrystalHide)});
+        require(0, {fx::sig(fx::Id::CrystalSimple)});
     }
 
-    void onFrame() override { fx::force(fx::Id::CrystalHide, true); }
+    void onFrame() override {
+        if (still_.b) fx::force(fx::Id::CrystalSimple, true);
+        if (noBase_.b) fx::force(fx::Id::CrystalNoBase, true);
+        if (hideOnHit_.b) fx::force(fx::Id::CrystalHide, true);
+    }
+
+private:
+    Setting& still_ = toggleSetting("still", "No spin and bobbing", true);
+    Setting& noBase_ = toggleSetting("noBase", "Hide the bedrock base", true);
+    Setting& hideOnHit_ = toggleSetting("hideOnHit", "Hide when hit", false);
 };

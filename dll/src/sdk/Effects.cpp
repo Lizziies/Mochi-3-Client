@@ -65,6 +65,8 @@ constexpr Info table[count] = {
     {"fx.blockOutline", "Original-Blockumriss", Kind::Skip},
     {"fx.swingSpeed", "Schwung-Dauer", Kind::Value},
     {"fx.crystalHide", "Crystal sofort ausblenden", Kind::Flag},
+    {"fx.crystalSimple", "Crystal ohne Drehen und Wippen", Kind::Flag},
+    {"fx.crystalNoBase", "Crystal ohne Sockel", Kind::Flag},
 };
 
 enum Mode { None, Set, Scale, Add, Force, Skipped, Out, Matrix, Smooth };
