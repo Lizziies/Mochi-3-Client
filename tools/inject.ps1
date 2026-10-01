@@ -1,6 +1,7 @@
 param(
     [string]$Dll = (Join-Path $PSScriptRoot '..\build\Release\Mochi.dll'),
     [int]$WaitSeconds = 120,
+    [int]$ProcessId = 0,
     [switch]$Launch
 )
 
@@ -31,26 +32,53 @@ public static class Inj {
             CloseHandle(proc);
             return "write failed " + Marshal.GetLastWin32Error();
         }
-        IntPtr loader = GetProcAddress(GetModuleHandle("kernel32.dll"), "LoadLibraryW");
+        IntPtr kernel = GetModuleHandle("kernel32.dll");
+        long load = (long)GetProcAddress(kernel, "LoadLibraryW");
+        long last = (long)GetProcAddress(kernel, "GetLastError");
+        // sub rsp,28; call LoadLibraryW; test rax,rax; jnz done; call GetLastError; done: add rsp,28; ret
+        byte[] stub = new byte[39];
+        int i = 0;
+        stub[i++] = 0x48; stub[i++] = 0x83; stub[i++] = 0xEC; stub[i++] = 0x28;
+        stub[i++] = 0x48; stub[i++] = 0xB8; BitConverter.GetBytes(load).CopyTo(stub, i); i += 8;
+        stub[i++] = 0xFF; stub[i++] = 0xD0;
+        stub[i++] = 0x48; stub[i++] = 0x85; stub[i++] = 0xC0;
+        stub[i++] = 0x75; stub[i++] = 0x0C;
+        stub[i++] = 0x48; stub[i++] = 0xB8; BitConverter.GetBytes(last).CopyTo(stub, i); i += 8;
+        stub[i++] = 0xFF; stub[i++] = 0xD0;
+        stub[i++] = 0x48; stub[i++] = 0x83; stub[i++] = 0xC4; stub[i++] = 0x28;
+        stub[i++] = 0xC3;
+        IntPtr code_ = VirtualAllocEx(proc, IntPtr.Zero, (UIntPtr)stub.Length, 0x3000, 0x40);
+        if (code_ == IntPtr.Zero || !WriteProcessMemory(proc, code_, stub, (UIntPtr)stub.Length, out written)) {
+            CloseHandle(proc);
+            return "stub failed " + Marshal.GetLastWin32Error();
+        }
         uint tid;
-        IntPtr th = CreateRemoteThread(proc, IntPtr.Zero, UIntPtr.Zero, loader, remote, 0, out tid);
+        IntPtr th = CreateRemoteThread(proc, IntPtr.Zero, UIntPtr.Zero, code_, remote, 0, out tid);
         if (th == IntPtr.Zero) { CloseHandle(proc); return "CreateRemoteThread failed " + Marshal.GetLastWin32Error(); }
         WaitForSingleObject(th, 20000);
         uint code;
         GetExitCodeThread(th, out code);
         CloseHandle(th);
         CloseHandle(proc);
-        return code == 0 ? "LoadLibrary returned 0" : "ok";
+        return code > 0x10000 ? "ok" : "LoadLibrary failed, error " + code;
     }
 }
 '@
 
 $dll = (Resolve-Path $Dll).Path
-$bin = Join-Path $env:LOCALAPPDATA 'Mochi\bin'
-New-Item -ItemType Directory -Force $bin | Out-Null
-$target = Join-Path $bin 'Mochi.dll'
+$dev = Join-Path (Resolve-Path (Join-Path $PSScriptRoot '..')).Path 'dev-data'
+$bin = Join-Path $dev 'bin'
+New-Item -ItemType Directory -Force $bin, (Join-Path $dev 'data') | Out-Null
+$target = Join-Path $bin ("Mochi-{0:yyMMdd-HHmmss}.dll" -f (Get-Date))
 Copy-Item $dll $target -Force
+[IO.File]::WriteAllText((Join-Path $bin 'Mochi.root'), (Join-Path $dev 'data'))
+Get-ChildItem $bin -Filter 'Mochi-*.dll' | Where-Object FullName -ne $target | ForEach-Object { Remove-Item $_.FullName -ErrorAction SilentlyContinue }
 icacls $target /grant '*S-1-15-2-1:(RX)' | Out-Null
+
+if ($ProcessId) {
+    Write-Host "inject pid ${ProcessId}: $([Inj]::Load($ProcessId, $target))"
+    exit 0
+}
 
 if ($Launch -and -not (Get-Process Minecraft.Windows -ErrorAction SilentlyContinue)) {
     Start-Process 'explorer.exe' 'shell:AppsFolder\Microsoft.MinecraftUWP_8wekyb3d8bbwe!Game'

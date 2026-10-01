@@ -3,6 +3,8 @@
 #include <windows.h>
 #include <shlobj.h>
 
+#include <fstream>
+
 namespace paths {
 
 static fs::path rootDir;
@@ -18,6 +20,14 @@ void init(void* module) {
     wchar_t buf[MAX_PATH]{};
     GetModuleFileNameW(static_cast<HMODULE>(module), buf, MAX_PATH);
     moduleDir = fs::path(buf).parent_path();
+
+    std::wifstream override(moduleDir / L"Mochi.root");
+    std::wstring custom;
+    if (override && std::getline(override, custom) && !custom.empty()) {
+        rootDir = fs::path(custom);
+        ensure(rootDir);
+        return;
+    }
 
     PWSTR local = nullptr;
     if (SUCCEEDED(SHGetKnownFolderPath(FOLDERID_LocalAppData, 0, nullptr, &local))) {
