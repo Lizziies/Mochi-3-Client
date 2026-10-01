@@ -21,6 +21,7 @@ Arbeitstitel "Mochi" — vor dem ersten Release umbenennen (global suchen/ersetz
 - `docs/SERVERS.md` — per-server module rules, auto-blocking on join.
 - `docs/STATUS.md` — what works, percent done, next steps. Update after every work step.
 - `docs/RESEARCH.md` — other clients, Felix's wishes. Put every new insight here.
+- `docs/LAUNCH.md` — what makes Mochi stand out, release checklist, open risks.
 
 ## Hard rules
 
