@@ -1,0 +1,189 @@
+#include "Game.hpp"
+#include "Providers.hpp"
+#include "hook/Input.hpp"
+#include "render/Ui.hpp"
+#include "server/Rules.hpp"
+
+#include <algorithm>
+#include <array>
+#include <cmath>
+
+namespace game {
+
+static State cur;
+static std::vector<Event> frameEvents;
+static std::unique_ptr<Provider> demoProvider;
+static std::unique_ptr<Provider> liveProvider;
+static bool demoOn = false;
+static std::array<int, 10> leases{};
+static int64_t seenClick = 0;
+static float lastHealth = -1.f;
+static bool dead = false;
+
+static Provider& active() { return demoOn ? *demoProvider : *liveProvider; }
+
+static unsigned leaseMask() {
+    unsigned m = 0;
+    for (size_t i = 0; i < leases.size(); i++)
+        if (leases[i] > 0) m |= 1u << i;
+    return m;
+}
+
+void init() {
+    demoProvider = makeDemo();
+    liveProvider = makeLive();
+}
+
+void shutdown() {
+    liveProvider.reset();
+    demoProvider.reset();
+}
+
+bool demo() { return demoOn; }
+
+void setDemo(bool on) {
+    if (on == demoOn) return;
+    demoOn = on;
+    cur = State{};
+    lastHealth = -1.f;
+    dead = false;
+    active().use(leaseMask());
+}
+
+bool ready(unsigned mask) {
+    if (demoOn || !mask) return true;
+    if (!liveProvider) return false;
+    return (liveProvider->supports() & mask) == mask;
+}
+
+bool has(Domain d) { return (cur.have & unsigned(d)) != 0; }
+
+void lease(unsigned mask, int delta) {
+    for (size_t i = 0; i < leases.size(); i++)
+        if (mask & (1u << i)) leases[i] = std::max(0, leases[i] + delta);
+    if (demoProvider && liveProvider) active().use(leaseMask());
+}
+
+const State& state() { return cur; }
+
+const std::vector<Event>& events() { return frameEvents; }
+
+static void push(Event e) {
+    e.time = cur.time;
+    frameEvents.push_back(std::move(e));
+}
+
+static void deriveFromPlayer() {
+    int64_t click = input::lastClickQpc();
+    if (click && click != seenClick) {
+        seenClick = click;
+        push({EventKind::Swing});
+    }
+
+    float hp = cur.player.health;
+    if (lastHealth >= 0.f) {
+        if (hp < lastHealth - 0.01f && hp > 0.f) {
+            Event e{EventKind::Hurt};
+            e.value = lastHealth - hp;
+            push(std::move(e));
+        }
+        if (hp <= 0.f && !dead) push({EventKind::Death});
+        if (hp > 0.f && dead) push({EventKind::Respawn});
+    }
+    dead = hp <= 0.f;
+    lastHealth = hp;
+}
+
+static void absorb(const Event& e) {
+    auto& c = cur.combat;
+    switch (e.kind) {
+    case EventKind::Hit:
+        c.combo++;
+        c.bestCombo = std::max(c.bestCombo, c.combo);
+        c.hits++;
+        if (e.crit) c.crits++;
+        c.lastCrit = e.crit;
+        c.damageDealt += e.value;
+        c.lastReach = e.reach;
+        c.bestReach = std::max(c.bestReach, e.reach);
+        c.reaches[size_t(c.reachCount) % c.reaches.size()] = e.reach;
+        c.reachCount++;
+        c.lastHitPing = float(cur.world.ping);
+        c.lastHitAt = e.time;
+        break;
+    case EventKind::Swing: c.swings++; break;
+    case EventKind::Hurt:
+        c.combo = 0;
+        c.taken++;
+        c.damageTaken += e.value;
+        if (e.reach > 0.f) c.opponentReach = e.reach;
+        c.lastHurtAt = e.time;
+        break;
+    case EventKind::Kill:
+        c.kills++;
+        c.streak++;
+        c.bestStreak = std::max(c.bestStreak, c.streak);
+        break;
+    case EventKind::Death:
+        c.deaths++;
+        c.streak = 0;
+        c.combo = 0;
+        c.lastDeath = cur.player.pos;
+        c.hasDeath = true;
+        break;
+    case EventKind::Chat:
+        cur.chat.push_back({e.text, e.time});
+        if (cur.chat.size() > 200) cur.chat.erase(cur.chat.begin(), cur.chat.begin() + 50);
+        break;
+    default: break;
+    }
+}
+
+void update() {
+    if (!demoProvider) return;
+    cur.time = ui::time();
+    cur.dt = std::clamp((double)ui::dt(), 0.0005, 0.25);
+    frameEvents.clear();
+
+    Provider& p = active();
+    p.update(cur, frameEvents);
+    cur.have = p.supports();
+    if (demoOn) cur.have |= unsigned(Domain::Camera);
+
+    if (p.derived() && (cur.have & unsigned(Domain::Player))) deriveFromPlayer();
+    for (auto& e : frameEvents) {
+        if (e.time == 0.0) e.time = cur.time;
+        absorb(e);
+    }
+
+    cur.server = rules::status().server;
+    cur.camera.pos = cur.player.eye();
+    cur.camera.yaw = cur.player.yaw;
+    cur.camera.pitch = cur.player.pitch;
+    cur.camera.fov = cur.player.fov;
+    auto ds = ImGui::GetIO().DisplaySize;
+    if (ds.y > 0.f) cur.camera.aspect = ds.x / ds.y;
+}
+
+void resetCombat() { cur.combat = Combat{}; }
+
+std::optional<ImVec2> project(const Vec3& p) {
+    const auto& c = cur.camera;
+    float yaw = c.yaw * 0.0174533f, pitch = c.pitch * 0.0174533f;
+    float cp = std::cos(pitch), sp = std::sin(pitch), cy = std::cos(yaw), sy = std::sin(yaw);
+    Vec3 fwd{-sy * cp, -sp, cy * cp};
+    Vec3 right{-cy, 0.f, -sy};
+    Vec3 up{fwd.y * right.z - fwd.z * right.y, fwd.z * right.x - fwd.x * right.z, fwd.x * right.y - fwd.y * right.x};
+    up = {-up.x, -up.y, -up.z};
+
+    Vec3 d{p.x - c.pos.x, p.y - c.pos.y, p.z - c.pos.z};
+    float z = d.x * fwd.x + d.y * fwd.y + d.z * fwd.z;
+    if (z < 0.05f) return std::nullopt;
+    float x = d.x * right.x + d.y * right.y + d.z * right.z;
+    float y = d.x * up.x + d.y * up.y + d.z * up.z;
+    float t = std::tan(c.fov * 0.0174533f * 0.5f);
+    auto ds = ImGui::GetIO().DisplaySize;
+    return ImVec2{ds.x * 0.5f + x / (z * t * c.aspect) * ds.x * 0.5f, ds.y * 0.5f - y / (z * t) * ds.y * 0.5f};
+}
+
+}

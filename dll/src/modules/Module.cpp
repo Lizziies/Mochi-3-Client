@@ -99,6 +99,7 @@ void Module::setEnabled(bool on) {
     if (effective == enabled_) return;
 
     enabled_ = effective;
+    if (needs_) game::lease(needs_, enabled_ ? 1 : -1);
     bool ok = guard::call(name_.c_str(), [&] {
         if (enabled_) onEnable();
         else onDisable();
@@ -106,6 +107,7 @@ void Module::setEnabled(bool on) {
     if (!ok && enabled_) {
         enabled_ = false;
         wanted_ = false;
+        if (needs_) game::lease(needs_, -1);
     }
     config::markDirty();
 }

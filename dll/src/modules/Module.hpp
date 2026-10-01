@@ -2,6 +2,7 @@
 
 #include "Setting.hpp"
 #include "core/Events.hpp"
+#include "sdk/Game.hpp"
 
 #include <imgui.h>
 #include <json.hpp>
@@ -51,7 +52,7 @@ public:
     const std::vector<std::string>& sigs() const { return sigs_; }
     bool hasTag(const std::string& t) const;
 
-    bool available() const { return missing_.empty(); }
+    bool available() const { return game::demo() || (missing_.empty() && game::ready(needs_)); }
     const std::vector<std::string>& missingSigs() const { return missing_; }
     void checkSigs();
 
@@ -83,6 +84,8 @@ protected:
 
     void markRisky() { risky_ = true; }
     void sub(std::string name) { sub_ = std::move(name); }
+    void needs(unsigned mask) { needs_ = mask; }
+    void needs(game::Domain d) { needs_ = unsigned(d); }
 
 private:
     Setting& add(Setting s);
@@ -97,6 +100,7 @@ private:
     std::vector<std::string> blockedOptions_;
     std::deque<Setting> settings_;
     Setting* key_ = nullptr;
+    unsigned needs_ = 0;
     bool enabled_ = false;
     bool wanted_ = false;
     bool risky_ = false;

@@ -6,9 +6,13 @@
 #include "gui/Widgets.hpp"
 #include "hook/Input.hpp"
 #include "server/Rules.hpp"
+#include "sdk/Effects.hpp"
+#include "sdk/Game.hpp"
+#include "sdk/Inject.hpp"
 #include "sig/Sigs.hpp"
 
 #include "client/ClickGui.hpp"
+#include "client/SigStatus.hpp"
 #include "comfort/Screenshot.hpp"
 #include "fun/BlockGame.hpp"
 #include "fun/DvdScreen.hpp"
@@ -58,6 +62,7 @@ static void add() {
 }
 
 void init() {
+    game::init();
     add<ClickGui>();
 
     add<Fps>();
@@ -95,6 +100,7 @@ void init() {
     add<LowLatency>();
     add<FrameLimiter>();
     add<SystemBoost>();
+    add<SigStatus>();
 
     add<Snake>();
     add<Flappy>();
@@ -115,9 +121,12 @@ void shutdown() {
     for (auto& m : list) {
         if (m->enabled()) guard::call(m->name().c_str(), [&] { m->onDisable(); });
     }
+    fx::shutdown();
+    inject::shutdown();
     probe::shutdown();
     post::shutdown();
     capture::shutdown();
+    game::shutdown();
 }
 
 const std::vector<std::unique_ptr<Module>>& all() { return list; }
@@ -141,6 +150,8 @@ void frame(ImDrawList* hud) {
     QueryPerformanceCounter(&t0);
     perf::begin();
     post::begin();
+    fx::begin();
+    game::update();
     input::consumeMotion(motion.x, motion.y);
 
     bool editing = gui::editingHud();
@@ -159,6 +170,7 @@ void frame(ImDrawList* hud) {
 
     capture::submit(hud, capture::Stage::Overlay);
     perf::apply();
+    fx::apply();
     QueryPerformanceCounter(&t1);
     QueryPerformanceFrequency(&qpf);
     cost += (float(double(t1.QuadPart - t0.QuadPart) * 1000.0 / double(qpf.QuadPart)) - cost) * 0.05f;
