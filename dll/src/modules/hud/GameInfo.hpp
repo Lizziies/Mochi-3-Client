@@ -7,6 +7,8 @@
 #include "modules/common/GameHud.hpp"
 #include "modules/common/Needs.hpp"
 #include "modules/common/Text.hpp"
+#include "modules/Manager.hpp"
+#include "modules/world/Waypoints.hpp"
 #include "render/Draw.hpp"
 #include "render/Fonts.hpp"
 #include "render/Ui.hpp"
@@ -119,10 +121,17 @@ private:
 class DirectionHud : public GameList {
 public:
     DirectionHud()
-        : GameList("Direction HUD", "Compass with direction, degrees and view angle, as text or as a bar.", need::player,
+        : GameList("Direction HUD", "Compass with direction, degrees and view angle, as text or as a bar with waypoints.", need::player,
                    need::sigs({"LocalPlayer"}), {"hud-self"}, {0.40f, 0.10f}) {
         sub("Own values");
-        width_.visible = [this] { return style_.i == 1; };
+        for (Setting* st : {&width_, &pxPerDeg_, &fade_, &tickStep_, &ordinals_, &cardinalSize_, &ordinalSize_, &degrees_, &waypoints_, &arrowColor_, &cardinalColor_,
+                            &ordinalColor_, &tickColor_})
+            st->visible = [this] { return style_.i == 1; };
+        ordinalSize_.visible = [this] { return style_.i == 1 && ordinals_.b; };
+        ordinalColor_.visible = [this] { return style_.i == 1 && ordinals_.b; };
+        wpNames_.visible = [this] { return style_.i == 1 && waypoints_.b; };
+        wpDistance_.visible = [this] { return style_.i == 1 && waypoints_.b; };
+        wpMax_.visible = [this] { return style_.i == 1 && waypoints_.b; };
     }
 
 protected:
@@ -131,39 +140,80 @@ protected:
         float bearing = std::fmod(p.yaw + 180.f + 360.f, 360.f);
         static const char* short_[] = {"N", "NE", "E", "SE", "S", "SW", "W", "NW"};
         const char* dir = i18n::tr(short_[int(std::floor((bearing + 22.5f) / 45.f)) % 8]);
-        float y = 0.f, w = 0.f;
         if (style_.i == 0) {
             std::string t = std::format("{}  {:.0f}°", dir, bearing);
             if (angles_.b) t += std::format("  ·  Yaw {:.1f}  Pitch {:.1f}", p.yaw, p.pitch);
             auto sz = drawText(dl, o, s, t, textColor());
             return {sz.x, sz.y};
         }
-        w = width_.f * s;
-        float h = fonts::hudSize() * s * 1.2f;
-        ImVec2 a = o, b = o + ImVec2(w, h);
-        float pxPerDeg = w / 180.f;
-        dl->PushClipRect(a, b, true);
-        for (int d = -100; d <= 100; d += 5) {
-            float deg = std::floor(bearing / 5.f) * 5.f + d;
-            float x = a.x + w * 0.5f + (deg - bearing) * pxPerDeg;
-            int norm = ((int(deg) % 360) + 360) % 360;
-            bool major = norm % 45 == 0;
-            dl->AddLine({x, b.y - (major ? h * 0.5f : h * 0.25f)}, {x, b.y}, theme::col(theme::current().textDim, 0.6f), 1.f * s);
-            if (major) {
-                static const char* names[] = {"N", "NE", "E", "SE", "S", "SW", "W", "NW"};
-                const char* n = i18n::tr(names[norm / 45]);
-                bool cardinal = norm % 90 == 0;
-                ImVec2 ts = textSize(s, n);
-                drawText(dl, {x - ts.x * 0.5f, a.y}, s, n, cardinal ? accentColor() : textColor());
-            }
+
+        float w = width_.f * s, pxPerDeg = pxPerDeg_.f * s;
+        float h = fonts::hudSize() * s * 1.25f;
+        ImVec2 a = o + ImVec2(0, 0), b = o + ImVec2(w, h);
+        float mid = a.x + w * 0.5f, range = w * 0.5f / pxPerDeg + 6.f;
+        auto fade = [&](float x) { return fade_.b ? std::clamp((1.f - std::fabs(x - mid) / (w * 0.5f)) * 3.f, 0.f, 1.f) : 1.f; };
+
+        dl->PushClipRect(a, b + ImVec2(0, 1), true);
+        int step = tickStep_.i == 0 ? 5 : tickStep_.i == 1 ? 10 : 15;
+        int first = int(std::floor((bearing - range) / float(step))) * step;
+        for (int deg = first; float(deg) <= bearing + range; deg += step) {
+            float x = mid + (float(deg) - bearing) * pxPerDeg;
+            int norm = ((deg % 360) + 360) % 360;
+            bool cardinal = norm % 90 == 0, ordinal = norm % 45 == 0;
+            float al = fade(x);
+            if (al <= 0.f) continue;
+            float len = cardinal ? 0.55f : ordinal ? 0.45f : 0.25f;
+            dl->AddLine({x, b.y - h * len}, {x, b.y}, ImGui::GetColorU32(withAlpha(tickColor_.color, al * 0.7f)), 1.f * s);
+            if (!cardinal && !(ordinal && ordinals_.b)) continue;
+            const char* n = i18n::tr(short_[norm / 45]);
+            float size = (cardinal ? cardinalSize_.f : ordinalSize_.f) * s;
+            ImFont* f = fonts::hud();
+            ImVec2 ts = f->CalcTextSizeA(size, FLT_MAX, 0.f, n);
+            ImVec4 c = cardinal ? cardinalColor_.color : ordinalColor_.color;
+            dl->AddText(f, size, {x - ts.x * 0.5f + 1.f, a.y + 1.f}, IM_COL32(0, 0, 0, int(140 * al)), n);
+            dl->AddText(f, size, {x - ts.x * 0.5f, a.y}, ImGui::GetColorU32(withAlpha(c, al)), n);
+        }
+
+        struct Tag {
+            float x;
+            std::string text;
+            ImU32 color;
+        };
+        std::vector<Tag> tags;
+        if (waypoints_.b) {
+            if (auto* wp = dynamic_cast<Waypoints*>(modules::find("Waypoints")); wp && wp->userEnabled())
+                for (auto& m : wp->marks(p.dimension)) {
+                    float dist = game::distance(p.pos, {m.x, m.y, m.z});
+                    if (wpMax_.f > 0.f && dist > wpMax_.f) continue;
+                    float target = std::atan2(-(m.x + 0.5f - p.pos.x), m.z + 0.5f - p.pos.z) * 57.2958f + 180.f;
+                    float diff = std::fmod(target - bearing + 540.f, 360.f) - 180.f;
+                    float x = mid + diff * pxPerDeg;
+                    float al = fade(x);
+                    if (al <= 0.f) continue;
+                    ImU32 col = ImGui::GetColorU32({m.color[0], m.color[1], m.color[2], al});
+                    float r = 4.f * s;
+                    dl->AddQuadFilled({x, b.y - h * 0.5f - r}, {x + r, b.y - h * 0.5f}, {x, b.y - h * 0.5f + r}, {x - r, b.y - h * 0.5f}, col);
+                    std::string label;
+                    if (wpNames_.b) label = m.name;
+                    if (wpDistance_.b) label += (label.empty() ? "" : " ") + std::format("{:.0f} m", dist);
+                    if (!label.empty()) tags.push_back({x, label, col});
+                }
         }
         dl->PopClipRect();
-        dl->AddTriangleFilled({a.x + w * 0.5f - 4 * s, b.y + 2 * s}, {a.x + w * 0.5f + 4 * s, b.y + 2 * s}, {a.x + w * 0.5f, b.y - 4 * s},
-                              ImGui::GetColorU32(theme::current().accent));
-        y = h + 6 * s;
-        if (angles_.b) {
-            std::string t = std::format("{:.0f}°  ·  Pitch {:.1f}", bearing, p.pitch);
-            auto sz = drawText(dl, o + ImVec2(0, y), s, t, textColor());
+        for (auto& t : tags) {
+            ImVec2 ts = fonts::hud()->CalcTextSizeA(fonts::hudSize() * s * 0.7f, FLT_MAX, 0.f, t.text.c_str());
+            if (t.x - ts.x * 0.5f < a.x || t.x + ts.x * 0.5f > b.x) continue;
+            dl->AddText(fonts::hud(), fonts::hudSize() * s * 0.7f, {t.x - ts.x * 0.5f, b.y + 3 * s}, t.color, t.text.c_str());
+        }
+
+        dl->AddTriangleFilled({mid - 4 * s, b.y + 2 * s}, {mid + 4 * s, b.y + 2 * s}, {mid, b.y - 4 * s}, ImGui::GetColorU32(arrowColor_.color));
+        float labelH = waypoints_.b && (wpNames_.b || wpDistance_.b) ? fonts::hudSize() * s * 0.7f + 4 * s : 0.f;
+        float y = h + 6 * s + labelH;
+        if (degrees_.b || angles_.b) {
+            std::string t = degrees_.b ? std::format("{:.0f}°", bearing) : "";
+            if (angles_.b) t += (t.empty() ? "" : "  ·  ") + std::format("Pitch {:.1f}", p.pitch);
+            auto sz = textSize(s, t);
+            drawText(dl, o + ImVec2((w - sz.x) * 0.5f, y), s, t, textColor());
             y += sz.y;
         }
         return {w, y};
@@ -171,8 +221,23 @@ protected:
 
 private:
     Setting& style_ = choice("style", "Display style", {"Text", "Bar"}, 1);
-    Setting& width_ = slider("width", "Bar width", 260.f, 120.f, 600.f, "%.0f");
+    Setting& width_ = slider("width", "Bar width", 260.f, 120.f, 700.f, "%.0f");
+    Setting& pxPerDeg_ = slider("pxPerDeg", "Pixels per degree", 1.45f, 0.5f, 5.f, "%.2f");
+    Setting& fade_ = toggleSetting("fade", "Fade out at the edges", true);
+    Setting& tickStep_ = choice("tickStep", "Tick spacing", {"5 degrees", "10 degrees", "15 degrees"});
+    Setting& ordinals_ = toggleSetting("ordinals", "Intercardinal directions", true);
+    Setting& cardinalSize_ = slider("cardinalSize", "Cardinal text size", 15.f, 8.f, 30.f, "%.0f");
+    Setting& ordinalSize_ = slider("ordinalSize", "Intercardinal text size", 12.f, 8.f, 30.f, "%.0f");
+    Setting& degrees_ = toggleSetting("degrees", "Degrees under the arrow", true);
     Setting& angles_ = toggleSetting("angles", "Yaw / Pitch", false);
+    Setting& waypoints_ = toggleSetting("waypoints", "Waypoints on the compass", true);
+    Setting& wpNames_ = toggleSetting("wpNames", "Waypoint names", true);
+    Setting& wpDistance_ = toggleSetting("wpDistance", "Waypoint distance", true);
+    Setting& wpMax_ = slider("wpMax", "Waypoint range (0 = unlimited)", 0.f, 0.f, 2000.f, "%.0f");
+    Setting& arrowColor_ = colorSetting("arrowColor", "Arrow", {1.f, 0.49f, 0.71f, 1.f});
+    Setting& cardinalColor_ = colorSetting("cardinalColor", "Cardinal text", {1.f, 0.49f, 0.71f, 1.f});
+    Setting& ordinalColor_ = colorSetting("ordinalColor", "Intercardinal text", {1.f, 0.95f, 0.97f, 1.f});
+    Setting& tickColor_ = colorSetting("tickColor", "Ticks", {0.8f, 0.75f, 0.85f, 1.f});
 };
 
 class SpeedDisplay : public GameText {
@@ -281,14 +346,34 @@ public:
         : GameList("Experience Info", "Shows your level and the progress to the next level.", need::player, need::sigs({"LocalPlayer"}),
                    {"hud-self"}, {0.01f, 0.46f}) {
         sub("Own values");
+        percent_.visible = [this] { return mode_.i == 0 || mode_.i == 1; };
+        bar_.visible = [this] { return mode_.i == 0 || mode_.i == 1; };
     }
 
 protected:
     ImVec2 content(ImDrawList* dl, ImVec2 o, float s) override {
         auto& p = game::state().player;
-        auto sz = drawText(dl, o, s, std::format("Level {}{}", p.level, percent_.b ? std::format("  ·  {:.0f}%", p.xp * 100.f) : ""), textColor());
+        static auto needed = [](int level) { return level <= 15 ? 2 * level + 7 : level <= 30 ? 5 * level - 38 : 9 * level - 158; };
+        std::string text = i18n::fmt("Level {}", p.level);
+        bool showBar = bar_.b;
+        switch (mode_.i) {
+        case 1: showBar = true; break;
+        case 2:
+            text = i18n::fmt("Level {}  ·  {:.0f} points to the next level", p.level, (1.f - p.xp) * float(needed(p.level)));
+            showBar = false;
+            break;
+        case 3: {
+            int total = p.level <= 16 ? p.level * p.level + 6 * p.level : p.level <= 31 ? int(2.5f * float(p.level * p.level) - 40.5f * float(p.level) + 360.f) : int(4.5f * float(p.level * p.level) - 162.5f * float(p.level) + 2220.f);
+            text = i18n::fmt("{} points in total  ·  level {}", total + int(p.xp * float(needed(p.level))), p.level);
+            showBar = false;
+            break;
+        }
+        default: break;
+        }
+        if ((mode_.i == 0 || mode_.i == 1) && percent_.b) text += std::format("  ·  {:.0f}%", p.xp * 100.f);
+        auto sz = drawText(dl, o, s, text, textColor());
         float w = std::max(sz.x, 110.f * s), y = sz.y;
-        if (bar_.b) {
+        if (showBar) {
             ImVec2 b0 = o + ImVec2(0, y + 2 * s);
             dl->AddRectFilled(b0, b0 + ImVec2(w, 5 * s), IM_COL32(0, 0, 0, 80), 2.5f * s);
             dl->AddRectFilled(b0, b0 + ImVec2(w * std::clamp(p.xp, 0.f, 1.f), 5 * s), ImGui::GetColorU32(color_.color), 2.5f * s);
@@ -298,6 +383,7 @@ protected:
     }
 
 private:
+    Setting& mode_ = choice("mode", "Mode", {"Level and bar", "Level, bar and percent", "Points to next level", "Total points"});
     Setting& percent_ = toggleSetting("percent", "Percent", true);
     Setting& bar_ = toggleSetting("bar", "Bar", true);
     Setting& color_ = colorSetting("color", "Bar color", {0.55f, 0.95f, 0.45f, 1.f});
@@ -434,7 +520,7 @@ private:
 class BreakProgress : public Module {
 public:
     BreakProgress()
-        : Module("Break Progress", "Shows the break progress of the block you are mining, at the crosshair.", Category::Visual, {"hud-self"}) {
+        : Module("Break Progress", "Shows the break progress of the block you are mining at the crosshair, as bar, ring or text (Block Break Indicator).", Category::Visual, {"hud-self"}) {
         sub("World");
         require(need::target, need::sigs({"LocalPlayer", "Target"}));
     }
@@ -450,8 +536,16 @@ public:
         ImVec2 c{std::floor(ds.x * 0.5f) + 0.5f + offsetX_.f, std::floor(ds.y * 0.5f) + 0.5f + offsetY_.f};
         ImVec4 col = theme::mix(color_.color, doneColor_.color, last_ * last_);
         col.w *= shown_;
+        if (style_.i == 2) {
+            std::string t = std::format("{:.0f}%", last_ * 100.f);
+            ImVec2 ts = fonts::bold()->CalcTextSizeA(18.f * s, FLT_MAX, 0.f, t.c_str());
+            float ax = align_.i == 0 ? ts.x * 0.5f : align_.i == 2 ? -ts.x * 0.5f : 0.f;
+            draw::textCentered(dl, fonts::bold(), 18.f * s, c + ImVec2(ax, 0.f), ImGui::GetColorU32(col), t.c_str());
+            return;
+        }
         if (style_.i == 0) {
             float w = width_.f * s, h = 5.f * s;
+            c.x += align_.i == 0 ? w * 0.5f : align_.i == 2 ? -w * 0.5f : 0.f;
             dl->AddRectFilled(c - ImVec2(w * 0.5f, 0), c + ImVec2(w * 0.5f, h), IM_COL32(0, 0, 0, int(110 * shown_)), h * 0.5f);
             dl->AddRectFilled(c - ImVec2(w * 0.5f, 0), c + ImVec2(w * (last_ - 0.5f), h), ImGui::GetColorU32(col), h * 0.5f);
         } else {
@@ -465,7 +559,8 @@ public:
     }
 
 private:
-    Setting& style_ = choice("style", "Shape", {"Bar", "Ring"});
+    Setting& style_ = choice("style", "Shape", {"Bar", "Ring", "Text only"});
+    Setting& align_ = choice("align", "Alignment to the crosshair", {"Left", "Center", "Right"}, 1);
     Setting& width_ = slider("width", "Size", 70.f, 30.f, 200.f, "%.0f");
     Setting& offsetX_ = slider("offsetX", "Offset X", 0.f, -300.f, 300.f, "%.0f");
     Setting& offsetY_ = slider("offsetY", "Offset Y", 40.f, -300.f, 300.f, "%.0f");

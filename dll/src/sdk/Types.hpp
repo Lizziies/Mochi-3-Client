@@ -89,6 +89,7 @@ struct Player {
     bool sneaking = false;
     bool swimming = false;
     bool gliding = false;
+    bool emoting = false;
     bool flying = false;
     bool inWater = false;
     bool onFire = false;
@@ -131,6 +132,8 @@ struct World {
     int entities = 0;
     int players = 0;
     int ping = 0;
+    float tps = 0.f;
+    std::string name;
     std::vector<std::string> packs;
 };
 
@@ -144,10 +147,15 @@ struct Scoreboard {
     std::vector<std::pair<std::string, int>> lines;
 };
 
+enum class Platform { Unknown, Desktop, Mobile, Console };
+
 struct TabEntry {
     std::string name;
     int ping = 0;
     Mode mode = Mode::Survival;
+    Platform platform = Platform::Unknown;
+    bool hasHead = false;
+    std::array<uint32_t, 64> head{};
 };
 
 struct Combat {

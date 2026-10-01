@@ -27,3 +27,4 @@ Kurze Chronik, damit jede neue Session weiß, was schon passiert ist.
 - Phase 1 (Teil 2): Hive Stats, Hive Leaderboard (`modules/server/HiveApi.*`), Auto-GG-Endwörter pro Server, NetherGames und Mineville in `servers.json`, Pivot für HUD-Module.
 - Phase 2: Crystal Optimizer mit Geisterliste, Kill Cleanup, Crit-Partikel im Particle Multiplier, `Hit`-Ereignisse tragen Actor-Zeiger und Crystal-Flag.
 - Phase 3 (Teil 1): Hitbox-Kanäle und -Einstellungen, gemeinsame HUD-Optik mit Blur-Pass, Keystrokes und Coordinates in die Tiefe, Platzhalter.
+- Phase 3 (Teil 2): Tab List, Direction HUD, Debug Menu, Zoom, Cinematic Camera, Auto Perspective, View Model, Animations, Render Options, Crosshair-PNG, Clock, Experience Info, Hunger Bar, Item Counter, Break Progress auf Original-Tiefe gebracht.

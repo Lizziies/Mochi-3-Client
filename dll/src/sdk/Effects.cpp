@@ -81,6 +81,10 @@ constexpr Info table[count] = {
     {"fx.hitboxJava", "Java hitbox size", Kind::Flag},
     {"fx.hitboxRange", "Hitbox range", Kind::Data},
     {"fx.hitbox2D", "Flat hitbox", Kind::Flag},
+    {"fx.itemFov", "Item field of view", Kind::Value},
+    {"fx.handMatrixThird", "Hand transform in third person", Kind::Out},
+    {"fx.renderEntities", "Draw entities", Kind::Flag},
+    {"fx.renderTerrain", "Draw terrain", Kind::Flag},
 };
 
 enum Mode { None, Set, Scale, Add, Force, Skipped, Out, Matrix, Smooth };

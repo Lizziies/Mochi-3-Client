@@ -81,6 +81,7 @@ private:
         s.world.players = 11;
         s.world.entities = 41;
         s.world.biome = "plains";
+        s.world.name = "Mochi Lobby";
         s.world.time = 1000;
         s.world.day = 12;
         s.player.maxHealth = 20.f;
@@ -90,9 +91,28 @@ private:
             TabEntry e;
             e.name = names[i];
             e.ping = 20 + (i * 17) % 90;
+            e.platform = Platform(1 + i % 3);
+            e.hasHead = true;
+            face(e);
             s.tab.push_back(e);
         }
         opponentHp_ = 20.f;
+    }
+
+    static void face(TabEntry& e) {
+        unsigned h = 2166136261u;
+        for (unsigned char c : e.name) h = (h ^ c) * 16777619u;
+        auto channel = [&](int shift, unsigned lo, unsigned span) { return lo + ((h >> shift) % span); };
+        uint32_t hair = 0xFF000000u | (channel(0, 30, 120) << 16) | (channel(8, 20, 90) << 8) | channel(16, 10, 80);
+        uint32_t skin = 0xFF000000u | (channel(4, 150, 80) << 16) | (channel(12, 100, 70) << 8) | channel(20, 70, 60);
+        for (int y = 0; y < 8; y++)
+            for (int x = 0; x < 8; x++) {
+                uint32_t c = y < 2 ? hair : skin;
+                if (y == 4 && (x == 2 || x == 5)) c = 0xFFFFFFFFu;
+                if (y == 4 && (x == 1 || x == 6)) c = 0xFF402010u;
+                if (y == 6 && x >= 3 && x <= 4) c = 0xFF5A3030u;
+                e.head[size_t(y * 8 + x)] = c;
+            }
     }
 
     void movement(State& s, double dt) {
@@ -270,6 +290,7 @@ private:
         w.raining = std::fmod(t_, 90.0) > 60.0;
         w.thundering = std::fmod(t_, 180.0) > 150.0;
         w.ping = 38 + int(10.0 * std::sin(t_ * 0.8) + 4.0 * std::sin(t_ * 3.1));
+        w.tps = 20.f - float(0.4 * (1.0 + std::sin(t_ * 0.35)));
         w.entities = 41 + int(6.0 * std::sin(t_ * 0.2));
         static const char* biomes[] = {"plains", "forest", "desert", "taiga"};
         w.biome = biomes[int(t_ / 45.0) % 4];

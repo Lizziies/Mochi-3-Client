@@ -306,15 +306,24 @@ public:
     ViewModel()
         : Module("View Model", "Freely set position, size and rotation of hand and item in first person.", Category::Visual, {"cosmetic"}) {
         sub("Model");
-        require(0, {fx::sig(fx::Id::HandMatrix)});
+        requireAny({fx::sig(fx::Id::HandMatrix), fx::sig(fx::Id::ItemFov), fx::sig(fx::Id::HandMatrixThird)});
+        itemFov_.visible = [this] { return changeFov_.b; };
+        changeFov_.visible = [] { return fx::available(fx::Id::ItemFov); };
+        third_.visible = [] { return fx::available(fx::Id::HandMatrixThird); };
     }
 
     void onFrame() override {
         float k = uniform_.f;
-        fx::transform(fx::Id::HandMatrix, {x_.f, y_.f, z_.f}, {sx_.f * k, sy_.f * k, sz_.f * k}, {rx_.f, ry_.f, rz_.f});
+        game::Vec3 move{x_.f, y_.f, z_.f}, scale{sx_.f * k, sy_.f * k, sz_.f * k}, rot{rx_.f, ry_.f, rz_.f};
+        fx::transform(fx::Id::HandMatrix, move, scale, rot);
+        if (third_.b) fx::transform(fx::Id::HandMatrixThird, move, scale, rot);
+        if (changeFov_.b) fx::set(fx::Id::ItemFov, itemFov_.f);
     }
 
 private:
+    Setting& changeFov_ = toggleSetting("changeFov", "Change the item field of view", false);
+    Setting& itemFov_ = slider("itemFov", "Item field of view", 70.f, 30.f, 140.f, "%.0f");
+    Setting& third_ = toggleSetting("third", "Also in third person", false);
     Setting& x_ = slider("x", "Position X", 0.f, -1.f, 1.f, "%.2f");
     Setting& y_ = slider("y", "Position Y", 0.f, -1.f, 1.f, "%.2f");
     Setting& z_ = slider("z", "Position Z", 0.f, -1.f, 1.f, "%.2f");
@@ -333,13 +342,21 @@ public:
         : Module("Animations", "1.8-style swing and block animations, smaller item, own swing speed.",
                  Category::Visual, {"cosmetic"}) {
         sub("Model");
-        require(0, {fx::sig(fx::Id::HandMatrix)});
+        requireAny({fx::sig(fx::Id::HandMatrix), fx::sig(fx::Id::SwingSpeed)});
+        swingAngle_.visible = [] { return fx::available(fx::Id::HandMatrix); };
+        flux_.visible = [] { return fx::available(fx::Id::HandMatrix); };
     }
 
     void onFrame() override {
         auto& p = game::state().player;
         float s = itemScale_.f;
-        game::Vec3 move{0.f, 0.f, 0.f}, rot{0.f, 0.f, 0.f};
+        double now = ui::time();
+        for (auto& e : game::events())
+            if (e.kind == game::EventKind::Swing) swingAt_ = now;
+        float t = std::clamp(float((now - swingAt_) / (0.32 / std::max(0.2f, swing_.f))), 0.f, 1.f);
+        float target = (swingAngle_.f - 1.f) * 40.f * std::sin(t * 3.14159f);
+        extra_ = flux_.b ? extra_ + (target - extra_) * std::min(1.f, ui::dt() * 16.f) : target;
+        game::Vec3 move{0.f, 0.f, 0.f}, rot{extra_, 0.f, extra_ * 0.4f};
         if (lowered_.b) move.y -= 0.12f;
         if (p.blocking && blockPose_.b) {
             move = {move.x - 0.1f, move.y + 0.05f, move.z + 0.08f};
@@ -354,4 +371,8 @@ private:
     Setting& lowered_ = toggleSetting("lowered", "Hold the hand lower", true);
     Setting& blockPose_ = toggleSetting("block", "Block pose while blocking", true);
     Setting& swing_ = slider("swing", "Swing speed", 1.f, 0.4f, 2.5f, "%.2fx");
+    Setting& swingAngle_ = slider("swingAngle", "Swing angle", 1.f, 0.4f, 2.f, "%.2fx");
+    Setting& flux_ = toggleSetting("flux", "Fluid swing (smooths repeated swings)", false);
+    double swingAt_ = -10.0;
+    float extra_ = 0.f;
 };

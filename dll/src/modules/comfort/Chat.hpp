@@ -7,6 +7,7 @@
 #include "hook/Input.hpp"
 #include "modules/HudModule.hpp"
 #include "modules/common/Colors.hpp"
+#include "modules/common/Icons.hpp"
 #include "modules/common/GameHud.hpp"
 #include "modules/common/Needs.hpp"
 #include "modules/common/Text.hpp"
@@ -398,70 +399,135 @@ private:
 class TabList : public HudModule {
 public:
     TabList()
-        : HudModule("Tab List", "Java-style player list with columns, ping and sorting.",
+        : HudModule("Tab List", "Java-style player list with heads, platform icons, ping, world name, columns, sorting and highlights.",
                     {"info-others"}, {0.30f, 0.05f}) {
         sub("HUD parts");
         require(need::tab, need::sigs({"TabListData"}));
         rows_.visible = [this] { return columns_.i == 0; };
+        worldName_.visible = [this] { return header_.b; };
+        count_.visible = [this] { return header_.b; };
+        serverPing_.visible = [this] { return header_.b; };
+        pingBars_.visible = [this] { return ping_.b; };
+        toggleKey_.visible = [this] { return !onHold_.b; };
+        highlightWords_.visible = [this] { return highlight_.b; };
+        highlightColor_.visible = [this] { return highlight_.b; };
+    }
+
+    void onKey(KeyEvent& ev) override {
+        if (ev.down && !ev.repeat && toggleKey_.i && ev.vk == toggleKey_.i) shown_ = !shown_;
     }
 
     void onRender(ImDrawList* dl) override {
         if (!game::state().inWorld && !gui::editingHud()) return;
-        if (onHold_.b && !input::down(VK_TAB) && !gui::editingHud()) return;
+        bool visible = onHold_.b ? input::down(VK_TAB) : shown_ || !toggleKey_.i;
+        if (!visible && !gui::editingHud()) return;
         HudModule::onRender(dl);
     }
 
 protected:
     ImVec2 content(ImDrawList* dl, ImVec2 o, float s) override {
-        std::vector<game::TabEntry> list = game::state().tab;
+        auto& st = game::state();
+        std::vector<game::TabEntry> list = st.tab;
         if (sort_.i == 0) std::sort(list.begin(), list.end(), [](auto& a, auto& b) { return text::lower(a.name) < text::lower(b.name); });
         else if (sort_.i == 1) std::sort(list.begin(), list.end(), [](auto& a, auto& b) { return a.ping < b.ping; });
         int per = columns_.i > 0 ? int((list.size() + size_t(columns_.i) - 1) / size_t(columns_.i)) : rows_.i;
         per = std::max(per, 1);
-        int cols = int((list.size() + size_t(per) - 1) / size_t(per));
-        float rowH = fonts::hudSize() * s * 1.15f, x = 0.f, total = 0.f;
+        int cols = std::max(1, int((list.size() + size_t(per) - 1) / size_t(per)));
+        float rowH = fonts::hudSize() * s * 1.15f + spacing_.f * s;
+        float icon = rowH - spacing_.f * s - 2 * s;
+        auto marks = srv::words(highlightWords_.text);
+
+        float head = 0.f, y0 = 0.f, headerW = 0.f;
+        if (header_.b) {
+            std::string title;
+            if (worldName_.b) title = st.world.name.empty() ? st.server : st.world.name;
+            if (count_.b) title += (title.empty() ? "" : "  ·  ") + i18n::fmt("{} players", list.size());
+            float x = 0.f;
+            if (!title.empty()) x += drawText(dl, o, s, title, accentColor()).x;
+            if (serverPing_.b) {
+                ImVec4 c4 = rampColor(float(st.world.ping), 40.f, 200.f, good_.color, mid_.color, bad_.color);
+                std::string t = std::format("{} ms", st.world.ping);
+                float dot = 4.f * s;
+                x += title.empty() ? 0.f : 10.f * s;
+                dl->AddCircleFilled(o + ImVec2(x + dot, rowH * 0.5f), dot, ImGui::GetColorU32(c4));
+                x += dot * 2 + 4 * s;
+                x += drawText(dl, o + ImVec2(x, 0), s, t, ImGui::GetColorU32(c4)).x;
+            }
+            headerW = x;
+            y0 = rowH + 2 * s;
+        }
+
+        float x = 0.f, total = 0.f;
         for (int c = 0; c < cols; c++) {
             float colW = 60.f * s;
             for (int r = 0; r < per; r++) {
                 size_t i = size_t(c * per + r);
                 if (i >= list.size()) break;
-                colW = std::max(colW, textSize(s, list[i].name).x + (ping_.b ? 56.f * s : 8.f * s));
+                float w = textSize(s, list[i].name).x + (heads_.b ? rowH : 0.f) + (platform_.b ? rowH : 0.f) + (ping_.b ? 56.f * s : 8.f * s);
+                colW = std::max(colW, w);
             }
             for (int r = 0; r < per; r++) {
                 size_t i = size_t(c * per + r);
                 if (i >= list.size()) break;
                 auto& e = list[i];
-                bool me = e.name == game::state().player.name;
-                drawText(dl, o + ImVec2(x, r * rowH), s, e.name, me ? accentColor() : textColor());
+                bool me = e.name == st.player.name;
+                bool marked = highlight_.b && std::find(marks.begin(), marks.end(), text::lower(e.name)) != marks.end();
+                ImVec2 row = o + ImVec2(x, y0 + r * rowH);
+                if (marked) dl->AddRectFilled(row - ImVec2(3 * s, 0), row + ImVec2(colW + 3 * s, rowH), ImGui::GetColorU32(withAlpha(highlightColor_.color, 0.3f)), 3 * s);
+                float cx = 0.f;
+                if (heads_.b) {
+                    if (e.hasHead) icons::head(dl, e, row + ImVec2(0, (rowH - icon) * 0.5f), icon);
+                    else icons::initial(dl, e.name, row + ImVec2(0, (rowH - icon) * 0.5f), icon, textColor());
+                    cx += rowH;
+                }
+                if (platform_.b) {
+                    icons::platform(dl, e.platform, row + ImVec2(cx, (rowH - icon) * 0.5f), icon, ImGui::GetColorU32(theme::current().textDim));
+                    cx += rowH;
+                }
+                ImU32 nameColor = marked ? ImGui::GetColorU32(highlightColor_.color) : me ? accentColor() : textColor();
+                drawText(dl, row + ImVec2(cx, spacing_.f * s * 0.5f), s, e.name, nameColor);
                 if (ping_.b) {
-                    std::string t = pingBars_.b ? "" : std::format("{}", e.ping);
                     ImVec4 c4 = rampColor(float(e.ping), 40.f, 200.f, good_.color, mid_.color, bad_.color);
                     if (pingBars_.b) {
                         int lit = e.ping < 60 ? 4 : e.ping < 110 ? 3 : e.ping < 180 ? 2 : 1;
                         for (int b = 0; b < 4; b++) {
                             float bh = (3 + b * 2) * s;
-                            ImVec2 base{o.x + x + colW - 26 * s + b * 5 * s, o.y + r * rowH + rowH - 3 * s};
+                            ImVec2 base{row.x + colW - 26 * s + b * 5 * s, row.y + rowH - 3 * s};
                             dl->AddRectFilled(base - ImVec2(0, bh), base + ImVec2(3 * s, 0), b < lit ? ImGui::GetColorU32(c4) : IM_COL32(255, 255, 255, 40));
                         }
                     } else {
-                        drawText(dl, o + ImVec2(x + colW - textSize(s, t).x - 6 * s, r * rowH), s, t, ImGui::GetColorU32(c4));
+                        std::string t = std::format("{}", e.ping);
+                        drawText(dl, row + ImVec2(colW - textSize(s, t).x - 6 * s, spacing_.f * s * 0.5f), s, t, ImGui::GetColorU32(c4));
                     }
                 }
             }
             x += colW + 12 * s;
             total = x;
         }
-        return {std::max(total - 12 * s, 60.f * s), per * rowH};
+        (void)head;
+        return {std::max({total - 12 * s, 60.f * s, headerW}), y0 + per * rowH};
     }
 
 private:
     Setting& columns_ = intSlider("columns", "Columns (0 = by rows)", 0, 0, 6);
     Setting& rows_ = intSlider("rows", "Rows per column", 20, 5, 40);
     Setting& sort_ = choice("sort", "Sorting", {"Name", "Ping", "As sent by the server"}, 2);
+    Setting& spacing_ = slider("spacing", "Row spacing", 0.f, 0.f, 8.f, "%.0f");
+    Setting& heads_ = toggleSetting("heads", "Player heads", true);
+    Setting& platform_ = toggleSetting("platform", "Platform icons", true);
+    Setting& header_ = toggleSetting("header", "Header", true);
+    Setting& worldName_ = toggleSetting("worldName", "World name", true);
+    Setting& count_ = toggleSetting("count", "Player count", true);
+    Setting& serverPing_ = toggleSetting("serverPing", "Server ping with color dot", true);
     Setting& ping_ = toggleSetting("ping", "Show ping", true);
     Setting& pingBars_ = toggleSetting("pingBars", "Ping as bars", true);
+    Setting& highlight_ = toggleSetting("highlight", "Highlight players", false);
+    Setting& highlightWords_ = textSetting("highlightWords", "Players (comma)", "");
     Setting& onHold_ = toggleSetting("onHold", "Only while Tab is held", true);
+    Setting& toggleKey_ = keySetting("toggleKey", "Toggle key", 0);
     Setting& good_ = colorSetting("good", "Ping good", {0.55f, 0.91f, 0.69f, 1.f});
     Setting& mid_ = colorSetting("mid", "Ping medium", {1.f, 0.82f, 0.49f, 1.f});
     Setting& bad_ = colorSetting("bad", "Ping bad", {1.f, 0.4f, 0.45f, 1.f});
+    Setting& highlightColor_ = colorSetting("highlightColor", "Highlight", {1.f, 0.82f, 0.49f, 1.f});
+    bool shown_ = false;
 };

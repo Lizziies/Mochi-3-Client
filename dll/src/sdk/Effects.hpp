@@ -72,6 +72,10 @@ enum class Id {
     HitboxJava,
     HitboxRange,
     Hitbox2D,
+    ItemFov,
+    HandMatrixThird,
+    RenderEntities,
+    RenderTerrain,
     Count
 };
 

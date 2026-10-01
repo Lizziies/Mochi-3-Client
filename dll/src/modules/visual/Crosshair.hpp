@@ -1,10 +1,12 @@
 #pragma once
 
+#include "core/Log.hpp"
 #include "gui/Gui.hpp"
 #include "gui/Theme.hpp"
 #include "hook/Input.hpp"
 #include "modules/Module.hpp"
 #include "modules/common/Colors.hpp"
+#include "modules/common/Image.hpp"
 #include "render/Draw.hpp"
 #include "render/Ui.hpp"
 #include "sdk/Effects.hpp"
@@ -12,6 +14,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <filesystem>
 #include <string>
 
 class Crosshair : public Module {
@@ -39,6 +42,13 @@ public:
         rainbowSpeed_.visible = [this] { return rainbow_.b; };
         color_.visible = [this] { return !rainbow_.b; };
         targetColor_.visible = [this] { return targetOn_.b; };
+        imagePath_.visible = [this] { return style_.i == 10; };
+        imageScale_.visible = [this] { return style_.i == 10; };
+        imageTint_.visible = [this] { return style_.i == 10; };
+        imageTintColor_.visible = [this] { return style_.i == 10 && imageTint_.b; };
+        size_.visible = [this] { return style_.i != 9 && style_.i != 10; };
+        thickness_.visible = [this] { return style_.i != 9 && style_.i != 10; };
+        loadedFor_ = "";
     }
 
     void onFrame() override {
@@ -78,6 +88,13 @@ public:
 
     void drawSettings() override {
         ImGui::Spacing();
+        if (style_.i == 10) {
+            if (ImGui::SmallButton(i18n::tr("Paste path from clipboard"))) {
+                if (const char* clip = ImGui::GetClipboardText()) imagePath_.text = clip;
+            }
+            ImGui::TextDisabled("%s", i18n::tr("Use a PNG with a transparent background, up to 64 pixels."));
+            if (!status_.empty()) ImGui::TextColored(theme::current().warn, "%s", status_.c_str());
+        }
         ImGui::TextDisabled(i18n::tr("Pixel editor (used for the shape \"Custom grid\")"));
         editor();
     }
@@ -171,9 +188,45 @@ private:
         case 7: polygon(dl, 4, (size + spread_) * 0.8f, th, col, 0.f); break;
         case 8: polygon(dl, 3, (size + spread_) * 0.8f, th, col, -1.5708f); break;
         case 9: grid(dl, col, alt, outline); break;
+        case 10: picture(dl, col, outline); break;
         }
-        if (centerDot_.b && style_.i != 1 && style_.i != 3 && style_.i != 9)
+        if (centerDot_.b && style_.i != 1 && style_.i != 3 && style_.i != 9 && style_.i != 10)
             dl->AddCircleFilled(center_, th * 0.8f + (outline ? outlineWidth_.f : 0), col);
+    }
+
+    void ensureImage() {
+        if (imagePath_.text == loadedFor_) return;
+        loadedFor_ = imagePath_.text;
+        image_ = {};
+        if (imagePath_.text.empty()) return;
+        std::string clean = imagePath_.text;
+        if (clean.size() > 1 && clean.front() == '"' && clean.back() == '"') clean = clean.substr(1, clean.size() - 2);
+        if (!img::load(std::filesystem::path(logger::widen(clean)), 64, image_)) status_ = i18n::tr("Could not read the image");
+        else status_.clear();
+    }
+
+    void picture(ImDrawList* dl, ImU32 col, bool outline) {
+        ensureImage();
+        if (image_.rgba.empty()) return;
+        float px = imageScale_.f * (1.f + spread_ * 0.05f);
+        float w = float(image_.w) * px, h = float(image_.h) * px;
+        ImVec2 origin = center_ - ImVec2(w, h) * 0.5f;
+        ImVec4 tint = imageTintColor_.color;
+        float ow = outlineWidth_.f;
+        for (int y = 0; y < image_.h; y++)
+            for (int x = 0; x < image_.w; x++) {
+                uint32_t c = image_.rgba[size_t(y * image_.w + x)];
+                int a = int((c >> 24) & 255);
+                if (a < 8) continue;
+                ImVec2 p0 = origin + ImVec2(float(x) * px, float(y) * px), p1 = p0 + ImVec2(px, px);
+                if (outline) {
+                    dl->AddRectFilled(p0 - ImVec2(ow, ow), p1 + ImVec2(ow, ow), col);
+                    continue;
+                }
+                ImVec4 v{float(c & 255) / 255.f, float((c >> 8) & 255) / 255.f, float((c >> 16) & 255) / 255.f, float(a) / 255.f * opacity_.f};
+                if (imageTint_.b) v = {tint.x * v.x, tint.y * v.y, tint.z * v.z, v.w * tint.w};
+                dl->AddRectFilled(p0, p1, ImGui::GetColorU32(v));
+            }
     }
 
     static std::string preset(int kind) {
@@ -318,9 +371,13 @@ private:
         }
     }
 
-    Setting& style_ = choice("style", "Shape", {"Cross", "Dot", "Circle", "Cross + dot", "Heart", "T shape", "Square", "Diamond", "Triangle", "Custom grid"});
+    Setting& style_ = choice("style", "Shape", {"Cross", "Dot", "Circle", "Cross + dot", "Heart", "T shape", "Square", "Diamond", "Triangle", "Custom grid", "PNG image"});
     Setting& size_ = slider("size", "Size", 8.f, 2.f, 40.f, "%.0f");
     Setting& cell_ = slider("cell", "Pixel size", 2.f, 1.f, 6.f, "%.1f");
+    Setting& imagePath_ = textSetting("imagePath", "PNG file path", "");
+    Setting& imageScale_ = slider("imageScale", "Image pixel size", 1.f, 0.25f, 6.f, "%.2f");
+    Setting& imageTint_ = toggleSetting("imageTint", "Tint the image", false);
+    Setting& imageTintColor_ = colorSetting("imageTintColor", "Image tint", {1.f, 1.f, 1.f, 1.f});
     Setting& gap_ = slider("gap", "Gap", 2.f, 0.f, 16.f, "%.0f");
     Setting& thickness_ = slider("thickness", "Thickness", 2.f, 1.f, 8.f, "%.1f");
     Setting& opacity_ = slider("opacity", "Opacity", 1.f, 0.1f, 1.f, "%.2f");
@@ -352,6 +409,9 @@ private:
     Setting& offsetY_ = slider("offsetY", "Offset Y", 0.f, -100.f, 100.f, "%.0f");
     Setting& grid_ = textSetting("grid", "Grid", preset(0));
 
+    img::Pixels image_;
+    std::string loadedFor_;
+    std::string status_;
     ImVec2 center_{0, 0};
     float pulse_ = 0.f;
     float targetMix_ = 0.f;

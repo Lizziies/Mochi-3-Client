@@ -1,6 +1,8 @@
 #include "HudModule.hpp"
 #include "core/Config.hpp"
+#include "gui/Gui.hpp"
 #include "gui/Theme.hpp"
+#include "modules/common/Context.hpp"
 #include "modules/post/PostFx.hpp"
 #include "render/Fonts.hpp"
 
@@ -91,6 +93,7 @@ static void ringGlow(ImDrawList* dl, ImVec2 min, ImVec2 max, float rounding, ImV
 }
 
 void HudModule::onRender(ImDrawList* dl) {
+    if (ctx::hideModules && !gui::editingHud()) return;
     float s = scale_.f;
     ImVec2 pos = position();
     ImVec2 pad{padding_.f * s, padY_.f * s};
