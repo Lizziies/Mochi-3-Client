@@ -196,6 +196,14 @@ struct Other {
     int team = 0;
 };
 
+struct Projectile {
+    uintptr_t id = 0;
+    int kind = 0;
+    bool mine = false;
+    Vec3 pos;
+    Vec3 vel;
+};
+
 struct LightGrid {
     int radius = 0;
     int baseX = 0;
@@ -243,6 +251,7 @@ struct State {
     Scoreboard scoreboard;
     std::vector<TabEntry> tab;
     std::vector<Other> others;
+    std::vector<Projectile> shots;
     LightGrid light;
     std::string server;
     unsigned have = 0;

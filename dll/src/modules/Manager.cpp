@@ -14,6 +14,7 @@
 #include "sig/Sigs.hpp"
 
 #include "camera/Camera.hpp"
+#include "camera/Hand.hpp"
 #include "client/ClickGui.hpp"
 #include "client/SigStatus.hpp"
 #include "combat/Counters.hpp"
@@ -37,6 +38,7 @@
 #include "fun/Pets.hpp"
 #include "fun/Snake.hpp"
 #include "hud/Clock.hpp"
+#include "hud/Extras.hpp"
 #include "hud/HotbarAnim.hpp"
 #include "hud/Movable.hpp"
 #include "hud/Subtitles.hpp"
@@ -55,6 +57,7 @@
 #include "hud/SessionTimer.hpp"
 #include "hud/Stopwatch.hpp"
 #include "input/CpsLimiter.hpp"
+#include "input/Gamemode.hpp"
 #include "input/HotbarKeys.hpp"
 #include "input/InstantInput.hpp"
 #include "input/NoScroll.hpp"
@@ -81,6 +84,7 @@
 #include "server/ServerProfiles.hpp"
 #include "server/Zeqa.hpp"
 #include "visual/Crosshair.hpp"
+#include "visual/Trail.hpp"
 #include "world/Entities.hpp"
 #include "world/LightOverlay.hpp"
 #include "world/Waypoints.hpp"
@@ -250,6 +254,14 @@ void init() {
     add<DiscordPresence>();
     add<LuaScripts>();
     add<ConfigSharing>();
+    add<HotbarArmor>();
+    add<FallPredictor>();
+    add<InventoryView>();
+    add<ArrowTrail>();
+    add<BlackBars>();
+    add<LeftHand>();
+    add<GamemodeHotkeys>();
+    add<ThirdPersonNametag>();
     add<HiveUtils>();
     add<ZeqaUtils>();
     add<HiveStats>();

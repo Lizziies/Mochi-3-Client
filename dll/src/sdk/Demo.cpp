@@ -33,6 +33,7 @@ public:
         uses(ev);
         sounds(s, ev);
         nearby(s);
+        shots(s);
         light(s);
         confirms(ev);
         effects(s, dt);
@@ -251,6 +252,46 @@ private:
         e.pos = {s.player.pos.x + std::cos(float(a)) * d, s.player.pos.y, s.player.pos.z + std::sin(float(a)) * d};
         e.value = d;
         ev.push_back(std::move(e));
+    }
+
+    struct Flight {
+        uintptr_t id;
+        int kind;
+        bool mine;
+        Vec3 from;
+        Vec3 dir;
+        double born;
+        double life;
+        float speed;
+    };
+
+    void shots(State& s) {
+        if (t_ >= nextShot_) {
+            nextShot_ = t_ + 3.5;
+            auto& p = s.player;
+            float yaw = p.yaw * 0.0174533f, pitch = (p.pitch - 12.f) * 0.0174533f;
+            Vec3 dir{-std::sin(yaw) * std::cos(pitch), -std::sin(pitch), std::cos(yaw) * std::cos(pitch)};
+            bool pearl = flights_.size() % 3 == 2;
+            flights_.push_back({uintptr_t(0x9000 + shotId_++), pearl ? 1 : 0, !pearl, p.eye(), dir, t_, pearl ? 1.4 : 1.1, pearl ? 22.f : 30.f});
+        }
+        s.shots.clear();
+        for (size_t i = 0; i < flights_.size();) {
+            auto& f = flights_[i];
+            double age = t_ - f.born;
+            if (age > f.life) {
+                flights_.erase(flights_.begin() + long(i));
+                continue;
+            }
+            float a = float(age);
+            Projectile pr;
+            pr.id = f.id;
+            pr.kind = f.kind;
+            pr.mine = f.mine;
+            pr.pos = {f.from.x + f.dir.x * f.speed * a, f.from.y + f.dir.y * f.speed * a - 4.9f * a * a, f.from.z + f.dir.z * f.speed * a};
+            pr.vel = {f.dir.x * f.speed, f.dir.y * f.speed - 9.8f * a, f.dir.z * f.speed};
+            s.shots.push_back(pr);
+            i++;
+        }
     }
 
     void light(State& s) {
@@ -501,6 +542,9 @@ private:
     double nextUse_ = 5.0;
     int chatIdx_ = 0;
     double scriptPhase_ = -1.0;
+    double nextShot_ = 2.0;
+    int shotId_ = 0;
+    std::vector<Flight> flights_;
     double nextSound_ = 1.0;
     int soundIdx_ = 0;
     double crystalTimer_ = 3.0;

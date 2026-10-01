@@ -69,6 +69,22 @@ private:
     Setting& background_ = colorSetting("background", "Background color", {0.f, 0.f, 0.f, 0.35f});
 };
 
+class ThirdPersonNametag : public Module {
+public:
+    ThirdPersonNametag()
+        : Module("Third Person Nametag", "Shows your own name tag above your head when you play in third person.", Category::Visual, {"cosmetic"}) {
+        sub("World");
+        require(need::player, {fx::sig(fx::Id::SelfNametag), "LocalPlayer"});
+    }
+
+    void onFrame() override {
+        if (always_.b || game::state().player.view != game::View::First) fx::force(fx::Id::SelfNametag, true);
+    }
+
+private:
+    Setting& always_ = toggleSetting("always", "Also in first person", false);
+};
+
 class TntTimer : public Module {
 public:
     TntTimer()
