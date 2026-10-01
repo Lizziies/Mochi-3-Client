@@ -20,6 +20,9 @@ Der beste Minecraft-Bedrock-PvP-Client, den es gibt. Kostenlos, später auf GitH
 - Girly Look: Pink, Herz-Logo, alles per Farbe anpassbar.
 - Mehr Unterkategorien, nicht nur "CPS" unter PvP. PvP muss viele Module haben (Kampf-Info, Combo, Reach-Anzeige, Hitbox, Armor/Potion HUD, Hurt Color usw.).
 - Beste Eingabe: "fast CPVP", Low-Latency-Modus, null Verzögerung zwischen Klick und Bild. Soll sich von anderen Clients absetzen, auch wenn die so etwas ähnlich haben. Siehe `INPUT.md`.
+- Vorbild ist "Luna"/Lunar Client von Java, nur für Bedrock: alle Features der anderen Clients (ca. 130 Module), weiter ausgebaut und mit eigenen Ideen. Fehlt bei Flarial etwas (z. B. echtes No View Bobbing), bauen wir es.
+- Instant Hit/Input ohne Verzögerung so perfekt wie möglich. Der Server-Ping selbst ist vom Client nicht änderbar (siehe `FEATURES.md` 1.1), aber alles Lokale wird optimiert und die Verzögerung wird sichtbar gemacht.
+- WLAN-Modul für Spieler mit WLAN: Verbindung, Jitter, Paketverlust messen und verbessern (siehe `FEATURES.md` 1.4).
 - Ein Ziel von ca. 135 Modulen, alle mit vielen Optionen, nicht nur ein Schalter.
 - Version-Switcher im Launcher: jede Minecraft-Version installieren und umschalten. Siehe `VERSIONING.md`.
 - Auto-Update: Der Launcher prüft GitHub-Releases, lädt neue DLL und neue Launcher-Version selbst. Felix lädt nur ein Release hoch.
@@ -67,6 +70,8 @@ Ordner im Repo:
 | `CLAUDE.md` | Regeln für jede Session: Ziel, harte Regeln, Code-Stil, Build |
 | `docs/PLAN.md` | Architektur und Phasen 0 bis 9 mit fertigen Prompts |
 | `docs/MODULES.md` | Alle Module mit Tier, Priorität, Notiz |
+| `docs/FEATURES.md` | Volle Feature-Spezifikation: alles von Flarial/Onix/Latite/Lunar plus eigene Features, Latenz, WLAN |
+| `docs/CLIENTS.md` | Die anderen Bedrock-Clients im Detail: Module, Stärken, Schwächen |
 | `docs/INPUT.md` | Strategie für niedrige Latenz |
 | `docs/VERSIONING.md` | Signaturen, Versionserkennung, Updates, Downgrade |
 | `docs/UI.md` | Design von ClickGUI, HUD-Editor, Launcher |

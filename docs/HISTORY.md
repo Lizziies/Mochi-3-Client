@@ -13,3 +13,5 @@ Kurze Chronik, damit jede neue Session weiß, was schon passiert ist.
 
 - ZIP in dieses Repo importiert, `docs/MASTER.md` und diese Datei angelegt.
 - Fehlende Module werden hier in Blöcken nachgebaut (siehe `docs/STATUS.md`).
+- `docs/CLIENTS.md` (Wettbewerber) und `docs/FEATURES.md` (Feature-Spezifikation) geschrieben. Einige Seiten (flarial.xyz, onixclient.com, latite.net) waren vom Netzwerk gesperrt, Angaben sind in CLIENTS.md mit ✔/~/? gekennzeichnet.
+- Um 11 Uhr bekommt diese Session die Zusammenfassung des Chatverlaufs vom Hauptaccount, damit mehrere Sessions parallel arbeiten können.

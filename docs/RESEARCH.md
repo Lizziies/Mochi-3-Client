@@ -27,3 +27,11 @@ Hier landen alle Infos zu anderen Clients und Wünsche von Felix, damit nichts v
 - Panel-Übergang: Kreuzblende statt hartem Wechsel, Seiten gleiten seitlich.
 - Toggle mit Federbewegung, Slider mit Wert-Bubble.
 - Tooltip-Animationen.
+
+## Weitere Wünsche (Session 2)
+
+- No View Bobbing als eigenes Modul (Flarial hat nur Minimal und Java View Bobbing).
+- Instant Hit/Input, so wenig Verzögerung wie möglich. Server-Ping ist nicht änderbar, nur lokal optimierbar und messbar.
+- WLAN-Modul für Spieler im WLAN.
+- Vorbild: Lunar Client (Java), nur für Bedrock.
+- Details: `FEATURES.md`, Vergleich: `CLIENTS.md`.
