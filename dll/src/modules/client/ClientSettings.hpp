@@ -5,6 +5,7 @@
 #include "modules/Module.hpp"
 #include "sdk/Game.hpp"
 
+#include <cctype>
 #include <format>
 #include <string>
 
