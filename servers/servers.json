@@ -41,7 +41,8 @@
         "Damage Indicator",
         "Target HUD",
         "Hotbar Keys",
-        "Hive Utils"
+        "Hive Utils",
+        "Kill Cleanup"
       ]
     },
     {
@@ -59,7 +60,8 @@
         "Instant Hit",
         "Snap Look",
         "Command Hotkey",
-        "Text Hotkey"
+        "Text Hotkey",
+        "Kill Cleanup"
       ]
     },
     {

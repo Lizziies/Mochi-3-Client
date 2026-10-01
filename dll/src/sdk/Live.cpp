@@ -59,6 +59,8 @@ public:
         Event e{EventKind::Hit};
         e.reach = reachTo(reinterpret_cast<uintptr_t>(actor));
         e.crit = !onGround_ && fallSpeed_ < 0.f && !sprinting_;
+        e.actor = reinterpret_cast<uintptr_t>(actor);
+        e.crystal = isCrystal(e.actor);
         std::scoped_lock g(lock_);
         pending_.push_back(std::move(e));
     }
@@ -118,6 +120,11 @@ private:
         s.world.day = i(lv, "level.time", 0) / 24000 + 1;
         s.world.raining = f(lv, "level.rain", 0.f) > 0.05f;
         s.world.thundering = f(lv, "level.thunder", 0.f) > 0.05f;
+    }
+
+    static bool isCrystal(uintptr_t actor) {
+        int at = off("actor.typeId"), want = off("type.crystal");
+        return at >= 0 && want >= 0 && mem::get<int>(actor + at, -1) == want;
     }
 
     float reachTo(uintptr_t actor) const {

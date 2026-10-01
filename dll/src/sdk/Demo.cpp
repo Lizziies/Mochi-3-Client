@@ -162,6 +162,7 @@ private:
                 e.crit = dist_(rng_) < 0.2;
                 e.value = e.crit ? 9.f : 6.f;
                 e.text = "Opponent";
+                e.actor = 0x7000;
                 ev.push_back(e);
                 float ms = float(s.world.ping) + float(dist_(rng_)) * 12.f;
                 acks_.push_back({t_ + ms / 1000.0, ms, e.reach});
@@ -171,10 +172,22 @@ private:
                 if (opponentHp_ <= 0.f) {
                     Event k{EventKind::Kill};
                     k.text = "Opponent";
+                    k.actor = 0x7000;
                     ev.push_back(k);
                     opponentHp_ = 20.f;
                 }
             }
+        }
+
+        crystalTimer_ -= dt;
+        if (crystalTimer_ <= 0.0) {
+            crystalTimer_ = 2.5 + dist_(rng_) * 3.0;
+            Event c{EventKind::Hit};
+            c.crystal = true;
+            c.reach = 3.1f + float(dist_(rng_)) * 0.8f;
+            c.text = "End Crystal";
+            c.actor = 0x5000 + uintptr_t(crystalIdx_++ % 6) * 0x40;
+            ev.push_back(c);
         }
 
         hurtTimer_ -= dt;
@@ -416,6 +429,8 @@ private:
     double nextUse_ = 5.0;
     int chatIdx_ = 0;
     double scriptPhase_ = -1.0;
+    double crystalTimer_ = 3.0;
+    int crystalIdx_ = 0;
     float opponentHp_ = 20.f;
     bool fighting_ = false;
     bool drawing_ = false;

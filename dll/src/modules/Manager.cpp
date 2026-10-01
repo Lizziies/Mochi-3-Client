@@ -195,6 +195,7 @@ void init() {
     add<NullMovement>();
     add<BlockHit>();
     add<CrystalOptimizer>();
+    add<KillCleanup>();
     add<ItemUseDelayFix>();
     add<FasterInventory>();
     add<InstaHurtAnimation>();

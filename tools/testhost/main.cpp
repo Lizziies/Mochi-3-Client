@@ -177,6 +177,8 @@ int wmain(int argc, wchar_t** argv) {
             if (s.kind == 'k') {
                 key(s.a, true);
                 key(s.a, false);
+            } else if (s.kind == 't') {
+                PostMessageW(hwnd, WM_CHAR, WPARAM(s.a), 1);
             } else if (s.kind == 'c') {
                 click(s.a, s.b);
             } else if (s.kind == 'u') {

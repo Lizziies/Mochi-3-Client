@@ -166,6 +166,7 @@ struct Combat {
     float lastReach = 0.f;
     float bestReach = 0.f;
     std::string lastTarget;
+    uintptr_t lastActor = 0;
     double lastHitAt = -100.0;
     double lastHurtAt = -100.0;
     bool lastCrit = false;
@@ -176,6 +177,7 @@ struct Combat {
 };
 
 struct Other {
+    uintptr_t id = 0;
     std::string name;
     Vec3 pos;
     float health = 20.f;
@@ -198,6 +200,8 @@ struct Event {
     float value = 0.f;
     float reach = 0.f;
     bool crit = false;
+    bool crystal = false;
+    uintptr_t actor = 0;
     std::string text;
     std::string item;
 };

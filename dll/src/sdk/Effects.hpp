@@ -7,7 +7,7 @@
 
 namespace fx {
 
-enum class Kind { Value, Flag, Skip, Out, Data, Int };
+enum class Kind { Value, Flag, Skip, Out, Data, Int, Ghost, Filter };
 
 enum class Id {
     Fov,
@@ -59,6 +59,9 @@ enum class Id {
     CrystalHide,
     CrystalSimple,
     CrystalNoBase,
+    GhostRender,
+    GhostPick,
+    CritParticle,
     Count
 };
 
@@ -90,6 +93,10 @@ struct Report {
     bool installed = false;
     float value = 0.f;
 };
+void ghost(uintptr_t actor, float seconds);
+bool ghosted(uintptr_t actor);
+int ghostCount();
+
 Report report(Id id);
 bool available(Id id);
 

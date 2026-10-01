@@ -23,7 +23,7 @@ constexpr std::string_view expected[] = {
     "Player Notifier", "Chunk Border", "Break Progress", "Cinematic Camera", "Snap Look", "Auto Perspective",
     "Sens Multiplier", "Bow Sensitivity", "Stopwatch", "Memory", "Experience Info", "Durability Warning",
     "Streamer Mode", "Server Profiles", "Crystal Optimizer", "Better Chat", "View Model", "Saturation / Hue", "Screenshot+", "Target HUD",
-    "Session Timer", "Day Counter", "Hide Hand", "Entity Counter", "Zeqa Utils", "Hive Stats", "Hive Leaderboard",
+    "Session Timer", "Day Counter", "Hide Hand", "Entity Counter", "Zeqa Utils", "Kill Cleanup", "Hive Stats", "Hive Leaderboard",
 };
 
 constexpr std::string_view extras[] = {
@@ -38,7 +38,7 @@ constexpr std::string_view pvp[] = {
     "CPS", "Keystrokes", "Mouse Strokes", "Combo Counter", "Reach Counter", "Opponent Reach", "Hit Ping", "Armor HUD",
     "Potion HUD", "Pot Counter", "Arrow Counter", "Totem Counter", "Target HUD", "Hitbox", "Hurt Color", "Animations",
     "Low Health Indicator", "Auto GG", "Toggle Sprint", "Toggle Sneak", "Snap Look", "Block Hit", "Crystal Optimizer", "Instant Hit", "CPS Limiter",
-    "Hit Counter", "Null Movement", "Faster Inventory", "Item Use Delay Fix", "Insta Hurt Animation",
+    "Hit Counter", "Null Movement", "Faster Inventory", "Item Use Delay Fix", "Insta Hurt Animation", "Kill Cleanup",
 };
 
 const std::unordered_map<std::string_view, int>& table() {

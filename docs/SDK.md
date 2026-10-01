@@ -128,6 +128,12 @@ Alle Detours haben die Form `(a, b, c, d)` mit vier Integer-Argumenten und reich
 | `fx.hurtAnim` | Treffer-Animation | Flag | Insta Hurt Animation |
 | `fx.blockOutline` | Original-Blockumriss | Skip | – |
 | `fx.swingSpeed` | Schwung-Dauer | Value | – |
+| `fx.crystalHide`, `fx.crystalSimple`, `fx.crystalNoBase` | Crystal ausblenden, ohne Drehen, ohne Sockel | Flag | Crystal Optimizer |
+| `fx.ghostRender` | Entity nicht zeichnen, wenn sie in der Geisterliste steht (Aufruf mit dem Actor-Zeiger im Argument `<sig>.arg`, Standard 1) | Ghost | Crystal Optimizer, Kill Cleanup |
+| `fx.ghostPick` | Zielsuche gibt Entities aus der Geisterliste nicht zurück (Rückgabewert ist der Actor-Zeiger) | Filter | Crystal Optimizer, Kill Cleanup |
+| `fx.critParticle` | Crit-Partikel erzwingen | Flag | Particle Multiplier |
+
+**Geisterliste:** `fx::ghost(actor, sekunden)` merkt sich einen Actor-Zeiger, `fx::ghosted` fragt ab. Die Liste ist rein lokal, hat 16 Plätze und läuft von selbst ab. Treffer auf Crystals kommen als `Hit`-Ereignis mit `crystal = true` und `actor`; der Live-Provider erkennt sie über die Offsets `actor.typeId` (Int im Actor) und `type.crystal` (der Wert für den End Crystal, steht als Offset-Zahl in der Signaturdatei). Fehlt einer davon, wird nie ein Crystal ausgeblendet. Crystal-Treffer zählen nicht für Combo und Reichweite.
 
 ## Tasten und Chat senden (`sdk/Inject.hpp`)
 

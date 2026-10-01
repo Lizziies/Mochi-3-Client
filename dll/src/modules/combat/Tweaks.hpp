@@ -108,15 +108,22 @@ private:
 class ParticleMultiplier : public Module {
 public:
     ParticleMultiplier()
-        : Module("Particle Multiplier", "More or fewer particles. Fewer helps FPS, more looks nicer.", Category::Pvp, {"cosmetic"}) {
-        sub("Hit visuals");
-        require(0, {fx::sig(fx::Id::ParticleScale)});
+        : Module("Particle Multiplier", "More or fewer particles, and critical hit particles on every hit. Fewer helps FPS, more looks nicer.", Category::Pvp,
+                 {"cosmetic"}) {
+        sub("Hit feedback");
+        requireAny({fx::sig(fx::Id::ParticleScale), fx::sig(fx::Id::CritParticle)});
+        amount_.visible = [] { return fx::available(fx::Id::ParticleScale); };
+        crit_.visible = [] { return fx::available(fx::Id::CritParticle); };
     }
 
-    void onFrame() override { fx::set(fx::Id::ParticleScale, amount_.f); }
+    void onFrame() override {
+        fx::set(fx::Id::ParticleScale, amount_.f);
+        if (crit_.b) fx::force(fx::Id::CritParticle, true);
+    }
 
 private:
     Setting& amount_ = slider("amount", "Amount", 0.5f, 0.f, 4.f, "%.2fx");
+    Setting& crit_ = toggleSetting("normalCrit", "Critical hit particles on every hit", false);
 };
 
 class SensMultiplier : public Module {

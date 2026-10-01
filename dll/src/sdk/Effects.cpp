@@ -1,6 +1,7 @@
 #include "Effects.hpp"
 #include "Game.hpp"
 #include "Memory.hpp"
+#include "render/Ui.hpp"
 #include "core/Log.hpp"
 #include "hook/Hook.hpp"
 #include "sig/Sigs.hpp"
@@ -67,6 +68,9 @@ constexpr Info table[count] = {
     {"fx.crystalHide", "Hide crystal instantly", Kind::Flag},
     {"fx.crystalSimple", "Crystal without spin and bobbing", Kind::Flag},
     {"fx.crystalNoBase", "Crystal without base", Kind::Flag},
+    {"fx.ghostRender", "Hide locally removed entities", Kind::Ghost},
+    {"fx.ghostPick", "Ignore locally removed entities when aiming", Kind::Filter},
+    {"fx.critParticle", "Critical hit particles", Kind::Flag},
 };
 
 enum Mode { None, Set, Scale, Add, Force, Skipped, Out, Matrix, Smooth };
@@ -97,6 +101,10 @@ struct Slot {
         for (auto& x : v) x = 0.f;
     }
 };
+
+constexpr size_t ghostMax = 16;
+std::array<std::atomic<uintptr_t>, ghostMax> ghostActor;
+std::array<double, ghostMax> ghostUntil{};
 
 std::array<Request, count> pending;
 std::array<Slot, count> slots;
@@ -156,6 +164,19 @@ struct Detour {
         return reinterpret_cast<Fn>(sl.orig)(a, b, c, d);
     }
 
+    static uintptr_t ghost(uintptr_t a, uintptr_t b, uintptr_t c, uintptr_t d) {
+        auto& sl = slots[N];
+        uintptr_t args[4] = {a, b, c, d};
+        if (sl.mode == Force && ghosted(args[std::clamp(sl.arg, 0, 3)])) return 0;
+        return reinterpret_cast<Fn>(sl.orig)(a, b, c, d);
+    }
+
+    static uintptr_t filter(uintptr_t a, uintptr_t b, uintptr_t c, uintptr_t d) {
+        auto& sl = slots[N];
+        uintptr_t r = reinterpret_cast<Fn>(sl.orig)(a, b, c, d);
+        return sl.mode == Force && r && ghosted(r) ? 0 : r;
+    }
+
     static uintptr_t skip(uintptr_t a, uintptr_t b, uintptr_t c, uintptr_t d) {
         auto& sl = slots[N];
         if (sl.mode == Skipped) return 0;
@@ -213,16 +234,19 @@ auto makeTable(std::index_sequence<I...>) {
         void* skip;
         void* value;
         void* out;
+        void* ghost;
+        void* filter;
     };
     return std::array<Row, sizeof...(I)>{Row{reinterpret_cast<void*>(&Detour<I>::flag), reinterpret_cast<void*>(&Detour<I>::integer), reinterpret_cast<void*>(&Detour<I>::skip),
-                                              reinterpret_cast<void*>(&Detour<I>::value), reinterpret_cast<void*>(&Detour<I>::out)}...};
+                                              reinterpret_cast<void*>(&Detour<I>::value), reinterpret_cast<void*>(&Detour<I>::out),
+                                              reinterpret_cast<void*>(&Detour<I>::ghost), reinterpret_cast<void*>(&Detour<I>::filter)}...};
 }
 
 const auto detours = makeTable(std::make_index_sequence<count>{});
 
 Kind kindOf(size_t i) {
     int o = sigs::offset(std::string(table[i].sig) + ".kind", -1);
-    return o >= 0 && o <= int(Kind::Int) ? Kind(o) : table[i].kind;
+    return o >= 0 && o <= int(Kind::Filter) ? Kind(o) : table[i].kind;
 }
 
 void restorePatch(Slot& sl) {
@@ -245,6 +269,8 @@ void install(size_t i, Slot& sl, uintptr_t address) {
     case Kind::Skip: detour = row.skip; break;
     case Kind::Value: detour = row.value; break;
     case Kind::Out: detour = row.out; break;
+    case Kind::Ghost: detour = row.ghost; break;
+    case Kind::Filter: detour = row.filter; break;
     case Kind::Data: return;
     }
     sl.hooked = hook::create(table[i].sig, target, detour, &sl.orig);
@@ -345,11 +371,45 @@ void transform(Id id, game::Vec3 move, game::Vec3 scale, game::Vec3 rotateDeg) {
     r.v = {move.x, move.y, move.z, scale.x, scale.y, scale.z, rotateDeg.x, rotateDeg.y, rotateDeg.z};
 }
 
+void ghost(uintptr_t actor, float seconds) {
+    if (!actor) return;
+    double until = ui::time() + double(seconds);
+    size_t slot = ghostMax;
+    for (size_t i = 0; i < ghostMax; i++) {
+        uintptr_t cur = ghostActor[i].load();
+        if (cur == actor) {
+            ghostUntil[i] = until;
+            return;
+        }
+        if (!cur && slot == ghostMax) slot = i;
+    }
+    if (slot == ghostMax)
+        slot = size_t(std::min_element(ghostUntil.begin(), ghostUntil.end()) - ghostUntil.begin());
+    ghostUntil[slot] = until;
+    ghostActor[slot] = actor;
+}
+
+bool ghosted(uintptr_t actor) {
+    if (!actor) return false;
+    for (auto& g : ghostActor)
+        if (g.load(std::memory_order_relaxed) == actor) return true;
+    return false;
+}
+
+int ghostCount() {
+    int n = 0;
+    for (auto& g : ghostActor) n += g.load() != 0;
+    return n;
+}
+
 bool available(Id id) { return game::demo() || sigs::address(table[size_t(id)].sig) != 0; }
 
 Report report(Id id) { return slots[size_t(id)].last; }
 
 void apply() {
+    double now = ui::time();
+    for (size_t i = 0; i < ghostMax; i++)
+        if (ghostActor[i].load() && ghostUntil[i] < now) ghostActor[i] = 0;
     bool demo = game::demo();
     for (size_t i = 0; i < count; i++) {
         auto& r = pending[i];
@@ -379,6 +439,7 @@ void apply() {
 }
 
 void shutdown() {
+    for (auto& g : ghostActor) g = 0;
     for (auto& sl : slots) {
         sl.mode = None;
         restorePatch(sl);
