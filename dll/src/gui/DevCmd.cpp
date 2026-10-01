@@ -3,6 +3,7 @@
 #include "core/Log.hpp"
 #include "core/Paths.hpp"
 #include "modules/Manager.hpp"
+#include "sdk/Explore.hpp"
 
 #include <filesystem>
 #include <fstream>
@@ -50,6 +51,8 @@ void pollDevCommands() {
             restartContentAnim();
         } else if (cmd == "module") {
             if (auto* m = modules::find(rest)) showModule(m);
+        } else if (cmd == "explore") {
+            explore::run(rest);
         } else if (cmd == "hudedit") {
             setEditingHud(true);
         } else if (cmd == "more") {

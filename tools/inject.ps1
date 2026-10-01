@@ -2,8 +2,11 @@ param(
     [string]$Dll = (Join-Path $PSScriptRoot '..\build\Release\Mochi.dll'),
     [int]$WaitSeconds = 120,
     [int]$ProcessId = 0,
-    [switch]$Launch
+    [switch]$Launch,
+    [switch]$Dev
 )
+
+if ($Dev) { $Dll = Join-Path $PSScriptRoot '..\build-dev\Release\Mochi.dll' }
 
 Add-Type -TypeDefinition @'
 using System;
@@ -72,6 +75,9 @@ New-Item -ItemType Directory -Force $bin, (Join-Path $dev 'data') | Out-Null
 $target = Join-Path $bin ("Mochi-{0:yyMMdd-HHmmss}.dll" -f (Get-Date))
 Copy-Item $dll $target -Force
 [IO.File]::WriteAllText((Join-Path $bin 'Mochi.root'), (Join-Path $dev 'data'))
+$marker = Join-Path $bin 'Mochi.explore'
+if ($Dev) { [IO.File]::WriteAllText($marker, (Resolve-Path (Join-Path $PSScriptRoot 'explore')).Path) }
+elseif (Test-Path $marker) { Remove-Item $marker }
 Get-ChildItem $bin -Filter 'Mochi-*.dll' | Where-Object FullName -ne $target | ForEach-Object { Remove-Item $_.FullName -ErrorAction SilentlyContinue }
 icacls $target /grant '*S-1-15-2-1:(RX)' | Out-Null
 
