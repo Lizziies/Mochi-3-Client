@@ -4,10 +4,13 @@
 #include "gui/Gui.hpp"
 #include "gui/Notify.hpp"
 #include "gui/Widgets.hpp"
+#include "hook/Input.hpp"
 #include "server/Rules.hpp"
 #include "sig/Sigs.hpp"
 
 #include "client/ClickGui.hpp"
+#include "comfort/Screenshot.hpp"
+#include "fun/BlockGame.hpp"
 #include "fun/DvdScreen.hpp"
 #include "fun/EyeBreak.hpp"
 #include "fun/Flappy.hpp"
@@ -19,6 +22,7 @@
 #include "hud/Latency.hpp"
 #include "hud/Memory.hpp"
 #include "hud/MouseStrokes.hpp"
+#include "hud/Pomodoro.hpp"
 #include "hud/ServerInfo.hpp"
 #include "hud/SessionTimer.hpp"
 #include "hud/Stopwatch.hpp"
@@ -32,6 +36,10 @@
 #include "perf/FrameLimiter.hpp"
 #include "perf/LowLatency.hpp"
 #include "perf/Tuning.hpp"
+#include "post/Capture.hpp"
+#include "post/Effects.hpp"
+#include "post/FunEffects.hpp"
+#include "post/PostFx.hpp"
 #include "perf/SystemBoost.hpp"
 #include "visual/Crosshair.hpp"
 
@@ -42,6 +50,7 @@ namespace modules {
 static std::vector<std::unique_ptr<Module>> list;
 static bool hudHidden = false;
 static float cost = 0.f;
+static Motion motion;
 
 template <class T>
 static void add() {
@@ -57,6 +66,7 @@ void init() {
     add<MouseStrokes>();
     add<Clock>();
     add<Stopwatch>();
+    add<Pomodoro>();
     add<SessionTimer>();
     add<Memory>();
     add<LatencyHud>();
@@ -65,11 +75,22 @@ void init() {
     add<Network>();
     add<LatencyBlame>();
 
+    add<SaturationHue>();
+    add<BrightnessContrast>();
+    add<ScreenTint>();
+    add<Sharpen>();
+    add<DepthOfField>();
+    add<ColorFilter>();
+    add<NightShift>();
+    add<MotionBlur>();
+
     add<Crosshair>();
 
     add<CpsLimiter>();
     add<NoScroll>();
     add<InstantInput>();
+
+    add<Screenshot>();
 
     add<LowLatency>();
     add<FrameLimiter>();
@@ -79,6 +100,9 @@ void init() {
     add<Flappy>();
     add<DvdScreen>();
     add<EyeBreak>();
+    add<BlockGame>();
+    add<Deepfry>();
+    add<UpsideDown>();
 
     refreshSigs();
     for (auto& m : list)
@@ -92,6 +116,8 @@ void shutdown() {
         if (m->enabled()) guard::call(m->name().c_str(), [&] { m->onDisable(); });
     }
     probe::shutdown();
+    post::shutdown();
+    capture::shutdown();
 }
 
 const std::vector<std::unique_ptr<Module>>& all() { return list; }
@@ -114,16 +140,24 @@ void frame(ImDrawList* hud) {
     LARGE_INTEGER t0, t1, qpf;
     QueryPerformanceCounter(&t0);
     perf::begin();
+    post::begin();
+    input::consumeMotion(motion.x, motion.y);
+
     bool editing = gui::editingHud();
     for (auto& m : list) {
         if (!m->enabled()) continue;
-        if (!guard::call(m->name().c_str(), [&] { m->onFrame(); })) {
-            fault(*m);
-            continue;
-        }
+        if (!guard::call(m->name().c_str(), [&] { m->onFrame(); })) fault(*m);
+    }
+
+    post::submit(hud);
+    capture::submit(hud, capture::Stage::Game);
+    for (auto& m : list) {
+        if (!m->enabled()) continue;
         if (m->isHud() && (hudHidden && !editing)) continue;
         if (!guard::call(m->name().c_str(), [&] { m->onRender(hud); })) fault(*m);
     }
+
+    capture::submit(hud, capture::Stage::Overlay);
     perf::apply();
     QueryPerformanceCounter(&t1);
     QueryPerformanceFrequency(&qpf);
@@ -131,6 +165,8 @@ void frame(ImDrawList* hud) {
 }
 
 float costMs() { return cost; }
+
+Motion mouseDelta() { return motion; }
 
 void dispatchKey(KeyEvent& ev) {
     if (widgets::capturingKey()) return;
