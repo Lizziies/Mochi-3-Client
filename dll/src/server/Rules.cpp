@@ -1,5 +1,6 @@
 #include "I18n.hpp"
 #include "Rules.hpp"
+#include "core/Bg.hpp"
 #include "core/Http.hpp"
 #include "core/Log.hpp"
 #include "core/Paths.hpp"
@@ -91,7 +92,7 @@ void init() {
     auto cached = paths::cache() / L"servers.json";
     if (!tryLoad(readFile(cached), "Cache")) tryLoad(readFile(paths::dllDir() / L"servers.json"), "bundled");
 
-    std::thread([cached] {
+    bg::run([cached] {
         if (auto body = http::get(L"raw.githubusercontent.com", http::repoRawPath(L"servers/servers.json"))) {
             if (tryLoad(*body, "GitHub")) {
                 std::ofstream out(cached, std::ios::binary | std::ios::trunc);
@@ -99,7 +100,7 @@ void init() {
             }
         }
         logger::info("server rules from {}", source());
-    }).detach();
+    });
 }
 
 static bool hostMatches(const std::string& host, const std::string& pattern) {

@@ -1,3 +1,4 @@
+#include "core/Guard.hpp"
 #include "HiveApi.hpp"
 
 #include <windows.h>
@@ -191,7 +192,7 @@ void run() {
 
 void enqueue(Job job) {
     jobs.push_back(std::move(job));
-    if (!worker.joinable()) worker = std::thread(run);
+    if (!worker.joinable()) worker = std::thread([] { guard::call("hive api", run); });
     wake.notify_one();
 }
 

@@ -80,6 +80,7 @@ static void waitGpu() {
         if (FAILED(hr)) return;
         fenceEvent = CreateEventW(nullptr, FALSE, FALSE, nullptr);
     }
+    if (!fenceEvent) return;
     UINT64 value = ++fenceValue;
     if (FAILED(queue->Signal(fence, value)) || fence->GetCompletedValue() >= value) return;
     if (SUCCEEDED(fence->SetEventOnCompletion(value, fenceEvent))) WaitForSingleObject(fenceEvent, 2000);

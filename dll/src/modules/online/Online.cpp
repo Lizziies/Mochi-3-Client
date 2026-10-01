@@ -1,3 +1,4 @@
+#include "core/Guard.hpp"
 #include "Online.hpp"
 #include "I18n.hpp"
 #include "core/Build.hpp"
@@ -102,10 +103,11 @@ Reply post(const std::string& base, const std::string& path, const json& body, c
     URL_COMPONENTSW parts{};
     parts.dwStructSize = sizeof(parts);
     parts.dwHostNameLength = parts.dwUrlPathLength = parts.dwSchemeLength = (DWORD)-1;
-    if (!WinHttpCrackUrl(url.c_str(), (DWORD)url.size(), 0, &parts)) return r;
+    if (!WinHttpCrackUrl(url.c_str(), (DWORD)url.size(), 0, &parts) || !parts.lpszHostName || !parts.dwHostNameLength) return r;
+    if (!parts.lpszUrlPath) parts.dwUrlPathLength = 0;
 
     std::wstring host(parts.lpszHostName, parts.dwHostNameLength);
-    std::wstring prefix(parts.lpszUrlPath, parts.dwUrlPathLength);
+    std::wstring prefix(parts.lpszUrlPath ? parts.lpszUrlPath : L"", parts.dwUrlPathLength);
     while (!prefix.empty() && prefix.back() == L'/') prefix.pop_back();
     std::wstring target = prefix + logger::widen(path);
     bool secure = parts.nScheme == INTERNET_SCHEME_HTTPS;
@@ -392,7 +394,7 @@ void loop() {
 }
 
 void ensureWorker() {
-    if (!worker.joinable()) worker = std::thread([] { loop(); });
+    if (!worker.joinable()) worker = std::thread([] { guard::call("online", [] { loop(); }); });
 }
 
 }

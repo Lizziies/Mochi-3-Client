@@ -1,3 +1,4 @@
+#include "core/Guard.hpp"
 #include "Inject.hpp"
 #include "core/Log.hpp"
 #include "hook/Dx.hpp"
@@ -120,7 +121,7 @@ void tapLater(int vk) {
     std::scoped_lock g(lock);
     if (jobs.size() >= 8) return;
     jobs.push_back({"", vk, true});
-    if (!worker.joinable()) worker = std::thread(run);
+    if (!worker.joinable()) worker = std::thread([] { guard::call("inject", run); });
     wake.notify_one();
 }
 
@@ -135,7 +136,7 @@ void say(const std::string& text, int chatKey) {
     std::scoped_lock g(lock);
     if (jobs.size() >= 4) return;
     jobs.push_back({text, chatKey});
-    if (!worker.joinable()) worker = std::thread(run);
+    if (!worker.joinable()) worker = std::thread([] { guard::call("inject", run); });
     wake.notify_one();
 }
 

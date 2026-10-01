@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/Guard.hpp"
 #include "core/Config.hpp"
 #include "core/Http.hpp"
 #include "core/Paths.hpp"
@@ -145,7 +146,7 @@ end)
         if (ImGui::SmallButton(busy ? i18n::tr("Loading ...") : i18n::tr("Refresh the list")) && !busy) {
             join();
             busy_ = true;
-            fetcher_ = std::thread([this] {
+            fetcher_ = std::thread([this] { guard::call("script list", [this] {
                 auto body = http::get(L"raw.githubusercontent.com", http::repoRawPath(L"scripts/index.json"), 5000);
                 std::vector<Entry> out;
                 if (body) {
@@ -158,7 +159,7 @@ end)
                 entries_ = std::move(out);
                 failed_ = !body;
                 busy_ = false;
-            });
+            }); });
         }
         std::vector<Entry> entries;
         bool failed;
@@ -191,13 +192,13 @@ end)
         join();
         busy_ = true;
         std::string file = e.file;
-        fetcher_ = std::thread([this, file] {
+        fetcher_ = std::thread([this, file] { guard::call("script install", [this, file] {
             auto body = http::get(L"raw.githubusercontent.com", http::repoRawPath(L"scripts/" + std::wstring(file.begin(), file.end())), 5000);
             if (body && body->size() < 200000) std::ofstream(paths::scripts() / file, std::ios::binary | std::ios::trunc) << *body;
             std::scoped_lock g(lock_);
             installed_ = body ? file : std::string();
             busy_ = false;
-        });
+        }); });
         ImGui::TextDisabled("%s", i18n::tr("Installing ..."));
     }
 

@@ -8,6 +8,7 @@
 #include <json.hpp>
 
 #include <atomic>
+#include <cctype>
 #include <fstream>
 
 using nlohmann::json;
@@ -18,15 +19,23 @@ static std::string active = "default";
 static std::atomic<bool> dirty{false};
 static bool loading = false;
 
+static std::string clean(const std::string& name) {
+    std::string out;
+    for (unsigned char c : name)
+        if (std::isalnum(c) || c == ' ' || c == '_' || c == '-' || c >= 0x80) out += char(c);
+    if (out.empty()) out = "default";
+    return out.substr(0, 64);
+}
+
 static std::filesystem::path fileFor(const std::string& name) {
-    return paths::configs() / logger::widen(name + ".json");
+    return paths::configs() / logger::widen(clean(name) + ".json");
 }
 
 static json read(const std::filesystem::path& p) {
     std::ifstream in(p);
     if (!in) return json::object();
     auto j = json::parse(in, nullptr, false);
-    return j.is_discarded() ? json::object() : j;
+    return j.is_object() ? j : json::object();
 }
 
 static void write(const std::filesystem::path& p, const json& j) {
@@ -42,17 +51,26 @@ static void write(const std::filesystem::path& p, const json& j) {
 
 static void apply(const json& j) {
     loading = true;
-    if (j.contains("theme")) theme::load(j["theme"]);
+    try {
+        if (j.contains("theme") && j["theme"].is_object()) theme::load(j["theme"]);
+    } catch (const std::exception& e) {
+        logger::warn("config: theme ignored ({})", e.what());
+    }
     auto mods = j.contains("modules") && j["modules"].is_object() ? j["modules"] : json::object();
     for (auto& m : modules::all()) {
-        if (mods.contains(m->name())) m->load(mods[m->name()]);
+        if (!mods.contains(m->name())) continue;
+        try {
+            m->load(mods[m->name()]);
+        } catch (const std::exception& e) {
+            logger::warn("config: settings of {} ignored ({})", m->name(), e.what());
+        }
     }
     loading = false;
 }
 
 void load() {
     auto settings = read(paths::root() / L"settings.json");
-    active = settings.value("profile", "default");
+    active = clean(settings.contains("profile") && settings["profile"].is_string() ? settings["profile"].get<std::string>() : "default");
     bool firstRun = !std::filesystem::exists(fileFor(active));
     apply(read(fileFor(active)));
     if (firstRun) {
@@ -96,7 +114,7 @@ std::vector<std::string> profiles() {
 void switchProfile(const std::string& name) {
     if (name.empty() || name == active) return;
     save();
-    active = name;
+    active = clean(name);
     auto j = read(fileFor(name));
     if (!j.empty()) apply(j);
     theme::applyStyle();

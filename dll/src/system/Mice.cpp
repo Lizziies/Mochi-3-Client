@@ -1,4 +1,5 @@
 #include "Mice.hpp"
+#include "core/Bg.hpp"
 
 #include <windows.h>
 #include <tlhelp32.h>
@@ -250,7 +251,7 @@ void use(bool on) {
             QueryPerformanceFrequency(&f);
             frequency = f.QuadPart;
             int gen = ++generation;
-            std::thread([gen] { loop(gen); }).detach();
+            bg::run([gen] { loop(gen); });
         }
         return;
     }

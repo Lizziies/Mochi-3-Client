@@ -1,3 +1,4 @@
+#include "core/Guard.hpp"
 #include "Discord.hpp"
 
 #include <windows.h>
@@ -151,7 +152,7 @@ void start(const std::string& appId) {
         stopping = false;
     }
     state = int(Status::Searching);
-    worker = std::thread(run);
+    worker = std::thread([] { guard::call("discord", run); });
 }
 
 void stop() {

@@ -1,5 +1,6 @@
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 
+#include "core/Guard.hpp"
 #include "Probe.hpp"
 #include "Link.hpp"
 #include "core/Log.hpp"
@@ -230,7 +231,7 @@ static void push(float rtt, const Config& cfg) {
 
 static void loop(int gen) {
     WSADATA wsa;
-    WSAStartup(MAKEWORD(2, 2), &wsa);
+    if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) return;
     Icmp icmp;
     RakNet raknet;
 
@@ -317,7 +318,7 @@ void use(bool on) {
         if (users++ == 0) {
             int gen = ++generation;
             threads++;
-            std::thread([gen] { loop(gen); }).detach();
+            std::thread([gen] { guard::call("probe", [gen] { loop(gen); }); }).detach();
         }
         return;
     }

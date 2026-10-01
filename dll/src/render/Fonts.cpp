@@ -17,7 +17,7 @@ static ImFont* fromResource(int id, float size) {
     HRSRC res = FindResourceW(self, MAKEINTRESOURCEW(id), MAKEINTRESOURCEW(10));
     if (!res) return nullptr;
     HGLOBAL data = LoadResource(self, res);
-    void* bytes = LockResource(data);
+    void* bytes = data ? LockResource(data) : nullptr;
     int len = (int)SizeofResource(self, res);
     if (!bytes || !len) return nullptr;
 

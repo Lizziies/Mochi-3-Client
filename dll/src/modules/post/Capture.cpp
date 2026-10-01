@@ -258,6 +258,10 @@ bool copyToClipboard(const Image& image, void* window) {
     HGLOBAL mem = GlobalAlloc(GMEM_MOVEABLE, sizeof(BITMAPINFOHEADER) + bytes);
     if (!mem) return false;
     auto* base = static_cast<uint8_t*>(GlobalLock(mem));
+    if (!base) {
+        GlobalFree(mem);
+        return false;
+    }
     BITMAPINFOHEADER bi{};
     bi.biSize = sizeof(bi);
     bi.biWidth = image.width;

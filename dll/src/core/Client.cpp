@@ -1,5 +1,6 @@
 #include "I18n.hpp"
 #include "Client.hpp"
+#include "Bg.hpp"
 #include "Build.hpp"
 #include "Config.hpp"
 #include "Guard.hpp"
@@ -56,6 +57,7 @@ static void teardown() {
     hook::disableAll();
     Sleep(300);
     modules::shutdown();
+    bg::drain(8000);
     tweaks::restore();
     dx::uninstall();
     hook::shutdown();

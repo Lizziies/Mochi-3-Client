@@ -1,5 +1,6 @@
 #include "Sigs.hpp"
 #include "Scanner.hpp"
+#include "core/Bg.hpp"
 #include "core/Http.hpp"
 #include "core/Log.hpp"
 #include "core/Paths.hpp"
@@ -251,13 +252,13 @@ static void load() {
 }
 
 void init() {
-    std::thread([] {
+    bg::run([] {
         try {
             load();
         } catch (const std::exception& e) {
             logger::error("sig loading failed: {}", e.what());
         }
-    }).detach();
+    });
 }
 
 bool takeChanged() { return changed.exchange(false); }

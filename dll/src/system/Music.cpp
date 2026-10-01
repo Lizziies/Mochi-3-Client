@@ -1,4 +1,5 @@
 #include "Music.hpp"
+#include "core/Bg.hpp"
 
 #include <windows.h>
 #include <audiopolicy.h>
@@ -172,7 +173,7 @@ void use(bool on) {
     if (on) {
         if (users++ == 0) {
             int gen = ++generation;
-            std::thread([gen] { loop(gen); }).detach();
+            bg::run([gen] { loop(gen); });
         }
         return;
     }
