@@ -41,6 +41,8 @@ static Module* shown = nullptr;
 static float panelAnim = 0.f;
 static char search[64] = "";
 static bool focusSearch = false;
+static float gridT = 0.f;
+static size_t gridKey = 0;
 
 struct Particle {
     ImVec2 pos;
@@ -86,6 +88,7 @@ bool open() { return isOpen; }
 void setOpen(bool on) {
     isOpen = on;
     if (on) {
+        gridT = 0.f;
         hudEdit = false;
         focusSearch = true;
     } else {
@@ -144,20 +147,14 @@ static bool sidebarItem(const char* label, bool active, float width) {
     bool hovered = ImGui::IsItemHovered();
 
     float& a = *ImGui::GetStateStorage()->GetFloatRef(ImGui::GetItemID(), 0.f);
-    a = draw::approach(a, active ? 1.f : (hovered ? 0.35f : 0.f), 16.f * t.animSpeed);
+    a = draw::approach(a, active ? 1.f : (hovered ? 1.f : 0.f), 16.f * t.animSpeed);
 
     auto* dl = ImGui::GetWindowDrawList();
-    float r = t.rounding * 0.7f * s;
-    if (a > 0.01f) {
-        if (active && t.gradient)
-            draw::gradientRect(dl, p, p + size, theme::col(t.accent, 0.28f * a), theme::col(t.accent2, 0.08f * a), r);
-        else
-            dl->AddRectFilled(p, p + size, theme::col(t.surfaceHover, a), r);
-    }
-    if (active) dl->AddRectFilled({p.x, p.y + 9 * s}, {p.x + 3 * s, p.y + size.y - 9 * s}, theme::col(t.accent), 2 * s);
+    if (!active && a > 0.01f) dl->AddRectFilled(p, p + size, theme::col(t.surfaceHover, a * 0.7f), t.rounding * 0.7f * s);
     const char* text = i18n::tr(label);
     ImVec2 ts = ImGui::CalcTextSize(text);
-    dl->AddText({p.x + 16 * s, p.y + (size.y - ts.y) * 0.5f}, theme::col(active ? t.text : t.textDim), text);
+    float nudge = (active ? 0.f : a * 3.f) * s;
+    dl->AddText({p.x + 16 * s + nudge, p.y + (size.y - ts.y) * 0.5f}, theme::col(theme::mix(t.textDim, t.text, active ? 1.f : a)), text);
     return clicked;
 }
 
@@ -186,38 +183,34 @@ static void drawSidebar(float width) {
 
     ImGui::BeginChild("sidebar", {width, 0}, 0, ImGuiWindowFlags_NoBackground);
     drawLogo(ImGui::GetWindowDrawList(), ImGui::GetCursorScreenPos());
-    ImGui::Dummy({0, 44 * s});
+    ImGui::Dummy({0, 60 * s});
 
-    if (sidebarItem("All modules", page == Page::Modules && category < 0, width)) {
-        page = Page::Modules;
-        category = -1;
-        selected = nullptr;
-    }
-    static const Category cats[] = {Category::Hud, Category::Visual, Category::Pvp, Category::Comfort,
-                                    Category::Performance, Category::Server, Category::Fun};
-    for (auto c : cats) {
-        bool any = std::any_of(modules::all().begin(), modules::all().end(),
-                               [c](auto& m) { return m->category() == c; });
-        if (!any) continue;
-        if (sidebarItem(categoryName(c), page == Page::Modules && category == (int)c, width)) {
-            page = Page::Modules;
-            category = (int)c;
+    struct Item {
+        const char* label;
+        Page page;
+    };
+    static const Item items[] = {
+        {"Modules", Page::Modules}, {"Appearance", Page::Themes}, {"Profiles", Page::Profiles}, {"Settings", Page::Info}};
+
+    float step = 36 * s + ImGui::GetStyle().ItemSpacing.y;
+    ImVec2 start = ImGui::GetCursorScreenPos();
+    int active = 0;
+    for (int i = 0; i < 4; i++)
+        if (items[i].page == page) active = i;
+
+    static float marker = -1.f;
+    marker = marker < 0.f ? active * step : draw::approach(marker, active * step, 16.f * t.animSpeed);
+    ImVec2 a{start.x, start.y + marker}, b{start.x + width, start.y + marker + 36 * s};
+    float r = t.rounding * 0.7f * s;
+    if (t.gradient) draw::gradientRect(dl, a, b, theme::col(t.accent, 0.28f), theme::col(t.accent2, 0.08f), r);
+    else dl->AddRectFilled(a, b, theme::col(t.accent, 0.2f), r);
+    dl->AddRectFilled({a.x, a.y + 9 * s}, {a.x + 3 * s, b.y - 9 * s}, theme::col(t.accent), 2 * s);
+
+    for (int i = 0; i < 4; i++) {
+        if (sidebarItem(items[i].label, i == active, width)) {
+            page = items[i].page;
             selected = nullptr;
         }
-    }
-
-    ImGui::Dummy({0, 10 * s});
-    if (sidebarItem("Themes", page == Page::Themes, width)) {
-        page = Page::Themes;
-        selected = nullptr;
-    }
-    if (sidebarItem("Profile", page == Page::Profiles, width)) {
-        page = Page::Profiles;
-        selected = nullptr;
-    }
-    if (sidebarItem("Info", page == Page::Info, width)) {
-        page = Page::Info;
-        selected = nullptr;
     }
 
     float bottom = ImGui::GetWindowHeight() - 44 * s;
@@ -272,6 +265,89 @@ static void drawTopBar() {
     ImVec2 rowMin = ImGui::GetItemRectMin(), rowMax = ImGui::GetItemRectMax();
     drawServerChip(rowMin, rowMax);
     ImGui::SetCursorScreenPos({rowMin.x, rowMax.y + 12 * s});
+}
+
+static void drawCategoryBar() {
+    auto& t = theme::current();
+    float s = ui::scale();
+    struct Pill {
+        std::string label;
+        int cat;
+    };
+    std::vector<Pill> pills{{i18n::tr("All"), -1}};
+    static const Category order[] = {Category::Hud,         Category::Visual, Category::Pvp,  Category::Comfort,
+                                     Category::Performance, Category::Server, Category::Fun};
+    for (auto c : order) {
+        bool any = std::any_of(modules::all().begin(), modules::all().end(), [c](auto& m) { return m->category() == c; });
+        if (any) pills.push_back({categoryName(c), (int)c});
+    }
+
+    ImVec2 origin = ImGui::GetCursorScreenPos();
+    float h = 30 * s, gap = 6 * s, padX = 15 * s;
+    std::vector<float> xs, ws;
+    float x = 0;
+    for (auto& pill : pills) {
+        float w = ImGui::CalcTextSize(pill.label.c_str()).x + padX * 2;
+        xs.push_back(x);
+        ws.push_back(w);
+        x += w + gap;
+    }
+
+    int active = 0;
+    for (size_t i = 0; i < pills.size(); i++)
+        if (pills[i].cat == category) active = (int)i;
+
+    static float px = -1.f, pw = 0.f;
+    if (px < 0.f) {
+        px = xs[active];
+        pw = ws[active];
+    }
+    px = draw::approach(px, xs[active], 18.f * t.animSpeed);
+    pw = draw::approach(pw, ws[active], 18.f * t.animSpeed);
+
+    auto* dl = ImGui::GetWindowDrawList();
+    if (t.gradient)
+        draw::gradientRect(dl, origin + ImVec2(px, 0), origin + ImVec2(px + pw, h), theme::col(t.accent, 0.9f),
+                           theme::col(t.accent2, 0.9f), h * 0.5f);
+    else
+        draw::pill(dl, origin + ImVec2(px, 0), origin + ImVec2(px + pw, h), theme::col(t.accent));
+
+    for (size_t i = 0; i < pills.size(); i++) {
+        ImVec2 p = origin + ImVec2(xs[i], 0);
+        ImGui::SetCursorScreenPos(p);
+        ImGui::PushID((int)i);
+        bool clicked = ImGui::InvisibleButton("pill", {ws[i], h});
+        bool hovered = ImGui::IsItemHovered();
+        ImGui::PopID();
+        if (clicked) {
+            category = pills[i].cat;
+            selected = nullptr;
+        }
+        bool on = (int)i == active;
+        ImVec4 c = on ? t.bg : (hovered ? t.text : t.textDim);
+        ImVec2 ts = ImGui::CalcTextSize(pills[i].label.c_str());
+        dl->AddText(p + ImVec2(padX, (h - ts.y) * 0.5f), theme::col(c), pills[i].label.c_str());
+    }
+    ImGui::SetCursorScreenPos({origin.x, origin.y + h + 14 * s});
+}
+
+static void smoothScroll() {
+    ImGuiID id = ImGui::GetCurrentWindow()->ID;
+    auto* store = ImGui::GetStateStorage();
+    float& target = *store->GetFloatRef(id ^ 0x5CA1, 0.f);
+    float& last = *store->GetFloatRef(id ^ 0x5CA2, 0.f);
+    float cur = ImGui::GetScrollY();
+    float maxY = ImGui::GetScrollMaxY();
+    auto& io = ImGui::GetIO();
+
+    if (std::fabs(cur - last) > 2.f) target = cur;
+    if (ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows) && io.MouseWheel != 0.f)
+        target -= io.MouseWheel * 84.f * ui::scale();
+    target = std::clamp(target, 0.f, maxY);
+
+    float next = draw::approach(cur, target, 13.f * theme::current().animSpeed);
+    ImGui::SetScrollY(next);
+    last = next;
 }
 
 static void drawCard(Module& m, ImVec2 size) {
@@ -335,7 +411,17 @@ static void drawCard(Module& m, ImVec2 size) {
 
 static void drawGrid() {
     float s = ui::scale();
-    ImGui::BeginChild("grid", {0, 0}, 0, ImGuiWindowFlags_NoBackground);
+    ImGui::BeginChild("grid", {0, 0}, 0, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoScrollWithMouse);
+
+    size_t key = std::hash<std::string>{}(search) * 31 + size_t(category + 2);
+    if (key != gridKey) {
+        gridKey = key;
+        gridT = 0.f;
+        ImGui::SetScrollY(0.f);
+    }
+    gridT += ui::dt();
+    smoothScroll();
+
     float avail = ImGui::GetContentRegionAvail().x;
     float gap = 12 * s;
     int cols = std::max(1, int((avail + gap) / (250 * s + gap)));
@@ -348,12 +434,17 @@ static void drawGrid() {
 
     if (shown.empty()) widgets::hint("Nothing found.");
 
+    float menuFade = theme::fade();
     ImVec2 origin = ImGui::GetCursorScreenPos();
     for (size_t i = 0; i < shown.size(); i++) {
         int col = int(i % cols), row = int(i / cols);
-        ImGui::SetCursorScreenPos(origin + ImVec2(col * (w + gap), row * (size.y + gap) + 3 * s));
+        float e = draw::easeOutCubic(std::clamp((gridT - float(i) * 0.035f) / 0.32f, 0.f, 1.f));
+        ImGui::SetCursorScreenPos(origin + ImVec2(col * (w + gap), row * (size.y + gap) + 3 * s + (1.f - e) * 16 * s));
+        theme::setFade(menuFade * e);
         drawCard(*shown[i], size);
     }
+    theme::setFade(menuFade);
+    ImGui::SetCursorScreenPos(origin + ImVec2(0, ((int(shown.size()) + cols - 1) / cols) * (size.y + gap) + 3 * s));
     ImGui::Dummy({0, gap});
     ImGui::EndChild();
 }
@@ -394,13 +485,37 @@ static void drawSettingsPanel(ImVec2 origin, ImVec2 size) {
         if (widgets::toggle("enabled", on)) m.setEnabled(on);
     }
 
+    auto* hud = dynamic_cast<HudModule*>(&m);
+    auto isStyle = [hud](const Setting& st) {
+        static const char* ids[] = {"bg", "bgColor", "textColor", "accent", "rounding", "padding", "shadow", "scale"};
+        if (!hud) return false;
+        for (auto id : ids)
+            if (st.id == id) return true;
+        return false;
+    };
+
     for (auto& set : m.settings()) {
         if (set.type == SettingType::Key && m.alwaysOn() && set.id != "key") continue;
+        if (isStyle(set)) continue;
         widgets::setting(set);
     }
     m.drawSettings();
 
-    if (auto* hud = dynamic_cast<HudModule*>(&m)) {
+    if (hud) {
+        static bool styleOpen = false;
+        static float styleAnim = 0.f;
+        ImGui::Dummy({0, 6 * s});
+        if (widgets::button(styleOpen ? "Hide style options" : "Style options")) styleOpen = !styleOpen;
+        styleAnim = draw::approach(styleAnim, styleOpen ? 1.f : 0.f, 14.f * t.animSpeed);
+        if (styleAnim > 0.01f) {
+            float outer = theme::fade();
+            theme::setFade(outer * styleAnim);
+            ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * styleAnim);
+            for (auto& set : m.settings())
+                if (isStyle(set)) widgets::setting(set);
+            ImGui::PopStyleVar();
+            theme::setFade(outer);
+        }
         ImGui::Dummy({0, 6 * s});
         if (widgets::button("Change position in the HUD editor")) setEditingHud(true);
         ImGui::SameLine();
@@ -430,7 +545,8 @@ static void colorRow(const char* label, ImVec4& c) {
 static void drawThemes() {
     auto& t = theme::current();
     float s = ui::scale();
-    ImGui::BeginChild("themes", {0, 0}, 0, ImGuiWindowFlags_NoBackground);
+    ImGui::BeginChild("themes", {0, 0}, 0, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoScrollWithMouse);
+    smoothScroll();
     widgets::sectionTitle("Presets");
 
     float avail = ImGui::GetContentRegionAvail().x;
@@ -511,7 +627,8 @@ static void drawThemes() {
 static void drawProfiles() {
     float s = ui::scale();
     auto& t = theme::current();
-    ImGui::BeginChild("profiles", {0, 0}, 0, ImGuiWindowFlags_NoBackground);
+    ImGui::BeginChild("profiles", {0, 0}, 0, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoScrollWithMouse);
+    smoothScroll();
     widgets::sectionTitle("Profile");
     widgets::hint("Each profile stores modules, settings, HUD positions and theme.");
     ImGui::Dummy({0, 4 * s});
@@ -545,7 +662,8 @@ static void drawProfiles() {
 
 static void drawInfo() {
     auto& t = theme::current();
-    ImGui::BeginChild("info", {0, 0}, 0, ImGuiWindowFlags_NoBackground);
+    ImGui::BeginChild("info", {0, 0}, 0, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoScrollWithMouse);
+    smoothScroll();
     widgets::sectionTitle("Mochi");
     ImGui::Text(i18n::tr("Version %s"), build::version);
     ImGui::Text(i18n::tr("Renderer: %s"), dx::api() == dx::Api::Dx12 ? "DirectX 12" : dx::api() == dx::Api::Dx11 ? "DirectX 11" : "–");
@@ -590,6 +708,17 @@ static void drawMenu() {
 
     auto* bg = ImGui::GetBackgroundDrawList();
     bg->AddRectFilled({0, 0}, ds, IM_COL32(10, 4, 12, int(110 * openAnim)));
+    float menuFade = std::clamp(openAnim, 0.f, 1.f);
+    theme::setFade(menuFade);
+
+    static Page lastPage = Page::Modules;
+    static float pageT = 1.f;
+    if (page != lastPage) {
+        lastPage = page;
+        pageT = 0.f;
+        gridT = 0.f;
+    }
+    pageT = std::min(1.f, pageT + ui::dt() / 0.28f);
 
     ImVec2 size{std::min(1020 * s, ds.x - 40 * s), std::min(640 * s, ds.y - 40 * s)};
     float e = draw::easeOutBack(openAnim);
@@ -613,13 +742,19 @@ static void drawMenu() {
     ImGui::SameLine(sidebar + 34 * s);
 
     ImGui::BeginGroup();
+    float pageE = draw::easeOutCubic(pageT);
+    theme::setFade(menuFade * (0.25f + 0.75f * pageE));
+    ImGui::PushStyleVar(ImGuiStyleVar_Alpha, menuFade * (0.25f + 0.75f * pageE));
     drawTopBar();
+    if (page == Page::Modules) drawCategoryBar();
     switch (page) {
     case Page::Modules: drawGrid(); break;
     case Page::Themes: drawThemes(); break;
     case Page::Profiles: drawProfiles(); break;
     case Page::Info: drawInfo(); break;
     }
+    ImGui::PopStyleVar();
+    theme::setFade(menuFade);
     ImGui::EndGroup();
 
     drawParticles(ImGui::GetForegroundDrawList());
@@ -634,6 +769,7 @@ static void drawMenu() {
         shown = nullptr;
     }
     ImGui::PopStyleVar();
+    theme::setFade(1.f);
 
     if (isOpen && ImGui::IsKeyPressed(ImGuiKey_Escape, false) && !selected && !widgets::capturingKey()) setOpen(false);
 }

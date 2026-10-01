@@ -37,8 +37,13 @@ void use(const Theme& t) {
     config::markDirty();
 }
 
+static float fadeLevel = 1.f;
+
+void setFade(float f) { fadeLevel = f; }
+float fade() { return fadeLevel; }
+
 ImU32 col(const ImVec4& c, float alpha) {
-    return ImGui::ColorConvertFloat4ToU32({c.x, c.y, c.z, c.w * alpha});
+    return ImGui::ColorConvertFloat4ToU32({c.x, c.y, c.z, c.w * alpha * fadeLevel});
 }
 
 ImVec4 mix(const ImVec4& a, const ImVec4& b, float t) {

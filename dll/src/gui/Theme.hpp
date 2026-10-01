@@ -33,6 +33,8 @@ const std::vector<Theme>& presets();
 void use(const Theme& t);
 void applyStyle();
 
+void setFade(float f);
+float fade();
 ImU32 col(const ImVec4& c, float alpha = 1.f);
 ImVec4 mix(const ImVec4& a, const ImVec4& b, float t);
 

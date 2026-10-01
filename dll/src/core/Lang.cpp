@@ -3,6 +3,13 @@
 namespace {
 
 const i18n::Entry entries[] = {
+    {"Modules", "Module"},
+    {"Appearance", "Aussehen"},
+    {"Profiles", "Profile"},
+    {"Settings", "Einstellungen"},
+    {"All", "Alle"},
+    {"Style options", "Stil-Optionen"},
+    {"Hide style options", "Stil-Optionen ausblenden"},
     {"Background", "Hintergrund"},
     {"Background color", "Hintergrundfarbe"},
     {"Text color", "Textfarbe"},

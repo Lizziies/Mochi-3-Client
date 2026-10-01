@@ -129,10 +129,10 @@ int wmain(int argc, wchar_t** argv) {
         };
         static const Action actions[] = {
             {3, "open", [] { key(VK_RSHIFT, true); key(VK_RSHIFT, false); }},
-            {6, "card", [] { click(576, 350); }},
-            {9, "themes", [] { click(360, 405); }},
-            {12, "info", [] { click(360, 465); }},
-            {15, "hudedit", [] { click(360, 540); }},
+            {6, "card", [] { click(580, 255); }},
+            {9, "themes", [] { click(333, 248); }},
+            {12, "settings", [] { click(325, 306); }},
+            {15, "hudedit", [] { click(365, 557); }},
             {18, "back", [] { key(VK_ESCAPE, true); key(VK_ESCAPE, false); }},
             {21, "unload", [] { key(VK_CONTROL, true); key('L', true); key('L', false); key(VK_CONTROL, false); }},
         };
