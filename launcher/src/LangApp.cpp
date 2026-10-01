@@ -21,6 +21,9 @@ const i18n::Entry entries[] = {
     {"Minecraft did not start", "Minecraft wurde nicht gestartet"},
     {"Minecraft closed before it was ready", "Minecraft wurde geschlossen, bevor es bereit war"},
     {"No release notes yet.", "Noch keine Release-Notizen."},
+    {"Downloading LeviLauncher", "Lade LeviLauncher herunter"},
+    {"The downloaded file is not valid", "Die heruntergeladene Datei ist ungültig"},
+    {"Could not save LeviLauncher", "LeviLauncher konnte nicht gespeichert werden"},
 };
 
 i18n::Table table(entries);

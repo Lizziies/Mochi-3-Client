@@ -3,6 +3,14 @@
 namespace {
 
 const i18n::Entry entries[] = {
+    {"Mochi connects to whichever Minecraft version you start.", "Mochi verbindet sich mit jeder Minecraft-Version, die du startest."},
+    {"Version manager", "Versionsverwaltung"},
+    {"LeviLauncher installs and switches Minecraft versions, including older ones.", "LeviLauncher installiert und wechselt Minecraft-Versionen, auch ältere."},
+    {"Free open source tool by LiteLDev (GPL-3.0). You need a legitimate Minecraft license.", "Kostenloses Open-Source-Tool von LiteLDev (GPL-3.0). Du brauchst eine eigene Minecraft-Lizenz."},
+    {"Open LeviLauncher", "LeviLauncher öffnen"},
+    {"Install LeviLauncher", "LeviLauncher installieren"},
+    {"Detected on this PC", "Auf diesem PC gefunden"},
+    {"No Minecraft installation found.", "Keine Minecraft-Installation gefunden."},
     {"Play", "Spielen"},
     {"Updating", "Aktualisiere"},
     {"Starting Minecraft", "Starte Minecraft"},

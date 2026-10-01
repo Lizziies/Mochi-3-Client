@@ -40,6 +40,10 @@ struct State {
 
     std::vector<GameVersion> versions;
     Settings settings;
+    bool managerInstalled = false;
+    bool managerBusy = false;
+    float managerProgress = 0.f;
+    std::string managerStatus;
     char dllPath[260] = {};
 };
 
@@ -49,6 +53,8 @@ struct Events {
     bool minimize = false;
     bool close = false;
     bool browseDll = false;
+    bool installManager = false;
+    bool openManager = false;
     bool openLogs = false;
     bool openFolder = false;
     bool settingsChanged = false;

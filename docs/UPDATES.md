@@ -56,16 +56,16 @@ Hier muss man ehrlich sein, weil es das schwierigste Stück ist.
 
 **Fakten:**
 - Seit 1.21.120 läuft Bedrock für Windows als GDK-Build. Die Versionen sind an das Microsoft-Konto gebunden. Einen offiziellen Downgrade gibt es nicht.
-- LeviLauncher (Open Source, LGPL-3.0) kann mehrere Release- und Preview-Versionen nebeneinander installieren, jede mit eigenem Ordner und eigenen Welten. Man braucht dafür eine eigene gültige Minecraft-Lizenz.
+- LeviLauncher (Open Source, GPL-3.0-only, von LiteLDev, geschrieben in Go/Wails) kann mehrere Release- und Preview-Versionen nebeneinander installieren, jede mit eigenem Ordner und eigenen Welten. Man braucht dafür eine eigene gültige Minecraft-Lizenz.
 - Wie genau LeviLauncher die Spieldateien bezieht, haben wir noch nicht im Detail geprüft (Webseite war gesperrt). Das muss vor dem Bau nachgesehen werden.
 
 **Was Mochi tut, in Stufen:**
 
 | Stufe | Inhalt | Wann |
 |---|---|---|
-| 1 | Mochi arbeitet mit **jeder** Minecraft-Version, die gerade läuft. Der Auto-Inject-Wächter im Launcher injiziert auch, wenn das Spiel von einem anderen Launcher gestartet wurde. Wer eine alte Version will, installiert sie mit LeviLauncher, Mochi hängt sich dran. Für Versionen mit `sigs/<version>.json` laufen die Spiel-Module. | Release 1 |
+| 1 (gebaut) | Im Launcher unter "Versions" gibt es die Versionsverwaltung: ein Klick lädt die offizielle `LeviLauncher.exe` vom GitHub-Release von LiteLDev nach `%LOCALAPPDATA%\Mochi\tools` und startet sie. LeviLauncher installiert und wechselt Versionen (auch alte, mit eigener Lizenz). Mochi läuft als getrenntes Programm daneben (kein GPL-Code in Mochi) und verbindet sich automatisch mit der Version, die LeviLauncher startet. Mochi arbeitet mit **jeder** Minecraft-Version, die gerade läuft. Der Auto-Inject-Wächter im Launcher injiziert auch, wenn das Spiel von einem anderen Launcher gestartet wurde. Wer eine alte Version will, installiert sie mit LeviLauncher, Mochi hängt sich dran. Für Versionen mit `sigs/<version>.json` laufen die Spiel-Module. | Release 1 |
 | 2 | Versionen-Seite zeigt die installierten Versionen (auch die von LeviLauncher, wenn erkennbar), mit Badge "Mochi compatible". Start einer ausgewählten Version aus dem Launcher heraus. | nach Release 1 |
-| 3 | Eigener Download neuer und alter Versionen, nur über die Microsoft-Berechtigung des Nutzers. Wird nur gebaut, wenn das technisch und rechtlich sauber geht. Wir hosten keine Spieldateien und kopieren keinen LGPL-Code ohne Lizenzprüfung. | offen |
+| 3 | Eigener Download neuer und alter Versionen, nur über die Microsoft-Berechtigung des Nutzers. Wird nur gebaut, wenn das technisch und rechtlich sauber geht. Wir hosten keine Spieldateien und übernehmen keinen GPL-Code in Mochi. | offen |
 
 "Die neueste Version laden": Die neueste Minecraft-Version kommt über den Microsoft Store bzw. die Xbox-App. Der Launcher zeigt, wenn eine neuere Version installiert ist, als die von Mochi geprüfte, und bietet einen Link zum Store an. Mochi selbst lädt kein Minecraft.
 

@@ -3,6 +3,7 @@
 #include "Files.hpp"
 #include "Game.hpp"
 #include "I18n.hpp"
+#include "Levi.hpp"
 #include "Net.hpp"
 #include "Update.hpp"
 
@@ -34,6 +35,10 @@ struct Shared {
     std::optional<update::Release> pending;
     std::string gameVersion;
     bool gameSupported = true;
+    bool managerInstalled = false;
+    bool managerBusy = false;
+    float managerProgress = 0.f;
+    std::string managerStatus;
 };
 
 Shared shared;
@@ -211,6 +216,29 @@ void watch() {
     }
 }
 
+void installManager() {
+    {
+        std::lock_guard g(shared.lock);
+        shared.managerBusy = true;
+        shared.managerProgress = 0.f;
+        shared.managerStatus = tr("Downloading LeviLauncher");
+    }
+    std::string error;
+    bool ok = levi::install(
+        [](float p) {
+            std::lock_guard g(shared.lock);
+            shared.managerProgress = p;
+        },
+        error);
+    {
+        std::lock_guard g(shared.lock);
+        shared.managerBusy = false;
+        shared.managerInstalled = !levi::find().empty();
+        shared.managerStatus = ok ? "" : tr(error.c_str());
+    }
+    if (ok) levi::open();
+}
+
 void spawn(void (*job)()) {
     if (busy.exchange(true)) return;
     std::thread([job] {
@@ -235,6 +263,7 @@ void init(ui::State& state) {
         refreshGame();
         checkUpdate();
     }).detach();
+    shared.managerInstalled = !levi::find().empty();
     std::thread(watch).detach();
 }
 
@@ -245,6 +274,11 @@ void handle(ui::State& state, const ui::Events& ev, HWND window) {
     }
     if (ev.play) spawn(play);
     if (ev.update) spawn(updateAll);
+    if (ev.installManager) {
+        static std::atomic<bool> installing{false};
+        if (!installing.exchange(true)) std::thread([] { installManager(); installing = false; }).detach();
+    }
+    if (ev.openManager) levi::open();
     if (ev.minimize) ShowWindow(window, SW_MINIMIZE);
     if (ev.close) PostMessageW(window, WM_CLOSE, 0, 0);
     if (ev.openLogs) ShellExecuteW(nullptr, L"open", files::log().c_str(), nullptr, nullptr, SW_SHOWNORMAL);
@@ -275,6 +309,10 @@ void sync(ui::State& state) {
     state.updateAvailable = shared.updateAvailable;
     state.gameVersion = shared.gameVersion;
     state.gameSupported = shared.gameSupported;
+    state.managerInstalled = shared.managerInstalled;
+    state.managerBusy = shared.managerBusy;
+    state.managerProgress = shared.managerProgress;
+    state.managerStatus = shared.managerStatus;
     if (!shared.notes.empty()) state.changelog = shared.notes;
 
     state.versions.clear();

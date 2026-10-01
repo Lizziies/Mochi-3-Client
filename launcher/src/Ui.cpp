@@ -406,14 +406,46 @@ void header(ImDrawList* dl, const char* title, const char* subtitle) {
     label(dl, regular, 16.f, {264.f, 94.f}, col(dim), subtitle);
 }
 
-void versions(ImDrawList* dl, State& s) {
+void versions(ImDrawList* dl, State& s, Events& ev) {
     {
         Reveal r(dl, 0);
-        header(dl, tr("Versions"), tr("Which Minecraft version do you want to play?"));
+        header(dl, tr("Versions"), tr("Mochi connects to whichever Minecraft version you start."));
     }
-    float y = 136.f;
-    for (size_t i = 0; i < s.versions.size() && y < 450.f; i++, y += 70.f) {
-        Reveal r(dl, int(i) + 1);
+
+    {
+        Reveal r(dl, 1);
+        ImVec2 min{264.f, 130.f}, max{928.f, 262.f};
+        gradient(dl, min, max, mix(surface, accent, 0.10f), surface, 18.f);
+        icon(dl, Icon::Layers, {min.x + 36.f, min.y + 34.f}, col(accent));
+        label(dl, bold, 19.f, {min.x + 62.f, min.y + 20.f}, col(text), tr("Version manager"));
+        label(dl, regular, 14.f, {min.x + 62.f, min.y + 48.f}, col(dim), tr("LeviLauncher installs and switches Minecraft versions, including older ones."));
+        label(dl, regular, 14.f, {min.x + 62.f, min.y + 68.f}, col(dim), tr("Free open source tool by LiteLDev (GPL-3.0). You need a legitimate Minecraft license."));
+
+        if (s.managerBusy) {
+            label(dl, regular, 14.f, {min.x + 62.f, max.y - 38.f}, col(text), s.managerStatus.c_str());
+            progressBar(dl, {min.x + 62.f, max.y - 18.f}, {max.x - 28.f, max.y - 12.f}, s.managerProgress, s.managerProgress <= 0.f);
+        } else if (s.managerInstalled) {
+            if (button("manager", {min.x + 62.f, max.y - 52.f}, {min.x + 262.f, max.y - 16.f}, tr("Open LeviLauncher"), false)) ev.openManager = true;
+        } else {
+            if (button("managerInstall", {min.x + 62.f, max.y - 52.f}, {min.x + 302.f, max.y - 16.f}, tr("Install LeviLauncher"), false)) ev.installManager = true;
+            if (!s.managerStatus.empty()) label(dl, regular, 14.f, {min.x + 320.f, max.y - 42.f}, col(warn), s.managerStatus.c_str());
+        }
+    }
+
+    {
+        Reveal r(dl, 2);
+        label(dl, bold, 17.f, {264.f, 284.f}, col(text), tr("Detected on this PC"));
+    }
+    float y = 316.f;
+    if (s.versions.empty()) {
+        Reveal r(dl, 3);
+        ImVec2 min{264.f, y}, max{928.f, y + 60.f};
+        card(dl, min, max);
+        label(dl, regular, 15.f, {min.x + 22.f, min.y + 20.f}, col(dim), tr("No Minecraft installation found."));
+        y += 70.f;
+    }
+    for (size_t i = 0; i < s.versions.size() && y < 470.f; i++, y += 70.f) {
+        Reveal r(dl, int(i) + 3);
         auto& v = s.versions[i];
         ImVec2 min{264.f, y}, max{928.f, y + 60.f};
         card(dl, min, max);
@@ -422,20 +454,8 @@ void versions(ImDrawList* dl, State& s) {
         if (v.preview) { chip(dl, {cx, min.y + 33.f}, "Preview", accent2); cx += chipWidth("Preview") + 8.f; }
         if (v.installed) { chip(dl, {cx, min.y + 33.f}, tr("Installed"), dim); cx += chipWidth(tr("Installed")) + 8.f; }
         if (v.supported) chip(dl, {cx, min.y + 33.f}, tr("Mochi compatible"), ok);
-        if (v.active) {
-            chip(dl, {max.x - 22.f - chipWidth(tr("Active")), min.y + 18.f}, tr("Active"), accent);
-        } else {
-            std::string id = "sw" + std::to_string(i);
-            button(id.c_str(), {max.x - 150.f, min.y + 12.f}, {max.x - 18.f, min.y + 48.f}, tr("Switch"), false, false);
-        }
+        else chip(dl, {cx, min.y + 33.f}, tr("Untested"), warn);
     }
-
-    Reveal note(dl, 6);
-    ImVec2 min{264.f, 480.f}, max{928.f, 576.f};
-    dl->AddRectFilled(min, max, col(warn, 0.08f), 18.f);
-    dl->AddRect(min, max, col(warn, 0.35f), 18.f, 0, 1.5f);
-    label(dl, bold, 16.f, {min.x + 22.f, min.y + 16.f}, col(warn), tr("Version switching is still in progress"));
-    label(dl, regular, 15.f, {min.x + 22.f, min.y + 44.f}, col(dim), tr("Switching will later work through your own Microsoft license. Until then you play with the installed version."));
 }
 
 int segment(const char* id, ImVec2 pos, const char* const* names, int count, int current) {
@@ -557,7 +577,7 @@ void draw(State& s, Events& ev) {
         infoCard(dl, s, ev);
         changelogCard(dl, s);
         break;
-    case Page::Versions: versions(dl, s); break;
+    case Page::Versions: versions(dl, s, ev); break;
     case Page::Settings: settings(dl, s, ev); break;
     case Page::About: break;
     }
