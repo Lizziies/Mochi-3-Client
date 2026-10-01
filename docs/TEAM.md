@@ -8,7 +8,7 @@ Mehrere Claude-Sessions (verschiedene Accounts) arbeiten parallel am selben Repo
 2. Jede Session bleibt in **ihrem Bereich** (Tabelle unten). Dateien außerhalb des eigenen Bereichs werden nicht angefasst. Gibt es dort etwas zu ändern, schreibt die Session es in `docs/HANDOFF.md` unter "Wünsche an andere Sessions".
 3. Zusammengeführt wird nur von Felix (oder auf seine Ansage). Bei Konflikten merged man `main` bzw. die andere Branch in die eigene, löst auf und pusht. Nie History umschreiben.
 4. Vor jeder Arbeit `docs/MASTER.md`, `CLAUDE.md`, `docs/STATUS.md` lesen. Nach jedem Block `docs/STATUS.md` und `docs/HISTORY.md` ergänzen (nur eigene Zeilen anhängen, nichts löschen).
-5. Hier in der Cloud kann man nichts kompilieren (kein Windows, kein MinGW). Code sauber schreiben, am Ende steht der Test auf Felix' PC mit Claude Code.
+5. Bauen und Testen geht doch: `tools/cross.sh setup` installiert MinGW, Wine, Xvfb und ImageMagick, `tools/cross.sh build` baut DLL, Launcher und Testhost, `tools/cross.sh shots` startet die DLL im Testhost unter Wine und macht Screenshots (echte Menü-Bilder). Nach jedem Block bauen, Fehler beheben. Den Test im echten Minecraft macht danach Felix mit Claude Code am PC.
 6. Code-Stil und harte Regeln aus `CLAUDE.md` gelten für alle (kaum Kommentare, kurze Namen, keine Cheats).
 
 ## Bereiche
@@ -46,7 +46,7 @@ Zählstand: aktuell 20 Module registriert. Ziel 135.
 3. Dort Claude Code im Web starten, Repo `Lizziies/Mochi-3-Client`, neue Branch.
 4. Diesen Prompt einfügen:
 
-> Du bist Session B im Projekt Mochi, einem kostenlosen Minecraft-Bedrock-PvP-Client. Lege als Erstes mit `git checkout -b claude/modules-b` eine neue Branch an und pushe nie auf eine andere. Lies dann `docs/TEAM.md`, dann `docs/MASTER.md`, `CLAUDE.md`, `docs/FEATURES.md`, `docs/CLIENTS.md`, `docs/MODULES.md`, `docs/STATUS.md`. Arbeite nur in deinem Bereich (Module), auf deiner eigenen Branch `claude/modules-b`, und pushe nur dorthin. Baue die fehlenden Module in der Reihenfolge aus `docs/TEAM.md`. Es gibt hier kein Windows, du kannst nichts kompilieren, also schreibe sauberen Code im Stil der vorhandenen Module (`dll/src/modules/hud/Fps.hpp` als Vorlage). Nach jedem Block `docs/STATUS.md` und `docs/HISTORY.md` ergänzen und committen. Arbeite selbstständig weiter, bis du nicht mehr sinnvoll weiterkommst. Stelle nur Rückfragen, wenn wirklich nötig.
+> Du bist Session B im Projekt Mochi, einem kostenlosen Minecraft-Bedrock-PvP-Client. Lege als Erstes mit `git checkout -b claude/modules-b` eine neue Branch an und pushe nie auf eine andere. Lies dann `docs/TEAM.md`, dann `docs/MASTER.md`, `CLAUDE.md`, `docs/FEATURES.md`, `docs/CLIENTS.md`, `docs/MODULES.md`, `docs/STATUS.md`. Arbeite nur in deinem Bereich (Module), auf deiner eigenen Branch `claude/modules-b`, und pushe nur dorthin. Baue die fehlenden Module in der Reihenfolge aus `docs/TEAM.md`. Es gibt hier kein Windows, also schreibe sauberen Code im Stil der vorhandenen Module (`dll/src/modules/hud/Fps.hpp` als Vorlage). Nach jedem Block `docs/STATUS.md` und `docs/HISTORY.md` ergänzen und committen. Arbeite selbstständig weiter, bis du nicht mehr sinnvoll weiterkommst. Stelle nur Rückfragen, wenn wirklich nötig.
 
 5. Danach nicht mehr stören: die Session arbeitet allein weiter und schreibt Fortschritt in `docs/STATUS.md`.
 

@@ -32,7 +32,7 @@ Der beste Minecraft-Bedrock-PvP-Client, den es gibt. Kostenlos, später auf GitH
 
 ## Arbeitsteilung
 
-- Hier in der Cloud-Session (kein Windows, kein Minecraft): Code schreiben, Docs pflegen, Module bauen. Kompilieren und Testen ist hier nicht möglich (nur `clang`/`cmake`, kein MinGW, kein Wine).
+- Hier in der Cloud-Session (kein Windows, kein Minecraft): Code schreiben, Docs pflegen, Module bauen. Mit `tools/cross.sh` lässt sich die DLL per MinGW bauen und unter Wine im Testhost laufen lassen (inkl. Screenshots). Im echten Minecraft testen geht nur am PC.
 - Claude Code am PC von Felix (ab ca. 8 h nach Sessionstart): bauen mit MSVC, injizieren, im echten Spiel testen, Log lesen, Signaturen finden. Dort steht die Test-Checkliste unten.
 - Felix: Ergebnisse, Logs und Screenshots liefern. Das Spiel kann keine Session sehen.
 
