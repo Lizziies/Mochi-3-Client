@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <cctype>
 #include <cmath>
+#include <cstdlib>
 #include <format>
 #include <string>
 #include <utility>
@@ -93,11 +94,13 @@ inline std::vector<std::string> split(const std::string& in, char sep) {
     return out;
 }
 
+inline bool rgbCode(const std::string& s, size_t i) { return i + 9 < s.size() && s[i + 2] == '#' && s[i + 9] == ';'; }
+
 inline std::string strip(const std::string& s) {
     std::string out;
     for (size_t i = 0; i < s.size(); i++) {
         if ((unsigned char)s[i] == 0xC2 && i + 2 < s.size() && (unsigned char)s[i + 1] == 0xA7) {
-            i += 2;
+            i += rgbCode(s, i) ? 9 : 2;
             continue;
         }
         out += s[i];
@@ -126,6 +129,12 @@ inline std::vector<Segment> colored(const std::string& in, ImU32 base) {
         if ((unsigned char)in[i] == 0xC2 && i + 2 < in.size() && (unsigned char)in[i + 1] == 0xA7) {
             char code = (char)std::tolower((unsigned char)in[i + 2]);
             flush();
+            if (rgbCode(in, i)) {
+                unsigned rgb = (unsigned)std::strtoul(in.substr(i + 3, 6).c_str(), nullptr, 16);
+                color = IM_COL32((rgb >> 16) & 255, (rgb >> 8) & 255, rgb & 255, 255);
+                i += 9;
+                continue;
+            }
             int idx = code >= '0' && code <= '9' ? code - '0' : code >= 'a' && code <= 'f' ? code - 'a' + 10 : -1;
             if (idx >= 0) color = palette[idx];
             else if (code == 'r') color = base;

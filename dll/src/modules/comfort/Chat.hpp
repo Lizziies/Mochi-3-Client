@@ -6,6 +6,8 @@
 #include "gui/Theme.hpp"
 #include "hook/Input.hpp"
 #include "modules/HudModule.hpp"
+#include "modules/Manager.hpp"
+#include "modules/client/ClientSettings.hpp"
 #include "modules/common/Colors.hpp"
 #include "modules/common/GameHud.hpp"
 #include "modules/common/Needs.hpp"
@@ -280,7 +282,8 @@ protected:
 
             dl->PushClipRect(o + ImVec2(0, y), o + ImVec2(w, y + lineH + 2), true);
             if (colors_.b) {
-                for (auto& seg : text::colored(l->text, base)) {
+                auto* cs = modules::get<ClientSettings>();
+                for (auto& seg : text::colored(cs ? cs->tagged(l->text, true) : l->text, base)) {
                     ImVec4 c = ImGui::ColorConvertU32ToFloat4(seg.color);
                     c.w *= a;
                     x += drawText(dl, o + ImVec2(x, y), s, seg.text, ImGui::GetColorU32(c)).x;
@@ -424,6 +427,7 @@ protected:
         std::vector<game::TabEntry> list = game::state().tab;
         if (sort_.i == 0) std::sort(list.begin(), list.end(), [](auto& a, auto& b) { return text::lower(a.name) < text::lower(b.name); });
         else if (sort_.i == 1) std::sort(list.begin(), list.end(), [](auto& a, auto& b) { return a.ping < b.ping; });
+        auto* cs = modules::get<ClientSettings>();
         int per = columns_.i > 0 ? int((list.size() + size_t(columns_.i) - 1) / size_t(columns_.i)) : rows_.i;
         per = std::max(per, 1);
         int cols = int((list.size() + size_t(per) - 1) / size_t(per));
@@ -433,14 +437,17 @@ protected:
             for (int r = 0; r < per; r++) {
                 size_t i = size_t(c * per + r);
                 if (i >= list.size()) break;
-                colW = std::max(colW, textSize(s, list[i].name).x + (ping_.b ? 56.f * s : 8.f * s));
+                std::string extra = list[i].name == game::state().player.name && cs ? cs->tabTag() : "";
+                colW = std::max(colW, textSize(s, list[i].name).x + (extra.empty() ? 0.f : textSize(s, extra).x + 6 * s) + (ping_.b ? 56.f * s : 8.f * s));
             }
             for (int r = 0; r < per; r++) {
                 size_t i = size_t(c * per + r);
                 if (i >= list.size()) break;
                 auto& e = list[i];
                 bool me = e.name == game::state().player.name;
+                std::string tabTag = me && cs ? cs->tabTag() : "";
                 drawText(dl, o + ImVec2(x, r * rowH), s, e.name, me ? accentColor() : textColor());
+                if (!tabTag.empty()) drawText(dl, o + ImVec2(x + textSize(s, e.name).x + 6 * s, r * rowH), s, tabTag, ImGui::GetColorU32(cs->tagColor()));
                 if (ping_.b) {
                     std::string t = pingBars_.b ? "" : std::format("{}", e.ping);
                     ImVec4 c4 = rampColor(float(e.ping), 40.f, 200.f, good_.color, mid_.color, bad_.color);

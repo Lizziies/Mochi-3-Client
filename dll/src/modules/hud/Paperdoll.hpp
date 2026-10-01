@@ -15,7 +15,7 @@ public:
     Paperdoll()
         : GameList("Paperdoll", "A small figure in the HUD that wears your armor, sneaks, sprints and flashes red when you are hit.", need::player | game::Domain::Inventory,
                    need::sigs({"LocalPlayer", "Inventory"}), {"cosmetic"}, {0.90f, 0.62f}) {
-        sub("Own values");
+        sub("Info displays");
         background_.b = false;
     }
 

@@ -11,6 +11,9 @@
 #include <imgui.h>
 
 #include <cmath>
+#include <format>
+#include <string>
+#include <vector>
 
 namespace hudeditor {
 
@@ -34,22 +37,28 @@ static void dashedRect(ImDrawList* dl, ImVec2 a, ImVec2 b, ImU32 col, float thic
     line({a.x, b.y}, a);
 }
 
-static float snap(float v, float size, float screen, float threshold, bool& hitCenter, bool& hitEdge) {
-    float center = (screen - size) * 0.5f;
-    if (std::fabs(v - center) < threshold) {
-        hitCenter = true;
-        return center;
-    }
-    if (std::fabs(v) < threshold) {
-        hitEdge = true;
-        return 0;
-    }
-    if (std::fabs(v + size - screen) < threshold) {
-        hitEdge = true;
-        return screen - size;
-    }
-    return v;
+struct Rect {
+    float l, t, r, b;
+};
+
+static Rect rectOf(HudModule* h) {
+    ImVec2 p = h->position(), sz = h->size();
+    return {p.x, p.y, p.x + sz.x, p.y + sz.y};
 }
+
+struct Snap {
+    float delta = 0.f;
+    float line = 0.f;
+    bool hit = false;
+};
+
+static void consider(Snap& best, float threshold, float mine, float target) {
+    float d = target - mine;
+    if (std::fabs(d) > threshold || (best.hit && std::fabs(d) >= std::fabs(best.delta))) return;
+    best = {d, target, true};
+}
+
+static HudModule* selected = nullptr;
 
 void draw() {
     auto& t = theme::current();
@@ -61,36 +70,66 @@ void draw() {
 
     bg->AddRectFilled({0, 0}, ds, IM_COL32(10, 4, 12, 70));
 
-    const char* help = i18n::tr("Drag = move  ·  Mouse wheel = size  ·  Right click = settings  ·  ESC = done");
+    const char* help = i18n::tr("Drag = move  ·  Arrows = nudge  ·  Mouse wheel = size  ·  Double click = reset  ·  Right click = settings  ·  Shift = no snap  ·  ESC = done");
     ImVec2 hs = ImGui::CalcTextSize(help);
     ImVec2 hp{(ds.x - hs.x) * 0.5f - 16 * s, 18 * s};
     fg->AddRectFilled(hp, hp + hs + ImVec2(32 * s, 16 * s), theme::col(t.surface, 0.95f), 99.f);
     fg->AddText(hp + ImVec2(16 * s, 8 * s), theme::col(t.text), help);
 
     HudModule* hovered = nullptr;
+    float hoveredArea = 0.f;
+    std::vector<HudModule*> shown;
     for (auto& m : modules::all()) {
         if (!m->enabled() || !m->isHud()) continue;
         auto* h = static_cast<HudModule*>(m.get());
+        shown.push_back(h);
         ImVec2 p = h->position(), sz = h->size();
-        bool over = ImGui::IsMouseHoveringRect(p, p + sz, false);
-        if (over) hovered = h;
-        ImU32 col = theme::col(over || dragging == h ? t.accent : t.accent2, over ? 1.f : 0.6f);
+        if (!ImGui::IsMouseHoveringRect(p, p + sz, false)) continue;
+        float area = sz.x * sz.y;
+        if (!hovered || area < hoveredArea) {
+            hovered = h;
+            hoveredArea = area;
+        }
+    }
+
+    for (auto* h : shown) {
+        ImVec2 p = h->position(), sz = h->size();
+        bool active = h == hovered || h == dragging || h == selected;
+        ImU32 col = theme::col(active ? t.accent : t.accent2, active ? 1.f : 0.6f);
         dashedRect(fg, p - ImVec2(3 * s, 3 * s), p + sz + ImVec2(3 * s, 3 * s), col, 1.5f * s, 5 * s);
-        if (over && !dragging) {
-            fg->AddText(fonts::regular(), 13 * s, p + ImVec2(0, -18 * s), theme::col(t.text), h->name().c_str());
+        if (h == selected) fg->AddRect(p - ImVec2(3 * s, 3 * s), p + sz + ImVec2(3 * s, 3 * s), theme::col(t.accent, 0.35f), 4 * s, 0, 3.f * s);
+        if ((h == hovered && !dragging) || h == selected || h == dragging) {
+            std::string label = std::format("{}  ·  {:.0f}%", h->name(), h->scale() * 100.f);
+            fg->AddText(fonts::regular(), 13 * s, p + ImVec2(0, -18 * s), theme::col(t.text), label.c_str());
         }
     }
 
     if (!dragging && hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
-        dragging = hovered;
+        dragging = selected = hovered;
         grabOffset = io.MousePos - hovered->position();
+        if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+            hovered->resetSettings([](const Setting& st) { return st.id == "x" || st.id == "y" || st.id == "scale"; });
+            dragging = nullptr;
+            return;
+        }
     }
+    if (!dragging && !hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) selected = nullptr;
     if (hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
         gui::setEditingHud(false);
         gui::showModule(hovered);
         return;
     }
     if (hovered && io.MouseWheel != 0.f) hovered->setScale(hovered->scale() + io.MouseWheel * 0.08f);
+
+    if (selected && !dragging) {
+        float step = io.KeyShift ? 10.f : 1.f;
+        ImVec2 nudge{0, 0};
+        if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow)) nudge.x -= step;
+        if (ImGui::IsKeyPressed(ImGuiKey_RightArrow)) nudge.x += step;
+        if (ImGui::IsKeyPressed(ImGuiKey_UpArrow)) nudge.y -= step;
+        if (ImGui::IsKeyPressed(ImGuiKey_DownArrow)) nudge.y += step;
+        if (nudge.x != 0.f || nudge.y != 0.f) selected->setPosition(selected->position() + nudge);
+    }
 
     if (dragging) {
         if (!ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
@@ -99,15 +138,46 @@ void draw() {
         }
         ImVec2 target = io.MousePos - grabOffset;
         ImVec2 sz = dragging->size();
-        bool cx = false, cy = false, ex = false, ey = false;
         if (!io.KeyShift) {
-            target.x = snap(target.x, sz.x, ds.x, 8 * s, cx, ex);
-            target.y = snap(target.y, sz.y, ds.y, 8 * s, cy, ey);
+            float th = 7 * s;
+            Snap sx, sy;
+            float l = target.x, r = target.x + sz.x, cx = target.x + sz.x * 0.5f;
+            float tp = target.y, bt = target.y + sz.y, cy = target.y + sz.y * 0.5f;
+            for (float e : {0.f, ds.x * 0.5f, ds.x}) {
+                consider(sx, th, l, e);
+                consider(sx, th, cx, e);
+                consider(sx, th, r, e);
+            }
+            for (float e : {0.f, ds.y * 0.5f, ds.y}) {
+                consider(sy, th, tp, e);
+                consider(sy, th, cy, e);
+                consider(sy, th, bt, e);
+            }
+            for (auto* h : shown) {
+                if (h == dragging) continue;
+                Rect o = rectOf(h);
+                for (float e : {o.l, (o.l + o.r) * 0.5f, o.r}) {
+                    consider(sx, th, l, e);
+                    consider(sx, th, cx, e);
+                    consider(sx, th, r, e);
+                }
+                for (float e : {o.t, (o.t + o.b) * 0.5f, o.b}) {
+                    consider(sy, th, tp, e);
+                    consider(sy, th, cy, e);
+                    consider(sy, th, bt, e);
+                }
+            }
+            ImU32 guide = theme::col(t.accent, 0.85f);
+            if (sx.hit) {
+                target.x += sx.delta;
+                fg->AddLine({sx.line, 0}, {sx.line, ds.y}, guide, 1.f * s);
+            }
+            if (sy.hit) {
+                target.y += sy.delta;
+                fg->AddLine({0, sy.line}, {ds.x, sy.line}, guide, 1.f * s);
+            }
         }
         dragging->setPosition(target);
-        ImU32 guide = theme::col(t.accent, 0.8f);
-        if (cx) fg->AddLine({ds.x * 0.5f, 0}, {ds.x * 0.5f, ds.y}, guide, 1.f * s);
-        if (cy) fg->AddLine({0, ds.y * 0.5f}, {ds.x, ds.y * 0.5f}, guide, 1.f * s);
     }
 }
 

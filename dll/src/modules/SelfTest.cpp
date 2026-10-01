@@ -1,4 +1,5 @@
 #include "SelfTest.hpp"
+#include "I18n.hpp"
 #include "Manager.hpp"
 #include "core/Client.hpp"
 #include "core/Log.hpp"
@@ -7,6 +8,7 @@
 #include <windows.h>
 
 #include <algorithm>
+#include <cctype>
 #include <cstdlib>
 #include <random>
 #include <string>
@@ -71,7 +73,28 @@ void poke(Module& m) {
     modules::dispatchMouse(e);
 }
 
+void audit() {
+    int missing = 0;
+    auto check = [&](const std::string& owner, const std::string& text) {
+        if (text.size() < 3 || i18n::known(text.c_str())) return;
+        if (std::none_of(text.begin(), text.end(), [](unsigned char c) { return std::isalpha(c); })) return;
+        logger::warn("untranslated [{}]: {}", owner, text);
+        missing++;
+    };
+    for (auto& mp : modules::all()) {
+        Module& m = *mp;
+        check(m.name(), m.description());
+        check(m.name(), m.sub());
+        for (auto& st : m.settings()) {
+            check(m.name(), st.label);
+            for (auto& c : st.choices) check(m.name(), c);
+        }
+    }
+    logger::info("selftest: {} untranslated strings", missing);
+}
+
 void finish() {
+    audit();
     logger::info("selftest: tested {} modules, {} skipped (locked), {} failed", tested, skipped.size(), failed.size());
     for (auto& n : failed) logger::error("selftest FAIL: {}", n);
     logger::info("selftest done");

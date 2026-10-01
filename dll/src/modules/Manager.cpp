@@ -15,6 +15,7 @@
 
 #include "camera/Camera.hpp"
 #include "client/ClickGui.hpp"
+#include "client/ClientSettings.hpp"
 #include "client/SigStatus.hpp"
 #include "combat/Counters.hpp"
 #include "combat/Feedback.hpp"
@@ -91,6 +92,7 @@ static void add() {
 void init() {
     game::init();
     add<ClickGui>();
+    add<ClientSettings>();
 
     add<Fps>();
     add<Cps>();

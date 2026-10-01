@@ -10,6 +10,7 @@
 #include "modules/Manager.hpp"
 #include "modules/Tiers.hpp"
 #include "modules/client/ClickGui.hpp"
+#include "modules/client/ClientSettings.hpp"
 #include "render/Draw.hpp"
 #include "render/Fonts.hpp"
 #include "render/Ui.hpp"
@@ -496,7 +497,6 @@ static bool statePill(const char* id, ImVec2 min, ImVec2 max, bool on, bool lock
 
 static bool gearButton(const char* id, ImVec2 min, float size, bool active) {
     auto& t = theme::current();
-    float s = ui::scale();
     auto* dl = ImGui::GetWindowDrawList();
     ImGui::SetCursorScreenPos(min);
     bool clicked = ImGui::InvisibleButton(id, {size, size});
@@ -740,20 +740,24 @@ static void drawSettingsPanel(ImVec2 origin, ImVec2 size) {
         float h = 52 * s;
         dl->AddRectFilled(cp, cp + ImVec2(half, h), theme::col(t.surfaceHover, 0.55f), 12 * s);
         dl->AddText(fonts::bold(), 14.5f * s, cp + ImVec2(12 * s, 8 * s), theme::col(t.text), i18n::tr("Hold mode"));
+        dl->PushClipRect(cp, cp + ImVec2(half - 62 * s, h), true);
         dl->AddText(fonts::regular(), 12.f * s, cp + ImVec2(12 * s, 28 * s), theme::col(t.textDim), i18n::tr("Only on while the key is held"));
+        dl->PopClipRect();
         ImGui::SetCursorScreenPos(cp + ImVec2(half - 54 * s, 14 * s));
         widgets::toggle("hold", m.hold().b);
 
         ImVec2 kp = cp + ImVec2(half + 10 * s, 0);
         dl->AddRectFilled(kp, kp + ImVec2(half, h), theme::col(t.surfaceHover, 0.55f), 12 * s);
         dl->AddText(fonts::bold(), 14.5f * s, kp + ImVec2(12 * s, 8 * s), theme::col(t.text), i18n::tr("Keybind"));
+        dl->PushClipRect(kp, kp + ImVec2(half - 118 * s, h), true);
         dl->AddText(fonts::regular(), 12.f * s, kp + ImVec2(12 * s, 28 * s), theme::col(t.textDim), i18n::tr("Click, then press a key"));
+        dl->PopClipRect();
         ImGui::SetCursorScreenPos(kp + ImVec2(half - 112 * s, 12 * s));
         widgets::keyCapture("key", m.keybind().i);
         ImGui::EndChild();
     }
 
-    ImGui::BeginChild("settingsScroll", {0, -46 * s}, 0, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoScrollWithMouse);
+    ImGui::BeginChild("settingsScroll", {0, -(hud ? 88.f : 46.f) * s}, 0, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoScrollWithMouse);
     smoothScroll();
 
     auto group = [&](const char* title, auto&& belongs) {
@@ -796,8 +800,7 @@ static void drawSettingsPanel(ImVec2 origin, ImVec2 size) {
             ImGui::SameLine();
             if (widgets::button("Reset position", {0, 0}, false))
                 m.resetSettings([](const Setting& st) { return st.id == "x" || st.id == "y" || st.id == "scale"; });
-            ImGui::SameLine();
-            if (widgets::button("Edit HUD", {0, 0}, true)) setEditingHud(true);
+            if (widgets::button("Edit HUD", {ImGui::GetContentRegionAvail().x, 0}, true)) setEditingHud(true);
         }
     }
     ImGui::End();
@@ -966,6 +969,13 @@ static void drawInfo() {
     for (int i = 0; i < 3; i++) {
         if (i) ImGui::SameLine();
         if (widgets::button(names[i], {0, 0}, int(i18n::chosen()) == i)) i18n::choose(i18n::Lang(i));
+    }
+
+    if (auto* cs = modules::get<ClientSettings>()) {
+        widgets::sectionTitle("Client tag");
+        widgets::hint("Shown behind your own name in Better Chat and in the Tab List. Only you see it, nothing is sent to the server.");
+        for (auto& st : cs->settings())
+            if (st.shown() && st.id != "key") widgets::setting(st);
     }
 
     widgets::sectionTitle("Keys");

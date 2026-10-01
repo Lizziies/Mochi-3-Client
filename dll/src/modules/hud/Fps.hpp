@@ -12,7 +12,7 @@ public:
     bool defaultEnabled() const override { return true; }
 
     Fps() : TextHud("FPS", "Shows your frames per second.", {"hud-self"}, {0.01f, 0.02f}) {
-        sub("Own values");
+        sub("Info displays");
     }
 
     void onFrame() override {
