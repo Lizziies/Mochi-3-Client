@@ -1,0 +1,109 @@
+{
+  "id": "halo",
+  "name": "Halo",
+  "slot": "head",
+  "tags": [
+    "head",
+    "glow",
+    "animated"
+  ],
+  "texture": "tex.png",
+  "tint": [
+    {
+      "name": "Glow",
+      "default": "#ffe27a"
+    }
+  ],
+  "bones": [
+    {
+      "name": "ring",
+      "pivot": [
+        0,
+        34,
+        0
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "anim": {
+        "type": "float",
+        "axis": "y",
+        "amplitude": 0.8,
+        "speed": 1.0,
+        "phase": 0
+      },
+      "cubes": [
+        {
+          "origin": [
+            -4,
+            34,
+            -5
+          ],
+          "size": [
+            8,
+            1,
+            1
+          ],
+          "uv": [
+            0,
+            0
+          ],
+          "tint": "Glow"
+        },
+        {
+          "origin": [
+            -4,
+            34,
+            4
+          ],
+          "size": [
+            8,
+            1,
+            1
+          ],
+          "uv": [
+            0,
+            0
+          ],
+          "tint": "Glow"
+        },
+        {
+          "origin": [
+            -5,
+            34,
+            -4
+          ],
+          "size": [
+            1,
+            1,
+            8
+          ],
+          "uv": [
+            0,
+            0
+          ],
+          "tint": "Glow"
+        },
+        {
+          "origin": [
+            4,
+            34,
+            -4
+          ],
+          "size": [
+            1,
+            1,
+            8
+          ],
+          "uv": [
+            0,
+            0
+          ],
+          "tint": "Glow"
+        }
+      ]
+    }
+  ]
+}

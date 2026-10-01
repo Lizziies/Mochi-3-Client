@@ -24,7 +24,7 @@ constexpr std::string_view expected[] = {
     "Sens Multiplier", "Bow Sensitivity", "Stopwatch", "Memory", "Experience Info", "Durability Warning",
     "Streamer Mode", "Server Profiles", "Crystal Optimizer", "Better Chat", "View Model", "Saturation / Hue", "Screenshot+", "Target HUD",
     "Session Timer", "Day Counter", "Hide Hand", "Entity Counter", "Zeqa Utils", "Kill Cleanup", "Inventory Lock", "Modern Keybind Handling", "Java Inventory Hotkeys", "Pack Changer", "Nick", "Hotbar Animation", "Item Physics",
-    "Nametag Modifier", "TNT Timer", "Light Overlay", "Subtitles", "Movable Hotbar", "Movable Title", "Movable Bossbar", "Skin Stealer", "Discord Rich Presence", "Lua Scripts", "Config Sharing", "Mochi Online", "Hotbar Armor", "Fall Predictor", "Inventory Viewer", "Arrow Trail", "Black Bars",
+    "Nametag Modifier", "TNT Timer", "Light Overlay", "Subtitles", "Movable Hotbar", "Movable Title", "Movable Bossbar", "Skin Stealer", "Discord Rich Presence", "Lua Scripts", "Config Sharing", "Mochi Online", "Cosmetics", "Hotbar Armor", "Fall Predictor", "Inventory Viewer", "Arrow Trail", "Black Bars",
     "Left Hand", "Gamemode Hotkeys", "Third Person Nametag", "Hive Stats", "Hive Leaderboard",
 };
 

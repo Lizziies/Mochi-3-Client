@@ -1,0 +1,140 @@
+{
+  "id": "mochi_cape",
+  "name": "Mochi Cape",
+  "slot": "cape",
+  "tags": [
+    "cape",
+    "pink"
+  ],
+  "texture": "tex.png",
+  "tint": [
+    {
+      "name": "Main",
+      "default": "#ff7eb6"
+    },
+    {
+      "name": "Trim",
+      "default": "#ffffff"
+    }
+  ],
+  "bones": [
+    {
+      "name": "cape",
+      "pivot": [
+        0,
+        24,
+        -2
+      ],
+      "rotation": [
+        4,
+        0,
+        0
+      ],
+      "physics": "cloth",
+      "cubes": [
+        {
+          "origin": [
+            -4,
+            22,
+            -3.2
+          ],
+          "size": [
+            8,
+            2,
+            1
+          ],
+          "uv": [
+            0,
+            0
+          ],
+          "tint": "Main"
+        },
+        {
+          "origin": [
+            -4,
+            20,
+            -3.2
+          ],
+          "size": [
+            8,
+            2,
+            1
+          ],
+          "uv": [
+            0,
+            0
+          ],
+          "tint": "Main"
+        },
+        {
+          "origin": [
+            -4,
+            18,
+            -3.2
+          ],
+          "size": [
+            8,
+            2,
+            1
+          ],
+          "uv": [
+            0,
+            0
+          ],
+          "tint": "Main"
+        },
+        {
+          "origin": [
+            -4,
+            16,
+            -3.2
+          ],
+          "size": [
+            8,
+            2,
+            1
+          ],
+          "uv": [
+            0,
+            0
+          ],
+          "tint": "Main"
+        },
+        {
+          "origin": [
+            -4,
+            14,
+            -3.2
+          ],
+          "size": [
+            8,
+            2,
+            1
+          ],
+          "uv": [
+            0,
+            0
+          ],
+          "tint": "Main"
+        },
+        {
+          "origin": [
+            -4,
+            12,
+            -3.2
+          ],
+          "size": [
+            8,
+            2,
+            1
+          ],
+          "uv": [
+            0,
+            0
+          ],
+          "tint": "Trim"
+        }
+      ]
+    }
+  ]
+}

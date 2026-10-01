@@ -68,6 +68,7 @@
 #include "network/Network.hpp"
 #include "network/PingCounter.hpp"
 #include "network/Probe.hpp"
+#include "cosmetics/CosmeticsModule.hpp"
 #include "online/MochiOnline.hpp"
 #include "perf/Auto.hpp"
 #include "perf/FrameLimiter.hpp"
@@ -264,6 +265,7 @@ void init() {
     add<LuaScripts>();
     add<ConfigSharing>();
     add<MochiOnline>();
+    add<CosmeticsModule>();
     add<HotbarArmor>();
     add<FallPredictor>();
     add<InventoryView>();

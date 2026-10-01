@@ -41,6 +41,13 @@ static void click(int x, int y) {
     queued.push_back({now + 260, WM_LBUTTONUP, 0, lp});
 }
 
+static void wheel(int x, int y, int notches) {
+    LPARAM lp = MAKELPARAM(x, y);
+    DWORD now = GetTickCount();
+    queued.push_back({now, WM_MOUSEMOVE, 0, lp});
+    queued.push_back({now + 100, WM_MOUSEWHEEL, WPARAM(MAKELONG(0, short(-120 * notches))), lp});
+}
+
 static void flushQueued() {
     DWORD now = GetTickCount();
     for (size_t i = 0; i < queued.size();) {
@@ -200,6 +207,8 @@ int wmain(int argc, wchar_t** argv) {
                 PostMessageW(hwnd, WM_CHAR, WPARAM(s.a), 1);
             } else if (s.kind == 'c') {
                 click(s.a, s.b);
+            } else if (s.kind == 'w') {
+                wheel(s.a, s.b, 3);
             } else if (s.kind == 'u') {
                 key(VK_CONTROL, true);
                 key('L', true);
