@@ -1,7 +1,11 @@
 const row = (r) => (r ? { ...r, style: JSON.parse(r.style), worn: JSON.parse(r.worn), visible: !!r.visible } : null);
 
+const limiters = new WeakMap();
+
 export function d1Store(env) {
   const db = env.DB;
+  if (!limiters.has(db)) limiters.set(db, new Map());
+  const counts = limiters.get(db);
   return {
     async player(key) {
       return row(await db.prepare('SELECT * FROM players WHERE key = ?').bind(key).first());
@@ -58,10 +62,10 @@ export function d1Store(env) {
       ]);
     },
     async hit(bucket, limit, windowSec, now) {
-      if (!env.LIMITS) return true;
-      const slot = `rl:${bucket}:${Math.floor(now / windowSec)}`;
-      const n = parseInt((await env.LIMITS.get(slot)) ?? '0', 10) + 1;
-      await env.LIMITS.put(slot, String(n), { expirationTtl: Math.max(60, windowSec * 2) });
+      const slot = `${bucket}:${Math.floor(now / windowSec)}`;
+      const n = (counts.get(slot) ?? 0) + 1;
+      counts.set(slot, n);
+      if (counts.size > 5000) counts.clear();
       return n <= limit;
     },
     async sweep(before) {

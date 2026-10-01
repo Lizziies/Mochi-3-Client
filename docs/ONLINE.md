@@ -37,7 +37,7 @@ Antworten sind klein (unter 10 KB), der Client fragt höchstens alle 5 Sekunden 
 
 ## Technik und Kosten
 
-Cloudflare Workers mit D1 (Datenbank) und KV (Zwischenspeicher). Der kostenlose Tarif reicht für den Start. Kein eigener Server, keine laufenden Kosten, bis viele tausend gleichzeitige Nutzer da sind. Der Code liegt in `server/` (JavaScript, ohne Abhängigkeiten) und lässt sich lokal testen, siehe `server/README.md`. Ein Konto bei Cloudflare muss Felix anlegen und den Dienst veröffentlichen (ich habe von hier aus keinen Zugang).
+Cloudflare Workers mit D1 (Datenbank). Der kostenlose Tarif reicht für den Start. Kein eigener Server, keine laufenden Kosten, bis viele tausend gleichzeitige Nutzer da sind. Der Code liegt in `server/` (JavaScript, ohne Abhängigkeiten) und lässt sich lokal testen, siehe `server/README.md`. Ein Konto bei Cloudflare muss Felix anlegen und den Dienst veröffentlichen (ich habe von hier aus keinen Zugang).
 
 ## Ehrliche Risiken
 

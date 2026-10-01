@@ -12,25 +12,32 @@ npm test           # runs the tests against the memory store and against the rea
 
 Point the client at it: Mochi Online, "Service address" = `http://127.0.0.1:8787`.
 
-## Publish it
+## Publish it without installing anything
 
-You need a Cloudflare account (the free plan is enough to start) and `wrangler`.
+You only need a browser and a free Cloudflare account.
+
+1. Dashboard, Storage & databases, D1, create a database called `mochi-online`. Open its Console tab, paste the content of `schema.sql` and run it.
+2. Workers & Pages, Create, start from "Hello World", name it `mochi-online`, deploy, then "Edit code": select everything, paste the content of `dist/worker.js` and deploy again.
+3. The worker, Settings, Bindings, add a D1 database: variable name `DB`, database `mochi-online`.
+4. Optional: Settings, Variables and secrets, add a secret `ADMIN_KEY` (needed for `/v1/admin/block`). Triggers, Cron, add `17 3 * * *` (the daily cleanup).
+5. Open `https://<worker>.<account>.workers.dev/v1/health`. It answers `{"ok":true,"online":0}`.
+
+`dist/worker.js` is generated from `src/` with `node bundle.js`, so after changing the code build it again.
+
+## Publish it with wrangler
+
+Needs Node. Put the database id into `wrangler.toml`, then:
 
 ```
 cd server
+npx wrangler login
 npx wrangler d1 create mochi-online
-npx wrangler kv namespace create LIMITS
-```
-
-Put the two ids into `wrangler.toml`, then:
-
-```
 npx wrangler d1 execute mochi-online --remote --file schema.sql
 npx wrangler secret put ADMIN_KEY
 npx wrangler deploy
 ```
 
-Wrangler prints the address. Enter it in the client as the service address (or make it the default in `dll/src/modules/online/MochiOnline.hpp`).
+Enter the printed address in the client as the service address (or make it the default in `dll/src/modules/online/MochiOnline.hpp`).
 
 ## Calls
 
@@ -51,11 +58,11 @@ All bodies are JSON, all answers are JSON. Everything except `hello` and `health
 
 ## What it stores
 
-Gamertag, a hash of the install secret, style, worn cosmetics, server name, client version, last seen. Nothing from chat, no worlds. IP addresses only live in the rate limit counters, which expire after two minutes. Rows nobody has touched for 90 days are deleted by a daily job.
+Gamertag, a hash of the install secret, style, worn cosmetics, server name, client version, last seen. Nothing from chat, no worlds. IP addresses only live in the rate limit counters in memory. Rows nobody has touched for 90 days are deleted by a daily job.
 
 ## Limits
 
-Ten `hello` per minute per address, 30 calls per route per minute per gamertag, bodies up to 16 KB.
+Ten `hello` per minute per address, 30 calls per route per minute per gamertag (counted in the worker's memory, best effort), bodies up to 16 KB.
 
 ## Not done yet
 
