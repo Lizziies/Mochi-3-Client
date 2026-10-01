@@ -24,6 +24,17 @@ You only need a browser and a free Cloudflare account.
 
 `dist/worker.js` is generated from `src/` with `node bundle.js`, so after changing the code build it again.
 
+## Publish it on Render with Turso
+
+For people who want a plain Node server. The data lives in Turso (SQLite in the cloud, free plan), so nothing is lost when Render restarts or sleeps.
+
+1. turso.tech: sign up, create a database `mochi-online`. Copy its URL (`libsql://...`) and create a token for it.
+2. render.com: New, Web Service, connect the GitHub repo. Root directory `server`, runtime Node, build command empty, start command `node render.js`, instance type Free.
+3. Environment variables on Render: `TURSO_URL`, `TURSO_TOKEN`, optional `ADMIN_KEY`. The tables are created on start.
+4. A free Render service falls asleep after about 15 minutes without requests. Add a monitor on uptimerobot.com (free): HTTPS, `https://<service>.onrender.com/v1/health`, every 5 minutes.
+
+The Turso adapter talks to Turso's HTTP API with `fetch` and has no dependencies. It is tested against a stand-in built on `node:sqlite`, not against the real Turso yet.
+
 ## Publish it with wrangler
 
 Needs Node. Put the database id into `wrangler.toml`, then:
