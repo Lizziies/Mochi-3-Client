@@ -5,6 +5,9 @@
       "name": "Zeqa",
       "match": [
         "zeqa.net"
+      ],
+      "warn": [
+        "Zeqa Utils"
       ]
     },
     {
@@ -37,7 +40,8 @@
         "Text Hotkey",
         "Damage Indicator",
         "Target HUD",
-        "Hotbar Keys"
+        "Hotbar Keys",
+        "Hive Utils"
       ]
     },
     {

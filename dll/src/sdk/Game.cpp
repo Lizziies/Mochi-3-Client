@@ -19,6 +19,8 @@ static std::array<int, 11> leases{};
 static int64_t seenClick = 0;
 static float lastHealth = -1.f;
 static bool dead = false;
+static std::string demoName;
+static std::vector<std::function<bool(const std::string&)>> chatFilters;
 
 static Provider& active() { return demoOn ? *demoProvider : *liveProvider; }
 
@@ -40,6 +42,18 @@ void shutdown() {
 }
 
 bool demo() { return demoOn; }
+
+void setDemoServer(const std::string& name) { demoName = name; }
+
+const std::string& demoServer() { return demoName; }
+
+void filterChat(std::function<bool(const std::string&)> hide) { chatFilters.push_back(std::move(hide)); }
+
+bool chatHidden(const std::string& text) {
+    for (auto& f : chatFilters)
+        if (f(text)) return true;
+    return false;
+}
 
 void setDemo(bool on) {
     if (on == demoOn) return;
@@ -134,6 +148,7 @@ static void absorb(const Event& e) {
         c.hasDeath = true;
         break;
     case EventKind::Chat:
+        if (chatHidden(e.text)) break;
         cur.chat.push_back({e.text, e.time});
         if (cur.chat.size() > 200) cur.chat.erase(cur.chat.begin(), cur.chat.begin() + 50);
         break;
@@ -158,7 +173,7 @@ void update() {
         absorb(e);
     }
 
-    cur.server = rules::status().server;
+    cur.server = demoOn && !demoName.empty() ? demoName : rules::status().server;
     cur.camera.pos = cur.player.eye();
     cur.camera.yaw = cur.player.yaw;
     cur.camera.pitch = cur.player.pitch;

@@ -80,6 +80,19 @@ inline std::string lower(std::string s) {
     return s;
 }
 
+inline std::vector<std::string> split(const std::string& in, char sep) {
+    std::vector<std::string> out;
+    size_t from = 0;
+    while (from <= in.size()) {
+        size_t to = in.find(sep, from);
+        if (to == std::string::npos) to = in.size();
+        size_t a = in.find_first_not_of(' ', from), b = in.find_last_not_of(' ', to ? to - 1 : 0);
+        if (a != std::string::npos && a < to && b >= a) out.push_back(in.substr(a, b - a + 1));
+        from = to + 1;
+    }
+    return out;
+}
+
 inline std::string strip(const std::string& s) {
     std::string out;
     for (size_t i = 0; i < s.size(); i++) {

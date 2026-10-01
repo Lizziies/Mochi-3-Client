@@ -14,11 +14,14 @@ public:
                  "Shows which modules run on this version. Also home of the demo data switch.",
                  Category::Performance, {"performance"}) {
         sub("Diagnostics");
+        demoServer_.visible = [this] { return demo_.b; };
     }
 
     bool alwaysOn() const override { return true; }
 
     void onFrame() override {
+        static const char* servers[] = {"", "The Hive", "Zeqa"};
+        game::setDemoServer(servers[demoServer_.i % 3]);
         if (game::demo() == demo_.b) return;
         game::setDemo(demo_.b);
         modules::refreshSigs();
@@ -66,4 +69,5 @@ public:
 
 private:
     Setting& demo_ = toggleSetting("demo", "Demo data (simulated game values)", false);
+    Setting& demoServer_ = choice("demoServer", "Demo server", {"Automatic", "The Hive", "Zeqa"});
 };

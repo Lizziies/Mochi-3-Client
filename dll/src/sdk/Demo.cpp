@@ -289,7 +289,57 @@ private:
         }
     }
 
+    struct Line {
+        double at;
+        const char* text;
+    };
+
+    void script(std::vector<Event>& ev, const Line* lines, size_t count, double period) {
+        double now = std::fmod(t_, period), prev = scriptPhase_;
+        scriptPhase_ = now;
+        for (size_t i = 0; i < count; i++) {
+            double at = lines[i].at;
+            bool fire = now >= prev ? (at > prev && at <= now) : (at > prev || at <= now);
+            if (!fire) continue;
+            Event e{EventKind::Chat};
+            e.text = lines[i].text;
+            ev.push_back(std::move(e));
+        }
+    }
+
+    void serverChat(const std::string& server, std::vector<Event>& ev) {
+        static const Line hive[] = {
+            {3, "§e[!] §fGet Hive+ for extra perks at shop.playhive.com"},
+            {6, "§a» §7Steve joined the game"},
+            {9, "§7[§6Hive+§7] §eAlex§f: hello everyone"},
+            {11, "Luna: gg"},
+            {14, "§bMika §7sent you a friend request. §eType /friend accept Mika"},
+            {17, "§6Mika §7invited you to their party! §e/party accept Mika"},
+            {20, "§eVote for a map: §bAquatic§7, §bLighthouse§7, §bCastle"},
+            {25, "§eYou are the §cMurderer§e!"},
+            {32, "§7Teaming is not allowed. §cNo Teaming§7!"},
+            {40, "§cYou have been eliminated!"},
+            {50, "§a§lGame OVER!"},
+            {55, "§7Custom server code: §eHVE42X"},
+        };
+        static const Line zeqa[] = {
+            {3, "§e[!] §fJoin our discord at discord.gg/zeqa"},
+            {6, "§a+ §7Steve joined the server"},
+            {10, "§bAlex §7sent you a duel request. §eType /duel accept Alex"},
+            {14, "§bMika §7sent you a friend request. §eType /friend accept Mika"},
+            {20, "§7Alex has a §c5§7 kill streak!"},
+            {28, "§a§lAlex §7has won the duel!"},
+        };
+        if (server == "The Hive") script(ev, hive, std::size(hive), 60.0);
+        else script(ev, zeqa, std::size(zeqa), 40.0);
+    }
+
     void chatter(State& s, std::vector<Event>& ev) {
+        const auto& server = demoServer();
+        if (server == "The Hive" || server == "Zeqa") {
+            serverChat(server, ev);
+            return;
+        }
         if (t_ < nextChat_) return;
         static const char* lines[] = {"<Luna> gg", "<Max> who has the pearl?", "§eThe game starts in 5 seconds", "<Kiki> nice kill",
                                       "§6Round 3 of 5 is starting", "<Noah> lag?", "§aMochi Wars: You won!"};
@@ -332,6 +382,14 @@ private:
 
     void scoreboard(State& s) {
         s.scoreboard.lines.clear();
+        s.scoreboard.title = "Mochi Wars";
+        if (demoServer() == "The Hive") {
+            s.scoreboard.title = "BED WARS";
+            s.scoreboard.lines.push_back({"Mode: Solos", 0});
+            s.scoreboard.lines.push_back({"Map: Aquatic", 0});
+            s.scoreboard.lines.push_back({"Kills", s.combat.kills});
+            return;
+        }
         s.scoreboard.lines.push_back({"Kills", s.combat.kills});
         s.scoreboard.lines.push_back({"Deaths", s.combat.deaths});
         s.scoreboard.lines.push_back({"Players", s.world.players});
@@ -357,6 +415,7 @@ private:
     double nextChat_ = 2.0;
     double nextUse_ = 5.0;
     int chatIdx_ = 0;
+    double scriptPhase_ = -1.0;
     float opponentHp_ = 20.f;
     bool fighting_ = false;
     bool drawing_ = false;

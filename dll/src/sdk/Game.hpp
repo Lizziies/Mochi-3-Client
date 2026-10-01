@@ -4,6 +4,7 @@
 
 #include <imgui.h>
 
+#include <functional>
 #include <optional>
 #include <string>
 #include <vector>
@@ -28,6 +29,11 @@ const std::vector<Event>& events();
 
 bool demo();
 void setDemo(bool on);
+void setDemoServer(const std::string& name);
+const std::string& demoServer();
+
+void filterChat(std::function<bool(const std::string&)> hide);
+bool chatHidden(const std::string& text);
 
 bool ready(unsigned mask);
 bool has(Domain d);
