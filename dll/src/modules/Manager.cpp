@@ -268,7 +268,7 @@ void frame(ImDrawList* hud) {
     perf::begin();
     post::begin();
     fx::begin();
-    game::update();
+    guard::call("sdk", [] { game::update(); });
     input::consumeMotion(motion.x, motion.y);
 
     bool editing = gui::editingHud();
@@ -287,7 +287,7 @@ void frame(ImDrawList* hud) {
 
     capture::submit(hud, capture::Stage::Overlay);
     perf::apply();
-    fx::apply();
+    guard::call("effects", [] { fx::apply(); });
     QueryPerformanceCounter(&t1);
     QueryPerformanceFrequency(&qpf);
     cost += (float(double(t1.QuadPart - t0.QuadPart) * 1000.0 / double(qpf.QuadPart)) - cost) * 0.05f;

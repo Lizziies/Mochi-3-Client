@@ -52,7 +52,7 @@ private:
 class BrightnessContrast : public Module {
 public:
     BrightnessContrast()
-        : Module("Brightness / Contrast", "Helligkeit, Kontrast, Gamma und Vignette für das Spielbild. Wirkt nur auf die Grafik, nicht aufs HUD.",
+        : Module("Brightness / Contrast", "Helligkeit, Kontrast, Gamma und Vignette für das Spielbild.",
                  Category::Visual, {"cosmetic"}) {
         sub("Post-Effekte");
     }
@@ -75,7 +75,7 @@ private:
 class ScreenTint : public Module {
 public:
     ScreenTint()
-        : Module("Screen Tint", "Legt einen Farbfilter über das Spielbild, zum Beispiel ein zartes Rosa. Mit Mischmodus und Pulsieren.",
+        : Module("Screen Tint", "Legt einen Farbfilter über das Spielbild, zum Beispiel zartes Rosa.",
                  Category::Visual, {"cosmetic"}) {
         sub("Post-Effekte");
         pulseSpeed_.visible = [this] { return pulse_.b; };

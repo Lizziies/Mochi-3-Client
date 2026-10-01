@@ -6,7 +6,7 @@
 class RenderOptions : public Module {
 public:
     RenderOptions()
-        : Module("Render Options", "Schaltet teure Grafik-Teile einzeln ab: Wolken, Partikel, Schatten, Block-Entities, Wetter, Nebel. Vorlage \"PvP Max FPS\" für das Meiste an FPS.",
+        : Module("Render Options", "Schaltet teure Grafik wie Wolken, Partikel und Schatten einzeln ab.",
                  Category::Performance, {"performance"}) {
         sub("Grafik");
         requireAny({fx::sig(fx::Id::Clouds), fx::sig(fx::Id::Particles), fx::sig(fx::Id::BlockEntities), fx::sig(fx::Id::Shadows),

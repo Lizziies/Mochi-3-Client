@@ -6,8 +6,7 @@
 class SystemBoost : public Module {
 public:
     SystemBoost()
-        : Module("System Boost", "Windows-Einstellungen, solange Minecraft läuft: genauer Timer, höhere Priorität, kein Energiesparen. "
-                                 "Wird beim Beenden zurückgesetzt.",
+        : Module("System Boost", "Genauer Timer, höhere Priorität, kein Energiesparen. Wird beim Beenden zurückgesetzt.",
                  Category::Performance, {"performance"}) {
         sub("Frame-Timing");
     }

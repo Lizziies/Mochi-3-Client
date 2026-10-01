@@ -21,7 +21,7 @@
 class TargetHud : public GameList {
 public:
     TargetHud()
-        : GameList("Target HUD", "Zeigt Name, Leben und Distanz des Gegners, den du gerade anschaust. Nur Infos, die der normale Client auch zeigt.",
+        : GameList("Target HUD", "Name, Leben und Distanz des Gegners, den du anschaust.",
                    need::target, need::sigs({"LocalPlayer", "Target"}), {"info-others"}, {0.40f, 0.62f}) {
         sub("Kampf-Anzeigen");
         background_.b = true;

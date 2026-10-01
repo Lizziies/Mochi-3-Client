@@ -17,8 +17,7 @@ class LatencyBlame : public HudModule {
 public:
     LatencyBlame()
         : HudModule("Latency Blame",
-                    "Teilt die Verzögerung bis zum sichtbaren Treffer in Eingabe, Bild, Netzwerk und Server-Tick auf, "
-                    "damit du siehst, wo sie herkommt.",
+                    "Teilt die Verzögerung in Eingabe, Bild, Netzwerk und Server-Tick auf.",
                     {"hud-self"}, {0.35f, 0.02f}) {
         sub("Netzwerk");
         LARGE_INTEGER f;

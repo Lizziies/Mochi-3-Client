@@ -183,7 +183,7 @@ struct Detour {
 };
 
 template <size_t... I>
-constexpr auto makeTable(std::index_sequence<I...>) {
+auto makeTable(std::index_sequence<I...>) {
     struct Row {
         void* flag;
         void* integer;

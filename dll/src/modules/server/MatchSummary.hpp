@@ -13,7 +13,7 @@
 class MatchSummary : public Module {
 public:
     MatchSummary()
-        : Module("Match Summary", "Zeigt beim Verlassen eines Servers eine Zusammenfassung: Dauer, Treffer, Combo-Rekord, Kills und Tode.", Category::Server,
+        : Module("Match Summary", "Zusammenfassung beim Verlassen eines Servers: Dauer, Treffer, Combo, K/D.", Category::Server,
                  {"hud-self"}) {
         sub("Statistik");
         require(need::combat, need::sigs({"LocalPlayer", "AttackEntity"}));

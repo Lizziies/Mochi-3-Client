@@ -13,8 +13,7 @@ class InstantInput : public Module {
 public:
     InstantInput()
         : Module("Instant Input",
-                 "Verkürzt die lokale Kette Klick bis Bild: höhere Render-Priorität, kurze Bild-Warteschlange, optional Tearing. "
-                 "Erzeugt keine Klicks und ändert keine Cooldowns. Auf manchen Servern nicht erlaubt, deshalb standardmäßig aus.",
+                 "Kürzt die lokale Kette Klick bis Bild. Erzeugt keine Klicks. Auf manchen Servern verboten.",
                  Category::Pvp, {"input", "timing"}) {
         sub("Eingabe");
         markRisky();

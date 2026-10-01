@@ -15,7 +15,7 @@
 class Screenshot : public Module {
 public:
     Screenshot()
-        : Module("Screenshot+", "Screenshot per Taste, wahlweise mit oder ohne Mochi-HUD, als PNG oder JPEG, mit Zwischenablage und Verzögerung.",
+        : Module("Screenshot+", "Screenshot per Taste, mit oder ohne Mochi-HUD, als PNG oder JPEG.",
                  Category::Comfort, {"cosmetic"}) {
         sub("Aufnahme");
         quality_.visible = [this] { return format_.i == 1; };

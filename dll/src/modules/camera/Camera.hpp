@@ -20,7 +20,7 @@
 class FovChanger : public Module {
 public:
     FovChanger()
-        : Module("FOV Changer", "Stellt dein Sichtfeld frei ein, auch über die normalen Grenzen hinaus. Sprint- und Trank-Effekte lassen sich abschalten.",
+        : Module("FOV Changer", "Stellt dein Sichtfeld frei ein. Sprint- und Trank-Effekte lassen sich abschalten.",
                  Category::Visual, {"camera"}) {
         sub("Kamera");
         require(0, {fx::sig(fx::Id::Fov)});
@@ -214,7 +214,7 @@ private:
 class NoViewBobbing : public Module {
 public:
     NoViewBobbing()
-        : Module("No View Bobbing", "Schaltet das Wackeln beim Laufen komplett ab, getrennt für Kamera und Hand, wahlweise nur beim Sprinten oder unter Wasser.",
+        : Module("No View Bobbing", "Schaltet das Wackeln beim Laufen ab, für Kamera und Hand getrennt.",
                  Category::Visual, {"camera"}) {
         sub("Kamera");
         require(0, {fx::sig(fx::Id::ViewBob)});
@@ -287,7 +287,7 @@ private:
 class AutoPerspective : public Module {
 public:
     AutoPerspective()
-        : Module("Auto Perspective", "Wechselt die Perspektive automatisch, etwa beim Gleiten mit Elytra oder beim Bogenspannen, und danach zurück.",
+        : Module("Auto Perspective", "Wechselt die Perspektive automatisch, etwa beim Gleiten oder Bogenspannen.",
                  Category::Visual, {"camera"}) {
         sub("Kamera");
         require(need::player, {fx::sig(fx::Id::Perspective), "LocalPlayer"});

@@ -18,7 +18,7 @@
 class Pet : public HudModule {
 public:
     Pet()
-        : HudModule("Pet", "Ein kleines Mochi-Haustier im HUD: wippt, blinzelt, freut sich über Treffer und schläft, wenn du nichts machst.", {"cosmetic"},
+        : HudModule("Pet", "Kleines Mochi-Haustier im HUD: wippt, freut sich über Treffer, schläft bei Ruhe.", {"cosmetic"},
                     {0.90f, 0.82f}) {
         sub("Spiele");
         background_.b = false;
@@ -112,7 +112,7 @@ private:
 class Petals : public Module {
 public:
     Petals()
-        : Module("Petals", "Sakura-Blütenblätter, die sanft über den Bildschirm fallen. Rein dekorativ, auf Wunsch nur bei offenem Menü.", Category::Fun, {"cosmetic"}) {
+        : Module("Petals", "Sakura-Blütenblätter fallen sanft über den Bildschirm.", Category::Fun, {"cosmetic"}) {
         sub("Spiele");
     }
 

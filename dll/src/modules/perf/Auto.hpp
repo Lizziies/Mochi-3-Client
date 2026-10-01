@@ -21,7 +21,7 @@
 class AutoProfile : public Module {
 public:
     AutoProfile()
-        : Module("Auto Profile", "Erkennt deine Hardware und empfiehlt ein Performance-Profil. Auf Knopfdruck schaltet es passende Module ein, und bei dauerhaft niedrigen FPS gibt es einen Hinweis.",
+        : Module("Auto Profile", "Erkennt deine Hardware, empfiehlt ein Performance-Profil und wendet es an.",
                  Category::Performance, {"performance"}) {
         sub("Diagnose");
         lowFps_.visible = [this] { return hint_.b; };
@@ -115,7 +115,7 @@ private:
 class BackgroundLoad : public HudModule {
 public:
     BackgroundLoad()
-        : HudModule("Background Load", "Zeigt, welche anderen Programme gerade viel Prozessorleistung ziehen und damit FPS oder Ping stören. Beendet nichts selbst.",
+        : HudModule("Background Load", "Zeigt Programme, die viel CPU ziehen und FPS oder Ping stören.",
                     {"hud-self"}, {0.70f, 0.86f}) {
         sub("Diagnose");
         cores_ = std::max(1, int(std::thread::hardware_concurrency()));

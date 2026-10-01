@@ -9,7 +9,7 @@
 class StreamerMode : public Module {
 public:
     StreamerMode()
-        : Module("Streamer Mode", "Schaltet auf Tastendruck alles ab, was du nicht zeigen willst: IP, Koordinaten, Server, Chat. Beim zweiten Druck kommt alles zurück.",
+        : Module("Streamer Mode", "Versteckt per Taste IP, Koordinaten, Server und Chat. Zweiter Druck bringt alles zurück.",
                  Category::Comfort, {"cosmetic"}) {
         sub("Profile");
     }

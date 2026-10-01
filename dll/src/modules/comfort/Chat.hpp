@@ -40,7 +40,7 @@ inline std::vector<std::string> splitList(const std::string& in, char sep) {
 class AutoGG : public Module {
 public:
     AutoGG()
-        : Module("Auto GG", "Schreibt am Spielende automatisch eine Nachricht, zum Beispiel gg. Die Nachricht beim Kill ist auf manchen Servern verboten.",
+        : Module("Auto GG", "Schreibt am Spielende automatisch gg. Beim Kill ist es auf manchen Servern verboten.",
                  Category::Comfort, {"chat"}) {
         sub("Chat");
         require(need::chat, need::sigs({"ChatEvents"}));
@@ -209,7 +209,7 @@ private:
 class ChatPlus : public HudModule {
 public:
     ChatPlus()
-        : HudModule("Chat Plus", "Eigener Chat: frei verschiebbar, mit Zeitstempeln, Duplikat-Zähler, Hervorhebung, Filter und weichem Ausblenden. Blendet den Original-Chat aus.",
+        : HudModule("Chat Plus", "Eigener, verschiebbarer Chat mit Zeitstempeln, Filter und Hervorhebung.",
                     {"hud-self"}, {0.01f, 0.55f}) {
         sub("Chat");
         require(need::chat, need::sigs({"ChatEvents"}));
@@ -355,7 +355,7 @@ private:
 class ScoreboardPlus : public HudModule {
 public:
     ScoreboardPlus()
-        : HudModule("Scoreboard", "Eigenes Scoreboard: frei verschiebbar, skalierbar, ohne rote Zahlen und mit eigenem Hintergrund. Blendet das Original aus.",
+        : HudModule("Scoreboard", "Eigenes, verschiebbares Scoreboard ohne rote Zahlen.",
                     {"hud-self"}, {0.84f, 0.30f}) {
         sub("HUD-Teile");
         require(need::board, need::sigs({"ScoreboardData"}));
@@ -406,7 +406,7 @@ private:
 class TabList : public HudModule {
 public:
     TabList()
-        : HudModule("Tab List", "Spielerliste im Java-Stil mit mehreren Spalten, Ping-Anzeige und Sortierung. Wahlweise nur solange Tab gehalten wird.",
+        : HudModule("Tab List", "Spielerliste im Java-Stil mit Spalten, Ping und Sortierung.",
                     {"info-others"}, {0.30f, 0.05f}) {
         sub("HUD-Teile");
         require(need::tab, need::sigs({"TabListData"}));

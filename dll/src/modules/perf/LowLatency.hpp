@@ -7,8 +7,7 @@
 class LowLatency : public Module {
 public:
     LowLatency()
-        : Module("Low Latency", "Kürzere Bild-Warteschlange, optional Tearing statt VSync und ein präziser FPS-Limiter. "
-                                "Mit dem Latency-HUD vorher/nachher vergleichen.",
+        : Module("Low Latency", "Kurze Bild-Warteschlange, optional Tearing und eigener FPS-Limiter.",
                  Category::Performance, {"performance"}) {
         sub("Frame-Timing");
         limit_.visible = [this] { return useLimit_.b; };

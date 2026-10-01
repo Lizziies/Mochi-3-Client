@@ -15,7 +15,7 @@
 class BlockGame : public Module {
 public:
     BlockGame()
-        : Module("Block Game", "Fallende Blöcke für die Warteschlange. Pfeile/WASD, Leertaste lässt fallen, C hält, P pausiert, ESC beendet.",
+        : Module("Block Game", "Fallende Blöcke für die Warteschlange. Leertaste lässt fallen, ESC beendet.",
                  Category::Fun, {"cosmetic"}) {
         sub("Spiele");
     }

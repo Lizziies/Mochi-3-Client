@@ -18,8 +18,7 @@ class Crosshair : public Module {
 public:
     Crosshair()
         : Module("Custom Crosshair",
-                 "Eigenes Fadenkreuz: viele Formen, Pixel-Editor mit Import und Export, Umriss, Dynamik beim Laufen und Springen "
-                 "und Klick-Effekt.",
+                 "Eigenes Fadenkreuz mit vielen Formen, Pixel-Editor und Dynamik.",
                  Category::Visual, {"cosmetic"}) {
         sub("Crosshair");
         grid_.hidden = true;

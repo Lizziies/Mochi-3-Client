@@ -13,7 +13,7 @@
 class MumbleLink : public Module {
 public:
     MumbleLink()
-        : Module("Mumble Link", "Sendet deine Position an Mumble, damit die Sprachchat-Lautstärke nach Abstand und Richtung funktioniert.", Category::Comfort,
+        : Module("Mumble Link", "Sendet deine Position an Mumble für Sprachchat nach Abstand.", Category::Comfort,
                  {"hud-self"}) {
         sub("Audio");
         require(need::player, need::sigs({"LocalPlayer"}));

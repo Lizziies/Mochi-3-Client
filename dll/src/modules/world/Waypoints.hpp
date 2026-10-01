@@ -20,7 +20,7 @@
 class Waypoints : public Module {
 public:
     Waypoints()
-        : Module("Waypoints", "Eigene Markierungen mit Beam, Name und Entfernung, auch am Bildschirmrand als Pfeil. Auf Wunsch mit automatischem Todespunkt.",
+        : Module("Waypoints", "Eigene Markierungen mit Beam, Name und Entfernung, auch als Randpfeil.",
                  Category::Visual, {"hud-self"}) {
         sub("Welt");
         require(need::player | game::Domain::Camera, need::sigs({"LocalPlayer"}));

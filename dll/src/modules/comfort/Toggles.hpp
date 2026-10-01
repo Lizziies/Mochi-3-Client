@@ -78,7 +78,7 @@ protected:
 
 class ToggleSprint : public StickyKey {
 public:
-    ToggleSprint() : StickyKey("Toggle Sprint", "Sprinten bleibt an, bis du die Sprint-Taste noch einmal drückst, oder läuft automatisch beim Vorwärtsgehen.", VK_LCONTROL, {0.01f, 0.90f}, "[Sprint: an]", "[Sprint: aus]") {}
+    ToggleSprint() : StickyKey("Toggle Sprint", "Sprinten bleibt an, bis du die Taste noch einmal drückst.", VK_LCONTROL, {0.01f, 0.90f}, "[Sprint: an]", "[Sprint: aus]") {}
 
 protected:
     int mode() const override { return mode_.i; }

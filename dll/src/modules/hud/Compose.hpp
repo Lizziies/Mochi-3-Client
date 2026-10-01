@@ -26,7 +26,7 @@
 class StatsHud : public HudModule {
 public:
     StatsHud()
-        : HudModule("Stats HUD", "Ein Block mit frei wählbaren Zeilen: FPS, CPS, Ping, Position, Tempo, Leben, Uhr, RAM und mehr. Ersetzt viele einzelne HUDs.",
+        : HudModule("Stats HUD", "Ein Block mit wählbaren Zeilen: FPS, CPS, Ping, Position, Leben, Uhr, RAM.",
                     {"hud-self"}, {0.01f, 0.36f}) {
         sub("Eigene Werte");
     }
@@ -119,7 +119,7 @@ private:
 class Watermark : public HudModule {
 public:
     Watermark()
-        : HudModule("Watermark", "Client-Logo mit Herz und Version, wahlweise als Text, Pille oder Verlauf. Gut für Screenshots und Videos.", {"cosmetic"},
+        : HudModule("Watermark", "Client-Logo mit Herz und Version als Text, Pille oder Verlauf.", {"cosmetic"},
                     {0.005f, 0.005f}) {
         sub("Eigene Werte");
         background_.b = false;
@@ -184,7 +184,7 @@ private:
 class DebugMenu : public Module {
 public:
     DebugMenu()
-        : Module("Debug Menu", "Debug-Anzeige im Java-Stil mit FPS, Position, Chunk, Blickrichtung, Biom, Speicher, Renderer und den aktiven Effekt-Kanälen.",
+        : Module("Debug Menu", "Debug-Anzeige im Java-Stil: FPS, Position, Chunk, Biom, Speicher, Renderer.",
                  Category::Hud, {"hud-self"}) {
         sub("Eigene Werte");
     }

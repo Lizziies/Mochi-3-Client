@@ -13,8 +13,7 @@ class FrameLimiter : public Module {
 public:
     FrameLimiter()
         : Module("Frame Limiter",
-                 "Präziser FPS-Limiter mit hochauflösendem Timer statt VSync. Hält Frametimes gleichmäßig, "
-                 "drosselt im Hintergrund und im Menü.",
+                 "Präziser FPS-Limiter, drosselt im Hintergrund und im Menü.",
                  Category::Performance, {"performance"}) {
         sub("Frame-Timing");
         fps_.visible = [this] { return mode_.i == 0; };
