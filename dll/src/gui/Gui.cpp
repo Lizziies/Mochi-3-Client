@@ -8,6 +8,7 @@
 #include "hook/Dx.hpp"
 #include "modules/HudModule.hpp"
 #include "modules/Manager.hpp"
+#include "modules/Tiers.hpp"
 #include "modules/client/ClickGui.hpp"
 #include "render/Draw.hpp"
 #include "render/Fonts.hpp"
@@ -42,6 +43,7 @@ static Module* shown = nullptr;
 static float panelAnim = 0.f;
 static char search[64] = "";
 static bool focusSearch = false;
+static bool showMore = false;
 static float gridT = 0.f;
 static size_t gridKey = 0;
 
@@ -124,7 +126,13 @@ bool wantsCursor() { return isOpen || hudEdit; }
 bool capturesKeyboard() { return isOpen || widgets::capturingKey() || keyboardClaim || ImGui::GetIO().WantTextInput; }
 void claimKeyboard() { keyboardClaimNext = true; }
 
+static bool visible(const Module& m) {
+    if (m.category() == Category::Client) return false;
+    return showMore || search[0] || modules::tierOf(m.name()) <= 2;
+}
+
 static bool matches(const Module& m) {
+    if (!visible(m)) return false;
     if (category >= 0 && (int)m.category() != category) return false;
     if (!search[0]) return true;
     auto lower = [](std::string s) {
@@ -309,7 +317,7 @@ static void drawSidebar(float width) {
     std::vector<Row> rows;
     int total = 0;
     for (auto c : order) {
-        int n = (int)std::count_if(modules::all().begin(), modules::all().end(), [c](auto& m) { return m->category() == c; });
+        int n = (int)std::count_if(modules::all().begin(), modules::all().end(), [c](auto& m) { return m->category() == c && visible(*m); });
         if (!n) continue;
         total += n;
         rows.push_back({categoryName(c), (int)c, n});
@@ -340,6 +348,17 @@ static void drawSidebar(float width) {
             category = rows[i].cat;
             selected = nullptr;
         }
+    }
+
+    {
+        ImGui::Dummy({0, 8 * s});
+        ImGui::SetCursorPosX(18 * s);
+        ImGui::AlignTextToFramePadding();
+        ImGui::PushStyleColor(ImGuiCol_Text, t.textDim);
+        ImGui::TextUnformatted(i18n::tr("More modules"));
+        ImGui::PopStyleColor();
+        ImGui::SameLine(width - 62 * s);
+        widgets::toggle("showmore", showMore);
     }
 
     float footerY = ImGui::GetWindowHeight() - 58 * s;
@@ -447,6 +466,38 @@ static void smoothScroll() {
     last = next;
 }
 
+static bool statePill(const char* id, ImVec2 min, ImVec2 max, bool on, bool locked) {
+    auto& t = theme::current();
+    float s = ui::scale();
+    auto* dl = ImGui::GetWindowDrawList();
+    ImGui::SetCursorScreenPos(min);
+    bool clicked = ImGui::InvisibleButton(id, max - min) && !locked;
+    bool hovered = ImGui::IsItemHovered() && !locked;
+    float r = (max.y - min.y) * 0.5f;
+    const char* label = locked ? i18n::tr("Unavailable") : i18n::tr(on ? "Enabled" : "Disabled");
+    if (on && !locked) {
+        draw::gradientRect(dl, min, max, theme::col(theme::mix(t.accent, t.accent2, hovered ? 0.35f : 0.f)), theme::col(t.accent2), r);
+    } else {
+        dl->AddRectFilled(min, max, theme::col(locked ? t.surface : theme::mix(t.surfaceHover, t.text, hovered ? 0.08f : 0.f), locked ? 0.6f : 1.f), r);
+    }
+    ImVec2 ts = ImGui::CalcTextSize(label);
+    ImVec4 tc = on && !locked ? t.bg : (locked ? t.off : t.textDim);
+    dl->AddText(fonts::bold(), 14.f * s, {(min.x + max.x) * 0.5f - ts.x * 0.5f, (min.y + max.y) * 0.5f - ts.y * 0.5f}, theme::col(tc), label);
+    return clicked;
+}
+
+static bool gearButton(const char* id, ImVec2 min, float size, bool active) {
+    auto& t = theme::current();
+    float s = ui::scale();
+    auto* dl = ImGui::GetWindowDrawList();
+    ImGui::SetCursorScreenPos(min);
+    bool clicked = ImGui::InvisibleButton(id, {size, size});
+    bool hovered = ImGui::IsItemHovered();
+    dl->AddRectFilled(min, min + ImVec2(size, size), theme::col(active ? t.accent : theme::mix(t.surfaceHover, t.text, hovered ? 0.08f : 0.f), active ? 0.25f : 1.f), size * 0.35f);
+    glyph(dl, 12, min + ImVec2(size, size) * 0.5f, size * 0.3f, theme::col(active ? t.accent : (hovered ? t.text : t.textDim)));
+    return clicked;
+}
+
 static void drawCard(Module& m, ImVec2 size, bool isSelected) {
     auto& t = theme::current();
     float s = ui::scale();
@@ -465,67 +516,59 @@ static void drawCard(Module& m, ImVec2 size, bool isSelected) {
     ImVec2 min = p - ImVec2(0, lift), max = p + size - ImVec2(0, lift);
     float dim = locked ? 0.5f : 1.f;
 
-    if (m.anim > 0.01f) draw::glow(dl, min, max, r, theme::col(t.accent, 0.4f * m.anim), 7 * s);
+    if (m.anim > 0.01f) draw::glow(dl, min, max, r, theme::col(t.accent, 0.35f * m.anim), 7 * s);
     ImVec4 base = theme::mix(t.surface, t.surfaceHover, m.hover);
     if (t.gradient && m.anim > 0.01f)
-        draw::gradientRect(dl, min, max, theme::col(theme::mix(base, t.accent, 0.16f * m.anim)), theme::col(base), r);
+        draw::gradientRect(dl, min, max, theme::col(theme::mix(base, t.accent, 0.14f * m.anim)), theme::col(base), r);
     else
         dl->AddRectFilled(min, max, theme::col(base, locked ? 0.6f : 1.f), r);
     if (isSelected) dl->AddRect(min, max, theme::col(t.accent), r, 0, 2.f * s);
-    else if (m.anim > 0.01f) dl->AddRect(min, max, theme::col(t.accent, 0.5f * m.anim), r, 0, 1.2f * s);
+    else if (m.anim > 0.01f) dl->AddRect(min, max, theme::col(t.accent, 0.45f * m.anim), r, 0, 1.2f * s);
 
     float pad = 14 * s;
-    float badge = 46 * s;
-    ImVec2 bmin = min + ImVec2(pad, (size.y - badge) * 0.5f);
+    float badge = 40 * s;
+    ImVec2 bmin = min + ImVec2(pad, pad);
     ImVec4 cc = catColor((int)m.category());
-    draw::gradientRect(dl, bmin, bmin + ImVec2(badge, badge), theme::col(cc, 0.95f * dim), theme::col(theme::mix(cc, t.accent2, 0.5f), 0.95f * dim), 12 * s);
-    glyph(dl, (int)m.category(), bmin + ImVec2(badge, badge) * 0.5f, 10 * s, theme::col(t.bg, 0.9f));
+    draw::gradientRect(dl, bmin, bmin + ImVec2(badge, badge), theme::col(cc, 0.95f * dim), theme::col(theme::mix(cc, t.accent2, 0.5f), 0.95f * dim), 11 * s);
+    glyph(dl, (int)m.category(), bmin + ImVec2(badge, badge) * 0.5f, 9 * s, theme::col(t.bg, 0.9f));
 
-    float tx = min.x + pad + badge + 14 * s;
-    float tw = max.x - tx - pad - 46 * s;
-    ImVec4 title = locked ? t.textDim : t.text;
-    dl->AddText(fonts::bold(), 17 * s, {tx, min.y + pad - 1 * s}, theme::col(title), i18n::tr(m.name().c_str()));
+    float tx = min.x + pad + badge + 12 * s;
+    float tw = max.x - tx - pad - 20 * s;
+    dl->AddText(fonts::bold(), 17 * s, {tx, min.y + pad - 2 * s}, theme::col(locked ? t.textDim : t.text), i18n::tr(m.name().c_str()));
 
     std::string desc = i18n::tr(m.description().c_str());
     if (!m.available()) desc = i18n::tr("Not available on this Minecraft version yet.");
     else if (m.rule() == RuleLevel::Block) desc = m.ruleNote();
-    dl->PushClipRect({tx, min.y + pad + 22 * s}, {tx + tw, max.y - 8 * s}, true);
-    dl->AddText(fonts::regular(), 13.5f * s, {tx, min.y + pad + 23 * s}, theme::col(t.textDim), desc.c_str(), nullptr, tw);
+    dl->PushClipRect({tx, min.y + pad + 19 * s}, {tx + tw + 14 * s, min.y + pad + 46 * s}, true);
+    dl->AddText(fonts::regular(), 13.f * s, {tx, min.y + pad + 20 * s}, theme::col(t.textDim), desc.c_str(), nullptr, tw);
     dl->PopClipRect();
 
-    ImVec2 tp = {max.x - pad - 40 * s, min.y + pad - 1 * s};
     if (m.rule() == RuleLevel::Warn || m.risky()) {
-        ImVec2 c = {tp.x - 14 * s, tp.y + 11 * s};
+        ImVec2 c = {max.x - pad - 4 * s, min.y + pad + 8 * s};
         dl->AddTriangleFilled({c.x, c.y - 7 * s}, {c.x - 7 * s, c.y + 6 * s}, {c.x + 7 * s, c.y + 6 * s}, theme::col(t.warn));
         dl->AddText(fonts::bold(), 11 * s, {c.x - 1.5f * s, c.y - 4 * s}, theme::col(t.bg), "!");
+        if (ImGui::IsMouseHoveringRect(c - ImVec2(9 * s, 9 * s), c + ImVec2(9 * s, 9 * s)) && !m.ruleNote().empty()) {
+            ImGui::BeginTooltip();
+            ImGui::TextColored(t.warn, "%s", m.ruleNote().c_str());
+            ImGui::EndTooltip();
+        }
     }
-    ImGui::SetCursorScreenPos(tp);
+
+    float rowH = 30 * s;
+    float ry = max.y - pad - rowH + 2 * s;
+    bool openSettings = false;
+    if (gearButton("gear", {min.x + pad, ry}, rowH, isSelected)) openSettings = true;
     bool on = m.userEnabled() && !locked;
-    if (locked) {
-        ImVec2 lp = tp + ImVec2(20 * s, 11 * s);
-        dl->AddRectFilled(lp + ImVec2(-6 * s, -1 * s), lp + ImVec2(6 * s, 8 * s), theme::col(t.off), 2 * s);
-        dl->AddCircle(lp + ImVec2(0, -2 * s), 4 * s, theme::col(t.off), 12, 2 * s);
-    } else if (!m.alwaysOn() && widgets::toggle("t", on)) {
+    if (m.alwaysOn()) on = true;
+    if (statePill("state", {min.x + pad + rowH + 8 * s, ry}, {max.x - pad, ry + rowH}, on, locked) && !m.alwaysOn()) {
+        on = !on;
         m.setEnabled(on);
-        if (m.enabled()) burst(tp + ImVec2(20 * s, 0));
+        if (m.enabled()) burst({(min.x + max.x) * 0.5f, ry});
     }
 
-    int key = m.keybind().i;
-    if (key && !locked) {
-        std::string kn = widgets::keyName(key);
-        ImVec2 ks = ImGui::CalcTextSize(kn.c_str());
-        ImVec2 kp{max.x - pad - ks.x - 14 * s, max.y - pad - ks.y - 6 * s};
-        dl->AddRectFilled(kp, kp + ks + ImVec2(14 * s, 6 * s), theme::col(t.bg, 0.5f), 8 * s);
-        dl->AddText(kp + ImVec2(7 * s, 3 * s), theme::col(t.textDim), kn.c_str());
+    if (clicked || openSettings) {
+        if (!locked) selected = isSelected && openSettings ? nullptr : &m;
     }
-
-    if (hovered && (m.rule() == RuleLevel::Warn || m.risky()) && !m.ruleNote().empty()) {
-        ImGui::BeginTooltip();
-        ImGui::TextColored(t.warn, "%s", m.ruleNote().c_str());
-        ImGui::EndTooltip();
-    }
-
-    if (clicked && !locked) selected = isSelected ? nullptr : &m;
     ImGui::SetCursorScreenPos(p + ImVec2(0, size.y));
     ImGui::PopID();
 }
@@ -548,7 +591,7 @@ static void drawGrid(float width) {
     float gap = 12 * s;
     int cols = std::max(1, int((avail + gap) / (290 * s + gap)));
     float w = (avail - gap * (cols - 1)) / cols;
-    ImVec2 size{w, 88 * s};
+    ImVec2 size{w, 112 * s};
 
     std::vector<Module*> list;
     for (auto& m : modules::all())
@@ -641,59 +684,95 @@ static void drawSettingsPanel(ImVec2 origin, ImVec2 size) {
         dl->AddLine(cx + ImVec2(-4 * s, -4 * s), cx + ImVec2(4 * s, 4 * s), xc, 1.8f * s);
         dl->AddLine(cx + ImVec2(4 * s, -4 * s), cx + ImVec2(-4 * s, 4 * s), xc, 1.8f * s);
         if (closeClicked) selected = nullptr;
-        ImGui::SetCursorScreenPos(hp + ImVec2(0, badge + 12 * s));
+        ImGui::SetCursorScreenPos(hp + ImVec2(0, badge + 8 * s));
+        bool locked = !m.available() || m.rule() == RuleLevel::Block;
+        bool on = (m.userEnabled() && !locked) || m.alwaysOn();
+        float full = ImGui::GetContentRegionAvail().x;
+        if (statePill("headerstate", ImGui::GetCursorScreenPos(), ImGui::GetCursorScreenPos() + ImVec2(full, 34 * s), on, locked) && !m.alwaysOn())
+            m.setEnabled(!on);
+        ImGui::SetCursorScreenPos(hp + ImVec2(0, badge + 8 * s + 42 * s));
     }
     widgets::hint(m.description().c_str());
     if (!m.ruleNote().empty()) ImGui::TextColored(t.warn, "%s", m.ruleNote().c_str());
-    ImGui::Dummy({0, 4 * s});
-    ImGui::Separator();
-
-    if (!m.alwaysOn()) {
-        bool on = m.userEnabled();
-        ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted(i18n::tr("Active"));
-        ImGui::SameLine();
-        ImGui::SetCursorPosX(ImGui::GetWindowContentRegionMax().x - 40 * s);
-        if (widgets::toggle("enabled", on)) m.setEnabled(on);
-    }
+    ImGui::Dummy({0, 6 * s});
 
     auto* hud = dynamic_cast<HudModule*>(&m);
     auto isStyle = [hud](const Setting& st) {
-        static const char* ids[] = {"bg", "bgColor", "textColor", "accent", "rounding", "padding", "shadow", "scale"};
-        if (!hud) return false;
+        static const char* ids[] = {"bg", "rounding", "padding", "shadow", "accent", "scale"};
+        if (!hud || st.type == SettingType::Color) return false;
         for (auto id : ids)
             if (st.id == id) return true;
         return false;
     };
+    auto isCore = [](const Setting& st) { return st.id == "key" || st.id == "hold" || st.id == "x" || st.id == "y"; };
 
-    for (auto& set : m.settings()) {
-        if (set.type == SettingType::Key && m.alwaysOn() && set.id != "key") continue;
-        if (isStyle(set)) continue;
-        widgets::setting(set);
+    {
+        ImGui::BeginChild("top", {0, 58 * s}, 0, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoScrollbar);
+        auto* dl = ImGui::GetWindowDrawList();
+        ImVec2 cp = ImGui::GetCursorScreenPos();
+        float full = ImGui::GetContentRegionAvail().x;
+        float half = (full - 10 * s) * 0.5f;
+        float h = 52 * s;
+        dl->AddRectFilled(cp, cp + ImVec2(half, h), theme::col(t.surfaceHover, 0.55f), 12 * s);
+        dl->AddText(fonts::bold(), 14.5f * s, cp + ImVec2(12 * s, 8 * s), theme::col(t.text), i18n::tr("Hold mode"));
+        dl->AddText(fonts::regular(), 12.f * s, cp + ImVec2(12 * s, 28 * s), theme::col(t.textDim), i18n::tr("Only on while the key is held"));
+        ImGui::SetCursorScreenPos(cp + ImVec2(half - 54 * s, 14 * s));
+        widgets::toggle("hold", m.hold().b);
+
+        ImVec2 kp = cp + ImVec2(half + 10 * s, 0);
+        dl->AddRectFilled(kp, kp + ImVec2(half, h), theme::col(t.surfaceHover, 0.55f), 12 * s);
+        dl->AddText(fonts::bold(), 14.5f * s, kp + ImVec2(12 * s, 8 * s), theme::col(t.text), i18n::tr("Keybind"));
+        dl->AddText(fonts::regular(), 12.f * s, kp + ImVec2(12 * s, 28 * s), theme::col(t.textDim), i18n::tr("Click, then press a key"));
+        ImGui::SetCursorScreenPos(kp + ImVec2(half - 112 * s, 12 * s));
+        widgets::keyCapture("key", m.keybind().i);
+        ImGui::EndChild();
     }
-    m.drawSettings();
 
-    if (hud) {
-        static bool styleOpen = false;
-        static float styleAnim = 0.f;
-        ImGui::Dummy({0, 6 * s});
-        if (widgets::button(styleOpen ? "Hide style options" : "Style options")) styleOpen = !styleOpen;
-        styleAnim = draw::approach(styleAnim, styleOpen ? 1.f : 0.f, 14.f * t.animSpeed);
-        if (styleAnim > 0.01f) {
-            float outer = theme::fade();
-            theme::setFade(outer * styleAnim);
-            ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * styleAnim);
+    ImGui::BeginChild("settingsScroll", {0, -46 * s}, 0, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoScrollWithMouse);
+    smoothScroll();
+
+    auto group = [&](const char* title, auto&& belongs) {
+        bool any = false;
+        for (auto& set : m.settings())
+            if (!isCore(set) && belongs(set) && set.shown()) any = true;
+        if (!any) return;
+        ImGuiID id = ImGui::GetID(title);
+        bool& open = *ImGui::GetStateStorage()->GetBoolRef(id, true);
+        ImVec2 hp = ImGui::GetCursorScreenPos();
+        float w = ImGui::GetContentRegionAvail().x;
+        bool clicked = ImGui::InvisibleButton(title, {w, 34 * s});
+        bool hov = ImGui::IsItemHovered();
+        auto* dl = ImGui::GetWindowDrawList();
+        dl->AddRectFilled(hp, hp + ImVec2(w, 34 * s), theme::col(t.surfaceHover, hov ? 0.8f : 0.5f), 10 * s);
+        dl->AddText(fonts::bold(), 16.f * s, hp + ImVec2(14 * s, 8 * s), theme::col(t.text), i18n::tr(title));
+        ImVec2 ac{hp.x + w - 22 * s, hp.y + 17 * s};
+        if (open) dl->AddTriangleFilled(ac + ImVec2(-5 * s, -3 * s), ac + ImVec2(5 * s, -3 * s), ac + ImVec2(0, 4 * s), theme::col(t.textDim));
+        else dl->AddTriangleFilled(ac + ImVec2(-3 * s, -5 * s), ac + ImVec2(-3 * s, 5 * s), ac + ImVec2(4 * s, 0), theme::col(t.textDim));
+        if (clicked) open = !open;
+        if (open) {
+            ImGui::Dummy({0, 4 * s});
             for (auto& set : m.settings())
-                if (isStyle(set)) widgets::setting(set);
-            ImGui::PopStyleVar();
-            theme::setFade(outer);
+                if (!isCore(set) && belongs(set)) widgets::setting(set);
         }
-        ImGui::Dummy({0, 6 * s});
-        if (widgets::button("Change position in the HUD editor")) setEditingHud(true);
-        ImGui::SameLine();
-        if (widgets::button("Reset")) {
-            hud->setPosition({20 * s, 120 * s});
-            hud->setScale(1.f);
+        ImGui::Dummy({0, 8 * s});
+    };
+
+    group("General", [&](const Setting& st) { return st.type != SettingType::Color && !isStyle(st); });
+    m.drawSettings();
+    group("Style", [&](const Setting& st) { return isStyle(st); });
+    group("Colors", [&](const Setting& st) { return st.type == SettingType::Color; });
+    ImGui::EndChild();
+
+    {
+        ImGui::Dummy({0, 4 * s});
+        if (widgets::button("Reset all", {0, 0}, false))
+            m.resetSettings([](const Setting& st) { return st.id != "x" && st.id != "y" && st.id != "key"; });
+        if (hud) {
+            ImGui::SameLine();
+            if (widgets::button("Reset position", {0, 0}, false))
+                m.resetSettings([](const Setting& st) { return st.id == "x" || st.id == "y" || st.id == "scale"; });
+            ImGui::SameLine();
+            if (widgets::button("Edit HUD", {0, 0}, true)) setEditingHud(true);
         }
     }
     ImGui::End();

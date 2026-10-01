@@ -28,6 +28,19 @@ Module::Module(std::string name, std::string description, Category category, std
     : name_(std::move(name)), description_(std::move(description)), category_(category), tags_(std::move(tags)),
       sigs_(std::move(sigs)) {
     key_ = &keySetting("key", "Key");
+    hold_ = &toggleSetting("hold", "Hold mode", false);
+    hold_->hidden = true;
+}
+
+void Module::captureDefaults() {
+    defaults_.clear();
+    for (auto& s : settings_) defaults_.push_back(s.save());
+}
+
+void Module::resetSettings(const std::function<bool(const Setting&)>& which) {
+    for (size_t i = 0; i < settings_.size() && i < defaults_.size(); i++)
+        if (which(settings_[i])) settings_[i].load(defaults_[i]);
+    config::markDirty();
 }
 
 Setting& Module::add(Setting s) {

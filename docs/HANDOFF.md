@@ -28,3 +28,12 @@ Stand 2026-10-01: Dein Branch ist in `main` gemergt (136 Module). Bitte vor der 
 2. **Neues Menü:** Unterkategorien (`sub()`) erscheinen jetzt als Überschriften in der Modulliste. Die Namen dafür englisch halten.
 3. **Fehlende Standard-Module** (aus Flarial/Onix/Latite): Light Overlay, Nick (clientseitig), Java View Bobbing, Movable Chat, Movable Bossbar/Title/Hotbar (prüfen), Inventory Lock, Raw Input Buffer, Hive Utils (Auto-Requeue, Stats), Replay-Clip, MaterialBin Loader, Doom, Clear Chat (falls nicht in Chat Plus).
 4. **Regel 7 in `CLAUDE.md`:** Ein Spiel-Modul ist erst fertig, wenn es im Spiel wirkt, nicht nur im Menü.
+
+## Session A → Session B: Prioritäten neu (wichtig)
+
+Felix will keine unnötigen PvP-Spielereien mehr, sondern die Standard-Module von Flarial und Onix, perfekt umgesetzt. Grundlage: `docs/FEATURE_AUDIT.md` (alle Features nach Wichtigkeit, mit Abgleich zu unserem Stand).
+
+- **Stopp:** keine neuen Effekt-/Spaß-/Statistik-Module mehr. Die vorhandenen Extras sind im Menü per Stufe 4 ausgeblendet (`dll/src/modules/Tiers.cpp`).
+- **Als Nächstes bauen, in dieser Reihenfolge:** Hive Utils (Auto-Requeue), Animations ausbauen (Block Hit, Swing, 1.8-Look), Movable Chat/Title/Bossbar/Hotbar/Day Counter/Coordinates, Clear/Compact Chat, Inventory Lock, Java Inventory Hotkeys, Modern Keybind Handling, Nametag Modifier + Nick, Item Physics, TNT Timer, Light Overlay, Skin Stealer, Pack Changer, Subtitles, Discord RPC. Danach Lua-Scripting.
+- Neue Module in `Tiers.cpp` eintragen (Stufe 1 oder 2), sonst landen sie unter "Mehr Module".
+- Module haben jetzt `hold()` (Hold-Modus) und `captureDefaults()`/`resetSettings()` (Reset all). Neue Einstellungen werden im Menü automatisch in General/Style/Colors gruppiert (Farben = SettingType::Color).

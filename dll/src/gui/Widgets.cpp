@@ -10,6 +10,7 @@
 #include <windows.h>
 
 #include <algorithm>
+#include <cmath>
 
 namespace widgets {
 
@@ -203,6 +204,56 @@ static bool colorEdit(Setting& s) {
     return changed;
 }
 
+static bool pillSlider(float& v, float lo, float hi, const char* fmt, bool isInt) {
+    auto& t = theme::current();
+    float sc = ui::scale();
+    auto* dl = ImGui::GetWindowDrawList();
+    ImVec2 p = ImGui::GetCursorScreenPos();
+    float avail = ImGui::GetContentRegionAvail().x;
+    float h = ImGui::GetFrameHeight();
+    float pillW = 62 * sc;
+
+    char buf[32];
+    if (isInt) snprintf(buf, sizeof(buf), "%d", (int)std::lround(v));
+    else snprintf(buf, sizeof(buf), fmt, v);
+    ImVec2 ts = ImGui::CalcTextSize(buf);
+    dl->AddRectFilled(p, {p.x + pillW, p.y + h}, theme::col(t.surfaceHover), 8 * sc);
+    dl->AddText({p.x + (pillW - ts.x) * 0.5f, p.y + (h - ts.y) * 0.5f}, theme::col(t.text), buf);
+
+    float x0 = p.x + pillW + 14 * sc, x1 = p.x + avail - 8 * sc;
+    ImGui::SetCursorScreenPos({x0 - 8 * sc, p.y});
+    ImGui::InvisibleButton("slider", {x1 - x0 + 16 * sc, h});
+    bool active = ImGui::IsItemActive();
+    bool hovered = ImGui::IsItemHovered();
+
+    bool changed = false;
+    if (active) {
+        float k = std::clamp((ImGui::GetIO().MousePos.x - x0) / std::max(1.f, x1 - x0), 0.f, 1.f);
+        float nv = lo + k * (hi - lo);
+        if (isInt) nv = std::round(nv);
+        if (nv != v) {
+            v = nv;
+            changed = true;
+        }
+    }
+    float frac = hi > lo ? std::clamp((v - lo) / (hi - lo), 0.f, 1.f) : 0.f;
+    float cy = p.y + h * 0.5f;
+    dl->AddRectFilled({x0, cy - 2 * sc}, {x1, cy + 2 * sc}, theme::col(t.off), 2 * sc);
+    dl->AddRectFilled({x0, cy - 2 * sc}, {x0 + (x1 - x0) * frac, cy + 2 * sc}, theme::col(t.accent), 2 * sc);
+    float kr = (active ? 8.5f : hovered ? 8.f : 7.f) * sc;
+    dl->AddCircleFilled({x0 + (x1 - x0) * frac, cy}, kr, theme::col(t.accent2), 16);
+    dl->AddCircle({x0 + (x1 - x0) * frac, cy}, kr, theme::col(t.accent), 16, 1.5f * sc);
+    return changed;
+}
+
+static std::string hexOf(const ImVec4& c) {
+    auto b = [](float x) { return (int)std::lround(std::clamp(x, 0.f, 1.f) * 255.f); };
+    char buf[16];
+    if (b(c.w) < 255) snprintf(buf, sizeof(buf), "#%02X%02X%02X%02X", b(c.x), b(c.y), b(c.z), b(c.w));
+    else snprintf(buf, sizeof(buf), "#%02X%02X%02X", b(c.x), b(c.y), b(c.z));
+    return buf;
+}
+
 bool setting(Setting& s) {
     if (!s.shown()) return false;
     float sc = ui::scale();
@@ -223,13 +274,26 @@ bool setting(Setting& s) {
         break;
     }
     case SettingType::Float:
-        changed = ImGui::SliderFloat("##v", &s.f, s.fmin, s.fmax, s.format);
+        changed = pillSlider(s.f, s.fmin, s.fmax, s.format, false);
         break;
-    case SettingType::Int:
-        changed = ImGui::SliderInt("##v", &s.i, s.imin, s.imax);
+    case SettingType::Int: {
+        float v = (float)s.i;
+        changed = pillSlider(v, (float)s.imin, (float)s.imax, "%d", true);
+        if (changed) s.i = (int)std::lround(v);
         break;
+    }
     case SettingType::Color: {
         ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x - ImGui::GetFrameHeight());
+        {
+            auto& th = theme::current();
+            std::string hex = hexOf(s.color);
+            ImVec2 hs = ImGui::CalcTextSize(hex.c_str());
+            ImVec2 sp = ImGui::GetCursorScreenPos();
+            float pw = hs.x + 20 * sc, fh = ImGui::GetFrameHeight();
+            auto* dl = ImGui::GetWindowDrawList();
+            dl->AddRectFilled({sp.x - pw - 8 * sc, sp.y}, {sp.x - 8 * sc, sp.y + fh}, theme::col(th.surfaceHover), 8 * sc);
+            dl->AddText({sp.x - pw - 8 * sc + 10 * sc, sp.y + (fh - hs.y) * 0.5f}, theme::col(th.text), hex.c_str());
+        }
         changed = colorEdit(s);
         break;
     }

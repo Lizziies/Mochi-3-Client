@@ -3,6 +3,19 @@
 namespace {
 
 const i18n::Entry entries[] = {
+    {"Enabled", "Aktiv"},
+    {"Disabled", "Aus"},
+    {"Unavailable", "Nicht verfügbar"},
+    {"Hold mode", "Halten-Modus"},
+    {"Only on while the key is held", "Nur an, solange die Taste gehalten wird"},
+    {"Keybind", "Taste"},
+    {"Click, then press a key", "Klicken, dann Taste drücken"},
+    {"General", "Allgemein"},
+    {"Style", "Stil"},
+    {"Colors", "Farben"},
+    {"Reset all", "Alles zurücksetzen"},
+    {"Reset position", "Position zurücksetzen"},
+    {"More modules", "Mehr Module"},
     {"MODULES", "MODULE"},
     {"Edit HUD", "HUD bearbeiten"},
     {"Appearance", "Aussehen"},

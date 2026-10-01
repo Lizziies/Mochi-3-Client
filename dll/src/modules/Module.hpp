@@ -8,6 +8,7 @@
 #include <json.hpp>
 
 #include <deque>
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -64,6 +65,10 @@ public:
 
     std::deque<Setting>& settings() { return settings_; }
     Setting& keybind() { return *key_; }
+    Setting& hold() { return *hold_; }
+    bool holdMode() const { return hold_ && hold_->b; }
+    void captureDefaults();
+    void resetSettings(const std::function<bool(const Setting&)>& which);
 
     bool risky() const { return risky_; }
 
@@ -111,6 +116,8 @@ private:
     std::vector<std::string> blockedOptions_;
     std::deque<Setting> settings_;
     Setting* key_ = nullptr;
+    Setting* hold_ = nullptr;
+    std::vector<nlohmann::json> defaults_;
     unsigned needs_ = 0;
     bool anySig_ = false;
     bool enabled_ = false;

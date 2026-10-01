@@ -1,0 +1,55 @@
+#include "Tiers.hpp"
+
+#include <string_view>
+#include <unordered_map>
+
+namespace modules {
+
+namespace {
+
+constexpr std::string_view core[] = {
+    "CPS", "FPS", "Ping Counter", "Keystrokes", "Armor HUD", "Potion HUD", "Coordinates", "Toggle Sprint",
+    "Toggle Sneak", "Reach Counter", "Combo Counter", "Zoom", "Fullbright", "Freelook", "FOV Changer", "Hurt Color",
+    "No Hurt Cam", "No View Bobbing", "Custom Crosshair", "Block Outline", "Animations", "Render Options", "Auto GG",
+    "Scoreboard", "GUI Scale", "Instant Input", "Low Latency", "Latency", "Network", "Frame Limiter",
+};
+
+constexpr std::string_view expected[] = {
+    "Clock", "Direction HUD", "Speed Display", "Server Display", "IP Display", "Paperdoll", "Tab List", "Hitbox",
+    "Motion Blur", "Waypoints", "Debug Menu", "Mouse Strokes", "Arrow Counter", "Pot Counter", "Totem Counter",
+    "Item Counter", "Opponent Reach", "Hit Ping", "Low Health Indicator", "Better Hunger Bar", "Waila",
+    "Command Hotkey", "Text Hotkey", "Disable Mouse Wheel", "Java Dynamic FOV", "Minimal View Bobbing",
+    "Particle Multiplier", "Time Changer", "Weather Changer", "Environment Changer", "Death Logger",
+    "Player Notifier", "Chunk Border", "Break Progress", "Cinematic Camera", "Snap Look", "Auto Perspective",
+    "Sens Multiplier", "Bow Sensitivity", "Stopwatch", "Memory", "Experience Info", "Durability Warning",
+    "Streamer Mode", "Server Profiles", "Chat Plus", "View Model", "Saturation / Hue", "Screenshot+", "Target HUD",
+    "Session Timer", "Day Counter", "Hide Hand", "Entity Counter",
+};
+
+constexpr std::string_view extras[] = {
+    "Pet", "Petals", "Pomodoro", "Block Game", "Snake", "Flappy Heart", "DVD Screen", "20-20-20", "Watermark",
+    "Kill Effects", "Hit Effects", "Hit Sound", "Totem Pop", "Match Summary", "Session Stats", "Hit Info",
+    "Stats HUD", "Night Shift", "Sharpen", "Color Filter", "Brightness / Contrast", "Screen Tint", "Deepfry",
+    "Upside Down", "Depth of Field", "Background Load", "Auto Profile", "Damage Indicator", "Hit Marker",
+    "Bow Charge", "Cooldown Indicator",
+};
+
+const std::unordered_map<std::string_view, int>& table() {
+    static const auto map = [] {
+        std::unordered_map<std::string_view, int> m;
+        for (auto n : core) m[n] = 1;
+        for (auto n : expected) m[n] = 2;
+        for (auto n : extras) m[n] = 4;
+        return m;
+    }();
+    return map;
+}
+
+}
+
+int tierOf(const std::string& name) {
+    auto it = table().find(name);
+    return it == table().end() ? 3 : it->second;
+}
+
+}
