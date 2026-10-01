@@ -33,3 +33,4 @@ Kurze Chronik, damit jede neue Session weiß, was schon passiert ist.
 - Phase 6: Hotbar Armor, Fall Predictor, Inventory Viewer, Arrow Trail, Black Bars, Left Hand, Gamemode Hotkeys, Third Person Nametag.
 - Phase 7: Politur, Modul-Dump und Doku-Generator, `tools/cross.sh tour`, Nachträge in PARITY.md und FEATURES.md.
 - Merge von main in modules-b (Client Settings, HUD-Editor-Einrasten, Self-Test, "Info displays"), Konflikte in Chat/Clock/Compose/Cps/GameInfo/Keystrokes aufgelöst, Self-Test grün, fehlende deutsche Texte ergänzt, MODULES.md neu erzeugt.
+- Mochi Online: Client-Modul mit Herz, Namensstilen und Tags in Tab-Liste und Chat, Dienst in `server/` mit Tests, Strg+L-Fix in `hook/Input.cpp`.
