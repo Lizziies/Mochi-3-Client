@@ -147,7 +147,7 @@ def dog_tail():
 
 
 def bandana():
-    it = Item("mochi_bandana", "Bandana", "head", [("Cloth", "#ff4f93"), ("Accent", "#ffe1ee")])
+    it = Item("mochi_bandana", "Bandana", "face", [("Cloth", "#ff4f93"), ("Accent", "#ffe1ee")])
     b = it.bone("band", (0, 29, 0))
     it.tube(b, [(0, 28.2, 0, 4.42, 4.42), (0, 30.2, 0, 4.42, 4.42)], "Cloth", sides=28, power=7.0)
     it.tube(b, [(0, 29.55, 0, 4.47, 4.47), (0, 29.95, 0, 4.47, 4.47)], "Accent", sides=28, power=7.0)

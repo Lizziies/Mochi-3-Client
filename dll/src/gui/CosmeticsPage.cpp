@@ -28,8 +28,8 @@ float yaw = 25.f;
 int motion = 0;
 cosmetics::Rig rig;
 const char* motions[] = {"Auto", "Idle", "Walk", "Sprint", "Jump"};
-const char* slots[] = {"All", "Wings", "Capes", "Head", "Back", "Body", "Feet"};
-const char* slotIds[] = {"", "wings", "cape", "head", "back", "body", "feet"};
+const char* slots[] = {"All", "Wings", "Capes", "Head", "Face", "Back", "Body", "Feet"};
+const char* slotIds[] = {"", "wings", "cape", "head", "face", "back", "body", "feet"};
 
 std::vector<std::string> split(const std::string& s) {
     std::vector<std::string> out;
@@ -107,7 +107,7 @@ struct Frame {
 };
 
 Frame cardFrame(const std::string& slot) {
-    if (slot == "head") return {30.f, 4.3f, 25.f};
+    if (slot == "head" || slot == "face") return {30.f, 4.3f, 25.f};
     if (slot == "feet") return {3.f, 5.6f, 30.f};
     if (slot == "body" || slot == "back") return {16.f, 2.6f, 155.f};
     return {19.f, 3.5f, 155.f};
@@ -149,7 +149,7 @@ void drawCosmeticsPage(ImVec2 origin, ImVec2 size) {
     ImGui::SetCursorScreenPos(origin);
     ImGui::BeginChild("cosmetics", {listW, size.y}, 0, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoScrollWithMouse);
     smoothScroll();
-    for (int i = 0; i < 7; i++) {
+    for (int i = 0; i < 8; i++) {
         if (i) ImGui::SameLine();
         if (widgets::button(slots[i], {0, 0}, slotFilter == i) && slotFilter != i) {
             slotFilter = i;

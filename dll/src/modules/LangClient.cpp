@@ -112,6 +112,7 @@ const i18n::Entry entries[] = {
     {"Head", "Kopf"},
     {"Body", "Körper"},
     {"Feet", "Füße"},
+    {"Face", "Gesicht"},
     {"Idle", "Ruhig"},
     {"Walk", "Gehen"},
     {"Cosmetics", "Cosmetics"},
