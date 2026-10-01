@@ -243,7 +243,8 @@ static void drawHub(float anim) {
     drawLogo(dl, {pos.x + pad, topY - 2 * s});
 
     float rx = pos.x + size.x - pad;
-    float bw = 92 * s, bh = 34 * s;
+    float bh = 34 * s;
+    float bw = std::max(92.f * s, ImGui::CalcTextSize(i18n::tr("Edit HUD")).x + 34 * s);
     ImGui::SetCursorScreenPos({rx - bw, topY});
     if (widgets::button("Edit HUD", {bw, bh}, true)) setEditingHud(true);
     if (circleButton("hubclose", {rx - bw - 10 * s - bh, topY}, bh, true, 0)) setOpen(false);
@@ -409,6 +410,7 @@ static void drawMenu() {
 }
 
 void draw() {
+    pollDevCommands();
     if (hudEdit) {
         hudeditor::draw();
         if (ImGui::IsKeyPressed(ImGuiKey_Escape, false)) {

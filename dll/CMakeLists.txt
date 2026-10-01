@@ -20,6 +20,15 @@ FetchContent_MakeAvailable(lua)
 file(GLOB LUA_SOURCES ${lua_SOURCE_DIR}/*.c)
 list(FILTER LUA_SOURCES EXCLUDE REGEX "/(lua|luac|onelua|ltests)\\.c$")
 
+set(CAPSTONE_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(CAPSTONE_BUILD_CSTOOL OFF CACHE BOOL "" FORCE)
+set(CAPSTONE_BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+set(CAPSTONE_BUILD_STATIC_RUNTIME ON CACHE BOOL "" FORCE)
+set(CAPSTONE_ARCHITECTURE_DEFAULT OFF CACHE BOOL "" FORCE)
+set(CAPSTONE_X86_SUPPORT ON CACHE BOOL "" FORCE)
+FetchContent_Declare(capstone GIT_REPOSITORY https://github.com/capstone-engine/capstone.git GIT_TAG 5.0.3 GIT_SHALLOW TRUE)
+FetchContent_MakeAvailable(capstone)
+
 set(IMGUI_SOURCES
     lib/imgui/imgui.cpp
     lib/imgui/imgui_draw.cpp
@@ -51,7 +60,8 @@ target_compile_definitions(Mochi PRIVATE
     IMGUI_DEFINE_MATH_OPERATORS
 )
 
-target_link_libraries(Mochi PRIVATE d3d11 d3d12 dxgi d3dcompiler ws2_32 winhttp version psapi winmm dwmapi bcrypt ole32)
+target_include_directories(Mochi PRIVATE ${capstone_SOURCE_DIR}/include)
+target_link_libraries(Mochi PRIVATE capstone d3d11 d3d12 dxgi d3dcompiler ws2_32 winhttp version psapi winmm dwmapi bcrypt ole32)
 
 if(MSVC)
     set_property(TARGET Mochi PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")

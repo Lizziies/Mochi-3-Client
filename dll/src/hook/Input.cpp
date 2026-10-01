@@ -387,13 +387,22 @@ bool gameplay() {
     int64_t now = qpc();
     flushSpy(now);
 
+    DWORD owner = 0;
+    GetWindowThreadProcessId(GetForegroundWindow(), &owner);
+    if (owner != GetCurrentProcessId()) {
+        hiddenSince = 0;
+        lastPlaying = 0;
+        if (playing.exchange(false)) logger::info("gameplay heuristic: menus (game not focused)");
+        return false;
+    }
+
     CURSORINFO ci{sizeof(ci)};
     bool hidden = GetCursorInfo(&ci) && !(ci.flags & CURSOR_SHOWING);
     if (!hidden) {
         hiddenSince = 0;
     } else {
         if (!hiddenSince) hiddenSince = now;
-        if (now - hiddenSince > qpf.QuadPart * 3 / 10) lastPlaying = now;
+        if (now - hiddenSince > qpf.QuadPart * 12 / 10) lastPlaying = now;
     }
 
     int64_t last = lastPlaying;

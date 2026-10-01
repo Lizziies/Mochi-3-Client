@@ -224,8 +224,12 @@ void drawCosmeticsPage(ImVec2 origin, ImVec2 size) {
     ImGui::SetCursorScreenPos({po.x + 14 * s, po.y + stageH + 6 * s});
     ImGui::BeginChild("cosmeticLook", {previewW - 28 * s, size.y - stageH - 12 * s}, 0, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoScrollWithMouse);
     smoothScroll();
+    float limit = ImGui::GetWindowPos().x + ImGui::GetWindowWidth();
     for (int i = 0; i < 5; i++) {
-        if (i) ImGui::SameLine();
+        if (i) {
+            float next = ImGui::CalcTextSize(i18n::tr(motions[i])).x + 28 * s;
+            if (ImGui::GetItemRectMax().x + ImGui::GetStyle().ItemSpacing.x + next <= limit) ImGui::SameLine();
+        }
         if (widgets::button(motions[i], {0, 0}, motion == i)) motion = i;
     }
     if (cs) {

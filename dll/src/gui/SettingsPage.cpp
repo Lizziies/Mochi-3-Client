@@ -234,10 +234,15 @@ static void drawModuleDefaults() {
     ImGui::EndChild();
 }
 
+int& settingsTab() {
+    static int tab = 0;
+    return tab;
+}
+
 void drawSettingsPage(ImVec2 origin, ImVec2 size) {
     auto& t = theme::current();
     float s = ui::scale();
-    static int tab = 0;
+    int& tab = settingsTab();
     static const char* names[] = {"General", "Chat & watermark", "Appearance", "Modules", "Profiles", "About"};
     float navW = 210 * s;
     auto* dl = ImGui::GetWindowDrawList();

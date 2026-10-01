@@ -21,6 +21,8 @@ void drawServerChip(ImVec2 rowMin, ImVec2 rowMax, float right);
 
 Category catOf(const Module& m);
 void go(Page p);
+int& settingsTab();
+void pollDevCommands();
 Page page();
 Module*& selectedModule();
 void restartContentAnim();
