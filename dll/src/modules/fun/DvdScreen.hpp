@@ -11,7 +11,7 @@
 
 class DvdScreen : public Module {
 public:
-    DvdScreen() : Module("DVD Screen", "Ein hüpfendes Logo wie beim DVD-Bildschirmschoner.", Category::Fun, {"cosmetic"}) {}
+    DvdScreen() : Module("DVD Screen", "A bouncing logo like the DVD screensaver.", Category::Fun, {"cosmetic"}) {}
 
     void onRender(ImDrawList* dl) override {
         float s = ui::scale();
@@ -37,8 +37,8 @@ public:
     }
 
 private:
-    Setting& speed_ = slider("speed", "Tempo", 160.f, 40.f, 600.f, "%.0f");
-    Setting& opacity_ = slider("opacity", "Deckkraft", 0.8f, 0.1f, 1.f, "%.2f");
+    Setting& speed_ = slider("speed", "Speed", 160.f, 40.f, 600.f, "%.0f");
+    Setting& opacity_ = slider("opacity", "Opacity", 0.8f, 0.1f, 1.f, "%.2f");
     ImVec2 pos_{100, 100};
     ImVec2 vel_{0.7071f, 0.7071f};
     float hue_ = 0.9f;

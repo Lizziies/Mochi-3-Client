@@ -11,7 +11,7 @@ class Fps : public TextHud {
 public:
     bool defaultEnabled() const override { return true; }
 
-    Fps() : TextHud("FPS", "Zeigt deine Bilder pro Sekunde.", {"hud-self"}, {0.01f, 0.02f}) {}
+    Fps() : TextHud("FPS", "Shows your frames per second.", {"hud-self"}, {0.01f, 0.02f}) {}
 
     void onFrame() override {
         double ms = dx::frame().frameMs;
@@ -46,8 +46,8 @@ protected:
     }
 
 private:
-    Setting& lowShown_ = toggleSetting("low", "1% Low anzeigen", false);
-    Setting& interval_ = slider("interval", "Aktualisierung (s)", 0.5f, 0.1f, 2.f, "%.1f s");
+    Setting& lowShown_ = toggleSetting("low", "Show 1% low", false);
+    Setting& interval_ = slider("interval", "Update interval (s)", 0.5f, 0.1f, 2.f, "%.1f s");
     std::array<double, 512> samples_{};
     size_t head_ = 0;
     size_t count_ = 0;

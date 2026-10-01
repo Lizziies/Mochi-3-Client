@@ -8,7 +8,7 @@
 
 class Clock : public TextHud {
 public:
-    Clock() : TextHud("Clock", "Zeigt die aktuelle Uhrzeit.", {"hud-self"}, {0.01f, 0.10f}) {}
+    Clock() : TextHud("Clock", "Shows the current time.", {"hud-self"}, {0.01f, 0.10f}) {}
 
 protected:
     std::string value() override {
@@ -28,7 +28,7 @@ protected:
     }
 
 private:
-    Setting& twelve_ = toggleSetting("12h", "12-Stunden-Format", false);
-    Setting& seconds_ = toggleSetting("seconds", "Sekunden", false);
-    Setting& date_ = toggleSetting("date", "Datum", false);
+    Setting& twelve_ = toggleSetting("12h", "12-hour format", false);
+    Setting& seconds_ = toggleSetting("seconds", "Seconds", false);
+    Setting& date_ = toggleSetting("date", "Date", false);
 };

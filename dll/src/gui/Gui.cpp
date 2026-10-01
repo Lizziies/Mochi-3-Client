@@ -1,4 +1,5 @@
 #include "Gui.hpp"
+#include "I18n.hpp"
 #include "HudEditor.hpp"
 #include "Theme.hpp"
 #include "Widgets.hpp"
@@ -154,8 +155,9 @@ static bool sidebarItem(const char* label, bool active, float width) {
             dl->AddRectFilled(p, p + size, theme::col(t.surfaceHover, a), r);
     }
     if (active) dl->AddRectFilled({p.x, p.y + 9 * s}, {p.x + 3 * s, p.y + size.y - 9 * s}, theme::col(t.accent), 2 * s);
-    ImVec2 ts = ImGui::CalcTextSize(label);
-    dl->AddText({p.x + 16 * s, p.y + (size.y - ts.y) * 0.5f}, theme::col(active ? t.text : t.textDim), label);
+    const char* text = i18n::tr(label);
+    ImVec2 ts = ImGui::CalcTextSize(text);
+    dl->AddText({p.x + 16 * s, p.y + (size.y - ts.y) * 0.5f}, theme::col(active ? t.text : t.textDim), text);
     return clicked;
 }
 
@@ -186,7 +188,7 @@ static void drawSidebar(float width) {
     drawLogo(ImGui::GetWindowDrawList(), ImGui::GetCursorScreenPos());
     ImGui::Dummy({0, 44 * s});
 
-    if (sidebarItem("Alle Module", page == Page::Modules && category < 0, width)) {
+    if (sidebarItem("All modules", page == Page::Modules && category < 0, width)) {
         page = Page::Modules;
         category = -1;
         selected = nullptr;
@@ -220,7 +222,7 @@ static void drawSidebar(float width) {
 
     float bottom = ImGui::GetWindowHeight() - 44 * s;
     if (ImGui::GetCursorPosY() < bottom) ImGui::SetCursorPosY(bottom);
-    if (widgets::button("HUD bearbeiten", {width, 38 * s}, true)) setEditingHud(true);
+    if (widgets::button("Edit HUD", {width, 38 * s}, true)) setEditingHud(true);
     ImGui::EndChild();
 }
 
@@ -228,9 +230,9 @@ static void drawServerChip(ImVec2 rowMin, ImVec2 rowMax) {
     auto& t = theme::current();
     float s = ui::scale();
     auto info = rules::status();
-    std::string label = info.server.empty() ? "Kein Server" : info.server;
-    if (info.blocked) label += "  ·  " + std::to_string(info.blocked) + " gesperrt";
-    if (info.warned) label += "  ·  " + std::to_string(info.warned) + " Hinweise";
+    std::string label = info.server.empty() ? std::string(i18n::tr("No server")) : info.server;
+    if (info.blocked) label += "  ·  " + i18n::fmt("{} blocked", info.blocked);
+    if (info.warned) label += "  ·  " + i18n::fmt("{} notices", info.warned);
 
     ImVec2 ts = ImGui::CalcTextSize(label.c_str());
     ImVec2 size{ts.x + 30 * s, ImGui::GetFrameHeight()};
@@ -248,7 +250,7 @@ static void drawServerChip(ImVec2 rowMin, ImVec2 rowMax) {
         ImGui::BeginTooltip();
         if (!info.notice.empty()) ImGui::TextColored(t.warn, "%s", info.notice.c_str());
         for (auto& n : info.notes) ImGui::TextUnformatted(n.c_str());
-        if (!info.rulesUrl.empty()) ImGui::TextColored(t.textDim, "Regeln: %s", info.rulesUrl.c_str());
+        if (!info.rulesUrl.empty()) ImGui::TextColored(t.textDim, i18n::tr("Rules: %s"), info.rulesUrl.c_str());
         ImGui::EndTooltip();
     }
 }
@@ -262,7 +264,7 @@ static void drawTopBar() {
     }
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 99.f);
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {14 * s, 8 * s});
-    if (ImGui::InputTextWithHint("##search", "Modul suchen …", search, sizeof(search)) && search[0]) {
+    if (ImGui::InputTextWithHint("##search", i18n::tr("Search modules …"), search, sizeof(search)) && search[0]) {
         page = Page::Modules;
         selected = nullptr;
     }
@@ -295,10 +297,10 @@ static void drawCard(Module& m, ImVec2 size) {
 
     float pad = 14 * s;
     ImVec4 title = locked ? t.textDim : t.text;
-    dl->AddText(fonts::bold(), 18 * s, min + ImVec2(pad, pad - 2 * s), theme::col(title), m.name().c_str());
+    dl->AddText(fonts::bold(), 18 * s, min + ImVec2(pad, pad - 2 * s), theme::col(title), i18n::tr(m.name().c_str()));
 
-    std::string desc = m.description();
-    if (!m.available()) desc = "Auf dieser Minecraft-Version noch nicht verfügbar.";
+    std::string desc = i18n::tr(m.description().c_str());
+    if (!m.available()) desc = i18n::tr("Not available on this Minecraft version yet.");
     else if (m.rule() == RuleLevel::Block) desc = m.ruleNote();
     dl->AddText(fonts::regular(), 14.5f * s, min + ImVec2(pad, pad + 22 * s), theme::col(t.textDim), desc.c_str(),
                 nullptr, size.x - pad * 2 - 10 * s);
@@ -344,7 +346,7 @@ static void drawGrid() {
     for (auto& m : modules::all())
         if (matches(*m) && m->category() != Category::Client) shown.push_back(m.get());
 
-    if (shown.empty()) widgets::hint("Nichts gefunden.");
+    if (shown.empty()) widgets::hint("Nothing found.");
 
     ImVec2 origin = ImGui::GetCursorScreenPos();
     for (size_t i = 0; i < shown.size(); i++) {
@@ -374,10 +376,10 @@ static void drawSettingsPanel(ImVec2 origin, ImVec2 size) {
                  ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
                      ImGuiWindowFlags_NoFocusOnAppearing);
 
-    if (widgets::button("‹ Zurück")) selected = nullptr;
+    if (widgets::button("‹ Back")) selected = nullptr;
     ImGui::SameLine();
     ImGui::PushFont(fonts::bold(), 22.f);
-    ImGui::TextUnformatted(m.name().c_str());
+    ImGui::TextUnformatted(i18n::tr(m.name().c_str()));
     ImGui::PopFont();
     widgets::hint(m.description().c_str());
     if (!m.ruleNote().empty()) ImGui::TextColored(t.warn, "%s", m.ruleNote().c_str());
@@ -386,7 +388,7 @@ static void drawSettingsPanel(ImVec2 origin, ImVec2 size) {
     if (!m.alwaysOn()) {
         bool on = m.userEnabled();
         ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted("Aktiv");
+        ImGui::TextUnformatted(i18n::tr("Active"));
         ImGui::SameLine();
         ImGui::SetCursorPosX(ImGui::GetWindowContentRegionMax().x - 40 * s);
         if (widgets::toggle("enabled", on)) m.setEnabled(on);
@@ -400,9 +402,9 @@ static void drawSettingsPanel(ImVec2 origin, ImVec2 size) {
 
     if (auto* hud = dynamic_cast<HudModule*>(&m)) {
         ImGui::Dummy({0, 6 * s});
-        if (widgets::button("Position im HUD-Editor ändern")) setEditingHud(true);
+        if (widgets::button("Change position in the HUD editor")) setEditingHud(true);
         ImGui::SameLine();
-        if (widgets::button("Zurücksetzen")) {
+        if (widgets::button("Reset")) {
             hud->setPosition({20 * s, 120 * s});
             hud->setScale(1.f);
         }
@@ -416,7 +418,7 @@ static void drawSettingsPanel(ImVec2 origin, ImVec2 size) {
 static void colorRow(const char* label, ImVec4& c) {
     float col[4] = {c.x, c.y, c.z, c.w};
     ImGui::AlignTextToFramePadding();
-    ImGui::TextUnformatted(label);
+    ImGui::TextUnformatted(i18n::tr(label));
     ImGui::SameLine(ImGui::GetContentRegionAvail().x * 0.5f);
     if (ImGui::ColorEdit4((std::string("##") + label).c_str(), col, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar)) {
         c = {col[0], col[1], col[2], col[3]};
@@ -429,7 +431,7 @@ static void drawThemes() {
     auto& t = theme::current();
     float s = ui::scale();
     ImGui::BeginChild("themes", {0, 0}, 0, ImGuiWindowFlags_NoBackground);
-    widgets::sectionTitle("Vorlagen");
+    widgets::sectionTitle("Presets");
 
     float avail = ImGui::GetContentRegionAvail().x;
     float gap = 10 * s;
@@ -459,21 +461,21 @@ static void drawThemes() {
     int rows = int((presets.size() + cols - 1) / cols);
     ImGui::SetCursorScreenPos(origin + ImVec2(0, rows * (74 * s + gap)));
 
-    widgets::sectionTitle("Eigenes Theme");
-    colorRow("Hintergrund", t.bg);
-    colorRow("Flächen", t.surface);
-    colorRow("Flächen (Hover)", t.surfaceHover);
-    colorRow("Akzent", t.accent);
-    colorRow("Akzent 2", t.accent2);
+    widgets::sectionTitle("Custom theme");
+    colorRow("Background", t.bg);
+    colorRow("Surfaces", t.surface);
+    colorRow("Surfaces (hover)", t.surfaceHover);
+    colorRow("Accent", t.accent);
+    colorRow("Accent 2", t.accent2);
     colorRow("Text", t.text);
-    colorRow("Text gedimmt", t.textDim);
-    colorRow("Erfolg", t.ok);
-    colorRow("Warnung", t.warn);
-    colorRow("Aus", t.off);
+    colorRow("Dimmed text", t.textDim);
+    colorRow("Success", t.ok);
+    colorRow("Warning", t.warn);
+    colorRow("Off", t.off);
 
     auto sliderRow = [&](const char* label, float& v, float a, float b, const char* fmt) {
         ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted(label);
+        ImGui::TextUnformatted(i18n::tr(label));
         ImGui::SameLine(ImGui::GetContentRegionAvail().x * 0.5f);
         ImGui::SetNextItemWidth(-1);
         if (ImGui::SliderFloat((std::string("##") + label).c_str(), &v, a, b, fmt)) {
@@ -481,25 +483,25 @@ static void drawThemes() {
             config::markDirty();
         }
     };
-    sliderRow("Eckenradius", t.rounding, 0.f, 24.f, "%.0f");
-    sliderRow("Deckkraft", t.opacity, 0.5f, 1.f, "%.2f");
-    sliderRow("Animationstempo", t.animSpeed, 0.25f, 3.f, "%.2fx");
+    sliderRow("Corner radius", t.rounding, 0.f, 24.f, "%.0f");
+    sliderRow("Opacity", t.opacity, 0.5f, 1.f, "%.2f");
+    sliderRow("Animation speed", t.animSpeed, 0.25f, 3.f, "%.2fx");
 
     auto toggleRow = [&](const char* label, bool& v) {
         ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted(label);
+        ImGui::TextUnformatted(i18n::tr(label));
         ImGui::SameLine();
         ImGui::SetCursorPosX(ImGui::GetWindowContentRegionMax().x - 40 * s);
         widgets::toggle(label, v);
     };
-    toggleRow("Farbverläufe", t.gradient);
-    toggleRow("Glitzer", t.sparkles);
-    toggleRow("Herzchen", t.hearts);
+    toggleRow("Gradients", t.gradient);
+    toggleRow("Sparkles", t.sparkles);
+    toggleRow("Little hearts", t.hearts);
 
     ImGui::Dummy({0, 6 * s});
-    if (widgets::button("Theme als Code kopieren", {0, 0}, true)) ImGui::SetClipboardText(theme::exportCode().c_str());
+    if (widgets::button("Copy theme as code", {0, 0}, true)) ImGui::SetClipboardText(theme::exportCode().c_str());
     ImGui::SameLine();
-    if (widgets::button("Code aus Zwischenablage laden")) {
+    if (widgets::button("Load code from clipboard")) {
         const char* clip = ImGui::GetClipboardText();
         theme::importCode(clip ? clip : "");
     }
@@ -511,20 +513,20 @@ static void drawProfiles() {
     auto& t = theme::current();
     ImGui::BeginChild("profiles", {0, 0}, 0, ImGuiWindowFlags_NoBackground);
     widgets::sectionTitle("Profile");
-    widgets::hint("Jedes Profil speichert Module, Einstellungen, HUD-Positionen und Theme.");
+    widgets::hint("Each profile stores modules, settings, HUD positions and theme.");
     ImGui::Dummy({0, 4 * s});
 
     for (auto& name : config::profiles()) {
         ImGui::PushID(name.c_str());
         bool active = name == config::profile();
         ImGui::AlignTextToFramePadding();
-        if (active) ImGui::TextColored(t.accent, "%s  (aktiv)", name.c_str());
+        if (active) ImGui::TextColored(t.accent, i18n::tr("%s  (active)"), name.c_str());
         else ImGui::TextUnformatted(name.c_str());
         ImGui::SameLine(ImGui::GetContentRegionAvail().x * 0.6f);
         if (!active) {
-            if (widgets::button("Laden")) config::switchProfile(name);
+            if (widgets::button("Load")) config::switchProfile(name);
             ImGui::SameLine();
-            if (widgets::button("Löschen")) config::deleteProfile(name);
+            if (widgets::button("Delete")) config::deleteProfile(name);
         }
         ImGui::PopID();
     }
@@ -532,9 +534,9 @@ static void drawProfiles() {
     static char newName[32] = "";
     ImGui::Dummy({0, 8 * s});
     ImGui::SetNextItemWidth(220 * s);
-    ImGui::InputTextWithHint("##new", "Neues Profil …", newName, sizeof(newName));
+    ImGui::InputTextWithHint("##new", i18n::tr("New profile …"), newName, sizeof(newName));
     ImGui::SameLine();
-    if (widgets::button("Anlegen", {0, 0}, true) && newName[0]) {
+    if (widgets::button("Create", {0, 0}, true) && newName[0]) {
         config::switchProfile(newName);
         newName[0] = 0;
     }
@@ -545,28 +547,36 @@ static void drawInfo() {
     auto& t = theme::current();
     ImGui::BeginChild("info", {0, 0}, 0, ImGuiWindowFlags_NoBackground);
     widgets::sectionTitle("Mochi");
-    ImGui::Text("Version %s", build::version);
-    ImGui::Text("Renderer: %s", dx::api() == dx::Api::Dx12 ? "DirectX 12" : dx::api() == dx::Api::Dx11 ? "DirectX 11" : "–");
+    ImGui::Text(i18n::tr("Version %s"), build::version);
+    ImGui::Text(i18n::tr("Renderer: %s"), dx::api() == dx::Api::Dx12 ? "DirectX 12" : dx::api() == dx::Api::Dx11 ? "DirectX 11" : "–");
 
     widgets::sectionTitle("Minecraft");
     auto st = sigs::stats();
-    ImGui::Text("Version: %s", st.gameVersion.c_str());
-    ImGui::Text("Signaturen: %d von %d gefunden", st.found, st.total);
-    ImGui::TextColored(t.textDim, "Quelle: %s", st.source.c_str());
+    ImGui::Text(i18n::tr("Version: %s"), st.gameVersion.c_str());
+    ImGui::Text(i18n::tr("Signatures: %d of %d found"), st.found, st.total);
+    ImGui::TextColored(t.textDim, i18n::tr("Source: %s"), i18n::tr(st.source.c_str()));
     int unavailable = 0;
     for (auto& m : modules::all())
         if (!m->available()) unavailable++;
-    if (unavailable) ImGui::TextColored(t.warn, "%d Module warten auf Signaturen für diese Version.", unavailable);
+    if (unavailable) ImGui::TextColored(t.warn, i18n::tr("%d modules are waiting for signatures for this version."), unavailable);
 
     widgets::sectionTitle("Server");
     auto rs = rules::status();
-    ImGui::Text("Verbunden: %s", rs.server.empty() ? "–" : rs.server.c_str());
+    ImGui::Text(i18n::tr("Connected: %s"), rs.server.empty() ? "–" : rs.server.c_str());
     if (!rs.host.empty()) ImGui::TextColored(t.textDim, "%s", rs.host.c_str());
-    ImGui::TextColored(t.textDim, "Regeln: %s", rules::source().c_str());
+    ImGui::TextColored(t.textDim, i18n::tr("Rules: %s"), i18n::tr(rules::source().c_str()));
 
-    widgets::sectionTitle("Tasten");
+    widgets::sectionTitle("Language");
+    widgets::hint("Auto follows your Windows language.");
+    const char* names[] = {"Auto", "English", "Deutsch"};
+    for (int i = 0; i < 3; i++) {
+        if (i) ImGui::SameLine();
+        if (widgets::button(names[i], {0, 0}, int(i18n::chosen()) == i)) i18n::choose(i18n::Lang(i));
+    }
+
+    widgets::sectionTitle("Keys");
     if (auto* menu = modules::get<ClickGui>()) widgets::setting(menu->keybind());
-    widgets::hint("Strg+L: Client entladen · F1: HUD ausblenden · ESC: zurück · Rechtsklick auf eine Taste: entfernen");
+    widgets::hint("Ctrl+L: unload client · F1: hide HUD · ESC: back · right-click a key: clear");
     ImGui::EndChild();
 }
 

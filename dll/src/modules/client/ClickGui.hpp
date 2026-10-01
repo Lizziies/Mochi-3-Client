@@ -7,9 +7,9 @@
 
 class ClickGui : public Module {
 public:
-    ClickGui() : Module("ClickGUI", "Das Menü.", Category::Client) {
+    ClickGui() : Module("ClickGUI", "The menu.", Category::Client) {
         keybind().i = VK_RSHIFT;
-        keybind().label = "Menü-Taste";
+        keybind().label = "Menu key";
     }
 
     bool alwaysOn() const override { return true; }

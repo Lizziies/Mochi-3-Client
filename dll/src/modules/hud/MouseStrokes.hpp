@@ -11,7 +11,7 @@
 
 class MouseStrokes : public HudModule {
 public:
-    MouseStrokes() : HudModule("Mouse Strokes", "Zeigt deine Mausbewegung als Punkt mit Spur.", {"hud-self"}, {0.12f, 0.62f}) {}
+    MouseStrokes() : HudModule("Mouse Strokes", "Shows your mouse movement as a dot with a trail.", {"hud-self"}, {0.12f, 0.62f}) {}
 
 protected:
     ImVec2 content(ImDrawList* dl, ImVec2 o, float s) override {
@@ -40,9 +40,9 @@ protected:
     }
 
 private:
-    Setting& boxSize_ = slider("box", "Größe", 70.f, 40.f, 160.f, "%.0f");
-    Setting& sensitivity_ = slider("sens", "Empfindlichkeit", 1.f, 0.2f, 4.f, "%.1fx");
-    Setting& color_ = colorSetting("color", "Punktfarbe", {1.f, 0.49f, 0.71f, 1.f});
+    Setting& boxSize_ = slider("box", "Size", 70.f, 40.f, 160.f, "%.0f");
+    Setting& sensitivity_ = slider("sens", "Sensitivity", 1.f, 0.2f, 4.f, "%.1fx");
+    Setting& color_ = colorSetting("color", "Dot color", {1.f, 0.49f, 0.71f, 1.f});
     ImVec2 target_{0, 0};
     ImVec2 dot_{0, 0};
     std::deque<ImVec2> trail_;

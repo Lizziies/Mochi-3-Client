@@ -15,7 +15,7 @@ class Keystrokes : public HudModule {
 public:
     bool defaultEnabled() const override { return true; }
 
-    Keystrokes() : HudModule("Keystrokes", "Zeigt WASD, Leertaste und Maustasten live an.", {"hud-self"}, {0.01f, 0.62f}) {
+    Keystrokes() : HudModule("Keystrokes", "Shows WASD, space and the mouse buttons live.", {"hud-self"}, {0.01f, 0.62f}) {
         background_.b = false;
     }
 
@@ -85,17 +85,17 @@ private:
         return "?";
     }
 
-    Setting& keySize_ = slider("size", "Tastengröße", 38.f, 20.f, 70.f, "%.0f");
-    Setting& mouse_ = toggleSetting("mouse", "Maustasten", true);
-    Setting& cpsInside_ = toggleSetting("cps", "CPS in Maustasten", true);
-    Setting& space_ = toggleSetting("space", "Leertaste", true);
-    Setting& idle_ = colorSetting("idle", "Taste", {0.10f, 0.06f, 0.12f, 0.55f});
-    Setting& pressed_ = colorSetting("pressed", "Taste gedrückt", {1.f, 0.49f, 0.71f, 0.9f});
-    Setting& pressedText_ = colorSetting("pressedText", "Text gedrückt", {1.f, 1.f, 1.f, 1.f});
-    Setting& forward_ = keySetting("forward", "Vorwärts", 'W');
-    Setting& left_ = keySetting("left", "Links", 'A');
-    Setting& back_ = keySetting("back", "Rückwärts", 'S');
-    Setting& right_ = keySetting("right", "Rechts", 'D');
-    Setting& jump_ = keySetting("jump", "Springen", VK_SPACE);
+    Setting& keySize_ = slider("size", "Key size", 38.f, 20.f, 70.f, "%.0f");
+    Setting& mouse_ = toggleSetting("mouse", "Mouse buttons", true);
+    Setting& cpsInside_ = toggleSetting("cps", "CPS in mouse buttons", true);
+    Setting& space_ = toggleSetting("space", "Space", true);
+    Setting& idle_ = colorSetting("idle", "Key", {0.10f, 0.06f, 0.12f, 0.55f});
+    Setting& pressed_ = colorSetting("pressed", "Key pressed", {1.f, 0.49f, 0.71f, 0.9f});
+    Setting& pressedText_ = colorSetting("pressedText", "Text pressed", {1.f, 1.f, 1.f, 1.f});
+    Setting& forward_ = keySetting("forward", "Forward", 'W');
+    Setting& left_ = keySetting("left", "Left", 'A');
+    Setting& back_ = keySetting("back", "Back", 'S');
+    Setting& right_ = keySetting("right", "Right", 'D');
+    Setting& jump_ = keySetting("jump", "Jump", VK_SPACE);
     std::array<float, 8> anim_{};
 };

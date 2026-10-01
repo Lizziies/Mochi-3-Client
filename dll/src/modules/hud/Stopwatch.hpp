@@ -9,7 +9,7 @@
 
 class Stopwatch : public TextHud {
 public:
-    Stopwatch() : TextHud("Stopwatch", "Stoppuhr mit eigener Start/Stopp- und Reset-Taste.", {"hud-self"}, {0.01f, 0.14f}) {}
+    Stopwatch() : TextHud("Stopwatch", "Stopwatch with its own start/stop and reset keys.", {"hud-self"}, {0.01f, 0.14f}) {}
 
     void onKey(KeyEvent& ev) override {
         if (!ev.down || ev.repeat) return;
@@ -25,7 +25,7 @@ public:
     }
 
 protected:
-    std::string label() const override { return "Zeit"; }
+    std::string label() const override { return "Time"; }
 
     std::string value() override {
         double total = accumulated_ + (running_ ? ui::time() - started_ : 0);
@@ -36,8 +36,8 @@ protected:
     }
 
 private:
-    Setting& startStop_ = keySetting("startStop", "Start / Stopp", VK_F6);
-    Setting& reset_ = keySetting("reset", "Zurücksetzen", VK_F7);
+    Setting& startStop_ = keySetting("startStop", "Start / stop", VK_F6);
+    Setting& reset_ = keySetting("reset", "Reset", VK_F7);
     bool running_ = false;
     double started_ = 0;
     double accumulated_ = 0;

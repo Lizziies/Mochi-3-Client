@@ -7,7 +7,7 @@
 
 class SessionTimer : public TextHud {
 public:
-    SessionTimer() : TextHud("Session Timer", "Wie lange du schon spielst – gesamt oder auf dem aktuellen Server.", {"hud-self"}, {0.01f, 0.18f}) {}
+    SessionTimer() : TextHud("Session Timer", "How long you have been playing, in total or on the current server.", {"hud-self"}, {0.01f, 0.18f}) {}
 
     void onServer(const ServerEvent& ev) override { serverStart_ = ev.joined ? ui::time() : -1; }
 
@@ -23,6 +23,6 @@ protected:
     }
 
 private:
-    Setting& mode_ = choice("mode", "Zählt", {"Seit Spielstart", "Seit Server-Beitritt"});
+    Setting& mode_ = choice("mode", "Counts", {"Since game start", "Since joining the server"});
     double serverStart_ = -1;
 };

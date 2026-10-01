@@ -6,8 +6,7 @@
 class SystemBoost : public Module {
 public:
     SystemBoost()
-        : Module("System Boost", "Windows-Einstellungen, solange Minecraft läuft: genauer Timer, höhere Priorität, kein Energiesparen. "
-                                 "Wird beim Beenden zurückgesetzt.",
+        : Module("System Boost", "Windows settings while Minecraft runs: precise timer, higher priority, no power saving. Reverted when you quit.",
                  Category::Performance, {"performance"}) {}
 
     void onFrame() override {
@@ -19,7 +18,7 @@ public:
     void onDisable() override { tweaks::restore(); }
 
 private:
-    Setting& timer_ = toggleSetting("timer", "1-ms-Timer", true);
-    Setting& priority_ = toggleSetting("priority", "Priorität \"Höher als normal\"", true);
-    Setting& power_ = toggleSetting("power", "Energiesparen für Minecraft aus", true);
+    Setting& timer_ = toggleSetting("timer", "1 ms timer", true);
+    Setting& priority_ = toggleSetting("priority", "Priority \"Above normal\"", true);
+    Setting& power_ = toggleSetting("power", "Power saving off for Minecraft", true);
 };

@@ -10,7 +10,7 @@
 class Crosshair : public Module {
 public:
     Crosshair()
-        : Module("Custom Crosshair", "Eigenes Fadenkreuz: Kreuz, Punkt, Kreis oder Herz, mit Farbe, Umriss und Klick-Effekt.",
+        : Module("Custom Crosshair", "Custom crosshair: cross, dot, circle or heart, with color, outline and click effect.",
                  Category::Visual, {"cosmetic"}) {}
 
     void onRender(ImDrawList* dl) override {
@@ -53,14 +53,14 @@ private:
         }
     }
 
-    Setting& style_ = choice("style", "Form", {"Kreuz", "Punkt", "Kreis", "Kreuz + Punkt", "Herz"});
-    Setting& size_ = slider("size", "Größe", 8.f, 2.f, 30.f, "%.0f");
-    Setting& gap_ = slider("gap", "Abstand", 2.f, 0.f, 12.f, "%.0f");
-    Setting& thickness_ = slider("thickness", "Dicke", 2.f, 1.f, 6.f, "%.1f");
-    Setting& color_ = colorSetting("color", "Farbe", {1.f, 1.f, 1.f, 0.95f});
-    Setting& outline_ = toggleSetting("outline", "Umriss", true);
-    Setting& clickColor_ = toggleSetting("clickColor", "Farbe beim Klicken", true);
-    Setting& activeColor_ = colorSetting("activeColor", "Klickfarbe", {1.f, 0.49f, 0.71f, 1.f});
-    Setting& clickPulse_ = toggleSetting("pulse", "Pulsieren beim Klicken", true);
+    Setting& style_ = choice("style", "Shape", {"Cross", "Dot", "Circle", "Cross + dot", "Heart"});
+    Setting& size_ = slider("size", "Size", 8.f, 2.f, 30.f, "%.0f");
+    Setting& gap_ = slider("gap", "Gap", 2.f, 0.f, 12.f, "%.0f");
+    Setting& thickness_ = slider("thickness", "Thickness", 2.f, 1.f, 6.f, "%.1f");
+    Setting& color_ = colorSetting("color", "Color", {1.f, 1.f, 1.f, 0.95f});
+    Setting& outline_ = toggleSetting("outline", "Outline", true);
+    Setting& clickColor_ = toggleSetting("clickColor", "Color on click", true);
+    Setting& activeColor_ = colorSetting("activeColor", "Click color", {1.f, 0.49f, 0.71f, 1.f});
+    Setting& clickPulse_ = toggleSetting("pulse", "Pulse on click", true);
     float pulse_ = 0;
 };

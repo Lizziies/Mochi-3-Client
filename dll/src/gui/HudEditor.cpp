@@ -1,3 +1,4 @@
+#include "I18n.hpp"
 #include "HudEditor.hpp"
 #include "Gui.hpp"
 #include "Theme.hpp"
@@ -60,7 +61,7 @@ void draw() {
 
     bg->AddRectFilled({0, 0}, ds, IM_COL32(10, 4, 12, 70));
 
-    const char* help = "Ziehen = verschieben  ·  Mausrad = Größe  ·  Rechtsklick = Einstellungen  ·  ESC = fertig";
+    const char* help = i18n::tr("Drag = move  ·  Mouse wheel = size  ·  Right click = settings  ·  ESC = done");
     ImVec2 hs = ImGui::CalcTextSize(help);
     ImVec2 hp{(ds.x - hs.x) * 0.5f - 16 * s, 18 * s};
     fg->AddRectFilled(hp, hp + hs + ImVec2(32 * s, 16 * s), theme::col(t.surface, 0.95f), 99.f);

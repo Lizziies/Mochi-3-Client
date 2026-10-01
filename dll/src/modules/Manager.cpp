@@ -1,3 +1,4 @@
+#include "I18n.hpp"
 #include "Manager.hpp"
 #include "core/Guard.hpp"
 #include "core/Log.hpp"
@@ -90,7 +91,7 @@ Module* find(const std::string& name) {
 
 static void fault(Module& m) {
     m.setEnabled(false);
-    notify::push("Modul abgeschaltet", m.name() + " hatte einen Fehler. Details im Log.", notify::Kind::Error);
+    notify::push(i18n::tr("Module disabled"), i18n::fmt("{} had an error. See the log for details.", m.name()), notify::Kind::Error);
 }
 
 void frame(ImDrawList* hud) {
@@ -120,7 +121,7 @@ void dispatchKey(KeyEvent& ev) {
             if (!key || key != ev.vk || m->alwaysOn()) continue;
             m->toggle();
             if (m->rule() == RuleLevel::Block)
-                notify::push(m->name(), "Auf diesem Server nicht erlaubt.", notify::Kind::Warn);
+                notify::push(m->name(), i18n::tr("Not allowed on this server."), notify::Kind::Warn);
         }
     }
 

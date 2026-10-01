@@ -97,7 +97,7 @@ static std::optional<json> fetch(const std::string& file, std::string& source) {
         return j;
     }
     if (auto j = readJson(paths::dllDir() / L"sigs" / wfile)) {
-        source = "mitgeliefert";
+        source = "bundled";
         return j;
     }
     return std::nullopt;
@@ -190,7 +190,7 @@ static void load() {
 
     std::map<std::string, Entry> entries;
     std::map<std::string, int> offs;
-    std::string source = "keine Signaturdatei";
+    std::string source = "no signature file";
 
     std::vector<json> chain;
     std::string next = version;

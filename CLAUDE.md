@@ -45,9 +45,23 @@ The code must read like a hand-written open-source project.
 - Commit messages: short, lowercase, imperative ("add zoom smoothing", "fix dx12 resize crash"). One logical change per commit.
 - README in plain, casual tone. No marketing walls of bullet points.
 
+## Languages
+
+English is the default, German is the second language. The client and launcher follow the Windows UI language unless the user picks one (stored in `%LOCALAPPDATA%\Mochi\lang.txt`, shared by both).
+
+- All user-visible text in code is written in English. The English text is the key.
+- Show text through `i18n::tr("English text")`, or `i18n::fmt("Hello {}", x)` for format strings. Module names, descriptions and setting labels are stored as English literals and translated where they are drawn (`gui/`).
+- Every new string gets a German entry in the German table of its area: `dll/src/core/Lang.cpp` (client), `launcher/src/LangUi.cpp` and `LangApp.cpp` (launcher). Missing entries fall back to English, never to an empty string.
+- Do not put translated text into config keys or ids.
+
 ## Build
 
 ```
+tools/cross.sh setup    # once: MinGW, Wine, Xvfb (Linux cloud session)
+tools/cross.sh build    # builds dll, launcher and test host
+tools/cross.sh shots    # runs the dll in the test host under Wine, takes screenshots
+
+# on Windows
 cmake -S dll -B build -G "Visual Studio 17 2022" -A x64
 cmake --build build --config Release
 dotnet publish launcher -c Release -r win-x64 --self-contained -p:PublishSingleFile=true

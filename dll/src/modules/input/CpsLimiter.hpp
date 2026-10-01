@@ -9,7 +9,7 @@
 class CpsLimiter : public Module {
 public:
     CpsLimiter()
-        : Module("CPS Limiter", "Begrenzt deine Klicks pro Sekunde nach oben, z. B. für Server mit CPS-Limit.", Category::Pvp,
+        : Module("CPS Limiter", "Limits your clicks per second, for example for servers with a CPS limit.", Category::Pvp,
                  {"input"}) {
         LARGE_INTEGER f;
         QueryPerformanceFrequency(&f);
@@ -31,8 +31,8 @@ public:
     }
 
 private:
-    Setting& leftLimit_ = intSlider("left", "Links max. CPS", 16, 0, 30);
-    Setting& rightLimit_ = intSlider("right", "Rechts max. CPS", 0, 0, 30);
+    Setting& leftLimit_ = intSlider("left", "Left max CPS", 16, 0, 30);
+    Setting& rightLimit_ = intSlider("right", "Right max CPS", 0, 0, 30);
     std::deque<int64_t> left_, right_, other_;
     int64_t qpf_ = 1;
 };

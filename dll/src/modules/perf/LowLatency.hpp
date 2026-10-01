@@ -1,13 +1,13 @@
 #pragma once
 
+#include "I18n.hpp"
 #include "hook/Dx.hpp"
 #include "modules/Module.hpp"
 
 class LowLatency : public Module {
 public:
     LowLatency()
-        : Module("Low Latency", "Kürzere Bild-Warteschlange, optional Tearing statt VSync und ein präziser FPS-Limiter. "
-                                "Mit dem Latency-HUD vorher/nachher vergleichen.",
+        : Module("Low Latency", "Shorter frame queue, optional tearing instead of VSync and a precise FPS limiter. Compare before and after with the Latency HUD.",
                  Category::Performance, {"performance"}) {
         limit_.visible = [this] { return useLimit_.b; };
     }
@@ -24,13 +24,13 @@ public:
     void drawSettings() override {
         auto& fi = dx::frame();
         ImGui::Spacing();
-        ImGui::TextDisabled("Status: %s, %s", fi.lowLatencyActive ? "kurze Warteschlange aktiv" : "Standard-Warteschlange",
-                            fi.tearingSupported ? "Tearing möglich" : "Tearing vom Spiel nicht freigegeben");
+        ImGui::TextDisabled(i18n::tr("Status: %s, %s"), i18n::tr(fi.lowLatencyActive ? "short queue active" : "default queue"),
+                            i18n::tr(fi.tearingSupported ? "tearing possible" : "tearing not allowed by the game"));
     }
 
 private:
-    Setting& queue_ = toggleSetting("queue", "Kurze Bild-Warteschlange", true);
-    Setting& tearing_ = toggleSetting("tearing", "Tearing erlauben (VSync aus)", false);
-    Setting& useLimit_ = toggleSetting("limit", "Eigener FPS-Limiter", false);
-    Setting& limit_ = slider("fps", "FPS-Limit", 240.f, 30.f, 1000.f, "%.0f");
+    Setting& queue_ = toggleSetting("queue", "Short frame queue", true);
+    Setting& tearing_ = toggleSetting("tearing", "Allow tearing (VSync off)", false);
+    Setting& useLimit_ = toggleSetting("limit", "Custom FPS limiter", false);
+    Setting& limit_ = slider("fps", "FPS limit", 240.f, 30.f, 1000.f, "%.0f");
 };

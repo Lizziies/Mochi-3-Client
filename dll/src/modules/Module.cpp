@@ -1,3 +1,4 @@
+#include "I18n.hpp"
 #include "Module.hpp"
 #include "core/Config.hpp"
 #include "core/Guard.hpp"
@@ -10,14 +11,14 @@ using nlohmann::json;
 
 const char* categoryName(Category c) {
     switch (c) {
-    case Category::Hud: return "HUD";
-    case Category::Visual: return "Visuell";
-    case Category::Pvp: return "PvP";
-    case Category::Comfort: return "Komfort";
-    case Category::Performance: return "Performance";
-    case Category::Server: return "Server";
-    case Category::Fun: return "Spaß";
-    case Category::Client: return "Client";
+    case Category::Hud: return i18n::tr("HUD");
+    case Category::Visual: return i18n::tr("Visual");
+    case Category::Pvp: return i18n::tr("PvP");
+    case Category::Comfort: return i18n::tr("Comfort");
+    case Category::Performance: return i18n::tr("Performance");
+    case Category::Server: return i18n::tr("Server");
+    case Category::Fun: return i18n::tr("Fun");
+    case Category::Client: return i18n::tr("Client");
     }
     return "";
 }
@@ -26,7 +27,7 @@ Module::Module(std::string name, std::string description, Category category, std
                std::vector<std::string> sigs)
     : name_(std::move(name)), description_(std::move(description)), category_(category), tags_(std::move(tags)),
       sigs_(std::move(sigs)) {
-    key_ = &keySetting("key", "Taste");
+    key_ = &keySetting("key", "Key");
 }
 
 Setting& Module::add(Setting s) {

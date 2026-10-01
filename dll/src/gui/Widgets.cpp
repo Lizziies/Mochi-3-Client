@@ -1,3 +1,4 @@
+#include "I18n.hpp"
 #include "Widgets.hpp"
 #include "Theme.hpp"
 #include "core/Config.hpp"
@@ -54,14 +55,15 @@ bool toggle(const char* id, bool& value, bool enabled) {
     return clicked;
 }
 
-bool button(const char* label, ImVec2 size, bool primary) {
+bool button(const char* id, ImVec2 size, bool primary) {
     auto& t = theme::current();
     float s = ui::scale();
+    const char* label = i18n::tr(id);
     ImVec2 ts = ImGui::CalcTextSize(label);
     if (size.x <= 0) size.x = ts.x + 28 * s;
     if (size.y <= 0) size.y = ts.y + 14 * s;
     ImVec2 p = ImGui::GetCursorScreenPos();
-    bool clicked = ImGui::InvisibleButton(label, size);
+    bool clicked = ImGui::InvisibleButton(id, size);
     bool hovered = ImGui::IsItemHovered();
     bool held = ImGui::IsItemActive();
 
@@ -88,39 +90,39 @@ void sectionTitle(const char* text) {
     auto& t = theme::current();
     ImGui::Dummy({0, 4 * ui::scale()});
     ImGui::PushFont(fonts::bold(), 0.f);
-    ImGui::TextColored(t.accent, "%s", text);
+    ImGui::TextColored(t.accent, "%s", i18n::tr(text));
     ImGui::PopFont();
 }
 
 void hint(const char* text) {
     ImGui::PushStyleColor(ImGuiCol_Text, theme::current().textDim);
-    ImGui::TextWrapped("%s", text);
+    ImGui::TextWrapped("%s", i18n::tr(text));
     ImGui::PopStyleColor();
 }
 
 std::string keyName(int vk) {
     switch (vk) {
-    case 0: return "keine";
-    case VK_LBUTTON: return "Maus links";
-    case VK_RBUTTON: return "Maus rechts";
-    case VK_MBUTTON: return "Mausrad";
-    case VK_XBUTTON1: return "Maus 4";
-    case VK_XBUTTON2: return "Maus 5";
-    case VK_RSHIFT: return "Rechts-Shift";
-    case VK_LSHIFT: return "Links-Shift";
-    case VK_RCONTROL: return "Rechts-Strg";
-    case VK_LCONTROL: return "Links-Strg";
-    case VK_LMENU: return "Alt";
-    case VK_RMENU: return "Alt Gr";
-    case VK_INSERT: return "Einfg";
-    case VK_DELETE: return "Entf";
-    case VK_HOME: return "Pos1";
-    case VK_END: return "Ende";
-    case VK_PRIOR: return "Bild auf";
-    case VK_NEXT: return "Bild ab";
-    case VK_TAB: return "Tab";
-    case VK_CAPITAL: return "Feststell";
-    case VK_SPACE: return "Leertaste";
+    case 0: return i18n::tr("None");
+    case VK_LBUTTON: return i18n::tr("Mouse left");
+    case VK_RBUTTON: return i18n::tr("Mouse right");
+    case VK_MBUTTON: return i18n::tr("Mouse wheel");
+    case VK_XBUTTON1: return i18n::tr("Mouse 4");
+    case VK_XBUTTON2: return i18n::tr("Mouse 5");
+    case VK_RSHIFT: return i18n::tr("Right Shift");
+    case VK_LSHIFT: return i18n::tr("Left Shift");
+    case VK_RCONTROL: return i18n::tr("Right Ctrl");
+    case VK_LCONTROL: return i18n::tr("Left Ctrl");
+    case VK_LMENU: return i18n::tr("Alt");
+    case VK_RMENU: return i18n::tr("Alt Gr");
+    case VK_INSERT: return i18n::tr("Insert");
+    case VK_DELETE: return i18n::tr("Delete");
+    case VK_HOME: return i18n::tr("Home");
+    case VK_END: return i18n::tr("End");
+    case VK_PRIOR: return i18n::tr("Page up");
+    case VK_NEXT: return i18n::tr("Page down");
+    case VK_TAB: return i18n::tr("Tab");
+    case VK_CAPITAL: return i18n::tr("Caps lock");
+    case VK_SPACE: return i18n::tr("Space");
     }
     UINT scan = MapVirtualKeyW(vk, MAPVK_VK_TO_VSC);
     switch (vk) {
@@ -147,7 +149,7 @@ bool keyCapture(const char* id, int& vk) {
     ImGuiID gid = ImGui::GetID(id);
     bool active = capturing == gid;
 
-    std::string label = active ? "Taste drücken…" : keyName(vk);
+    std::string label = active ? i18n::tr("Press a key…") : keyName(vk);
     ImVec2 size{std::max(110 * s, ImGui::CalcTextSize(label.c_str()).x + 24 * s), ImGui::GetFrameHeight()};
     ImVec2 p = ImGui::GetCursorScreenPos();
     ImGui::PushID(id);
@@ -209,7 +211,7 @@ bool setting(Setting& s) {
 
     ImGui::PushID(s.id.c_str());
     ImGui::AlignTextToFramePadding();
-    ImGui::TextUnformatted(s.label.c_str());
+    ImGui::TextUnformatted(i18n::tr(s.label.c_str()));
     ImGui::SameLine(labelW);
     ImGui::SetNextItemWidth(-1);
 
@@ -232,11 +234,11 @@ bool setting(Setting& s) {
         break;
     }
     case SettingType::Choice: {
-        const char* preview = s.choices.empty() ? "" : s.choices[std::clamp(s.i, 0, (int)s.choices.size() - 1)].c_str();
+        const char* preview = s.choices.empty() ? "" : i18n::tr(s.choices[std::clamp(s.i, 0, (int)s.choices.size() - 1)].c_str());
         if (ImGui::BeginCombo("##v", preview)) {
             for (int i = 0; i < (int)s.choices.size(); i++) {
                 bool sel = i == s.i;
-                if (ImGui::Selectable(s.choices[i].c_str(), sel)) {
+                if (ImGui::Selectable(i18n::tr(s.choices[i].c_str()), sel)) {
                     s.i = i;
                     changed = true;
                 }

@@ -7,16 +7,16 @@
 
 HudModule::HudModule(std::string name, std::string description, std::vector<std::string> tags, ImVec2 defaultPos)
     : Module(std::move(name), std::move(description), Category::Hud, std::move(tags)),
-      background_(toggleSetting("bg", "Hintergrund", true)),
-      bgColor_(colorSetting("bgColor", "Hintergrundfarbe", {0.10f, 0.06f, 0.12f, 0.55f})),
-      textColor_(colorSetting("textColor", "Textfarbe", {1.f, 0.95f, 0.97f, 1.f})),
-      useAccent_(toggleSetting("accent", "Akzentfarbe für Beschriftung", true)),
-      rounding_(slider("rounding", "Eckenradius", 8.f, 0.f, 20.f, "%.0f")),
-      padding_(slider("padding", "Innenabstand", 6.f, 0.f, 20.f, "%.0f")),
-      shadow_(toggleSetting("shadow", "Textschatten", true)),
+      background_(toggleSetting("bg", "Background", true)),
+      bgColor_(colorSetting("bgColor", "Background color", {0.10f, 0.06f, 0.12f, 0.55f})),
+      textColor_(colorSetting("textColor", "Text color", {1.f, 0.95f, 0.97f, 1.f})),
+      useAccent_(toggleSetting("accent", "Accent color for labels", true)),
+      rounding_(slider("rounding", "Corner radius", 8.f, 0.f, 20.f, "%.0f")),
+      padding_(slider("padding", "Padding", 6.f, 0.f, 20.f, "%.0f")),
+      shadow_(toggleSetting("shadow", "Text shadow", true)),
       x_(slider("x", "x", defaultPos.x, 0.f, 1.f)),
       y_(slider("y", "y", defaultPos.y, 0.f, 1.f)),
-      scale_(slider("scale", "Größe", 1.f, 0.4f, 3.f, "%.2fx")) {
+      scale_(slider("scale", "Size", 1.f, 0.4f, 3.f, "%.2fx")) {
     x_.hidden = true;
     y_.hidden = true;
     bgColor_.visible = [this] { return background_.b; };

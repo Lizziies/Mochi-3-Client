@@ -1,3 +1,4 @@
+#include "I18n.hpp"
 #include "Rules.hpp"
 #include "core/Http.hpp"
 #include "core/Log.hpp"
@@ -88,7 +89,7 @@ static std::string readFile(const std::filesystem::path& p) {
 
 void init() {
     auto cached = paths::cache() / L"servers.json";
-    if (!tryLoad(readFile(cached), "Cache")) tryLoad(readFile(paths::dllDir() / L"servers.json"), "mitgeliefert");
+    if (!tryLoad(readFile(cached), "Cache")) tryLoad(readFile(paths::dllDir() / L"servers.json"), "bundled");
 
     std::thread([cached] {
         if (auto body = http::get(L"raw.githubusercontent.com", http::repoRawPath(L"servers/servers.json"))) {
@@ -131,23 +132,23 @@ static void apply(const Server* srv) {
         if (srv) {
             if (contains(srv->block, m->name())) {
                 level = RuleLevel::Block;
-                note = "Auf " + srv->name + " nicht erlaubt.";
+                note = i18n::fmt("Not allowed on {}.", srv->name);
             } else {
                 bool warn = contains(srv->warn, m->name());
                 for (auto& tag : srv->warnTags) warn = warn || m->hasTag(tag);
                 if (warn) {
                     level = RuleLevel::Warn;
-                    note = srv->name + ": nicht ausdrücklich erlaubt, Nutzung auf eigenes Risiko.";
+                    note = i18n::fmt("{}: not explicitly allowed, use at your own risk.", srv->name);
                 }
             }
             if (auto it = srv->blockOptions.find(m->name()); it != srv->blockOptions.end()) opts = it->second;
         }
         if (level == RuleLevel::Block) {
             state.blocked++;
-            state.notes.push_back(m->name() + ": gesperrt");
+            state.notes.push_back(i18n::fmt("{}: blocked", m->name()));
         } else if (level == RuleLevel::Warn && m->userEnabled()) {
             state.warned++;
-            state.notes.push_back(m->name() + ": Hinweis");
+            state.notes.push_back(i18n::fmt("{}: notice", m->name()));
         }
         m->setBlockedOptions(opts);
         if (m->rule() != level || m->ruleNote() != note) m->applyRule(level, note);
@@ -173,7 +174,7 @@ static void connect(const std::string& ip, const std::string& host) {
     }
     logger::info("server: {} ({} / {})", state.server, host, ip);
     if (srv && state.blocked)
-        notify::push(srv->name, std::to_string(state.blocked) + " Module hier gesperrt.", notify::Kind::Warn);
+        notify::push(srv->name, i18n::fmt("{} modules blocked here.", state.blocked), notify::Kind::Warn);
     modules::dispatchServer({state.server, state.host, true});
 }
 

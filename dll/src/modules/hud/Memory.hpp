@@ -10,7 +10,7 @@
 
 class Memory : public TextHud {
 public:
-    Memory() : TextHud("Memory", "Zeigt, wie viel RAM Minecraft gerade nutzt.", {"hud-self"}, {0.01f, 0.22f}) {}
+    Memory() : TextHud("Memory", "Shows how much RAM Minecraft is using.", {"hud-self"}, {0.01f, 0.22f}) {}
 
 protected:
     std::string label() const override { return "RAM"; }
@@ -29,7 +29,7 @@ protected:
     }
 
 private:
-    Setting& mode_ = choice("mode", "Anzeige", {"Minecraft (MB)", "System (%)"});
+    Setting& mode_ = choice("mode", "Display", {"Minecraft (MB)", "System (%)"});
     double last_ = -10;
     double mb_ = 0;
     unsigned load_ = 0;

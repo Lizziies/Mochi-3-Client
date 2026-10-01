@@ -1,5 +1,6 @@
 #pragma once
 
+#include "I18n.hpp"
 #include "gui/Gui.hpp"
 #include "gui/Theme.hpp"
 #include "modules/Module.hpp"
@@ -14,7 +15,7 @@
 
 class Flappy : public Module {
 public:
-    Flappy() : Module("Flappy Heart", "Flappy Bird mit einem Herz. Leertaste fliegt, ESC beendet.", Category::Fun, {"cosmetic"}) {}
+    Flappy() : Module("Flappy Heart", "Flappy Bird with a heart. Space flies, ESC quits.", Category::Fun, {"cosmetic"}) {}
 
     bool persistent() const override { return false; }
     void onEnable() override { reset(); }
@@ -86,7 +87,7 @@ private:
 
         dl->AddRectFilled(o - ImVec2(12 * s, 44 * s), o + size + ImVec2(12 * s, 12 * s), theme::col(t.bg, 0.95f), t.rounding * s);
         dl->AddText(fonts::bold(), 20 * s, o - ImVec2(0, 34 * s), theme::col(t.text),
-                    std::format("Flappy Heart  ·  {}  ·  Rekord {}", score_, best_).c_str());
+                    i18n::fmt("Flappy Heart  ·  {}  ·  Best {}", score_, best_).c_str());
         dl->PushClipRect(o, o + size, true);
         draw::gradientRect(dl, o, o + size, theme::col(t.surface), theme::col(t.surfaceHover), 6 * s);
         for (auto& p : pipes_) {
@@ -98,7 +99,7 @@ private:
         dl->PopClipRect();
         if (!started_ || dead_)
             draw::textCentered(dl, fonts::bold(), 20 * s, o + size * 0.5f + ImVec2(0, 60 * s), theme::col(t.text),
-                               dead_ ? "Leertaste = nochmal" : "Leertaste zum Starten");
+                               i18n::tr(dead_ ? "Space = again" : "Space to start"));
     }
 
     float y_ = 0, vel_ = 0, spawn_ = 0;

@@ -9,6 +9,7 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 endif()
 
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS src/*.cpp)
+list(APPEND SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/../common/I18n.cpp)
 file(GLOB MINHOOK_SOURCES lib/minhook/src/*.c lib/minhook/src/hde/hde64.c)
 
 set(IMGUI_SOURCES
@@ -24,6 +25,7 @@ add_library(Mochi SHARED ${SOURCES} ${MINHOOK_SOURCES} ${IMGUI_SOURCES} res/reso
 
 target_include_directories(Mochi PRIVATE
     src
+    ../common
     lib/minhook/include
     lib/imgui
     lib/imgui/backends

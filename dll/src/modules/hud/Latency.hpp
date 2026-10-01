@@ -1,5 +1,6 @@
 #pragma once
 
+#include "I18n.hpp"
 #include "gui/Theme.hpp"
 #include "hook/Dx.hpp"
 #include "hook/Input.hpp"
@@ -15,7 +16,7 @@
 class LatencyHud : public HudModule {
 public:
     LatencyHud()
-        : HudModule("Latency", "Misst Frametime und die Zeit vom Klick bis zum nächsten Bild. Zum Vergleichen von Einstellungen.",
+        : HudModule("Latency", "Measures frame time and the time from click to the next frame. Use it to compare settings.",
                     {"hud-self"}, {0.70f, 0.02f}) {
         LARGE_INTEGER f;
         QueryPerformanceFrequency(&f);
@@ -51,10 +52,10 @@ protected:
         for (size_t i = 0; i < clickCount_; i++) avgClick += clicks_[i];
         if (clickCount_) avgClick /= clickCount_;
 
-        y += drawText(dl, o, s, std::format("Frame {:.2f} ms", fi.frameMs), textColor()).y;
-        y += drawText(dl, o + ImVec2(0, y), s, clickCount_ ? std::format("Klick → Bild {:.1f} ms", avgClick) : "Klick → Bild: klick mal", accentColor()).y;
-        std::string mode = std::format("{}  ·  {}  ·  {} Puffer", fi.lowLatencyActive ? "Low-Latency an" : "Low-Latency aus",
-                                       dx::tuning().allowTearing && fi.tearingSupported ? "Tearing" : "VSync/Standard", fi.bufferCount);
+        y += drawText(dl, o, s, i18n::fmt("Frame {:.2f} ms", fi.frameMs), textColor()).y;
+        y += drawText(dl, o + ImVec2(0, y), s, clickCount_ ? i18n::fmt("Click to frame {:.1f} ms", avgClick) : std::string(i18n::tr("Click to frame: click once")), accentColor()).y;
+        std::string mode = i18n::fmt("{}  ·  {}  ·  {} buffered", i18n::tr(fi.lowLatencyActive ? "Low latency on" : "Low latency off"),
+                                      i18n::tr(dx::tuning().allowTearing && fi.tearingSupported ? "Tearing" : "VSync/default"), fi.bufferCount);
         float small = fonts::hudSize() * s * 0.7f;
         dl->AddText(fonts::hud(), small, o + ImVec2(0, y + 2 * s), theme::col(t.textDim), mode.c_str());
         y += small + 6 * s;
@@ -79,7 +80,7 @@ protected:
     }
 
 private:
-    Setting& flashTest_ = toggleSetting("flash", "Flash-Test (weißes Quadrat bei Klick)", false);
+    Setting& flashTest_ = toggleSetting("flash", "Flash test (white square on click)", false);
     std::array<float, 120> times_{};
     size_t head_ = 0;
     std::array<float, 20> clicks_{};

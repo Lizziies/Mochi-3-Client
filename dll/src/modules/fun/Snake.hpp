@@ -1,5 +1,6 @@
 #pragma once
 
+#include "I18n.hpp"
 #include "gui/Gui.hpp"
 #include "gui/Theme.hpp"
 #include "modules/Module.hpp"
@@ -14,7 +15,7 @@
 
 class Snake : public Module {
 public:
-    Snake() : Module("Snake", "Snake für die Warteschlange. Pfeiltasten/WASD, ESC beendet.", Category::Fun, {"cosmetic"}) {}
+    Snake() : Module("Snake", "Snake for the queue. Arrow keys/WASD, ESC quits.", Category::Fun, {"cosmetic"}) {}
 
     bool persistent() const override { return false; }
     void onEnable() override { reset(); }
@@ -84,7 +85,7 @@ private:
         ImVec2 o = (ds - size) * 0.5f;
 
         dl->AddRectFilled(o - ImVec2(14 * s, 48 * s), o + size + ImVec2(14 * s, 14 * s), theme::col(t.bg, 0.95f), t.rounding * s);
-        std::string title = std::format("Snake  ·  {}  ·  Rekord {}", (int)body_.size() - 3, best_);
+        std::string title = i18n::fmt("Snake  ·  {}  ·  Best {}", (int)body_.size() - 3, best_);
         dl->AddText(fonts::bold(), 20 * s, o - ImVec2(0, 36 * s), theme::col(t.text), title.c_str());
         dl->AddRectFilled(o, o + size, theme::col(t.surface), 6 * s);
 
@@ -95,7 +96,7 @@ private:
             dl->AddRectFilled(p + ImVec2(2, 2), p + ImVec2(cell - 2, cell - 2), theme::col(theme::mix(t.accent2, t.accent, k)), 5 * s);
         }
         if (dead_)
-            draw::textCentered(dl, fonts::bold(), 22 * s, o + size * 0.5f, theme::col(t.text), "Leertaste = nochmal, ESC = beenden");
+            draw::textCentered(dl, fonts::bold(), 22 * s, o + size * 0.5f, theme::col(t.text), i18n::tr("Space = again, ESC = quit"));
     }
 
     std::deque<ImVec2> body_;

@@ -9,7 +9,7 @@ class Cps : public TextHud {
 public:
     bool defaultEnabled() const override { return true; }
 
-    Cps() : TextHud("CPS", "Zählt deine Klicks pro Sekunde.", {"hud-self"}, {0.01f, 0.06f}) {}
+    Cps() : TextHud("CPS", "Counts your clicks per second.", {"hud-self"}, {0.01f, 0.06f}) {}
 
 protected:
     std::string label() const override { return "CPS"; }
@@ -24,5 +24,5 @@ protected:
     }
 
 private:
-    Setting& mode_ = choice("mode", "Anzeige", {"Links | Rechts", "Nur links", "Nur rechts"});
+    Setting& mode_ = choice("mode", "Display", {"Left | Right", "Left only", "Right only"});
 };

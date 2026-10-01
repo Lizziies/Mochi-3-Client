@@ -1,3 +1,4 @@
+#include "I18n.hpp"
 #include "Client.hpp"
 #include "Build.hpp"
 #include "Config.hpp"
@@ -23,6 +24,7 @@ static std::atomic<bool> leaving{false};
 
 static void boot() {
     paths::init(self);
+    i18n::load();
     logger::open();
     guard::installNet();
     logger::info("{} {} loading", build::name, build::version);
@@ -43,7 +45,7 @@ static void boot() {
     for (int i = 0; i < 600 && !dx::window() && !leaving; i++) Sleep(50);
     if (dx::window()) input::install(dx::window());
 
-    notify::push("Mochi geladen", "Rechts-Shift öffnet das Menü.", notify::Kind::Ok, 6.f);
+    notify::push(i18n::tr("Mochi loaded"), i18n::tr("Right Shift opens the menu."), notify::Kind::Ok, 6.f);
     logger::info("ready");
 }
 
