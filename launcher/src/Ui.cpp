@@ -406,55 +406,79 @@ void header(ImDrawList* dl, const char* title, const char* subtitle) {
     label(dl, regular, 16.f, {264.f, 94.f}, col(dim), subtitle);
 }
 
+std::string shortPath(const std::string& path, float width) {
+    if (measure(regular, 12.f, path.c_str()).x <= width) return path;
+    std::string tail = path;
+    while (tail.size() > 8 && measure(regular, 12.f, ("..." + tail).c_str()).x > width) tail.erase(0, 1);
+    return "..." + tail;
+}
+
 void versions(ImDrawList* dl, State& s, Events& ev) {
     {
         Reveal r(dl, 0);
-        header(dl, tr("Versions"), tr("Mochi connects to whichever Minecraft version you start."));
+        header(dl, tr("Versions"), tr("Pick the Minecraft version Mochi starts. It is remembered for next time."));
     }
 
     {
         Reveal r(dl, 1);
-        ImVec2 min{264.f, 130.f}, max{928.f, 262.f};
+        ImVec2 min{264.f, 126.f}, max{928.f, 218.f};
         gradient(dl, min, max, mix(surface, accent, 0.10f), surface, 18.f);
-        icon(dl, Icon::Layers, {min.x + 36.f, min.y + 34.f}, col(accent));
-        label(dl, bold, 19.f, {min.x + 62.f, min.y + 20.f}, col(text), tr("Version manager"));
-        label(dl, regular, 14.f, {min.x + 62.f, min.y + 48.f}, col(dim), tr("LeviLauncher installs and switches Minecraft versions, including older ones."));
-        label(dl, regular, 14.f, {min.x + 62.f, min.y + 68.f}, col(dim), tr("Free open source tool by LiteLDev (GPL-3.0). You need a legitimate Minecraft license."));
+        icon(dl, Icon::Layers, {min.x + 36.f, min.y + 32.f}, col(accent));
+        label(dl, bold, 18.f, {min.x + 62.f, min.y + 12.f}, col(text), tr("Download older versions"));
+        label(dl, regular, 13.f, {min.x + 62.f, min.y + 38.f}, col(dim), tr("LeviLauncher downloads versions with your own license."));
+        label(dl, regular, 13.f, {min.x + 62.f, min.y + 58.f}, col(dim), tr("Free tool by LiteLDev (GPL-3.0). Mochi finds what it installs."));
 
+        float by = min.y + 26.f;
         if (s.managerBusy) {
-            label(dl, regular, 14.f, {min.x + 62.f, max.y - 38.f}, col(text), s.managerStatus.c_str());
-            progressBar(dl, {min.x + 62.f, max.y - 18.f}, {max.x - 28.f, max.y - 12.f}, s.managerProgress, s.managerProgress <= 0.f);
+            label(dl, regular, 13.f, {max.x - 270.f, by}, col(text), s.managerStatus.c_str());
+            progressBar(dl, {max.x - 270.f, by + 26.f}, {max.x - 22.f, by + 32.f}, s.managerProgress, s.managerProgress <= 0.f);
         } else if (s.managerInstalled) {
-            if (button("manager", {min.x + 62.f, max.y - 52.f}, {min.x + 262.f, max.y - 16.f}, tr("Open LeviLauncher"), false)) ev.openManager = true;
+            if (button("manager", {max.x - 210.f, by}, {max.x - 22.f, by + 38.f}, tr("Open LeviLauncher"), false)) ev.openManager = true;
         } else {
-            if (button("managerInstall", {min.x + 62.f, max.y - 52.f}, {min.x + 302.f, max.y - 16.f}, tr("Install LeviLauncher"), false)) ev.installManager = true;
-            if (!s.managerStatus.empty()) label(dl, regular, 14.f, {min.x + 320.f, max.y - 42.f}, col(warn), s.managerStatus.c_str());
+            if (button("managerInstall", {max.x - 210.f, by}, {max.x - 22.f, by + 38.f}, tr("Install LeviLauncher"), false)) ev.installManager = true;
+            if (!s.managerStatus.empty()) label(dl, regular, 13.f, {max.x - 440.f, by + 12.f}, col(warn), s.managerStatus.c_str());
         }
     }
 
     {
         Reveal r(dl, 2);
-        label(dl, bold, 17.f, {264.f, 284.f}, col(text), tr("Detected on this PC"));
+        label(dl, bold, 17.f, {264.f, 238.f}, col(text), tr("Installed on this PC"));
+        if (button("rescan", {736.f, 232.f}, {824.f, 262.f}, tr("Rescan"), false)) ev.rescan = true;
+        if (button("addFolder", {832.f, 232.f}, {928.f, 262.f}, tr("Add folder"), false)) ev.addFolder = true;
     }
-    float y = 316.f;
+
+    float y = 276.f;
     if (s.versions.empty()) {
         Reveal r(dl, 3);
-        ImVec2 min{264.f, y}, max{928.f, y + 60.f};
+        ImVec2 min{264.f, y}, max{928.f, y + 54.f};
         card(dl, min, max);
-        label(dl, regular, 15.f, {min.x + 22.f, min.y + 20.f}, col(dim), tr("No Minecraft installation found."));
-        y += 70.f;
+        label(dl, regular, 15.f, {min.x + 22.f, min.y + 17.f}, col(dim), tr("No Minecraft installation found."));
     }
-    for (size_t i = 0; i < s.versions.size() && y < 470.f; i++, y += 70.f) {
+    for (size_t i = 0; i < s.versions.size() && y < 580.f; i++, y += 62.f) {
         Reveal r(dl, int(i) + 3);
         auto& v = s.versions[i];
-        ImVec2 min{264.f, y}, max{928.f, y + 60.f};
-        card(dl, min, max);
-        label(dl, bold, 19.f, {min.x + 22.f, min.y + 10.f}, col(text), v.name.c_str());
+        ImVec2 min{264.f, y}, max{928.f, y + 54.f};
+        card(dl, min, max, v.active ? mix(surface, accent, 0.12f) : surface);
+        std::string name = v.name.empty() ? std::string(tr("Not installed")) : v.name;
+        label(dl, bold, 18.f, {min.x + 22.f, min.y + 6.f}, col(text), name.c_str());
         float cx = min.x + 22.f;
-        if (v.preview) { chip(dl, {cx, min.y + 33.f}, "Preview", accent2); cx += chipWidth("Preview") + 8.f; }
-        if (v.installed) { chip(dl, {cx, min.y + 33.f}, tr("Installed"), dim); cx += chipWidth(tr("Installed")) + 8.f; }
-        if (v.supported) chip(dl, {cx, min.y + 33.f}, tr("Mochi compatible"), ok);
-        else chip(dl, {cx, min.y + 33.f}, tr("Untested"), warn);
+        const char* kind = v.store ? tr("Microsoft Store") : tr("Own copy");
+        chip(dl, {cx, min.y + 28.f}, kind, dim);
+        cx += chipWidth(kind) + 6.f;
+        if (v.preview) { chip(dl, {cx, min.y + 28.f}, "Preview", accent2); cx += chipWidth("Preview") + 6.f; }
+        if (v.supported) chip(dl, {cx, min.y + 28.f}, tr("Mochi compatible"), ok);
+        else chip(dl, {cx, min.y + 28.f}, tr("Untested"), warn);
+        if (!v.path.empty()) {
+            float x = min.x + 22.f + measure(bold, 18.f, name.c_str()).x + 14.f;
+            label(dl, regular, 12.f, {x, min.y + 11.f}, col(dim), shortPath(v.path, max.x - 170.f - x).c_str());
+        }
+        if (v.active) {
+            chip(dl, {max.x - 22.f - chipWidth(tr("In use")), min.y + 15.f}, tr("In use"), ok);
+        } else {
+            std::string id = "use" + std::to_string(i);
+            bool can = !v.store || !v.name.empty();
+            if (button(id.c_str(), {max.x - 22.f - 130.f, min.y + 10.f}, {max.x - 22.f, min.y + 44.f}, tr("Use this one"), false, can)) ev.pick = int(i);
+        }
     }
 }
 

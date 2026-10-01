@@ -23,6 +23,8 @@ struct GameVersion {
     bool installed = false;
     bool supported = false;
     bool active = false;
+    bool store = false;
+    std::string path;
 };
 
 struct State {
@@ -57,6 +59,9 @@ struct Events {
     bool openManager = false;
     bool openLogs = false;
     bool openFolder = false;
+    bool addFolder = false;
+    bool rescan = false;
+    int pick = -2;
     bool settingsChanged = false;
 };
 

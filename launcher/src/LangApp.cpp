@@ -24,6 +24,10 @@ const i18n::Entry entries[] = {
     {"Downloading LeviLauncher", "Lade LeviLauncher herunter"},
     {"The downloaded file is not valid", "Die heruntergeladene Datei ist ungültig"},
     {"Could not save LeviLauncher", "LeviLauncher konnte nicht gespeichert werden"},
+    {"The selected Minecraft version is not there anymore", "Die gewählte Minecraft-Version ist nicht mehr da"},
+    {"The selected Minecraft version could not be started", "Die gewählte Minecraft-Version konnte nicht gestartet werden"},
+    {"Minecraft is already running with another version. Close it first.", "Minecraft läuft schon mit einer anderen Version. Schließe es zuerst."},
+    {"The selected version closed before it was ready. Pick another version or use the Store one.", "Die gewählte Version wurde geschlossen, bevor sie bereit war. Wähle eine andere oder nimm die aus dem Store."},
 };
 
 i18n::Table table(entries);

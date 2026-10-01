@@ -6,12 +6,15 @@
 #include "Levi.hpp"
 #include "Net.hpp"
 #include "Update.hpp"
+#include "Versions.hpp"
 
 #include <json.hpp>
 
 #include <commdlg.h>
 #include <shellapi.h>
+#include <shobjidl.h>
 
+#include <algorithm>
 #include <atomic>
 #include <cstdio>
 #include <mutex>
@@ -39,6 +42,9 @@ struct Shared {
     bool managerBusy = false;
     float managerProgress = 0.f;
     std::string managerStatus;
+    std::vector<versions::Install> installs;
+    std::vector<std::string> sigVersions;
+    bool sigsKnown = false;
 };
 
 Shared shared;
@@ -61,24 +67,38 @@ void setProgress(float p) {
 
 void fail(const std::string& error) { set(ui::Phase::Failed, tr(error.c_str())); }
 
-bool supported(const std::string& version) {
-    if (version.empty()) return true;
+void loadSigIndex() {
     auto body = net::get(std::string("https://raw.githubusercontent.com/") + files::narrow(build::repoOwner) + "/" +
                          files::narrow(build::repoName) + "/" + files::narrow(build::repoBranch) + "/sigs/index.json");
-    if (!body) return true;
+    if (!body) return;
     auto j = nlohmann::json::parse(*body, nullptr, false);
-    if (j.is_discarded() || !j.contains("versions")) return true;
+    if (j.is_discarded() || !j.contains("versions")) return;
+    std::lock_guard g(shared.lock);
+    shared.sigVersions.clear();
     for (auto& v : j["versions"])
-        if (v.is_string() && v.get<std::string>() == version) return true;
-    return false;
+        if (v.is_string()) shared.sigVersions.push_back(v.get<std::string>());
+    shared.sigsKnown = true;
+}
+
+bool supportedLocked(const std::string& version) {
+    if (version.empty() || !shared.sigsKnown) return true;
+    return std::find(shared.sigVersions.begin(), shared.sigVersions.end(), version) != shared.sigVersions.end();
+}
+
+void rescan() {
+    std::vector<files::fs::path> extra;
+    for (auto& f : current.folders) extra.push_back(files::fs::path(files::widen(f)));
+    auto found = versions::scan(extra);
+    std::lock_guard g(shared.lock);
+    shared.installs = std::move(found);
 }
 
 void refreshGame() {
     std::string version = game::installedVersion();
-    bool ok = supported(version);
+    loadSigIndex();
     std::lock_guard g(shared.lock);
     shared.gameVersion = version;
-    shared.gameSupported = ok;
+    shared.gameSupported = supportedLocked(version);
 }
 
 void checkUpdate() {
@@ -142,11 +162,24 @@ bool connect(DWORD pid) {
     return true;
 }
 
+bool sameFile(const std::wstring& a, const std::string& b) {
+    std::error_code ec;
+    return !a.empty() && std::filesystem::equivalent(files::fs::path(a), files::fs::path(files::widen(b)), ec);
+}
+
 std::optional<DWORD> startGame() {
-    if (auto pid = game::running()) return pid;
+    if (auto pid = game::running()) {
+        if (!current.pinned.empty() && !sameFile(game::runningPath(*pid), current.pinned)) {
+            fail("Minecraft is already running with another version. Close it first.");
+            return std::nullopt;
+        }
+        return pid;
+    }
     set(ui::Phase::Starting, tr("Starting Minecraft"));
-    if (!game::launch()) {
-        fail("Minecraft could not be started");
+    std::string error = "Minecraft could not be started";
+    bool started = current.pinned.empty() ? game::launch() : game::launchExe(files::fs::path(files::widen(current.pinned)), error);
+    if (!started) {
+        fail(error);
         return std::nullopt;
     }
     for (int i = 0; i < 180; i++) {
@@ -167,7 +200,8 @@ void play() {
 
     set(ui::Phase::Waiting, tr("Waiting for the game to load"));
     if (!game::waitReady(*pid, 120000)) {
-        fail("Minecraft closed before it was ready");
+        fail(current.pinned.empty() ? "Minecraft closed before it was ready"
+                                    : "The selected version closed before it was ready. Pick another version or use the Store one.");
         return;
     }
     if (!connect(*pid)) return;
@@ -239,6 +273,26 @@ void installManager() {
     if (ok) levi::open();
 }
 
+std::optional<files::fs::path> pickFolder(HWND owner) {
+    IFileOpenDialog* dialog = nullptr;
+    if (FAILED(CoCreateInstance(CLSID_FileOpenDialog, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&dialog)))) return std::nullopt;
+    DWORD options = 0;
+    dialog->GetOptions(&options);
+    dialog->SetOptions(options | FOS_PICKFOLDERS | FOS_FORCEFILESYSTEM);
+    std::optional<files::fs::path> result;
+    if (SUCCEEDED(dialog->Show(owner))) {
+        IShellItem* item = nullptr;
+        PWSTR name = nullptr;
+        if (SUCCEEDED(dialog->GetResult(&item)) && SUCCEEDED(item->GetDisplayName(SIGDN_FILESYSPATH, &name))) {
+            result = files::fs::path(name);
+            CoTaskMemFree(name);
+        }
+        if (item) item->Release();
+    }
+    dialog->Release();
+    return result;
+}
+
 void spawn(void (*job)()) {
     if (busy.exchange(true)) return;
     std::thread([job] {
@@ -261,6 +315,7 @@ void init(ui::State& state) {
     shared.latest = tag;
     std::thread([] {
         refreshGame();
+        rescan();
         checkUpdate();
     }).detach();
     shared.managerInstalled = !levi::find().empty();
@@ -279,6 +334,27 @@ void handle(ui::State& state, const ui::Events& ev, HWND window) {
         if (!installing.exchange(true)) std::thread([] { installManager(); installing = false; }).detach();
     }
     if (ev.openManager) levi::open();
+    if (ev.pick >= 0) {
+        std::string path;
+        {
+            std::lock_guard g(shared.lock);
+            size_t i = size_t(ev.pick);
+            if (i >= 1 && i <= shared.installs.size()) path = files::narrow(shared.installs[i - 1].exe.wstring());
+        }
+        current.pinned = path;
+        state.settings.pinned = path;
+        current.save();
+    }
+    if (ev.rescan) std::thread([] { rescan(); }).detach();
+    if (ev.addFolder) {
+        if (auto folder = pickFolder(window)) {
+            std::string path = files::narrow(folder->wstring());
+            if (std::find(current.folders.begin(), current.folders.end(), path) == current.folders.end()) current.folders.push_back(path);
+            state.settings.folders = current.folders;
+            current.save();
+            std::thread([] { rescan(); }).detach();
+        }
+    }
     if (ev.minimize) ShowWindow(window, SW_MINIMIZE);
     if (ev.close) PostMessageW(window, WM_CLOSE, 0, 0);
     if (ev.openLogs) ShellExecuteW(nullptr, L"open", files::log().c_str(), nullptr, nullptr, SW_SHOWNORMAL);
@@ -316,7 +392,15 @@ void sync(ui::State& state) {
     if (!shared.notes.empty()) state.changelog = shared.notes;
 
     state.versions.clear();
-    if (!shared.gameVersion.empty()) state.versions.push_back({shared.gameVersion, false, true, shared.gameSupported, true});
+    bool pinnedFound = false;
+    for (auto& i : shared.installs)
+        if (!current.pinned.empty() && sameFile(i.exe.wstring(), current.pinned)) pinnedFound = true;
+    bool storeActive = current.pinned.empty() || !pinnedFound;
+    state.versions.push_back({shared.gameVersion, false, !shared.gameVersion.empty(), shared.gameSupported, storeActive, true, {}});
+    for (auto& i : shared.installs) {
+        bool active = !storeActive && sameFile(i.exe.wstring(), current.pinned);
+        state.versions.push_back({i.name, i.preview, true, supportedLocked(i.name), active, false, files::narrow(i.exe.wstring())});
+    }
 }
 
 bool wantsQuit() { return quit; }

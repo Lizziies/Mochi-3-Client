@@ -11,7 +11,10 @@ namespace game {
 
 std::optional<DWORD> running();
 std::string installedVersion();
+std::string readableVersion(const std::string& raw);
+std::wstring runningPath(DWORD pid);
 bool launch();
+bool launchExe(const std::filesystem::path& exe, std::string& error);
 bool waitReady(DWORD pid, int timeoutMs);
 bool injected(DWORD pid);
 bool inject(DWORD pid, const std::filesystem::path& dll, std::string& error);

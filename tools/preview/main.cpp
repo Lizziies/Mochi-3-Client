@@ -109,10 +109,10 @@ int main(int argc, char** argv) {
     state.gameVersion = "1.26.31";
     state.managerInstalled = std::getenv("MANAGER") != nullptr;
     state.changelog = "Neues Menü mit weichem Scrollen\nLatenz-Overlay und WLAN-Modul\nNo View Bobbing\nServer-Regeln für Hive und Lifeboat\nBessere Standardwerte für FPS";
-    state.versions = {{"1.26.31", false, true, true, true},
-                      {"1.26.30", false, false, true, false},
-                      {"1.26.23", false, false, true, false},
-                      {"1.26.40 Preview", true, false, false, false}};
+    state.versions = {{"1.26.31", false, true, true, false, true, {}},
+                      {"1.26.20", false, true, true, true, false, "C:\\Users\\felix\\AppData\\Local\\Programs\\LeviLauncher\\versions\\1.26.20\\Minecraft.Windows.exe"},
+                      {"1.26.0", false, true, true, false, false, "D:\\Games\\Minecraft\\1.26.0\\Minecraft.Windows.exe"},
+                      {"1.26.40", true, true, false, false, false, "C:\\Users\\felix\\AppData\\Local\\Programs\\LeviLauncher\\versions\\1.26.40 Preview\\Minecraft.Windows.exe"}};
     std::string page = argv[3];
     state.page = page == "versions" ? ui::Page::Versions : page == "settings" ? ui::Page::Settings : page == "about" ? ui::Page::About : ui::Page::Start;
     if (argc > 5) {

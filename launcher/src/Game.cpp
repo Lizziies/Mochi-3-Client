@@ -47,13 +47,6 @@ bool hasWindow(DWORD pid) {
     return s.visible;
 }
 
-std::string readableVersion(const std::string& raw) {
-    int a = 0, b = 0, c = 0, d = 0;
-    if (sscanf(raw.c_str(), "%d.%d.%d.%d", &a, &b, &c, &d) < 3) return raw;
-    if (c >= 100) c /= 100;
-    return std::to_string(a) + "." + std::to_string(b) + "." + std::to_string(c);
-}
-
 bool grantAppPackages(const std::filesystem::path& file) {
     PSID sid = nullptr;
     if (!ConvertStringSidToSidW(L"S-1-15-2-1", &sid)) return false;
@@ -80,6 +73,23 @@ bool grantAppPackages(const std::filesystem::path& file) {
     return ok;
 }
 
+}
+
+std::string readableVersion(const std::string& raw) {
+    int a = 0, b = 0, c = 0, d = 0;
+    if (sscanf(raw.c_str(), "%d.%d.%d.%d", &a, &b, &c, &d) < 3) return raw;
+    if (c >= 100) c /= 100;
+    return std::to_string(a) + "." + std::to_string(b) + "." + std::to_string(c);
+}
+
+std::wstring runningPath(DWORD pid) {
+    HANDLE proc = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
+    if (!proc) return {};
+    wchar_t buf[MAX_PATH * 2] = {};
+    DWORD n = DWORD(std::size(buf));
+    std::wstring out = QueryFullProcessImageNameW(proc, 0, buf, &n) ? std::wstring(buf, n) : std::wstring();
+    CloseHandle(proc);
+    return out;
 }
 
 std::optional<DWORD> running() {
@@ -128,6 +138,25 @@ bool launch() {
         manager->Release();
     }
     return reinterpret_cast<INT_PTR>(ShellExecuteW(nullptr, L"open", L"minecraft:", nullptr, nullptr, SW_SHOWNORMAL)) > 32;
+}
+
+bool launchExe(const std::filesystem::path& exe, std::string& error) {
+    std::error_code ec;
+    if (!std::filesystem::exists(exe, ec)) {
+        error = "The selected Minecraft version is not there anymore";
+        return false;
+    }
+    std::wstring cmd = L"\"" + exe.wstring() + L"\"";
+    STARTUPINFOW si{sizeof(si)};
+    PROCESS_INFORMATION pi{};
+    auto dir = exe.parent_path();
+    if (!CreateProcessW(exe.c_str(), cmd.data(), nullptr, nullptr, FALSE, 0, nullptr, dir.c_str(), &si, &pi)) {
+        error = "The selected Minecraft version could not be started";
+        return false;
+    }
+    CloseHandle(pi.hThread);
+    CloseHandle(pi.hProcess);
+    return true;
 }
 
 bool waitReady(DWORD pid, int timeoutMs) {
