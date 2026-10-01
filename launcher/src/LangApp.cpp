@@ -23,6 +23,7 @@ const i18n::Entry entries[] = {
     {"No release notes yet.", "Noch keine Release-Notizen."},
     {"Downloading LeviLauncher", "Lade LeviLauncher herunter"},
     {"The downloaded file is not valid", "Die heruntergeladene Datei ist ungültig"},
+    {"Could not save the client", "Der Client konnte nicht gespeichert werden"},
     {"Could not save LeviLauncher", "LeviLauncher konnte nicht gespeichert werden"},
     {"The selected Minecraft version is not there anymore", "Die gewählte Minecraft-Version ist nicht mehr da"},
     {"The selected Minecraft version could not be started", "Die gewählte Minecraft-Version konnte nicht gestartet werden"},

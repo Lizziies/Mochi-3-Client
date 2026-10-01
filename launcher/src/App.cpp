@@ -1,5 +1,6 @@
 #include "App.hpp"
 #include "Build.hpp"
+#include "Embedded.hpp"
 #include "Files.hpp"
 #include "Game.hpp"
 #include "I18n.hpp"
@@ -108,12 +109,14 @@ void checkUpdate() {
     shared.pending = release;
     shared.latest = release->tag;
     shared.notes = release->notes;
-    shared.updateAvailable = update::newer(release->tag, update::installedTag());
     shared.launcherUpdate = !release->launcherUrl.empty() && update::newer(release->tag, build::version);
+    shared.updateAvailable = release->dllUrl.empty() ? shared.launcherUpdate : update::newer(release->tag, update::installedTag());
 }
 
 std::filesystem::path clientDll() {
     if (!current.customDll.empty()) return files::fs::path(files::widen(current.customDll));
+    std::string error;
+    if (!embedded::install(error)) fail(error);
     wchar_t self[MAX_PATH] = {};
     GetModuleFileNameW(nullptr, self, MAX_PATH);
     auto beside = files::fs::path(self).parent_path() / L"Mochi.dll";
@@ -131,7 +134,7 @@ std::optional<update::Release> pending() {
 
 bool installUpdate() {
     auto release = pending();
-    if (!release || !current.customDll.empty()) return true;
+    if (!release || release->dllUrl.empty() || !current.customDll.empty()) return true;
     if (!update::newer(release->tag, update::installedTag()) && files::fs::exists(files::dll())) return true;
     set(ui::Phase::Updating, i18n::fmt("Downloading {}", release->tag));
     std::string error;

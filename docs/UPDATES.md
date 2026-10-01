@@ -22,21 +22,21 @@ Es gibt vier getrennte Dinge, die sich aktualisieren, mit unterschiedlichem Aufw
 | Ebene | Was | Wie | Braucht neues Release? |
 |---|---|---|---|
 | 1. Signaturen und Server-Regeln | Daten (`sigs/<version>.json`, `servers/servers.json`) | DLL lädt sie beim Start von `raw.githubusercontent.com`, mit Cache und eingebauter Kopie | nein, ein Commit reicht |
-| 2. Client (`Mochi.dll`) | Programmcode | Launcher holt das neueste GitHub-Release, prüft SHA-256, ersetzt die DLL | ja |
+| 2. Client (`Mochi.dll`) | Programmcode | steckt in `MochiLauncher.exe` (eingebettet), der Launcher legt ihn beim Start nach `%LOCALAPPDATA%\Mochi\bin` | ja, mit dem Launcher |
 | 3. Launcher (`MochiLauncher.exe`) | Programmcode | Launcher lädt die neue exe, benennt die laufende um, startet die neue, löscht die alte | ja |
 | 4. Minecraft selbst | Spiel | Microsoft Store / Xbox-App | nicht unsere Sache |
 
 ## Ablauf beim Klick auf "Spielen"
 
 1. Launcher fragt `api.github.com/repos/<owner>/<repo>/releases/latest` (bei Beta-Kanal die Liste der Releases).
-2. Ist der Tag neuer als die installierte Version, lädt er `Mochi.dll` und `checksums.txt`, prüft die Prüfsumme und ersetzt `%LOCALAPPDATA%\Mochi\bin\Mochi.dll`. Stimmt die Prüfsumme nicht, wird nichts installiert.
+2. Der Client steckt als Ressource in der Exe. Beim Start schreibt der Launcher ihn und die Cosmetics aus der Exe nach `%LOCALAPPDATA%\Mochi` (nur wenn sich der Inhalt geändert hat). Ist der Tag im Release neuer, bietet der Launcher das Update an: er lädt die neue `MochiLauncher.exe`, prüft die Prüfsumme, ersetzt sich und startet neu. Stimmt die Prüfsumme nicht, wird nichts installiert.
 3. Läuft Minecraft schon, wird der Prozess verwendet, sonst gestartet (Aktivierung über die App-ID, Rückfall auf `minecraft:`).
 4. Launcher wartet auf Fenster und DirectX-Module, wartet 2 Sekunden und injiziert per `LoadLibraryW`.
 5. Die DLL liest ihre Minecraft-Version, lädt die passende `sigs/<version>.json` (GitHub → Cache → eingebaut) und schaltet Module ohne gefundene Signatur grau.
 
 "Selbst-Update": Button "Aktualisieren" auf der Startseite. Er lädt zusätzlich `MochiLauncher.exe`, ersetzt sich selbst und startet neu.
 
-Voraussetzung: Ein Release mit den drei Dateien `Mochi.dll`, `MochiLauncher.exe`, `checksums.txt`. Die Action erzeugt sie, wenn du einen Tag `v0.1.0` pushst. Auf GitHub muss außerdem ein Standardbranch (`main`) existieren, weil Signaturen von dort geladen werden.
+Voraussetzung: Ein Release mit den zwei Dateien `MochiLauncher.exe` (eine einzige Exe mit Client und Cosmetics) und `checksums.txt`. Die Action erzeugt sie, wenn du einen Tag `v0.1.0` pushst. Auf GitHub muss außerdem ein Standardbranch (`main`) existieren, weil Signaturen von dort geladen werden.
 
 ## Was passiert, wenn Minecraft sich aktualisiert
 

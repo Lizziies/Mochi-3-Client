@@ -29,20 +29,20 @@ jobs:
           set(CMAKE_RC_COMPILER x86_64-w64-mingw32-windres)
           set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
           EOF
-          for part in dll launcher; do
-            cmake -S $part -B build/$part -DCMAKE_TOOLCHAIN_FILE=$PWD/mingw.cmake -DCMAKE_BUILD_TYPE=Release -DMOCHI_VERSION="$version"
-            cmake --build build/$part -j"$(nproc)"
-          done
+          cmake -S dll -B build/dll -DCMAKE_TOOLCHAIN_FILE=$PWD/mingw.cmake -DCMAKE_BUILD_TYPE=Release -DMOCHI_VERSION="$version"
+          cmake --build build/dll -j"$(nproc)"
+          cmake -S launcher -B build/launcher -DCMAKE_TOOLCHAIN_FILE=$PWD/mingw.cmake -DCMAKE_BUILD_TYPE=Release -DMOCHI_VERSION="$version" \
+            -DMOCHI_DLL=$PWD/build/dll/Mochi.dll -DMOCHI_COSMETICS=$PWD/cosmetics
+          cmake --build build/launcher -j"$(nproc)"
           mkdir out
-          cp build/dll/Mochi.dll build/launcher/MochiLauncher.exe out/
+          cp build/launcher/MochiLauncher.exe out/
           cd out
-          sha256sum Mochi.dll MochiLauncher.exe > checksums.txt
+          sha256sum MochiLauncher.exe > checksums.txt
 
       - name: publish
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            out/Mochi.dll
             out/MochiLauncher.exe
             out/checksums.txt
           prerelease: ${{ contains(github.ref_name, '-') }}

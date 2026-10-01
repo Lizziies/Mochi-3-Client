@@ -12,7 +12,9 @@ Der beste Minecraft-Bedrock-PvP-Client, besser als Flarial und Onix: bessere Ein
 - Nichts davon lief je im echten Minecraft. DX12, Launcher, Injektion und Release-Pipeline sind ungetestet.
 - Mit "Game Support" → Demo-Daten laufen alle Module mit simulierten Werten. Das zeigt nur das Aussehen.
 - Mochi Online: Dienst läuft bei Cloudflare (`https://mochi-online.lisawer008.workers.dev`), der Client hat die Adresse als Standard. Ende-zu-Ende mit dem Client ist nicht geprüft.
-- Die detaillierten Cosmetics in `tools/cosmetics_hd/` lädt der Loader aus `main` noch nicht (Wunsch in `docs/HANDOFF.md`).
+- Cosmetics: 21 Teile (Flügel, Capes, Ohren, Schwänze, Bandana, Mütze, Zaubererhut, Sneaker) laden im Menü mit Farbwahl, Animation und Physik (`tools/cosmetics/build.py`, Ordner `cosmetics/`). Im Spiel gezeichnet werden sie noch nicht.
+- Der Launcher ist eine einzige Exe: Client und Cosmetics stecken als Ressource darin (`-DMOCHI_DLL`, `-DMOCHI_COSMETICS`). Unter Wine geprüft: `MochiLauncher.exe --extract` legt Client und Cosmetics nach `%LOCALAPPDATA%\\Mochi`. Im echten Windows nicht getestet.
+- Der Launcher hat eine Versionswahl (Seite Versions). Der direkte Start einer Exe außerhalb des Stores ist ungeprüft.
 
 ## Harte Regeln (aus CLAUDE.md, hier wiederholt, weil sie am PC gelten)
 
@@ -27,13 +29,14 @@ Der beste Minecraft-Bedrock-PvP-Client, besser als Flarial und Onix: bessere Ein
 ## Arbeitsweise
 
 - Branch: `claude/modules-b` ist der aktuelle Stand der Module. Zuerst `git fetch origin`, dann prüfen, ob `main` schon alles enthält (`git log origin/main..origin/claude/modules-b`). Ist es nicht gemergt, `git merge origin/claude/modules-b` in einen Arbeitsbranch `claude/pc-test` und dort arbeiten. Nie auf eine fremde Branch pushen.
-- Bauen auf Windows:
+- Bauen auf Windows (der Launcher bettet Client und Cosmetics ein, das ergibt eine einzige Exe):
   ```
   cmake -S dll -B build -G "Visual Studio 17 2022" -A x64
   cmake --build build --config Release
-  cmake -S launcher -B build-launcher -G "Visual Studio 17 2022" -A x64
+  cmake -S launcher -B build-launcher -G "Visual Studio 17 2022" -A x64 -DMOCHI_DLL=%CD%\build\Release\Mochi.dll -DMOCHI_COSMETICS=%CD%\cosmetics
   cmake --build build-launcher --config Release
   ```
+  Ohne `-DMOCHI_DLL` sucht der Launcher `Mochi.dll` neben sich (Entwicklung). Cosmetics neu erzeugen: `python3 tools/cosmetics/build.py cosmetics`.
 - Vor jedem Neubau die DLL mit Strg+L entladen (die Datei ist sonst gesperrt).
 - Log: `%LOCALAPPDATA%\Mochi\logs\latest.log`. Selbsttest: `MOCHI_SELFTEST=1` (prüft alle Module der Reihe nach, meldet Fehler, Aussetzer, fehlende Übersetzungen). Modulliste mit Signaturbedarf: `MOCHI_DUMP_MODULES=<pfad.json>`.
 - Eine Testdatei führen: `docs/TESTLOG.md` mit Datum, Minecraft-Version, was getestet wurde, Ergebnis, Beleg.
@@ -49,6 +52,9 @@ Ziel: Der Client lädt, zeichnet, entlädt sich sauber, ohne dass das Spiel abst
 - [ ] 30 Minuten spielen mit eingeschaltetem Menü-HUD: kein Absturz, kein Ruckeln, kein Speicherwachstum.
 - [ ] Eingabe prüfen: Maus, Tastatur, Raw Input, Cursor-Fang im Menü (Maus frei, wenn Menü offen), keine hängenden Tasten (Toggle Sprint, Strg+L-Fix in `hook/Input.cpp`).
 - [ ] Eingabelatenz und Overhead messen (siehe Phase 6) und festhalten, bevor Module Hooks setzen.
+
+- [ ] **Einzige Exe prüfen:** `MochiLauncher.exe` allein in einen leeren Ordner kopieren und starten. Danach liegen `%LOCALAPPDATA%\Mochi\bin\Mochi.dll` und der Ordner `cosmetics` da (`MochiLauncher.exe --extract` macht nur das, ohne Fenster). Play startet Minecraft und verbindet.
+- [ ] **Versionswahl prüfen** (Launcher, Seite Versions): LeviLauncher installieren, dort eine ältere Version laden, "Rescan" (sonst "Add folder"), "Use this one", Play. Die Exe wird direkt gestartet, das ist ungeprüft: Läuft sie, sieht man die Version im Spiel und im Log (`version ...`). Schließt sie sich sofort, ist der direkte Start der falsche Weg. Dann herausfinden, wie LeviLauncher die Version startet (Registrierung des Pakets, Aufruf), und den Start in `launcher/src/Game.cpp` (`launchExe`) anpassen. Nach Neustart des Launchers muss die Wahl bleiben ("In use"). Nie Dateien im Store-Ordner überschreiben.
 
 Gate: stabil, sauber entladbar, DX11 und DX12 funktionieren. Erst dann Signaturen.
 
@@ -122,7 +128,18 @@ Zuerst die Flaggschiffe: `fx.fov` (Zoom, FOV Changer), `fx.gamma` (Fullbright), 
 
 ## Phase 5: Cosmetics im Spiel (Stufe 2)
 
-Wenn die Spielerdaten laufen: eigene Figur in der dritten Person mit Cosmetics (Position und Haltung des eigenen Spielers aus Welle 1, Kamera, Skelett). Danach fremde Spieler (`ActorList`). Nur Anzeige auf dem eigenen Bildschirm, keine Pakete. Physik: Bewegung aus dem echten Spieler (`game::state().player`), siehe `docs/HANDOFF.md`.
+Ziel: Jeder Mochi-Nutzer sieht die Cosmetics aller anderen Mochi-Nutzer (Flügel, Capes, Ohren, Schwänze, Bandana, Mützen, Sneaker), auch an der eigenen Figur in der dritten Person. Wer den Client nicht hat, sieht nichts. Es werden keine Pakete verändert.
+
+- **Nicht als Overlay malen.** Ein Overlay über dem Bild kennt keine Wände und würde Spieler hinter Blöcken zeigen. Das ist ein Wallhack und verboten. Der Weg ist, die Teile in die Figur selbst zu geben: Skin-Geometrie des Spielers beim Laden des Skins erweitern oder den Render-Aufruf der Figur hooken und die Teile mit der Skelett-Matrix des Spielers zeichnen. Dann sortiert das Spiel selbst, Sneaken, Schwimmen, Gleiten und Sichtbarkeit stimmen automatisch.
+- Daten pro Figur: Skelett-Knochen (Kopf, Körper, Arme, Beine), Slim- oder Wide-Körper (Skin-Geometrie), Skin-Overlay-Schicht (Hut und Jacke, das Bandana liegt bei Radius 4.42, Hut-Schichten gehen bis 4.5, bei Bedarf anpassen). Skins mit eigener Körperform erkennen und dort ausblenden.
+- Wer trägt was: Mochi Online (`worn` je Gamertag, Phase 4). Der Client fragt für die Spieler in der Tab-Liste ab.
+- Physik: Bewegung aus dem echten Spieler (`game::state().player`), Anschlussstelle `cosmetics::Rig::step` mit `cosmetics::Moving` (siehe `dll/src/cosmetics/Preview.cpp`, Physik ist dieselbe wie in der Menü-Vorschau).
+- Prüfen mit zwei Konten: beide sehen die Teile des anderen, hinter Wänden sieht man nichts, ohne Mochi sieht man nichts, die FPS-Kosten stimmen (Messung in Phase 6).
+
+Dazu kommen zwei Module, die ebenfalls im Spiel geprüft werden müssen:
+
+- **Third Person Nametag** (Session B): eigener Name über dem Kopf in F5 und Freecam. Braucht den Hook `fx.selfNametag`. Prüfen: Name steht in der dritten Person über dem Kopf, in der ersten nicht (außer Option).
+- **Health Above Head** (neu, `dll/src/modules/world/HealthAbove.hpp`): Balken und Zahl über anderen Spielern. Braucht die Liste der anderen Spieler (`state.others`, `ActorList`) mit Leben und Höchstleben. Bedrock sendet fremdes Leben nicht immer; wenn nur Scoreboard-Werte unter dem Namen kommen (Server-Anzeige), diese lesen. Ausgeliefert ist es aus (Server-Regeln). Prüfen: Werte stimmen mit dem überein, was das Spiel oder der Server anzeigt.
 
 ## Phase 6: Messen und mit Flarial und Onix vergleichen
 
@@ -141,7 +158,7 @@ Ergebnis: eine Tabelle in `docs/PARITY.md` mit Messwerten. Nur Zahlen, die gemes
 
 - [ ] Mindestens drei Minecraft-Versionen: aktuelle, vorherige, Preview. Pro Version `sigs/<version>.json` mit `inherits`. Unbekannte Version: Module werden grau, kein Absturz.
 - [ ] Windows 10 und 11, Defender (falsche Warnung bei Injektoren: Ausnahme beschreiben), Launcher-Ablauf, Selbst-Update, Version-Switcher über LeviLauncher.
-- [ ] GitHub-Action (Release-Pipeline) einmal laufen lassen: Pre-Release `v0.1.0-alpha.1` mit `Mochi.dll`, `MochiLauncher.exe`, Prüfsummen. Herunterladen und Schritt für Schritt wie ein Nutzer testen.
+- [ ] GitHub-Action (Release-Pipeline) einmal laufen lassen: Pre-Release `v0.1.0-alpha.1`. Das Release enthält nur `MochiLauncher.exe` (eine einzige Exe, Client und Cosmetics eingebettet wie bei Flarial) und `checksums.txt`. Herunterladen und Schritt für Schritt wie ein Nutzer testen, auch das Selbst-Update auf ein zweites Pre-Release.
 - [ ] Vor dem ersten öffentlichen Release: Arbeitstitel "Mochi" global ersetzen (suchen/ersetzen), README im lockeren Ton, Datenschutz-Seite, Lizenz prüfen.
 
 ## Was Felix prüfen oder liefern muss

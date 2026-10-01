@@ -28,7 +28,7 @@ Reihenfolge nach Risiko:
 2. **Launcher im echten System.** Spielstart (`ActivateApplication` mit der richtigen AUMID), Versionserkennung, Injection, Selbst-Update. Siehe offene Punkte unten.
 3. **Overlay-Module ohne Signaturen.** FPS, CPS, Keystrokes, Latenz, Netzwerk, Post-Effekte, Crosshair. Das ist der sichere Kern für Release 1.
 4. **Erste Spiel-Signaturen.** Zoom, Fullbright, No View Bobbing, No Hurt Cam, Toggle Sprint/Sneak, Coordinates, Armor HUD, Hitbox. Jedes Modul, dessen Signatur nicht sicher gefunden wurde, erscheint grau statt kaputt.
-5. **GitHub-Release-Pipeline.** Release mit `Mochi.dll`, `MochiLauncher.exe` und `checksums.txt`, damit der Updater funktioniert. Dazu eine Action, die bei einem Tag baut.
+5. **GitHub-Release-Pipeline.** Release mit `MochiLauncher.exe` (Client und Cosmetics eingebettet, eine einzige Exe wie bei Flarial) und `checksums.txt`, damit der Updater funktioniert. Dazu eine Action, die bei einem Tag baut.
 6. **README, Screenshots, Name.** Arbeitstitel "Mochi" vor dem Release prüfen und global ersetzen. Logo-Rechte klären.
 
 ## Ehrliche Risiken

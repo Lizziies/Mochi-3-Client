@@ -4,7 +4,7 @@ Alles, was in der Cloud geht, ist erledigt: gebaut, unter Wine getestet, Release
 
 ## Schritte
 
-1. Von GitHub (Releases) `MochiLauncher.exe` und `Mochi.dll` herunterladen und in denselben Ordner legen. Windows-Defender warnt eventuell, das ist bei Injektoren normal. Für den Test eine Ausnahme für den Ordner anlegen.
+1. Von GitHub (Releases) `MochiLauncher.exe` herunterladen. Das ist eine einzige Datei, Client und Cosmetics stecken darin. Windows-Defender warnt eventuell, das ist bei Injektoren normal. Für den Test eine Ausnahme für den Ordner anlegen.
 2. `MochiLauncher.exe` starten und auf "Play" klicken. Der Launcher startet Minecraft, wartet und verbindet den Client.
 3. Im Spiel Rechts-Shift drücken. Das Menü sollte erscheinen. FPS, CPS und Keystrokes sollten oben links stehen.
 4. Ein paar Module an- und ausschalten, das HUD verschieben (Edit HUD), die Sprache umstellen (Settings).

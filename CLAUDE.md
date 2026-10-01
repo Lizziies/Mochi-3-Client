@@ -67,9 +67,11 @@ tools/cross.sh shots    # runs the dll in the test host under Wine, takes screen
 # on Windows
 cmake -S dll -B build -G "Visual Studio 17 2022" -A x64
 cmake --build build --config Release
-cmake -S launcher -B build-launcher -G "Visual Studio 17 2022" -A x64
+cmake -S launcher -B build-launcher -G "Visual Studio 17 2022" -A x64 -DMOCHI_DLL=%CD%\build\Release\Mochi.dll -DMOCHI_COSMETICS=%CD%\cosmetics
 cmake --build build-launcher --config Release
 ```
+
+With `MOCHI_DLL` set the launcher embeds the client and the cosmetics, so the release is one exe. Without it the launcher looks for `Mochi.dll` next to itself.
 
 ## Test loop
 

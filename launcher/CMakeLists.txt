@@ -14,6 +14,25 @@ set(MOCHI_VERSION "0.1.0" CACHE STRING "Version shown in the launcher")
 file(GLOB SOURCES CONFIGURE_DEPENDS src/*.cpp)
 list(APPEND SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/../common/I18n.cpp)
 
+set(MOCHI_DLL "" CACHE FILEPATH "Mochi.dll to embed, makes the launcher a single exe")
+set(MOCHI_COSMETICS "" CACHE PATH "Cosmetics folder to embed next to it")
+if(MOCHI_DLL AND EXISTS "${MOCHI_DLL}")
+    file(TO_CMAKE_PATH "${MOCHI_DLL}" EMBED_DLL)
+    set(EMBED_RC ${CMAKE_CURRENT_BINARY_DIR}/embed.rc)
+    set(EMBED_TEXT "#include \"${CMAKE_CURRENT_SOURCE_DIR}/res/resource.h\"\nIDR_CLIENT RCDATA \"${EMBED_DLL}\"\n")
+    set(EMBED_DEPENDS "${MOCHI_DLL}")
+    find_package(Python3 COMPONENTS Interpreter)
+    if(MOCHI_COSMETICS AND EXISTS "${MOCHI_COSMETICS}" AND Python3_FOUND)
+        set(EMBED_PACK ${CMAKE_CURRENT_BINARY_DIR}/cosmetics.pack)
+        execute_process(COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../tools/pack.py ${EMBED_PACK} ${MOCHI_COSMETICS})
+        string(APPEND EMBED_TEXT "IDR_COSMETICS RCDATA \"${EMBED_PACK}\"\n")
+        list(APPEND EMBED_DEPENDS ${EMBED_PACK})
+    endif()
+    file(WRITE ${EMBED_RC} "${EMBED_TEXT}")
+    list(APPEND SOURCES ${EMBED_RC})
+    set_source_files_properties(${EMBED_RC} PROPERTIES OBJECT_DEPENDS "${EMBED_DEPENDS}")
+endif()
+
 add_executable(MochiLauncher WIN32
     ${SOURCES}
     ${LIB}/imgui/imgui.cpp

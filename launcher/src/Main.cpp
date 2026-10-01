@@ -1,4 +1,5 @@
 #include "App.hpp"
+#include "Embedded.hpp"
 #include "Files.hpp"
 #include "I18n.hpp"
 #include "Ui.hpp"
@@ -123,7 +124,11 @@ void roundCorners() {
 
 }
 
-int WINAPI wWinMain(HINSTANCE inst, HINSTANCE, PWSTR, int) {
+int WINAPI wWinMain(HINSTANCE inst, HINSTANCE, PWSTR args, int) {
+    if (wcsstr(args, L"--extract")) {
+        std::string error;
+        return embedded::install(error) ? 0 : 1;
+    }
     HANDLE once = CreateMutexW(nullptr, TRUE, L"Mochi.Launcher");
     if (GetLastError() == ERROR_ALREADY_EXISTS) {
         if (HWND other = FindWindowW(L"MochiLauncher", nullptr)) {

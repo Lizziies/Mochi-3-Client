@@ -27,10 +27,11 @@ T
 
 build() {
     toolchain
-    for part in dll launcher; do
-        cmake -S "$root/$part" -B "$out/$part" -DCMAKE_TOOLCHAIN_FILE="$tc" -DCMAKE_BUILD_TYPE=Release >/dev/null
-        cmake --build "$out/$part" -j"$(nproc)"
-    done
+    cmake -S "$root/dll" -B "$out/dll" -DCMAKE_TOOLCHAIN_FILE="$tc" -DCMAKE_BUILD_TYPE=Release >/dev/null
+    cmake --build "$out/dll" -j"$(nproc)"
+    cmake -S "$root/launcher" -B "$out/launcher" -DCMAKE_TOOLCHAIN_FILE="$tc" -DCMAKE_BUILD_TYPE=Release \
+        -DMOCHI_DLL="$out/dll/Mochi.dll" -DMOCHI_COSMETICS="$root/cosmetics" >/dev/null
+    cmake --build "$out/launcher" -j"$(nproc)"
     x86_64-w64-mingw32-g++-posix -std=c++20 -O1 -municode -static -static-libgcc -static-libstdc++ \
         "$root/tools/testhost/main.cpp" -o "$out/testhost.exe" -ld3d11 -ldxgi -luser32
 }
