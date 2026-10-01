@@ -109,6 +109,7 @@ struct Frame {
 Frame cardFrame(const std::string& slot) {
     if (slot == "head" || slot == "face") return {30.f, 4.3f, 25.f};
     if (slot == "feet") return {3.f, 5.6f, 30.f};
+    if (slot == "wings") return {17.f, 2.5f, 155.f};
     if (slot == "body" || slot == "back") return {16.f, 2.6f, 155.f};
     return {19.f, 3.5f, 155.f};
 }
