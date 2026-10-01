@@ -193,7 +193,7 @@ Nicht gebaut: nur echte Cheats mit Kampfvorteil (siehe CLAUDE.md, Hard rules).
 
 ## Umsetzungsstand (Session B)
 
-Alle 137 Module sind in `dll/src/modules/Manager.cpp` registriert und mit MinGW syntaxgeprüft, im Spiel getestet ist noch keins. "Braucht" nennt die Signaturen, ohne die das Modul grau bleibt. Namen mit `fx.` sind Effekt-Kanäle, andere sind Daten-Signaturen, siehe `docs/SDK.md`. Mit Demo-Daten (Modul "Sig Status") laufen alle.
+Alle 138 Module sind in `dll/src/modules/Manager.cpp` registriert und mit MinGW syntaxgeprüft, im Spiel getestet ist noch keins. "Braucht" nennt die Signaturen, ohne die das Modul grau bleibt. Namen mit `fx.` sind Effekt-Kanäle, andere sind Daten-Signaturen, siehe `docs/SDK.md`. Mit Demo-Daten (Modul "Sig Status") laufen alle.
 
 ### HUD (56)
 
@@ -319,7 +319,7 @@ Alle 137 Module sind in `dll/src/modules/Manager.cpp` registriert und mit MinGW 
 | Particle Multiplier | Treffer-Visuals | `fx.particleScale` |
 | Totem Pop | Treffer-Visuals | `LocalPlayer`, `TotemEvents` |
 
-### Komfort (11)
+### Komfort (12)
 
 | Modul | Unterkategorie | Braucht |
 |---|---|---|
@@ -327,6 +327,7 @@ Alle 137 Module sind in `dll/src/modules/Manager.cpp` registriert und mit MinGW 
 | Text Hotkey | – | nichts |
 | Mumble Link | Audio | `LocalPlayer` |
 | Screenshot+ | Aufnahme | nichts |
+| Hotbar Keys | Bewegung | nichts |
 | Auto GG | Chat | `ChatEvents` |
 | Message Logger | Chat | `ChatEvents` |
 | Player Notifier | Chat | `TabListData` |

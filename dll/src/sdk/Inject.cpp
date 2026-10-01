@@ -19,6 +19,7 @@ constexpr ULONG_PTR marker = 0x4D4F4348;
 struct Job {
     std::string text;
     int chatKey;
+    bool tapOnly = false;
 };
 
 std::mutex lock;
@@ -72,6 +73,7 @@ void run() {
         }
         if (!focused()) continue;
         tap(job.chatKey);
+        if (job.tapOnly) continue;
         Sleep(110);
         auto wide = logger::widen(job.text);
         for (wchar_t c : wide) {
@@ -107,6 +109,14 @@ void tap(int vk) {
     key(vk, true);
     Sleep(25);
     key(vk, false);
+}
+
+void tapLater(int vk) {
+    std::scoped_lock g(lock);
+    if (jobs.size() >= 8) return;
+    jobs.push_back({"", vk, true});
+    if (!worker.joinable()) worker = std::thread(run);
+    wake.notify_one();
 }
 
 void say(const std::string& text, int chatKey) {

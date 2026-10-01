@@ -25,7 +25,12 @@ public:
     }
 
     void onKey(KeyEvent& ev) override {
-        if (ev.down && !ev.repeat && ev.vk == hideKey_.i && hideKey_.i) hidden_ = !hidden_;
+        if (!ev.down || ev.repeat) return;
+        if (ev.vk == hideKey_.i && hideKey_.i) hidden_ = !hidden_;
+        if (ev.vk == copyKey_.i && copyKey_.i) {
+            auto& p = game::state().player.pos;
+            ImGui::SetClipboardText(std::format("{} {} {}", int(std::floor(p.x)), int(std::floor(p.y)), int(std::floor(p.z))).c_str());
+        }
     }
 
 protected:
@@ -81,6 +86,7 @@ private:
     Setting& yColor_ = colorSetting("yColor", "Farbe Y", {0.6f, 1.f, 0.7f, 1.f});
     Setting& zColor_ = colorSetting("zColor", "Farbe Z", {0.6f, 0.75f, 1.f, 1.f});
     Setting& hideKey_ = keySetting("hideKey", "Verstecken (Streamer)", 0);
+    Setting& copyKey_ = keySetting("copyKey", "Position in die Zwischenablage kopieren", 0);
     bool hidden_ = false;
 };
 
