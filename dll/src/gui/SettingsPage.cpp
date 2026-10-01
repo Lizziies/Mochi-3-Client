@@ -23,18 +23,6 @@
 
 namespace gui {
 
-static void colorRow(const char* label, ImVec4& c) {
-    float col[4] = {c.x, c.y, c.z, c.w};
-    ImGui::AlignTextToFramePadding();
-    ImGui::TextUnformatted(i18n::tr(label));
-    ImGui::SameLine(ImGui::GetContentRegionAvail().x * 0.5f);
-    if (ImGui::ColorEdit4((std::string("##") + label).c_str(), col, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar)) {
-        c = {col[0], col[1], col[2], col[3]};
-        theme::applyStyle();
-        config::markDirty();
-    }
-}
-
 static void drawAppearance() {
     auto& t = theme::current();
     float s = ui::scale();
@@ -71,41 +59,24 @@ static void drawAppearance() {
     ImGui::SetCursorScreenPos(origin + ImVec2(0, rows * (74 * s + gap)));
 
     widgets::sectionTitle("Custom theme");
-    colorRow("Background", t.bg);
-    colorRow("Surfaces", t.surface);
-    colorRow("Surfaces (hover)", t.surfaceHover);
-    colorRow("Accent", t.accent);
-    colorRow("Accent 2", t.accent2);
-    colorRow("Text", t.text);
-    colorRow("Dimmed text", t.textDim);
-    colorRow("Success", t.ok);
-    colorRow("Warning", t.warn);
-    colorRow("Off", t.off);
-
-    auto sliderRow = [&](const char* label, float& v, float a, float b, const char* fmt) {
-        ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted(i18n::tr(label));
-        ImGui::SameLine(ImGui::GetContentRegionAvail().x * 0.5f);
-        ImGui::SetNextItemWidth(-1);
-        if (ImGui::SliderFloat((std::string("##") + label).c_str(), &v, a, b, fmt)) {
-            theme::applyStyle();
-            config::markDirty();
-        }
-    };
-    sliderRow("Corner radius", t.rounding, 0.f, 24.f, "%.0f");
-    sliderRow("Opacity", t.opacity, 0.5f, 1.f, "%.2f");
-    sliderRow("Animation speed", t.animSpeed, 0.25f, 3.f, "%.2fx");
-
-    auto toggleRow = [&](const char* label, bool& v) {
-        ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted(i18n::tr(label));
-        ImGui::SameLine();
-        ImGui::SetCursorPosX(ImGui::GetWindowContentRegionMax().x - 40 * s);
-        widgets::toggle(label, v);
-    };
-    toggleRow("Gradients", t.gradient);
-    toggleRow("Sparkles", t.sparkles);
-    toggleRow("Little hearts", t.hearts);
+    bool changed = false;
+    changed |= widgets::row("Background", t.bg);
+    changed |= widgets::row("Surfaces", t.surface);
+    changed |= widgets::row("Surfaces (hover)", t.surfaceHover);
+    changed |= widgets::row("Accent", t.accent);
+    changed |= widgets::row("Accent 2", t.accent2);
+    changed |= widgets::row("Text", t.text);
+    changed |= widgets::row("Dimmed text", t.textDim);
+    changed |= widgets::row("Success", t.ok);
+    changed |= widgets::row("Warning", t.warn);
+    changed |= widgets::row("Off", t.off);
+    changed |= widgets::row("Corner radius", t.rounding, 0.f, 24.f, "%.0f");
+    changed |= widgets::row("Opacity", t.opacity, 0.5f, 1.f, "%.2f");
+    changed |= widgets::row("Animation speed", t.animSpeed, 0.25f, 3.f, "%.2fx");
+    changed |= widgets::row("Gradients", t.gradient);
+    changed |= widgets::row("Sparkles", t.sparkles);
+    changed |= widgets::row("Little hearts", t.hearts);
+    if (changed) theme::applyStyle();
 
     ImGui::Dummy({0, 6 * s});
     if (widgets::button("Copy theme as code", {0, 0}, true)) ImGui::SetClipboardText(theme::exportCode().c_str());
@@ -239,7 +210,6 @@ static void applyPreset(int kind) {
 
 static void drawModuleDefaults() {
     float s = ui::scale();
-    auto& t = theme::current();
     ImGui::BeginChild("moddefaults", {ImGui::GetContentRegionAvail().x, 0}, 0, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoScrollWithMouse);
     smoothScroll();
     widgets::sectionTitle("Presets");
@@ -259,12 +229,8 @@ static void drawModuleDefaults() {
     ImGui::Dummy({0, 6 * s});
 
     widgets::sectionTitle("List");
-    ImGui::AlignTextToFramePadding();
-    ImGui::TextUnformatted(i18n::tr("Show more modules"));
-    ImGui::SameLine(ImGui::GetContentRegionAvail().x * 0.55f);
-    widgets::toggle("more", showMoreModules());
+    widgets::row("Show more modules", showMoreModules());
     widgets::hint("Adds fun extras and rarely used modules to the list.");
-    (void)t;
     ImGui::EndChild();
 }
 
@@ -301,8 +267,14 @@ void drawSettingsPage(ImVec2 origin, ImVec2 size) {
     ImGui::EndChild();
     dl->AddLine({origin.x + navW + 6 * s, origin.y + 6 * s}, {origin.x + navW + 6 * s, origin.y + size.y - 6 * s}, theme::col(t.surfaceHover, 0.7f), 1.f);
 
-    ImGui::SetCursorScreenPos({origin.x + navW + 28 * s, origin.y});
-    ImGui::BeginChild("settingscontent", {size.x - navW - 36 * s, size.y}, 0, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoScrollWithMouse);
+    static const char* subtitles[] = {"Language and menu", "Client tag and inventory mark", "Colors, shapes and effects", "Presets and defaults for all modules", "Save and switch setups", "Version, game and server"};
+    ImVec2 pmin{origin.x + navW + 22 * s, origin.y}, psize{size.x - navW - 22 * s, size.y};
+    dl->AddRectFilled(pmin, pmin + psize, theme::col(t.surface, 0.97f), t.rounding * s);
+    dl->AddRect(pmin, pmin + psize, theme::col(t.surfaceHover, 0.9f), t.rounding * s, 0, 1.f);
+    dl->AddText(fonts::bold(), 22 * s, pmin + ImVec2(18 * s, 14 * s), theme::col(t.text), i18n::tr(names[tab]));
+    dl->AddText(fonts::regular(), 13.5f * s, pmin + ImVec2(18 * s, 42 * s), theme::col(t.textDim), i18n::tr(subtitles[tab]));
+    ImGui::SetCursorScreenPos(pmin + ImVec2(18 * s, 72 * s));
+    ImGui::BeginChild("settingscontent", {psize.x - 36 * s, psize.y - 84 * s}, 0, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoScrollWithMouse);
     switch (tab) {
     case 0: drawGeneral(); break;
     case 1: drawChat(); break;

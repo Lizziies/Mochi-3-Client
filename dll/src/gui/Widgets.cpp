@@ -78,7 +78,7 @@ bool button(const char* id, ImVec2 size, bool primary) {
             dl->AddRectFilled(p, p + size, theme::col(a), r);
         if (hovered) draw::glow(dl, p, p + size, r, theme::col(t.accent, 0.8f), 8 * s);
     } else {
-        dl->AddRectFilled(p, p + size, theme::col(hovered ? t.surfaceHover : t.surface), r);
+        dl->AddRectFilled(p, p + size, theme::col(t.surfaceHover, hovered ? 1.f : 0.6f), r);
     }
     ImVec4 tc = primary ? ImVec4(1, 1, 1, 1) : t.text;
     const char* end = ImGui::FindRenderedTextEnd(label);
@@ -89,10 +89,15 @@ bool button(const char* id, ImVec2 size, bool primary) {
 
 void sectionTitle(const char* text) {
     auto& t = theme::current();
-    ImGui::Dummy({0, 4 * ui::scale()});
-    ImGui::PushFont(fonts::bold(), 0.f);
-    ImGui::TextColored(t.accent, "%s", i18n::tr(text));
-    ImGui::PopFont();
+    float s = ui::scale();
+    ImGui::Dummy({0, 6 * s});
+    ImVec2 p = ImGui::GetCursorScreenPos();
+    float w = ImGui::GetContentRegionAvail().x;
+    ImGui::Dummy({w, 34 * s});
+    auto* dl = ImGui::GetWindowDrawList();
+    dl->AddRectFilled(p, p + ImVec2(w, 34 * s), theme::col(t.surfaceHover, 0.85f), 10 * s);
+    dl->AddText(fonts::bold(), 16.f * s, p + ImVec2(14 * s, 8 * s), theme::col(t.text), i18n::tr(text));
+    ImGui::Dummy({0, 4 * s});
 }
 
 void hint(const char* text) {
@@ -159,7 +164,7 @@ bool keyCapture(const char* id, int& vk) {
     ImGui::PopID();
 
     auto* dl = ImGui::GetWindowDrawList();
-    dl->AddRectFilled(p, p + size, theme::col(active ? theme::mix(t.surfaceHover, t.accent, 0.25f) : t.surface),
+    dl->AddRectFilled(p, p + size, active ? theme::col(theme::mix(t.surfaceHover, t.accent, 0.25f)) : theme::col(t.bg, 0.7f),
                       t.rounding * 0.5f * s);
     if (active) dl->AddRect(p, p + size, theme::col(t.accent), t.rounding * 0.5f * s, 0, 1.5f * s);
     ImVec2 ts = ImGui::CalcTextSize(label.c_str());
@@ -337,6 +342,33 @@ bool setting(Setting& s) {
     ImGui::PopID();
     if (changed) config::markDirty();
     return changed;
+}
+
+bool row(const char* label, float& v, float lo, float hi, const char* fmt) {
+    Setting s{label, label, SettingType::Float};
+    s.f = v;
+    s.fmin = lo;
+    s.fmax = hi;
+    s.format = fmt;
+    if (!setting(s)) return false;
+    v = s.f;
+    return true;
+}
+
+bool row(const char* label, bool& v) {
+    Setting s{label, label, SettingType::Bool};
+    s.b = v;
+    if (!setting(s)) return false;
+    v = s.b;
+    return true;
+}
+
+bool row(const char* label, ImVec4& c) {
+    Setting s{label, label, SettingType::Color};
+    s.color = c;
+    if (!setting(s)) return false;
+    c = s.color;
+    return true;
 }
 
 }

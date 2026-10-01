@@ -13,6 +13,9 @@ bool setting(Setting& s);
 bool button(const char* label, ImVec2 size = {0, 0}, bool primary = false);
 bool keyCapture(const char* id, int& vk);
 void sectionTitle(const char* text);
+bool row(const char* label, float& v, float lo, float hi, const char* fmt);
+bool row(const char* label, bool& v);
+bool row(const char* label, ImVec4& c);
 void hint(const char* text);
 
 std::string keyName(int vk);
