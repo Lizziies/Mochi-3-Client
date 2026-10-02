@@ -24,8 +24,20 @@ const ImVec4 surface = hex(0x26272C);
 const ImVec4 surfaceHover = hex(0x33343A);
 const ImVec4 field = hex(0x1A1B1F);
 const ImVec4 border = hex(0x393B42);
-const ImVec4 accent = hex(0x1E7CB5);
-const ImVec4 accent2 = hex(0x3BA7EC);
+ImVec4 accent = hex(0x1E7CB5);
+ImVec4 accent2 = hex(0x3BA7EC);
+
+// the same choices as in the client menu
+struct Accent {
+    const char* name;
+    unsigned a, b;
+};
+const Accent accents[] = {
+    {"Blue", 0x1E7CB5, 0x3BA7EC},   {"Cyan", 0x13899A, 0x45CFE0},
+    {"Green", 0x23905A, 0x52D68C},  {"Purple", 0x6E4FC4, 0xA58CF2},
+    {"Pink", 0xB83D80, 0xF27BBD},   {"Red", 0xB8342D, 0xF2675E},
+    {"Orange", 0xC2702A, 0xF5A35C}, {"Gray", 0x5F626B, 0xDADBE0},
+};
 const ImVec4 text = hex(0xF3F3F5);
 const ImVec4 dim = hex(0xA6A8AF);
 const ImVec4 ok = hex(0x3DDC84);
@@ -464,11 +476,38 @@ int segment(const char* id, ImVec2 pos, const char* const* names, int count, int
 
 bool settingRow(ImDrawList* dl, const char* id, float y, int index, const char* title, const char* desc, bool& value) {
     Reveal r(dl, index);
-    ImVec2 min{264.f, y}, max{928.f, y + 56.f};
+    ImVec2 min{264.f, y}, max{928.f, y + 50.f};
     card(dl, min, max);
-    label(dl, bold, 16.f, {min.x + 22.f, min.y + 9.f}, col(text), title);
-    label(dl, regular, 14.f, {min.x + 22.f, min.y + 31.f}, col(dim), desc);
-    return toggle(id, {max.x - 22.f - 40.f, min.y + 17.f}, value);
+    label(dl, bold, 16.f, {min.x + 22.f, min.y + 7.f}, col(text), title);
+    label(dl, regular, 14.f, {min.x + 22.f, min.y + 28.f}, col(dim), desc);
+    return toggle(id, {max.x - 22.f - 40.f, min.y + 14.f}, value);
+}
+
+bool accentRow(ImDrawList* dl, float y, int index, int& current) {
+    Reveal r(dl, index);
+    ImVec2 min{264.f, y}, max{928.f, y + 50.f};
+    card(dl, min, max);
+    label(dl, bold, 16.f, {min.x + 22.f, min.y + 7.f}, col(text), tr("Accent color"));
+    label(dl, regular, 14.f, {min.x + 22.f, min.y + 28.f}, col(dim), tr("Same choice as in the client menu."));
+    bool changed = false;
+    float cy = min.y + 25.f;
+    for (int i = 0; i < 8; i++) {
+        ImVec2 c{max.x - 22.f - 10.f - (7 - i) * 28.f, cy};
+        bool hovered, held;
+        std::string id = std::string("accent") + std::to_string(i);
+        if (region(id.c_str(), {c.x - 11.f, c.y - 11.f}, {c.x + 11.f, c.y + 11.f}, hovered, held)) {
+            current = i;
+            changed = true;
+        }
+        bool on = current == i;
+        dl->AddCircleFilled(c, hovered || on ? 10.f : 9.f, col(hex(accents[i].a)), 24);
+        if (on) {
+            dl->AddCircle(c, 13.f, col(text, 0.85f), 24, 1.5f);
+            dl->AddCircleFilled(c, 3.2f, col(hex(accents[i].b)), 12);
+        }
+        if (hovered) ImGui::SetTooltip("%s", tr(accents[i].name));
+    }
+    return changed;
 }
 
 void settings(ImDrawList* dl, State& s, Events& ev) {
@@ -480,26 +519,31 @@ void settings(ImDrawList* dl, State& s, Events& ev) {
 
     {
         Reveal r(dl, 1);
-        ImVec2 lmin{264.f, 130.f}, lmax{928.f, 186.f};
+        ImVec2 lmin{264.f, 130.f}, lmax{928.f, 180.f};
         card(dl, lmin, lmax);
-        label(dl, bold, 16.f, {lmin.x + 22.f, lmin.y + 9.f}, col(text), tr("Language"));
-        label(dl, regular, 14.f, {lmin.x + 22.f, lmin.y + 31.f}, col(dim), tr("Auto follows your Windows language."));
+        label(dl, bold, 16.f, {lmin.x + 22.f, lmin.y + 7.f}, col(text), tr("Language"));
+        label(dl, regular, 14.f, {lmin.x + 22.f, lmin.y + 28.f}, col(dim), tr("Auto follows your Windows language."));
         const char* names[] = {tr("Auto"), "English", "Deutsch"};
         int now = int(i18n::chosen());
-        int pick = segment("lang", {lmax.x - 22.f - 276.f, lmin.y + 12.f}, names, 3, now);
+        int pick = segment("lang", {lmax.x - 22.f - 276.f, lmin.y + 9.f}, names, 3, now);
         if (pick != now) i18n::choose(i18n::Lang(pick));
     }
 
-    changed |= settingRow(dl, "beta", 194.f, 2, tr("Beta updates"), tr("Get new versions earlier, even if they may still have bugs."), s.settings.beta);
-    changed |= settingRow(dl, "auto", 258.f, 3, tr("Connect automatically"), tr("Connects the client as soon as Minecraft has started."), s.settings.autoInject);
-    changed |= settingRow(dl, "close", 322.f, 4, tr("Close launcher afterwards"), tr("Closes this window once the client has loaded."), s.settings.closeAfterInject);
+    int accentNow = s.settings.accent >= 0 ? s.settings.accent : s.clientAccent;
+    if (accentRow(dl, 186.f, 2, accentNow)) {
+        s.settings.accent = accentNow;
+        changed = true;
+    }
+    changed |= settingRow(dl, "beta", 242.f, 3, tr("Beta updates"), tr("Get new versions earlier, even if they may still have bugs."), s.settings.beta);
+    changed |= settingRow(dl, "auto", 298.f, 4, tr("Connect automatically"), tr("Connects the client as soon as Minecraft has started."), s.settings.autoInject);
+    changed |= settingRow(dl, "close", 354.f, 5, tr("Close launcher afterwards"), tr("Closes this window once the client has loaded."), s.settings.closeAfterInject);
 
     {
-        Reveal r(dl, 5);
-        ImVec2 min{264.f, 386.f}, max{928.f, 470.f};
+        Reveal r(dl, 6);
+        ImVec2 min{264.f, 410.f}, max{928.f, 490.f};
         card(dl, min, max);
-        label(dl, bold, 16.f, {min.x + 22.f, min.y + 9.f}, col(text), tr("Custom DLL (for developers)"));
-        label(dl, regular, 14.f, {min.x + 22.f, min.y + 31.f}, col(dim), tr("Leave empty for the normal version."));
+        label(dl, bold, 16.f, {min.x + 22.f, min.y + 7.f}, col(text), tr("Custom DLL (for developers)"));
+        label(dl, regular, 14.f, {min.x + 22.f, min.y + 28.f}, col(dim), tr("Leave empty for the normal version."));
         ImVec2 fmin{min.x + 22.f, min.y + 50.f}, fmax{max.x - 150.f, min.y + 76.f};
         dl->AddRectFilled(fmin, fmax, col(field), 6.f);
         dl->AddRect(fmin, fmax, col(border, 0.8f), 6.f);
@@ -516,18 +560,32 @@ void settings(ImDrawList* dl, State& s, Events& ev) {
     }
 
     {
-        Reveal r(dl, 6);
-        ImVec2 min{264.f, 482.f}, max{928.f, 580.f};
+        Reveal r(dl, 7);
+        ImVec2 min{264.f, 496.f}, max{928.f, 580.f};
         card(dl, min, max);
-        pixelHeart(dl, {min.x + 20.f, min.y + 18.f}, 3.f);
-        label(dl, bold, 16.f, {min.x + 62.f, min.y + 14.f}, col(text), (std::string("Mochi Launcher ") + build::version).c_str());
-        label(dl, regular, 13.f, {min.x + 62.f, min.y + 38.f}, col(dim), tr("Mochi is an independent project and is not affiliated with Mojang or Microsoft."));
-        if (button("logs", {min.x + 22.f, max.y - 38.f}, {min.x + 162.f, max.y - 10.f}, tr("Open logs"), false)) ev.openLogs = true;
-        if (button("folder", {min.x + 172.f, max.y - 38.f}, {min.x + 312.f, max.y - 10.f}, tr("Open folder"), false)) ev.openFolder = true;
+        pixelHeart(dl, {min.x + 20.f, min.y + 14.f}, 3.f);
+        label(dl, bold, 16.f, {min.x + 62.f, min.y + 10.f}, col(text), (std::string("Mochi Launcher ") + build::version).c_str());
+        label(dl, regular, 13.f, {min.x + 62.f, min.y + 31.f}, col(dim), tr("Mochi is an independent project and is not affiliated with Mojang or Microsoft."));
+        if (button("logs", {min.x + 22.f, max.y - 32.f}, {min.x + 162.f, max.y - 8.f}, tr("Open logs"), false)) ev.openLogs = true;
+        if (button("folder", {min.x + 172.f, max.y - 32.f}, {min.x + 312.f, max.y - 8.f}, tr("Open folder"), false)) ev.openFolder = true;
     }
     ev.settingsChanged |= changed;
 }
 
+}
+
+int nearestAccent(float r, float g, float b) {
+    int best = 0;
+    float bestDist = 1e9f;
+    for (int i = 0; i < 8; i++) {
+        ImVec4 c = hex(accents[i].a);
+        float d = (c.x - r) * (c.x - r) + (c.y - g) * (c.y - g) + (c.z - b) * (c.z - b);
+        if (d < bestDist) {
+            bestDist = d;
+            best = i;
+        }
+    }
+    return best;
 }
 
 void setFonts(ImFont* r, ImFont* b) {
@@ -551,6 +609,10 @@ void draw(State& s, Events& ev) {
         pageAge = 0.f;
     }
     pageAge += ImGui::GetIO().DeltaTime;
+
+    int pick = std::clamp(s.settings.accent >= 0 ? s.settings.accent : s.clientAccent, 0, 7);
+    accent = hex(accents[pick].a);
+    accent2 = hex(accents[pick].b);
 
     fade = 1.f;
     sidebar(dl, s, ev);

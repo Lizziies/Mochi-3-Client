@@ -70,6 +70,16 @@ const i18n::Entry entries[] = {
     {"Language", "Sprache"},
     {"Auto follows your Windows language.", "Auto folgt deiner Windows-Sprache."},
     {"Auto", "Automatisch"},
+    {"Accent color", "Akzentfarbe"},
+    {"Same choice as in the client menu.", "Die gleiche Auswahl wie im Client-Menü."},
+    {"Blue", "Blau"},
+    {"Cyan", "Cyan"},
+    {"Green", "Grün"},
+    {"Purple", "Lila"},
+    {"Pink", "Rosa"},
+    {"Red", "Rot"},
+    {"Orange", "Orange"},
+    {"Gray", "Grau"},
 };
 
 i18n::Table table(entries);

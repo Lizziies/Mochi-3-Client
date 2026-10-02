@@ -14,6 +14,7 @@ Settings Settings::load() {
     s.closeAfterInject = j.value("closeAfterInject", s.closeAfterInject);
     s.customDll = j.value("customDll", s.customDll);
     s.pinned = j.value("pinned", s.pinned);
+    s.accent = j.value("accent", s.accent);
     if (j.contains("folders") && j["folders"].is_array())
         for (auto& f : j["folders"])
             if (f.is_string()) s.folders.push_back(f.get<std::string>());
@@ -27,6 +28,7 @@ void Settings::save() const {
         {"closeAfterInject", closeAfterInject},
         {"customDll", customDll},
         {"pinned", pinned},
+        {"accent", accent},
         {"folders", folders},
     };
     files::write(files::settings(), j.dump(2));

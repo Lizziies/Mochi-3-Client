@@ -42,6 +42,7 @@ struct State {
 
     std::vector<GameVersion> versions;
     Settings settings;
+    int clientAccent = 0;
     bool managerInstalled = false;
     bool managerBusy = false;
     float managerProgress = 0.f;
@@ -65,6 +66,7 @@ struct Events {
     bool settingsChanged = false;
 };
 
+int nearestAccent(float r, float g, float b);
 void setFonts(ImFont* regular, ImFont* bold);
 void draw(State& state, Events& events);
 

@@ -27,6 +27,17 @@ namespace app {
 
 namespace {
 
+// the launcher starts with the accent the client menu uses, read from the active client profile
+int clientAccent() {
+    auto settings = nlohmann::json::parse(files::read(files::root() / L"settings.json"), nullptr, false);
+    std::string profile = settings.is_object() ? settings.value("profile", "default") : "default";
+    auto config = nlohmann::json::parse(files::read(files::root() / L"configs" / files::widen(profile + ".json")), nullptr, false);
+    if (!config.is_object() || !config.contains("theme") || !config["theme"].is_object()) return 0;
+    auto& a = config["theme"]["accent"];
+    if (!a.is_array() || a.size() < 3 || !a[0].is_number()) return 0;
+    return ui::nearestAccent(a[0].get<float>(), a[1].get<float>(), a[2].get<float>());
+}
+
 struct Shared {
     std::mutex lock;
     ui::Phase phase = ui::Phase::Idle;
@@ -311,6 +322,7 @@ void init(ui::State& state) {
     update::cleanup();
     current = Settings::load();
     state.settings = current;
+    state.clientAccent = clientAccent();
     std::snprintf(state.dllPath, sizeof(state.dllPath), "%s", current.customDll.c_str());
     state.clientVersion = build::version;
 
