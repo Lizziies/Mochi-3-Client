@@ -5,6 +5,7 @@
 #include "core/Http.hpp"
 #include "core/Log.hpp"
 #include "core/Paths.hpp"
+#include "sdk/Memory.hpp"
 
 #include <windows.h>
 #include <json.hpp>
@@ -240,7 +241,7 @@ static void load() {
     for (auto& [name, e] : entries) {
         if (!e.vtable.empty()) continue;
         std::string key = e.key();
-        if (cache.contains(name) && cache[name].value("pattern", "") == key) {
+        if (cache.contains(name) && cache[name].value("pattern", "") == key && img.contains(base + cache[name].value("rva", (uint64_t)0))) {
             found[name] = base + cache[name].value("rva", (uint64_t)0);
             newCache[name] = cache[name];
             continue;
@@ -280,7 +281,7 @@ static void load() {
             logger::warn("sig {}: vtable {} not found", name, e.vtable);
             continue;
         }
-        uintptr_t fn = *reinterpret_cast<const uintptr_t*>(from->second + uintptr_t(e.index) * 8);
+        uintptr_t fn = mem::pointer(from->second + uintptr_t(e.index) * 8);
         if (!img.inCode(fn)) {
             logger::warn("sig {}: slot {} of {} is not code", name, e.index, e.vtable);
             continue;

@@ -33,14 +33,12 @@ static Page current = Page::Hub;
 static Module* selected = nullptr;
 static char search[64] = "";
 static bool focusSearch = false;
-static bool showMore = false;
 static bool onlyFavorites = false;
 static float contentT = 1.f;
 
 void restartContentAnim() { contentT = 0.f; }
 
 char* searchText() { return search; }
-bool& showMoreModules() { return showMore; }
 bool& favoritesOnly() { return onlyFavorites; }
 Page page() { return current; }
 Module*& selectedModule() { return selected; }
@@ -181,8 +179,6 @@ static void drawBar(float left, float right, float y) {
         float w = 0.f;
         x += 312 * s;
         if (chip("favs", "Favorites", onlyFavorites, {1.f, 0.84f, 0.45f, 1.f}, {x, y + 1 * s}, true, w)) onlyFavorites = !onlyFavorites;
-        x += w + 8 * s;
-        if (chip("more", "More modules", showMore, t.accent, {x, y + 1 * s}, false, w)) showMore = !showMore;
     } else {
         const char* title = current == Page::Cosmetics ? "Cosmetics" : "Settings";
         dl->AddText(fonts::bold(), 24.f * s, {x, y + (h - 24.f * s) * 0.5f}, theme::col(t.text), i18n::tr(title));

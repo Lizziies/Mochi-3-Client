@@ -113,6 +113,7 @@ const i18n::Entry entries[] = {
     {"Body", "Körper"},
     {"Feet", "Füße"},
     {"Face", "Gesicht"},
+    {"More {}", "Mehr {}"},
     {"Language and menu", "Sprache und Menü"},
     {"Client tag and inventory mark", "Client-Tag und Inventar-Zeichen"},
     {"Colors, shapes and effects", "Farben, Formen und Effekte"},

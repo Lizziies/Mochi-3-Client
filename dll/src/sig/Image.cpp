@@ -21,6 +21,7 @@ bool lookup(uintptr_t value, const std::vector<Range>& ranges) {
 Image::Image(uintptr_t base) : base_(base) {
     auto* dos = reinterpret_cast<IMAGE_DOS_HEADER*>(base);
     auto* nt = reinterpret_cast<IMAGE_NT_HEADERS*>(base + dos->e_lfanew);
+    size_ = nt->OptionalHeader.SizeOfImage;
     auto* sec = IMAGE_FIRST_SECTION(nt);
     for (WORD i = 0; i < nt->FileHeader.NumberOfSections; i++, sec++) {
         Range r{base + sec->VirtualAddress, sec->Misc.VirtualSize};

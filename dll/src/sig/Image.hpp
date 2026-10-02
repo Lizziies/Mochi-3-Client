@@ -17,6 +17,7 @@ public:
 
     uintptr_t base() const { return base_; }
     bool inCode(uintptr_t at) const;
+    bool contains(uintptr_t at) const { return at >= base_ && at < base_ + size_; }
 
     // start of every string that contains text, found in the non-executable sections
     std::vector<uintptr_t> strings(const std::string& text) const;
@@ -29,6 +30,7 @@ public:
 
 private:
     uintptr_t base_ = 0;
+    size_t size_ = 0;
     std::vector<Range> code_;
     std::vector<Range> data_;
     uintptr_t pdata_ = 0;

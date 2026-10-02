@@ -28,7 +28,7 @@ Module*& selectedModule();
 void restartContentAnim();
 
 char* searchText();
-bool& showMoreModules();
+void openAllGroups();
 bool& favoritesOnly();
 
 void drawModulesPage(ImVec2 origin, ImVec2 size);

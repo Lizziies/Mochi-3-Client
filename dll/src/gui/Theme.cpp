@@ -14,6 +14,8 @@ static ImVec4 hex(unsigned rgb, float a = 1.f) {
 }
 
 static std::vector<Theme> builtins = {
+    {"Graphite", hex(0x121214), hex(0x1D1D21), hex(0x2A2A30), hex(0x8FA6FF), hex(0xC3CEFF), hex(0xEEEEF2),
+     hex(0x9D9DAA), hex(0x7BD6A0), hex(0xF2C46B), hex(0x4B4B55), 12.f, 0.96f, 1.f, false, false, false},
     {"Bubblegum", hex(0x1A0F1E), hex(0x2A1730), hex(0x36203D), hex(0xFF7EB6), hex(0xFFB3D1), hex(0xFFF1F7),
      hex(0xC9A9BB), hex(0x8BE9B0), hex(0xFFD27E), hex(0x6B5570)},
     {"Sakura", hex(0xFFF5F8), hex(0xFFE4EC), hex(0xFFD6E3), hex(0xF06292), hex(0xF8A5C2), hex(0x4A2B38),

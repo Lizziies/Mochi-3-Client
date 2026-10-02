@@ -228,9 +228,6 @@ static void drawModuleDefaults() {
             if (m->isHud()) m->resetSettings([](const Setting& st) { return st.id == "x" || st.id == "y" || st.id == "scale"; });
     ImGui::Dummy({0, 6 * s});
 
-    widgets::sectionTitle("List");
-    widgets::row("Show more modules", showMoreModules());
-    widgets::hint("Adds fun extras and rarely used modules to the list.");
     ImGui::EndChild();
 }
 

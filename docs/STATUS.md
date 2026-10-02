@@ -204,3 +204,10 @@ Das hier ist der Anfang, nicht das Ende. Die Basis steht, der große Rest (Modul
 
 - `claude/pc-test` (Stand 2026-10-02) geholt: baut mit MinGW, Selbsttest 177 Module, 0 Fehler, 0 Aussetzer, 0 unübersetzte Texte.
 - Neu: Signaturen über Anker (`dll/src/sig/Image.*`). Eine Zeichenkette der Exe führt per `lea` zur Funktion, über die Slot-Nummer zur vtable, und ein Eintrag kann eine Funktion aus einer vtable lesen. Das entspricht dem Weg, den der Dev-Explorer am PC gefunden hat (ClientInstance, getLocalPlayer). Format in `docs/VERSIONING.md`. Unter Wine geprüft: `selftest: image resolver ok`, und die Ladestrecke mit einer Test-Signaturdatei (`sigs: 3/4`, der falsche Anker wird gemeldet). An der echten Minecraft-Exe ungeprüft.
+
+## Session A (Cloud), Block: Modulliste kurz und neutral
+
+- Die Modulliste zeigt zuerst nur die rund 35 wichtigsten Module (Stufe 1), nach HUD, PvP, Visual, Comfort und Performance geordnet. Alles andere steckt in eingeklappten Gruppen darunter: "More HUD", "More PvP", "More Visual", "More Comfort", "Extras" und "Server". Die Suche zeigt weiter alle Module. Wer auf einem Server ist, bekommt die Server-Gruppe oben und aufgeklappt. Der Knopf "More modules" ist weg.
+- Neues Standard-Theme "Graphite" (neutrales Dunkelgrau, ein gedämpfter blauer Akzent, ohne Verläufe, Funken und Herzchen). Die rosa Themes bleiben unter Settings, Appearance wählbar. Wer schon ein Theme gespeichert hat, behält es.
+- Abschnittsfarben in der Liste sind einheitlich neutral statt bunt.
+- Fehler gefunden und behoben: ein veralteter Cache der Signatursuche konnte auf eine Adresse außerhalb des Abbilds zeigen und den Client abstürzen lassen. Adressen werden jetzt geprüft, Vtable-Slots sicher gelesen.

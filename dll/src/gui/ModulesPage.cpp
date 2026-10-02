@@ -6,6 +6,7 @@
 #include "modules/HudModule.hpp"
 #include "modules/Manager.hpp"
 #include "modules/Tiers.hpp"
+#include "server/Rules.hpp"
 #include "render/Draw.hpp"
 #include "render/Fonts.hpp"
 #include "render/Ui.hpp"
@@ -178,7 +179,7 @@ static ImVec4 sectionColor(Category c) {
 
 static bool visible(const Module& m) {
     if (m.category() == Category::Client) return false;
-    return showMoreModules() || searchText()[0] || m.favorite() || modules::tierOf(m.name()) <= 2;
+    return true;
 }
 
 static std::string lower(std::string s) {
@@ -202,17 +203,38 @@ struct Section {
     std::string title;
     ImVec4 color;
     std::vector<Module*> items;
+    bool fold = false;
+    std::string id;
 };
 
+static std::map<std::string, bool>& folds() {
+    static std::map<std::string, bool> open;
+    return open;
+}
+
+void openAllGroups() {
+    for (auto& m : modules::all()) folds()["more|" + std::string(categoryName(catOf(*m)))] = true;
+    folds()["extras"] = true;
+    folds()["servers"] = true;
+}
+
+static bool serverGroup(const Module& m) { return catOf(m) == Category::Server; }
+
+// the short list first: what most players use. Everything else sits in folded groups below it.
 static std::vector<Section> sections() {
-    static const Category order[] = {Category::Server, Category::Hud, Category::Pvp, Category::Visual,
-                                     Category::Comfort, Category::Performance, Category::Fun};
+    static const Category order[] = {Category::Hud, Category::Pvp, Category::Visual, Category::Comfort, Category::Performance};
+    auto& t = theme::current();
+    ImVec4 tone = theme::mix(t.textDim, t.text, 0.15f);
+
     std::vector<Module*> list;
     for (auto& m : modules::all())
         if (matches(*m)) list.push_back(m.get());
 
     std::map<std::string, int> subRank;
     for (auto* m : list) subRank.emplace(std::to_string((int)catOf(*m)) + "|" + m->sub(), (int)subRank.size());
+    auto bySub = [&](Module* a, Module* b) {
+        return subRank[std::to_string((int)catOf(*a)) + "|" + a->sub()] < subRank[std::to_string((int)catOf(*b)) + "|" + b->sub()];
+    };
 
     std::vector<Section> out;
     Section fav{i18n::tr("Favorites"), {1.f, 0.84f, 0.45f, 1.f}, {}};
@@ -220,37 +242,98 @@ static std::vector<Section> sections() {
         if (m->favorite()) fav.items.push_back(m);
     if (!fav.items.empty()) out.push_back(std::move(fav));
 
-    for (auto c : order) {
-        Section sec{categoryName(c), sectionColor(c), {}};
-        for (auto* m : list)
-            if (!m->favorite() && catOf(*m) == c) sec.items.push_back(m);
-        std::stable_sort(sec.items.begin(), sec.items.end(), [&](Module* a, Module* b) {
-            return subRank[std::to_string((int)c) + "|" + a->sub()] < subRank[std::to_string((int)c) + "|" + b->sub()];
-        });
+    bool searching = searchText()[0] != 0;
+    auto add = [&](Section sec) {
+        std::stable_sort(sec.items.begin(), sec.items.end(), bySub);
         if (!sec.items.empty()) out.push_back(std::move(sec));
+    };
+
+    bool onServer = !rules::status().server.empty();
+    static bool wasOnServer = false;
+    if (onServer != wasOnServer) {
+        folds()["servers"] = onServer;
+        wasOnServer = onServer;
     }
+    auto serverSection = [&] {
+        Section sec{categoryName(Category::Server), tone, {}, !searching, "servers"};
+        for (auto* m : list)
+            if (!m->favorite() && serverGroup(*m)) sec.items.push_back(m);
+        add(std::move(sec));
+    };
+    if (onServer) serverSection();
+
+    std::vector<Category> cats(std::begin(order), std::end(order));
+    if (searching) cats.push_back(Category::Fun);
+    for (auto c : cats) {
+        Section sec{categoryName(c), tone, {}};
+        for (auto* m : list)
+            if (!m->favorite() && !serverGroup(*m) && catOf(*m) == c && (searching || modules::tierOf(m->name()) <= 1)) sec.items.push_back(m);
+        add(std::move(sec));
+    }
+    if (searching) {
+        if (!onServer) serverSection();
+        return out;
+    }
+
+    for (auto c : order) {
+        Section sec{i18n::fmt("More {}", categoryName(c)), tone, {}, true, "more|" + std::string(categoryName(c))};
+        for (auto* m : list)
+            if (!m->favorite() && !serverGroup(*m) && catOf(*m) == c && modules::tierOf(m->name()) == 2) sec.items.push_back(m);
+        add(std::move(sec));
+    }
+    Section extras{i18n::tr("Extras"), tone, {}, true, "extras"};
+    for (auto* m : list)
+        if (!m->favorite() && !serverGroup(*m) && modules::tierOf(m->name()) > 2) extras.items.push_back(m);
+    std::stable_sort(extras.items.begin(), extras.items.end(), [](Module* a, Module* b) { return (int)catOf(*a) < (int)catOf(*b); });
+    if (!extras.items.empty()) out.push_back(std::move(extras));
+    if (!onServer) serverSection();
     return out;
 }
 
-static void drawHeader(const Section& sec, size_t count) {
+static bool drawHeader(const Section& sec, size_t count) {
     auto& t = theme::current();
     float s = ui::scale();
     auto* dl = ImGui::GetWindowDrawList();
     ImVec2 p = ImGui::GetCursorScreenPos();
     float w = ImGui::GetContentRegionAvail().x;
+    bool open = true;
+    bool toggled = false;
+    if (sec.fold) {
+        auto& state = folds();
+        bool& ref = state[sec.id];
+        ImGui::PushID(sec.id.c_str());
+        toggled = ImGui::InvisibleButton("fold", {w, 30 * s});
+        bool hov = ImGui::IsItemHovered();
+        ImGui::PopID();
+        if (toggled) ref = !ref;
+        open = ref;
+        if (hov) dl->AddRectFilled(p, p + ImVec2(w, 30 * s), theme::col(t.surfaceHover, 0.35f), 9 * s);
+    }
     std::string title = sec.title;
     for (auto& c : title)
         if ((unsigned char)c < 128) c = (char)std::toupper((unsigned char)c);
     ImVec4 c = sec.color;
-    dl->AddCircleFilled({p.x + 10 * s, p.y + 14 * s}, 3.2f * s, theme::col(c, 0.85f));
-    dl->AddText(fonts::bold(), 12.f * s, {p.x + 22 * s, p.y + 7 * s}, theme::col(c, 0.85f), title.c_str());
+    float x = p.x + 10 * s;
+    if (sec.fold) {
+        ImVec2 ac{p.x + 14 * s, p.y + 15 * s};
+        ImU32 ic = theme::col(c, 0.85f);
+        if (open) dl->AddTriangleFilled(ac + ImVec2(-4 * s, -2.5f * s), ac + ImVec2(4 * s, -2.5f * s), ac + ImVec2(0, 3 * s), ic);
+        else dl->AddTriangleFilled(ac + ImVec2(-2.5f * s, -4 * s), ac + ImVec2(-2.5f * s, 4 * s), ac + ImVec2(3 * s, 0), ic);
+        x = p.x + 28 * s;
+    } else {
+        dl->AddCircleFilled({p.x + 10 * s, p.y + 14 * s}, 3.2f * s, theme::col(c, 0.85f));
+        x = p.x + 22 * s;
+    }
+    dl->AddText(fonts::bold(), 12.f * s, {x, p.y + 8 * s}, theme::col(c, 0.85f), title.c_str());
     ImVec2 ts = fonts::bold()->CalcTextSizeA(12.f * s, FLT_MAX, 0.f, title.c_str());
     char num[16];
     snprintf(num, sizeof(num), "%zu", count);
     ImVec2 ns = ImGui::CalcTextSize(num);
     dl->AddText({p.x + w - ns.x - 8 * s, p.y + 7 * s}, theme::col(t.textDim, 0.7f), num);
-    dl->AddLine({p.x + 30 * s + ts.x, p.y + 14 * s}, {p.x + w - ns.x - 18 * s, p.y + 14 * s}, theme::col(c, 0.2f), 1.f);
-    ImGui::Dummy({w, 28 * s});
+    dl->AddLine({x + 8 * s + ts.x, p.y + 14 * s}, {p.x + w - ns.x - 18 * s, p.y + 14 * s}, theme::col(c, 0.2f), 1.f);
+    if (!sec.fold) ImGui::Dummy({w, 28 * s});
+    else ImGui::SetCursorScreenPos(p + ImVec2(0, 32 * s));
+    return open;
 }
 
 static void drawRow(Module& m, float width, ImVec4 color, bool isSelected, float fade) {
@@ -351,7 +434,7 @@ void drawModulesPage(ImVec2 origin, ImVec2 size) {
     panelOrigin = {origin.x + listW + gap, origin.y};
     panelSize = {size.x - listW - gap, size.y};
 
-    size_t key = std::hash<std::string>{}(searchText()) * 31 + (favoritesOnly() ? 1 : 0) + (showMoreModules() ? 2 : 0);
+    size_t key = std::hash<std::string>{}(searchText()) * 31 + (favoritesOnly() ? 1 : 0);
     if (key != listKey) {
         listKey = key;
         listT = 0.f;
@@ -365,7 +448,8 @@ void drawModulesPage(ImVec2 origin, ImVec2 size) {
     if (secs.empty()) widgets::hint(favoritesOnly() ? "No favorites yet. Click the star next to a module." : "Nothing found.");
     int index = 0;
     for (auto& sec : secs) {
-        drawHeader(sec, sec.items.size());
+        bool open = drawHeader(sec, sec.items.size());
+        if (!open) continue;
         for (auto* m : sec.items) {
             float e = draw::motion() ? draw::easeOutCubic(std::clamp((listT - index * 0.008f) / 0.25f, 0.f, 1.f)) : 1.f;
             drawRow(*m, ImGui::GetContentRegionAvail().x - 4 * s, sec.color, sel == m, e);

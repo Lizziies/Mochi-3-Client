@@ -86,7 +86,7 @@ void pollDevCommands() {
         } else if (cmd == "more") {
             setOpen(true);
             go(Page::Modules);
-            showMoreModules() = true;
+            openAllGroups();
         } else if (cmd == "search") {
             setOpen(true);
             go(Page::Modules);
