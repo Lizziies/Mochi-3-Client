@@ -17,6 +17,9 @@ if ! "$root/tools/cross.sh" build > "$out/build.log" 2>&1; then
     exit 1
 fi
 
+mkdir -p "$out/bin"
+cp "$build/dll/Mochi.dll" "$build/launcher/MochiLauncher.exe" "$out/bin/" 2>/dev/null || true
+
 (Xvfb :77 -screen 0 1280x720x24 >/dev/null 2>&1 &)
 sleep 2
 export DISPLAY=:77
