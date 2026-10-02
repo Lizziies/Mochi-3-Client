@@ -28,7 +28,7 @@ public:
                  Category::Visual, {"camera"}) {
         sub("Camera");
         require(0, {fx::sig(fx::Id::Fov)});
-        sprintBonus_.visible = [this] { return !noEffects_.b; };
+        sprintBonus_.visible = [this] { return !noEffects_.b && need::have("MoveState"); };
     }
 
     void onFrame() override {
@@ -60,7 +60,7 @@ public:
         : Module("Java Dynamic FOV", "Java-style FOV changes: sprinting, speed and drawing a bow change the view smoothly.", Category::Visual,
                  {"camera"}) {
         sub("Camera");
-        require(need::player, {fx::sig(fx::Id::Fov), "LocalPlayer"});
+        require(need::player, {fx::sig(fx::Id::Fov), "LocalPlayer", "MoveState"});
         base_.visible = [] { return !game::has(game::Domain::Player); };
     }
 
@@ -345,7 +345,7 @@ public:
         : Module("Auto Perspective", "Switches the perspective automatically, for example when gliding or drawing a bow.",
                  Category::Visual, {"camera"}) {
         sub("Camera");
-        require(need::player, {fx::sig(fx::Id::Perspective), "LocalPlayer"});
+        require(need::player, {fx::sig(fx::Id::Perspective), "LocalPlayer", "MoveState"});
     }
 
     void onFrame() override {

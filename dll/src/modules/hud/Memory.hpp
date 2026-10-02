@@ -10,7 +10,7 @@
 
 class Memory : public TextHud {
 public:
-    Memory() : TextHud("Memory", "Shows how much RAM Minecraft is using.", {"hud-self"}, {0.01f, 0.22f}) {
+    Memory() : TextHud("Memory", "Shows how much RAM Minecraft is using.", {"hud-self"}, {0.005f, 0.21f}) {
         sub("Diagnostics");
     }
 

@@ -11,7 +11,7 @@ class MusicControl : public HudModule {
 public:
     MusicControl()
         : HudModule("Music", "Shows what Spotify, Apple Music, Deezer or Amazon Music plays and lets you control it with keys, without leaving the game.",
-                    {"hud-self"}, {0.01f, 0.86f}) {
+                    {"hud-self"}, {0.845f, 0.005f}) {
         sub("Music");
     }
 

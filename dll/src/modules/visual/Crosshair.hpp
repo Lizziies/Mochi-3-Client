@@ -8,6 +8,7 @@
 #include "modules/common/Colors.hpp"
 #include "modules/common/Image.hpp"
 #include "modules/common/Layout.hpp"
+#include "modules/common/Needs.hpp"
 #include "render/Draw.hpp"
 #include "render/Ui.hpp"
 #include "sdk/Effects.hpp"
@@ -42,6 +43,7 @@ public:
         rainbowSpeed_.visible = [this] { return rainbow_.b; };
         color_.visible = [this] { return !rainbow_.b; };
         targetColor_.visible = [this] { return targetOn_.b; };
+        playersOnly_.visible = [this] { return targetOn_.b && need::have("TargetInfo"); };
         imagePath_.visible = [this] { return style_.i == 10; };
         imageScale_.visible = [this] { return style_.i == 10; };
         imageTint_.visible = [this] { return style_.i == 10; };
@@ -78,7 +80,7 @@ public:
         rad_ = (rotation_.f + angle_) * 0.0174533f;
 
         ImVec4 col = baseColor();
-        bool onPlayer = targetOn_.b && game::has(game::Domain::Target) && st.target.kind == game::Target::Kind::Entity && (!playersOnly_.b || st.target.isPlayer);
+        bool onPlayer = targetOn_.b && game::has(game::Domain::Target) && st.target.kind == game::Target::Kind::Entity && (!playersOnly_.b || !need::have("TargetInfo") || st.target.isPlayer);
         targetMix_ = draw::approach(targetMix_, onPlayer ? 1.f : 0.f, 18.f);
         if (targetMix_ > 0.001f) col = lerp(col, targetColor_.color, targetMix_);
         if (clickColor_.b) col = lerp(col, activeColor_.color, pulse_);

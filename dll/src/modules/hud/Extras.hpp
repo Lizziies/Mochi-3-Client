@@ -87,8 +87,8 @@ private:
 class FallPredictor : public GameText {
 public:
     FallPredictor()
-        : GameText("Fall Predictor", "Shows how far you have fallen and how much damage you would take if you landed now.", need::player, need::sigs({"LocalPlayer"}),
-                   {"hud-self"}, {0.45f, 0.40f}) {
+        : GameText("Fall Predictor", "Shows how far you have fallen and how much damage you would take if you landed now.", need::player, need::sigs({"LocalPlayer", "MoveState", "PlayerStats"}),
+                   {"hud-self"}, {0.005f, 0.402f}) {
         sub("Info displays");
         warn_.visible = [this] { return colored_.b; };
     }
@@ -146,7 +146,7 @@ class InventoryView : public GameList {
 public:
     InventoryView()
         : GameList("Inventory Viewer", "Shows the contents of your inventory as a grid on the screen, with counts and durability.", need::inventory,
-                   need::sigs({"LocalPlayer", "Inventory"}), {"hud-self"}, {0.01f, 0.45f}) {
+                   need::sigs({"LocalPlayer", "Inventory"}), {"hud-self"}, {0.4f, 0.3f}) {
         sub("Inventory info");
     }
 

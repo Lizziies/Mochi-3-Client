@@ -9,7 +9,7 @@ class ServerInfo : public TextHud {
 public:
     bool defaultEnabled() const override { return true; }
 
-    ServerInfo() : TextHud("Server Display", "Shows which server you are on.", {"hud-self"}, {0.01f, 0.26f}) {
+    ServerInfo() : TextHud("Server Display", "Shows which server you are on.", {"hud-self"}, {0.005f, 0.242f}) {
         sub("Info displays");
     }
 

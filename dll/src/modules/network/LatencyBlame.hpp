@@ -18,7 +18,7 @@ public:
     LatencyBlame()
         : HudModule("Lag Analyzer",
                     "Splits the delay into input, frame, network and server tick.",
-                    {"hud-self"}, {0.35f, 0.02f}) {
+                    {"hud-self"}, {0.6f, 0.38f}) {
         sub("Network");
         LARGE_INTEGER f;
         QueryPerformanceFrequency(&f);

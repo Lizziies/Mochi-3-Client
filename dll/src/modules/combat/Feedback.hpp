@@ -36,6 +36,7 @@ public:
         : Module("Hit Marker", "A short marker at the crosshair when you hit. Display only, changes nothing in the game.", Category::Pvp,
                  {"cosmetic"}) {
         sub("Hit visuals");
+        critColor_.visible = [] { return need::have("MoveState"); };
     }
 
     void onFrame() override {
@@ -130,13 +131,14 @@ public:
                  {"cosmetic"}) {
         sub("Hit visuals");
         require(need::combat, need::sigs({"LocalPlayer"}));
-        critColor_.visible = [this] { return !onlyCrit_.b; };
+        critColor_.visible = [this] { return !onlyCrit_.b && need::have("MoveState"); };
+        onlyCrit_.visible = [] { return need::have("MoveState"); };
     }
 
     void onFrame() override {
         for (auto& e : game::events()) {
             if (e.kind != game::EventKind::Hit) continue;
-            if (onlyCrit_.b && !e.crit) continue;
+            if (onlyCrit_.b && need::have("MoveState") && !e.crit) continue;
             ImVec4 c = e.crit ? critColor_.color : color_.color;
             if (rainbow_.b) {
                 float r, g, b;
@@ -274,6 +276,7 @@ public:
                  {"cosmetic"}) {
         sub("Hit visuals");
         require(need::combat, need::sigs({"LocalPlayer"}));
+        critTone_.visible = [] { return need::have("MoveState"); };
     }
 
     void onFrame() override {
@@ -288,6 +291,7 @@ public:
     void drawSettings() override {
         ImGui::Spacing();
         if (ImGui::SmallButton(i18n::tr("Play sound"))) play(tone_.i, 1.f);
+        if (!need::have("MoveState")) return;
         ImGui::SameLine();
         if (ImGui::SmallButton(i18n::tr("Play crit sound"))) play(critTone_.i, 1.25f);
     }

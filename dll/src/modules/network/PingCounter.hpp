@@ -8,7 +8,7 @@
 
 class PingCounter : public TextHud {
 public:
-    PingCounter() : TextHud("Ping Counter", "Shows your ping to the server.", {"hud-self"}, {0.01f, 0.30f}) {
+    PingCounter() : TextHud("Ping Counter", "Shows your ping to the server.", {"hud-self"}, {0.005f, 0.306f}) {
         sub("Network");
     }
 

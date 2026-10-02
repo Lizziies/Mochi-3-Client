@@ -18,7 +18,7 @@ class ItemTracker : public GameList {
 public:
     ItemTracker()
         : GameList("Item Tracker", "Shows what you pick up and lose for a few seconds, for example +3 Iron Ingot or -1 Ender Pearl.", need::inventory,
-                   need::sigs({"LocalPlayer", "Inventory"}), {"hud-self"}, {0.80f, 0.55f}) {
+                   need::sigs({"LocalPlayer", "Inventory"}), {"hud-self"}, {0.845f, 0.66f}) {
         sub("Inventory info");
     }
 

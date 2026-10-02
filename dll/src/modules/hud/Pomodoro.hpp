@@ -14,7 +14,7 @@
 class Pomodoro : public HudModule {
 public:
     Pomodoro()
-        : HudModule("Pomodoro", "Study and break timer: work phase, short and long break, with a notice on every change.", {"hud-self"}, {0.01f, 0.18f}) {
+        : HudModule("Pomodoro", "Study and break timer: work phase, short and long break, with a notice on every change.", {"hud-self"}, {0.26f, 0.3f}) {
         sub("Timer");
         long_.visible = [this] { return rounds_.i > 0; };
         ring_.visible = [this] { return style_.i == 0; };

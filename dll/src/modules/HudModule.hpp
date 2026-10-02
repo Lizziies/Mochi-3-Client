@@ -72,7 +72,7 @@ private:
     Setting& scale_;
     ImVec2 defaultPos_;
     ImVec2 lastSize_{0, 0};
-    int settled_ = 0;
+    ImVec2 shift_{0, 0};
 };
 
 class TextHud : public HudModule {

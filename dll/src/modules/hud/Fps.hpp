@@ -11,7 +11,7 @@ class Fps : public TextHud {
 public:
     bool defaultEnabled() const override { return true; }
 
-    Fps() : TextHud("FPS", "Shows your frames per second.", {"hud-self"}, {0.01f, 0.02f}) {
+    Fps() : TextHud("FPS", "Shows your frames per second.", {"hud-self"}, {0.005f, 0.05f}) {
         sub("Info displays");
     }
 

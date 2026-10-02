@@ -133,7 +133,7 @@ class BackgroundLoad : public HudModule {
 public:
     BackgroundLoad()
         : HudModule("Background Load", "Shows programs that use a lot of CPU and hurt FPS or ping.",
-                    {"hud-self"}, {0.70f, 0.86f}) {
+                    {"hud-self"}, {0.845f, 0.95f}) {
         sub("Diagnostics");
         cores_ = std::max(1, int(std::thread::hardware_concurrency()));
     }

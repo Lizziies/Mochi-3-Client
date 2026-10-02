@@ -178,7 +178,8 @@ public:
         : Module("Sens Multiplier", "Own sensitivity while zooming, drawing a bow, blocking, sneaking and sprinting.",
                  Category::Pvp, {"input"}) {
         sub("Input");
-        bow_.visible = block_.visible = sneak_.visible = sprint_.visible = [] { return game::ready(need::player); };
+        bow_.visible = block_.visible = [] { return need::have("UseState"); };
+        sneak_.visible = sprint_.visible = [] { return need::have("MoveState"); };
     }
 
     void drawSettings() override {

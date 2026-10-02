@@ -25,8 +25,10 @@ class Coordinates : public GameList {
 public:
     Coordinates()
         : GameList("Coordinates", "Shows your position, optionally with chunk, biome, facing and Nether conversion.", need::player,
-                   need::sigs({"LocalPlayer"}), {"hud-self"}, {0.01f, 0.30f}) {
+                   need::sigs({"LocalPlayer"}), {"hud-self"}, {0.005f, 0.5f}) {
         sub("Info displays");
+        nether_.visible = dimFormat_.visible = [] { return need::have("Dimension"); };
+        biome_.visible = [] { return need::have("Biome"); };
     }
 
     void onFrame() override {
@@ -66,7 +68,7 @@ protected:
         std::string yText = fmt(py) + (ySpeed_.b ? speed(p.vel.y) : "");
         if (!format_.text.empty()) {
             std::string out = format_.text;
-            for (auto& [key, val] : {std::pair<const char*, std::string>{"{D}", dimension(p.dimension)}, {"{X}", fmt(px)}, {"{Y}", yText}, {"{Z}", fmt(pz)}})
+            for (auto& [key, val] : {std::pair<const char*, std::string>{"{D}", need::have("Dimension") ? dimension(p.dimension) : std::string()}, {"{X}", fmt(px)}, {"{Y}", yText}, {"{Z}", fmt(pz)}})
                 for (size_t at = out.find(key); at != std::string::npos; at = out.find(key, at + val.size())) out.replace(at, std::strlen(key), val);
             line("", out, textColor());
         } else if (layout_.i == 0) {
@@ -76,14 +78,14 @@ protected:
             line("Y", yText, ImGui::GetColorU32(yColor_.color));
             line("Z", fmt(pz), ImGui::GetColorU32(zColor_.color));
         }
-        if (nether_.b && p.dimension != 2) {
+        if (nether_.b && need::have("Dimension") && p.dimension != 2) {
             float k = p.dimension == 1 ? 8.f : 1.f / 8.f;
             line(dimension(p.dimension == 1 ? 0 : 1), fmt(px * k) + " / " + fmt(pz * k), textColor());
         }
         if (chunk_.b) line("Chunk", std::format("{} {}", int(std::floor(px / 16.f)), int(std::floor(pz / 16.f))), textColor());
         if (inChunk_.b) line(i18n::tr("In chunk"), std::format("{} {} {}", int(std::floor(px)) & 15, int(std::floor(py)) & 15, int(std::floor(pz)) & 15), textColor());
         if (facing_.b) line(i18n::tr("Facing"), compass(p.yaw), textColor());
-        if (biome_.b) line(i18n::tr("Biome"), text::pretty(game::state().world.biome), textColor());
+        if (biome_.b && need::have("Biome")) line(i18n::tr("Biome"), text::pretty(game::state().world.biome), textColor());
         return {w, y};
     }
 
@@ -250,7 +252,7 @@ class SpeedDisplay : public GameText {
 public:
     SpeedDisplay()
         : GameText("Speed Display", "Shows your speed in blocks per second.", need::player, need::sigs({"LocalPlayer"}), {"hud-self"},
-                   {0.01f, 0.34f}) {
+                   {0.005f, 0.338f}) {
         sub("Info displays");
     }
 
@@ -293,7 +295,7 @@ private:
 class LookAngles : public GameText {
 public:
     LookAngles()
-        : GameText("Look Angles", "Shows yaw and pitch of your view direction.", need::player, need::sigs({"LocalPlayer"}), {"hud-self"}, {0.01f, 0.38f}) {
+        : GameText("Look Angles", "Shows yaw and pitch of your view direction.", need::player, need::sigs({"LocalPlayer"}), {"hud-self"}, {0.005f, 0.37f}) {
         sub("Info displays");
     }
 
@@ -316,7 +318,7 @@ class HealthDisplay : public GameText {
 public:
     HealthDisplay()
         : GameText("Health Display", "Shows your health as a number, hearts or bar, with absorption.", need::player, need::sigs({"LocalPlayer", "PlayerStats"}),
-                   {"hud-self"}, {0.01f, 0.42f}) {
+                   {"hud-self"}, {0.005f, 0.466f}) {
         sub("Info displays");
     }
 
@@ -350,7 +352,7 @@ class ExperienceInfo : public GameList {
 public:
     ExperienceInfo()
         : GameList("Experience Info", "Shows your level and the progress to the next level.", need::player, need::sigs({"LocalPlayer", "PlayerStats"}),
-                   {"hud-self"}, {0.01f, 0.46f}) {
+                   {"hud-self"}, {0.135f, 0.434f}) {
         sub("Info displays");
         percent_.visible = [this] { return mode_.i == 0 || mode_.i == 1; };
         bar_.visible = [this] { return mode_.i == 0 || mode_.i == 1; };
@@ -398,7 +400,7 @@ private:
 class DayCounter : public GameText {
 public:
     DayCounter()
-        : GameText("Day Counter", "Shows the game day and the world time.", need::world, need::sigs({"Level"}), {"hud-self"}, {0.01f, 0.50f}) {
+        : GameText("Day Counter", "Shows the game day and the world time.", need::world, need::sigs({"Level"}), {"hud-self"}, {0.005f, 0.434f}) {
         sub("Info displays");
     }
 
@@ -430,7 +432,7 @@ private:
 
 class IpDisplay : public TextHud {
 public:
-    IpDisplay() : TextHud("IP Display", "Shows the server address. Can be hidden for streamers.", {"hud-self"}, {0.01f, 0.54f}) {
+    IpDisplay() : TextHud("IP Display", "Shows the server address. Can be hidden for streamers.", {"hud-self"}, {0.005f, 0.274f}) {
         sub("Info displays");
     }
 
@@ -467,7 +469,7 @@ class PackDisplay : public GameList {
 public:
     PackDisplay()
         : GameList("Pack Display", "Shows your active global resource packs. Packs a server forces on top are not listed.", 0, {}, {"hud-self"},
-                   {0.01f, 0.58f}) {
+                   {0.26f, 0.54f}) {
         sub("Info displays");
     }
 
@@ -497,7 +499,7 @@ class HeldItem : public GameList {
 public:
     HeldItem()
         : GameList("Held Item", "Shows the item in your hand with count and durability.", need::inventory, need::sigs({"LocalPlayer", "Inventory"}),
-                   {"hud-self"}, {0.01f, 0.62f}) {
+                   {"hud-self"}, {0.135f, 0.5f}) {
         sub("Info displays");
     }
 

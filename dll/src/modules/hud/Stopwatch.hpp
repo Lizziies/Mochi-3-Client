@@ -9,7 +9,7 @@
 
 class Stopwatch : public TextHud {
 public:
-    Stopwatch() : TextHud("Stopwatch", "Stopwatch with its own start/stop and reset keys.", {"hud-self"}, {0.01f, 0.14f}) {
+    Stopwatch() : TextHud("Stopwatch", "Stopwatch with its own start/stop and reset keys.", {"hud-self"}, {0.005f, 0.146f}) {
         sub("Timer");
     }
 

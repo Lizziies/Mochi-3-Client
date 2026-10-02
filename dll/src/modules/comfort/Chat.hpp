@@ -153,7 +153,7 @@ class DeathLogger : public GameList {
 public:
     DeathLogger()
         : GameList("Death Logger", "Remembers where you died and shows the last death points with coordinates.", need::player,
-                   need::sigs({"LocalPlayer"}), {"hud-self"}, {0.01f, 0.20f}) {
+                   need::sigs({"LocalPlayer", "HurtEvents"}), {"hud-self"}, {0.26f, 0.42f}) {
         sub("Chat");
     }
 
@@ -214,7 +214,7 @@ class ChatPlus : public HudModule {
 public:
     ChatPlus()
         : HudModule("Better Chat", "Your own movable chat with timestamps, filter and highlighting.",
-                    {"hud-self"}, {0.01f, 0.55f}) {
+                    {"hud-self"}, {0.005f, 0.65f}) {
         sub("Chat");
         require(need::chat, need::sigs({"ChatEvents"}));
         background_.b = false;
@@ -405,7 +405,7 @@ class ScoreboardPlus : public HudModule {
 public:
     ScoreboardPlus()
         : HudModule("Scoreboard", "Your own movable scoreboard without red numbers.",
-                    {"hud-self"}, {0.84f, 0.30f}) {
+                    {"hud-self"}, {0.84f, 0.3f}) {
         sub("HUD parts");
         require(need::board, need::sigs({"ScoreboardData"}));
     }
