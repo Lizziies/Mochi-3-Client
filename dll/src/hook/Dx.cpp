@@ -38,6 +38,7 @@ static ID3D11DeviceContext* ctx = nullptr;
 static ID3D11On12Device* on12 = nullptr;
 static ID3D12CommandQueue* queue = nullptr;
 static IDXGISwapChain* chain = nullptr;
+static ID3D12Device* device12 = nullptr;
 static bool uiReady = false;
 static bool latencyApplied = false;
 static int setupCooldown = 0;
@@ -176,6 +177,7 @@ static bool setup(IDXGISwapChain* sc) {
             return false;
         }
 
+        device12 = d12;
         IUnknown* queues[] = {queue};
         HRESULT hr = D3D11On12CreateDevice(d12, D3D11_CREATE_DEVICE_BGRA_SUPPORT, nullptr, 0, queues, 1, 0, &d11,
                                            &ctx, nullptr);
@@ -262,6 +264,40 @@ static void limit() {
     while (now() < target) YieldProcessor();
 }
 
+// The game recreates its swapchain on some fullscreen and video changes. A new one for our window on the same
+// device is taken over; anything else is left alone.
+static bool adopt(IDXGISwapChain* sc) {
+    if (findWindow(sc) != hwnd) return false;
+    bool same = false;
+    if (current == Api::Dx12) {
+        ID3D12Device* dev = nullptr;
+        if (SUCCEEDED(sc->GetDevice(IID_PPV_ARGS(&dev)))) {
+            same = dev == device12;
+            dev->Release();
+        }
+    } else {
+        ID3D11Device* dev = nullptr;
+        if (SUCCEEDED(sc->GetDevice(IID_PPV_ARGS(&dev)))) {
+            same = dev == d11;
+            dev->Release();
+        }
+    }
+    static bool warned = false;
+    if (!same) {
+        if (!warned) logger::warn("renderer: the game made a swapchain on another device, overlay stays on the old one");
+        warned = true;
+        return false;
+    }
+    dropTargets();
+    chain = sc;
+    latencyApplied = !tune.lowLatency;
+    DXGI_SWAP_CHAIN_DESC desc{};
+    sc->GetDesc(&desc);
+    info.tearingSupported = (desc.Flags & DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING) != 0;
+    logger::info("renderer: took over the game's new swapchain");
+    return true;
+}
+
 static void draw(IDXGISwapChain* sc) {
     if (dead) return;
     if (!uiReady) {
@@ -281,7 +317,7 @@ static void draw(IDXGISwapChain* sc) {
             return;
         }
     }
-    if (sc != chain) return;
+    if (sc != chain && !adopt(sc)) return;
 
     applyLatency(sc);
 
