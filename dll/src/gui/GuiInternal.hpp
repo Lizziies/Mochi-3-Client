@@ -30,6 +30,9 @@ void restartContentAnim();
 char* searchText();
 void openAllGroups();
 bool& favoritesOnly();
+int& sectionIndex();
+bool panelOpen();
+void closePanel();
 
 void drawModulesPage(ImVec2 origin, ImVec2 size);
 void drawModulePanel();

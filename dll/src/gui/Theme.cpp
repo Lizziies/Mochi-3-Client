@@ -14,6 +14,8 @@ static ImVec4 hex(unsigned rgb, float a = 1.f) {
 }
 
 static std::vector<Theme> builtins = {
+    {"Carbon", hex(0x0E0F12), hex(0x17181D), hex(0x23252C), hex(0x4C8DFF), hex(0x8DB5FF), hex(0xF1F2F5),
+     hex(0x8A8F9C), hex(0x3DDC84), hex(0xFFB547), hex(0x3A3D46), 8.f, 0.95f, 1.f, false, false, false},
     {"Graphite", hex(0x121214), hex(0x1D1D21), hex(0x2A2A30), hex(0x8FA6FF), hex(0xC3CEFF), hex(0xEEEEF2),
      hex(0x9D9DAA), hex(0x7BD6A0), hex(0xF2C46B), hex(0x4B4B55), 12.f, 0.96f, 1.f, false, false, false},
     {"Bubblegum", hex(0x1A0F1E), hex(0x2A1730), hex(0x36203D), hex(0xFF7EB6), hex(0xFFB3D1), hex(0xFFF1F7),
@@ -139,6 +141,11 @@ json save() {
 
 void load(const json& j) {
     if (!j.is_object()) return;
+    // the old default; whoever still has it gets the new default look instead
+    if (j.value("name", "") == "Graphite" && j.value("accent", json::array()) == color(builtins[1].accent)) {
+        active = builtins[0];
+        return;
+    }
     Theme t = builtins[0];
     t.name = j.value("name", t.name);
     color(j, "bg", t.bg);
