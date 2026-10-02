@@ -35,8 +35,13 @@ fi
 # each step: seconds:kind:a,b  (k = key, c = click, w = wheel, t = char)
 script="${MOCHI_CI_SCRIPT:-}"
 shots="${MOCHI_CI_SHOTS:-4 7 10 13 16 19 22 25}"
-rm -rf "$(data)/configs"
-(TESTHOST_MANUAL=1 TESTHOST_SCRIPT="$script" timeout 120 wine64 testhost.exe dll/Mochi.dll 34 > "$out/menu-host.txt" 2>&1 &)
+rm -rf "$(data)/configs" "$(data)/logs/latest.log"
+(TESTHOST_MANUAL=1 TESTHOST_SCRIPT="$script" timeout 120 wine64 testhost.exe dll/Mochi.dll 40 > "$out/menu-host.txt" 2>&1 &)
+# the host's script clock starts when the process does, which is about when the client logs "ready"
+for i in $(seq 1 600); do
+    grep -q "\] \[info\] ready" "$(data)/logs/latest.log" 2>/dev/null && break
+    sleep 0.1
+done
 start=$(date +%s)
 for t in $shots; do
     while [ $(( $(date +%s) - start )) -lt "$t" ]; do sleep 0.2; done
