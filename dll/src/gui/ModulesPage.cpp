@@ -113,15 +113,16 @@ static Hit listRow(const void* id, const Row& row, float appear = 1.f) {
     float r = t.rounding * 0.75f * s;
     ImVec4 fill = theme::mix(t.surface, theme::mix(t.bg, t.accent, 0.6f), lit);
     fill = theme::mix(fill, t.text, 0.05f * hv + 0.07f * sel);
+    if (ImGui::IsItemActive()) fill = theme::mix(fill, t.bg, 0.2f);
     dl->AddRectFilled(a, b, theme::col(fill, 0.92f), r);
     if (sel > 0.01f) dl->AddRect(a, b, theme::col(theme::border(), sel), r, 0, 1.f);
 
     float dim = row.lock ? 0.45f : 1.f;
     float cy = a.y + h * 0.5f;
-    float tx = a.x + 10 * s;
+    float tx = a.x + 10 * s + 2 * s * hv * (row.lock ? 0.f : 1.f);
     if (row.fold >= 0.f) {
-        chevron(dl, {a.x + 12 * s, cy}, row.fold, theme::col(t.textDim, dim));
-        tx = a.x + 23 * s;
+        chevron(dl, {a.x + 12 * s, cy}, row.fold, theme::col(theme::mix(t.textDim, t.text, 0.6f * hv), dim));
+        tx = a.x + 23 * s + 2 * s * hv;
     }
     ImVec2 sw = widgets::switchSize();
     bool showSwitch = row.hasSwitch && !row.lock;

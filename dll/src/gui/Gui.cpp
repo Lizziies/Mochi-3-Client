@@ -28,6 +28,7 @@ static std::atomic<bool> hudEdit{false};
 static std::atomic<bool> keyboardClaim{false};
 static bool keyboardClaimNext = false;
 static float openAnim = 0.f;
+static float openT = 0.f;
 static Page current = Page::Settings;
 static Module* selected = nullptr;
 static char search[64] = "";
@@ -189,9 +190,11 @@ static void footer(ImVec2 at, float w) {
 static void drawMenu() {
     auto& t = theme::current();
     float s = ui::scale();
-    openAnim = draw::approach(openAnim, isOpen ? 1.f : 0.f, 12.f * t.animSpeed);
+    float step = draw::motion() ? ui::dt() * t.animSpeed / (isOpen ? 0.30f : 0.16f) : 1.f;
+    openT = std::clamp(openT + (isOpen ? step : -step), 0.f, 1.f);
+    openAnim = draw::easeOutCubic(openT);
     if (!isOpen) widgets::closePopups();
-    if (openAnim < 0.01f) return;
+    if (openT <= 0.f) return;
 
     auto ds = ImGui::GetIO().DisplaySize;
     float margin = 24 * s;
@@ -205,27 +208,29 @@ static void drawMenu() {
     float wantW = std::max(200 * s, std::min(detailsWidth(), ds.x - dx - margin));
     detailsW = detailsW <= 0.f || !draw::motion() ? wantW : draw::approach(detailsW, wantW, 16.f * t.animSpeed);
 
-    auto stage = [&](int i) { return std::clamp(openAnim * 1.3f - i * 0.15f, 0.f, 1.f); };
-    auto lift = [&](float a) { return (1.f - draw::easeOutCubic(a)) * 12 * s; };
-    ImGui::GetBackgroundDrawList()->AddRectFilled({0, 0}, ds, IM_COL32(0, 0, 0, int(45 * std::clamp(openAnim, 0.f, 1.f))));
+    auto stage = [&](int i) { return std::clamp(openT * 1.45f - i * 0.17f, 0.f, 1.f); };
+    auto lift = [&](float a) { return (1.f - draw::easeOutBack(a)) * (isOpen ? 22 : 10) * s; };
+    auto dim = [&](int alpha) { return IM_COL32(6, 8, 14, int(alpha * openAnim)); };
+    ImGui::GetBackgroundDrawList()->AddRectFilled({0, 0}, ds, dim(70));
+    ImGui::GetBackgroundDrawList()->AddRectFilledMultiColor({0, 0}, ds, dim(0), dim(0), dim(40), dim(40));
 
     float a = stage(0);
     ImVec2 sp{x, top + lift(a)}, ss{listW, 30 * s};
-    beginPanel("##mochi_search", sp, ss, a);
+    beginPanel("##mochi_search", sp, ss, draw::easeOutCubic(a));
     searchBar(sp, ss);
     endPanel();
 
     a = stage(1);
     float foot = 26 * s;
     ImVec2 lp{x, top + 38 * s + lift(a)}, ls{listW, bottom - top - 38 * s};
-    beginPanel("##mochi", lp, ls, a);
+    beginPanel("##mochi", lp, ls, draw::easeOutCubic(a));
     drawModulesPage(lp + ImVec2(8 * s, 8 * s), {ls.x - 10 * s, ls.y - 8 * s - foot});
     footer({lp.x + 12 * s, lp.y + ls.y - foot}, ls.x - 24 * s);
     endPanel();
 
     a = stage(2);
     ImVec2 dp{dx, top + lift(a)}, dsz{detailsW, bottom - top};
-    beginPanel("##mochi_details", dp, dsz, a);
+    beginPanel("##mochi_details", dp, dsz, draw::easeOutCubic(a));
     drawDetails(dp, dsz);
     endPanel();
 
