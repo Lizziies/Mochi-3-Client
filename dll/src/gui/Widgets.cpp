@@ -41,16 +41,19 @@ bool toggle(const char* id, bool& value, bool enabled) {
     float alpha = enabled ? 1.f : 0.4f;
     ImVec4 track = theme::mix(t.off, t.accent, a);
     if (hovered && enabled) track = theme::mix(track, t.accent2, 0.15f);
+    float round = std::min(size.y * 0.5f, t.rounding * 0.6f * s + 1.f * s);
     if (t.gradient && a > 0.01f)
         draw::gradientRect(dl, p, p + size, theme::col(theme::mix(t.off, t.accent, a), alpha),
-                           theme::col(theme::mix(t.off, t.accent2, a), alpha), size.y * 0.5f);
+                           theme::col(theme::mix(t.off, t.accent2, a), alpha), round);
     else
-        draw::pill(dl, p, p + size, theme::col(track, alpha));
+        dl->AddRectFilled(p, p + size, theme::col(track, alpha), round);
 
     float r = size.y * 0.5f - 3 * s;
     float x = p.x + size.y * 0.5f + (size.x - size.y) * draw::easeOutCubic(a);
-    dl->AddCircleFilled({x, p.y + size.y * 0.5f + 1 * s}, r, IM_COL32(0, 0, 0, int(40 * alpha)));
-    dl->AddCircleFilled({x, p.y + size.y * 0.5f}, r, IM_COL32(255, 255, 255, int(255 * alpha)));
+    ImVec2 c{x, p.y + size.y * 0.5f};
+    float knob = std::max(0.f, round - 3 * s);
+    dl->AddRectFilled(c - ImVec2(r, r - 1 * s), c + ImVec2(r, r + 1 * s), IM_COL32(0, 0, 0, int(40 * alpha)), knob);
+    dl->AddRectFilled(c - ImVec2(r, r), c + ImVec2(r, r), IM_COL32(255, 255, 255, int(255 * alpha)), knob);
     if (a > 0.5f && t.hearts)
         draw::heart(dl, {x, p.y + size.y * 0.5f + 0.5f * s}, r * 1.1f, theme::col(t.accent, (a - 0.5f) * 2 * alpha));
     return clicked;

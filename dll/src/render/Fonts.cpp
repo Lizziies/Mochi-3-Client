@@ -29,8 +29,8 @@ static ImFont* fromResource(int id, float size) {
 
 void load() {
     auto& io = ImGui::GetIO();
-    reg = fromResource(IDR_FONT_REGULAR, 17.f);
-    bld = fromResource(IDR_FONT_BOLD, 17.f);
+    reg = fromResource(IDR_FONT_REGULAR, 18.f);
+    bld = fromResource(IDR_FONT_BOLD, 18.f);
     if (!reg) {
         logger::warn("embedded font missing, falling back to default");
         reg = io.Fonts->AddFontDefault();

@@ -51,8 +51,7 @@ static void drawAppearance() {
         else if (hovered) dl->AddRect(pos, pos + ImVec2(w, 74 * s), theme::col(p.accent, 0.6f), r, 0, 1.5f * s);
         draw::gradientRect(dl, pos + ImVec2(12 * s, 14 * s), pos + ImVec2(w - 12 * s, 30 * s), theme::col(p.accent),
                            theme::col(p.accent2), 8 * s);
-        draw::heart(dl, pos + ImVec2(20 * s, 52 * s), 16 * s, theme::col(p.accent));
-        dl->AddText(fonts::bold(), 16 * s, pos + ImVec2(34 * s, 43 * s), theme::col(p.text), p.name.c_str());
+        dl->AddText(fonts::bold(), 16 * s, pos + ImVec2(12 * s, 43 * s), theme::col(p.text), p.name.c_str());
         if (clicked) theme::use(p);
     }
     int rows = int((presets.size() + cols - 1) / cols);
@@ -70,6 +69,8 @@ static void drawAppearance() {
     changed |= widgets::row("Success", t.ok);
     changed |= widgets::row("Warning", t.warn);
     changed |= widgets::row("Off", t.off);
+    if (t.border.w <= 0.f) t.border = t.surfaceHover;
+    changed |= widgets::row("Border", t.border);
     changed |= widgets::row("Corner radius", t.rounding, 0.f, 24.f, "%.0f");
     changed |= widgets::row("Opacity", t.opacity, 0.5f, 1.f, "%.2f");
     changed |= widgets::row("Animation speed", t.animSpeed, 0.25f, 3.f, "%.2fx");

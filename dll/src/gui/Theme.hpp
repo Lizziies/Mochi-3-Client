@@ -24,6 +24,7 @@ struct Theme {
     bool gradient = true;
     bool sparkles = true;
     bool hearts = true;
+    ImVec4 border{0.f, 0.f, 0.f, 0.f};
 };
 
 namespace theme {
@@ -37,6 +38,7 @@ void setFade(float f);
 float fade();
 ImU32 col(const ImVec4& c, float alpha = 1.f);
 ImVec4 mix(const ImVec4& a, const ImVec4& b, float t);
+ImVec4 border();
 
 nlohmann::json save();
 void load(const nlohmann::json& j);
