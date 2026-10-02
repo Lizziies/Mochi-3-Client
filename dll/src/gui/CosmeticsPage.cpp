@@ -152,10 +152,7 @@ void drawCosmeticsPage(ImVec2 origin, ImVec2 size) {
     smoothScroll();
     for (int i = 0; i < 8; i++) {
         if (i) ImGui::SameLine();
-        if (widgets::button(slots[i], {0, 0}, slotFilter == i) && slotFilter != i) {
-            slotFilter = i;
-            restartContentAnim();
-        }
+        if (widgets::button(slots[i], {0, 0}, slotFilter == i)) slotFilter = i;
     }
     ImGui::Dummy({0, 10 * s});
 
@@ -262,6 +259,8 @@ void drawCosmeticsPage(ImVec2 origin, ImVec2 size) {
     ImGui::EndChild();
 }
 
-void reloadCosmetics() { cosmetics::reload(); }
+void reloadCosmetics() {
+    if (cosmetics::items().empty()) cosmetics::reload();
+}
 
 }

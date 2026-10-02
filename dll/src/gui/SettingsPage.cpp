@@ -259,10 +259,7 @@ void drawSettingsPage(ImVec2 origin, ImVec2 size) {
         if (tab == i) cdl->AddRectFilled({p.x, p.y + 10 * s}, {p.x + 3 * s, p.y + sz.y - 10 * s}, theme::col(t.accent), 2 * s);
         const char* txt = i18n::tr(names[i]);
         cdl->AddText(fonts::regular(), 15.5f * s, {p.x + 16 * s, p.y + (sz.y - 15.5f * s) * 0.5f}, theme::col(theme::mix(t.textDim, t.text, std::max(a, tab == i ? 1.f : 0.f))), txt);
-        if (clicked && tab != i) {
-            tab = i;
-            restartContentAnim();
-        }
+        if (clicked) tab = i;
         ImGui::PopID();
         ImGui::Dummy({0, 2 * s});
     }
