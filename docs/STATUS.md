@@ -263,3 +263,20 @@ Das hier ist der Anfang, nicht das Ende. Die Basis steht, der große Rest (Modul
 - Neues Standard-Theme "Graphite" (neutrales Dunkelgrau, ein gedämpfter blauer Akzent, ohne Verläufe, Funken und Herzchen). Die rosa Themes bleiben unter Settings, Appearance wählbar. Wer schon ein Theme gespeichert hat, behält es.
 - Abschnittsfarben in der Liste sind einheitlich neutral statt bunt.
 - Fehler gefunden und behoben: ein veralteter Cache der Signatursuche konnte auf eine Adresse außerhalb des Abbilds zeigen und den Client abstürzen lassen. Adressen werden jetzt geprüft, Vtable-Slots sicher gelesen.
+
+## 2026-10-02 abends, Branch claude/ui-polish (Oberfläche, ohne Spiel getestet)
+
+Gebaut, aber noch nicht im Spiel angesehen. Bitte Screenshots prüfen.
+
+- Dropdown für alle Auswahl-Einstellungen (Hold/Toggle, Formen, Farben usw.): eigenes Popup in `gui/Widgets.cpp` statt ImGui-Selectable. Theme-Farben, Rundung, Schatten, Hover, Haken am gewählten Eintrag, Aufklappen mit Animation, klappt nach oben, wenn unten kein Platz ist, scrollt bei langen Listen, Pfeiltasten, Enter und Esc. Die Pfeil-Anzeige am Auslöser dreht sich. Der Farbwähler hat jetzt ebenfalls Rundung, Rand und Theme-Hintergrund.
+- Aufklappen von Modulen in einer Gruppe: Zeit-basiert statt exponentiell, Höhe mit ease-in-out, Inhalt blendet in der zweiten Hälfte ein, Höhenänderungen im offenen Modul (Optionen, die auf- oder zuklappen) laufen weich statt zu springen.
+- Custom Crosshair: neue Form "Solid cross" (Standard für neue Configs). Gefülltes Kreuz mit undurchsichtigem Rand in GUI-Pixeln (Armlänge 8, Dicke 1, plus je 1 GUI-Pixel Rand), das das Vanilla-Kreuz verdeckt, solange `fx::available(HideCrosshair)` false ist. Hinweis im Modul, wenn eine andere Form gewählt ist. Die Maße des Vanilla-Kreuzes sind geschätzt (`coverArm`, `coverThick` in `Crosshair.hpp`), im Spiel gegenprüfen. GUI-Skalierung automatisch wie bei den anderen HUD-Modulen, einstellbar.
+- Network-Modul: der Ping-Verlauf zeichnete die Balken als dicke Linien und ragte links und rechts aus dem Kasten. Jetzt Rechtecke im Kasten, neueste rechts.
+- Pack Display braucht keine Spieldaten mehr: liest `global_resource_packs.json` und die Manifeste der Packs (Namen aus `texts/en_US.lang` bei `pack.name`). Zeigt nur globale Packs, Server-Packs stehen nicht drin, steht in der Beschreibung.
+
+Graue Module durchgesehen, ehrlich geblieben. Ohne Spieldaten läuft sonst keins richtig:
+
+- Mumble Link, Waypoints, Chunk Border, Fall Predictor, Death Logger, Coordinates, Richtung, Tempo, Blickwinkel brauchen nur Position, Kamera und `LocalPlayer`. Das ist schon der Stand der Live-Leser, die waren nur im alten Log grau.
+- Session Stats braucht Treffer, Kills und Chat-Ereignisse, die es ohne Spiel nicht gibt. Day Counter braucht die Weltzeit (Systemzeit wäre falsch). Hotbar-Module, Inventar, Effekte, Ziel, Chat, Scoreboard und Tab-Liste haben keine Quelle außerhalb des Spiels.
+
+Achtung, Live-Leser (nicht angefasst, gehört der anderen Sitzung): `supports()` meldet `Player` schon mit Position und Blick. Gesundheit, Hunger, Erfahrung, Luft, Dimension und Boden-Flag fallen auf Standardwerte zurück, solange ihre Offsets fehlen. Health Display, Low Health Indicator, Better Hunger Bar und Experience Info zeigen dann falsche Zahlen (immer 20/20) statt grau zu sein. Entweder die Domain feiner aufteilen oder diese Module an eigene Offsets koppeln. Waypoints rechnen mit `player.dimension`, ohne Offset immer Overworld.
