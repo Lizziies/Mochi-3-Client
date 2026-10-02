@@ -13,14 +13,26 @@ Stand: 2026-10-02 abends. Wird nach jedem Arbeitsschritt aktualisiert. Die Arbei
 | Launcher | lauffähig | Fenster, Injector, Updater, Auto-Inject, Selbst-Update, Versionsverwaltung über LeviLauncher |
 | Release-Pipeline | geschrieben, noch nie gelaufen | GitHub Action baut DLL und Launcher mit MinGW, Prüfsummen |
 | Sprachen | fertig für Launcher und Client | B's neue Module noch teils deutsch, Übersetzungs-Durchlauf offen |
-| Signaturen | 0 | nur am PC mit Minecraft + Ghidra möglich |
-| Test im echten Minecraft | offen | Anleitung in `docs/PC_TEST.md` |
+| Signaturen | 1.26.52: LocalPlayer, Gamma, FOV, Item-FOV, Perspektive, View Bobbing, Hide Hand, Wolken, Hurt Cam | `sigs/1.26.52.json`, 96 von 179 Modulen frei (vorher 75) |
+| Test im echten Minecraft | läuft | DX12 + RTSS, Strg+L, Koordinaten/Tempo/Blickwinkel live geprüft |
 | Lua-Scripting | nicht gebaut | |
 | Version-Switcher | über LeviLauncher | eigener Downloader nicht geplant für Release 1 |
 
 ## Nächste Schritte
 
 Alles Weitere geht nur am PC mit dem echten Spiel und steht in `docs/HOME_TODO.md`: bauen mit MSVC, Mochi Online veröffentlichen und Owner setzen, Test im Spiel, Signaturen bis kein Modul mehr grau ist, GUI-Scale-Hook, Latenz messen gegen Flarial, Cosmetics im Spiel, zum Schluss die Exe.
+
+## 2026-10-02 nachmittags, PC, Branch claude/pc-test
+
+- Erste echte Signatur: `LocalPlayer` (globaler Zeiger, Muster in `sigs/1.26.52.json`). Position, Pitch und Yaw liegen zusammen bei player>0x138>0x990 (+0x0 Position auf Augenhöhe, +0xc Pitch, +0x10 Yaw). Die Kopie über den ClientInstance-Pfad (player>0x28>0x258>0x5e0) wird nur alle paar Sekunden aktualisiert, nicht nehmen.
+- Bewegungszustand: player>0x1a0 +0xc, 4 normal, 5 schleichen, 3 sprinten. Neues Offset-Format `<feld>.is` für solche Enum-Bytes, `<feld>.viaN` für Zeigerpfade.
+- Geschwindigkeit wird aus der Positionsänderung abgeleitet, solange kein velX-Offset gefunden ist.
+- Im Spiel geprüft: XYZ stimmt mit der Spielanzeige überein, Tempo zeigt beim Laufen einen Wert, Pitch/Yaw stimmen.
+- Offen bei den Spielerfeldern: Leben (die Testwelt hat Cheats aus, braucht eine Überlebenswelt mit Cheats für `/damage`), Hunger, onGround (kein Flag in Tiefe 1 gefunden), Dimension, Level, AttackEntity.
+- Spieloptionen: Options-Objekt bei player>0x778>0xb8, Array ab +0x10, Index = Options-ID (gfx_gamma 50, gfx_field_of_view 47, game_thirdperson 3, gfx_viewbobbing 38, gfx_hidehand 422, gfx_toggleclouds 394, gfx_damagebobbing 39). Float-Optionen: +0x10 min, +0x14 max, +0x18 Wert. Jeder Getter ist eine kleine Funktion `mov r8d, <id>; call; ... movss/movzx/mov [rax+...]`, darum ein gemeinsames Muster mit eingesetzter ID.
+- Options-Umleitung: Jeder Lesezugriff läuft option → info (+0x8) → +0x238 weiter, solange dort ein Zeiger steht, und nimmt den Wert der letzten Option. fx-Art `Option` (Kind 8) zeigt die Umleitung auf eine Kopie mit eigenem Wert. Wirkt für alle Leser (auch das Welt-FOV, das inline gelesen wird), ohne Code-Patch, und landet nicht in der options.txt (geprüft). Die Einstellungsseite zeigt solange den überschriebenen Wert an.
+- Maus-Empfindlichkeit: `ctrl_sensitivity2` (387) ist nicht die Maus, die Maus nutzt `ctrl_sensitivity2_mouse` (eigenes Objekt, noch nicht gefunden). Bis dahin skaliert GameInput, das jetzt richtig rechnet.
+- Werkzeuge in `tools/explore/` (nur Dev-Build): watch.lua (Hardware-Watchpoint, zeigt jede Codestelle, die einen Wert liest), optmap.lua (alle Optionen mit ID und Getter), sigcheck.lua (Muster eindeutig?), paths.lua (Zeigerpfade zu Zielwerten), heappos.lua (Heap-Suche plus Bewegungsvergleich), flags.lua (Bytes, die sich beim Halten einer Taste ändern), live.lua (Werte mitschreiben).
 
 ## 2026-10-02 abends, Branch claude/onix-ui-input-fixes (Cloud)
 

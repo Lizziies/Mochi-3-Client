@@ -86,3 +86,18 @@ Offen und nicht geprüft: ob das Menü im Spiel jetzt mit der Maus bedienbar ist
 - Gefundener Fehler mit RTSS (bei Felix über den Watcher immer aktiv, bei vielen Spielern MSI Afterburner): RTSS setzt die ersten Bytes von dxgi `Present` immer wieder auf das Original zurück (von außen mitgelesen, der Sprung wechselt mit den Originalbytes `48 89 5C 24 10`). Unser Inline-Hook fiel dadurch weg, im Testfenster kamen keine oder nur ein Bild an. Behoben: Present, Present1 und ResizeBuffers werden zusätzlich in der Swapchain-vtable umgebogen (`hook/Dx.cpp`, beim Entladen zurückgesetzt). Testfenster 3 von 3 Läufen mit RTSS ok.
 - HOME_TODO 2, Server: 19 von 19 Tests auf Speicher, D1 und Turso-Attrappe. `dist/worker.js` ist aktuell. Veröffentlichen bei Cloudflare und `ADMIN_KEY` braucht Felix' Konto, offen.
 - HOME_TODO 3, Rauchtest im echten Minecraft 1.26.52.3, DX12: lädt (`frames arrive through the swapchain table`, `dx12 (11on12)`), GameInput-Hooks gesetzt (12 Hooks), neues Menü sichtbar, Kamera bleibt bei offenem Menü still und springt beim Schließen nicht, RTSS kommt nach 60 s dazu und das HUD läuft weiter, F11 zweimal ohne Absturz, Strg+L entlädt (`bye`), erneutes Injizieren mit RTSS schon im Prozess klappt. Log ohne `[error]` und `[warn]`. Screenshots in der Sitzung geprüft.
+
+## 2026-10-02 nachmittags/abends, PC, erste echte Signaturen (1.26.52.3)
+
+Alles im echten Spiel geprüft, jeweils Log-Zeile plus Screenshot vorher/nachher.
+
+- Spielerdaten: Koordinaten stimmen mit der Spielanzeige, Tempo zeigt Werte beim Laufen, Pitch/Yaw stimmen, Schleichen/Sprinten werden erkannt. Der zuerst gefundene Positionspfad war eine Kopie, die nur alle paar Sekunden aktualisiert wird, ersetzt.
+- `modules: 75 usable, 104 locked` beim Start, nach dem Laden der Signaturen `96 usable, 83 locked` (neue Log-Zeile nach jedem Signatur-Laden).
+- Fullbright: Hook auf den Gamma-Getter. Bildhelligkeit in der Dämmerung 31 → 86,9 → 31,1 (aus/an/aus).
+- Hide Hand: Getter der Option `gfx_hidehand`, Hand weg und wieder da.
+- Zoom: echtes Sichtfeld über die Options-Umleitung (siehe STATUS), Zoom beim Halten von C und zurück beim Loslassen. FOV Changer 90° sichtbar breiter.
+- Sicherheitstest options.txt: Mit aktivem FOV Changer (90°) eine andere Einstellung geändert, das Spiel speichert `gfx_field_of_view:82`. Die Überschreibung landet nicht in der Datei.
+- Gefundener Fehler, behoben: Jede Mausskalierung (Zoom-Empfindlichkeit, Sens Multiplier) wirkte doppelt, weil eine neuere GameInput-Leseschnittstelle intern die ältere aufruft und beide Hooks denselben Puffer anpassten. Gemessen: 300 Mauszählungen = 50,4° ohne Zoom, mit Zoom vorher 4,7° (0,093 statt 0,308), jetzt 15,5° (0,307, Soll 0,308).
+- Gefundener Fehler, behoben: Der Entwickler-Befehl `disable` fehlte, frühere Tests mit `disable` liefen ins Leere.
+- Perspektive, View Bobbing, Wolken: Hooks gesetzt (`hook fx.clouds` im Log), sichtbare Wirkung noch nicht geprüft (die Wolken in der Testwelt kommen vom Himmel des Ressourcenpakets). No Hurt Cam (`gfx_damagebobbing`) braucht Schaden, also Überlebensmodus mit Cheats, offen.
+- Felix' Helligkeit war durch einen Test auf 56 % gespeichert, wieder auf 50 % gestellt (options.txt `gfx_gamma:0.5`).
