@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <cctype>
 #include <cmath>
+#include <iterator>
 #include <map>
 #include <vector>
 
@@ -222,7 +223,7 @@ static bool serverGroup(const Module& m) { return catOf(m) == Category::Server; 
 
 // the short list first: what most players use. Everything else sits in folded groups below it.
 static std::vector<Section> sections() {
-    static const Category order[] = {Category::Hud, Category::Pvp, Category::Visual, Category::Comfort, Category::Performance};
+    static const Category order[] = {Category::Pvp, Category::Hud, Category::Visual, Category::Comfort, Category::Performance};
     auto& t = theme::current();
     ImVec4 tone = theme::mix(t.textDim, t.text, 0.15f);
 
@@ -243,8 +244,18 @@ static std::vector<Section> sections() {
     if (!fav.items.empty()) out.push_back(std::move(fav));
 
     bool searching = searchText()[0] != 0;
-    auto add = [&](Section sec) {
-        std::stable_sort(sec.items.begin(), sec.items.end(), bySub);
+    // the PvP list leads with what decides a fight, in this order
+    static const char* pvpFirst[] = {"Crystal Optimizer", "Block Hit", "Instant Hit", "Faster Inventory", "Item Use Delay Fix", "Insta Hurt Animation",
+                                     "Hitbox", "Hurt Color", "Animations", "Reach Counter", "Combo Counter", "Hit Ping", "Target HUD", "Pot Counter",
+                                     "Totem Counter", "Low Health Indicator", "Toggle Sprint", "Toggle Sneak", "Auto GG"};
+    auto rank = [](const Module* m) {
+        for (size_t i = 0; i < std::size(pvpFirst); i++)
+            if (m->name() == pvpFirst[i]) return int(i);
+        return int(std::size(pvpFirst));
+    };
+    auto add = [&](Section sec, bool curated = false) {
+        if (curated) std::stable_sort(sec.items.begin(), sec.items.end(), [&](Module* a, Module* b) { return rank(a) < rank(b); });
+        else std::stable_sort(sec.items.begin(), sec.items.end(), bySub);
         if (!sec.items.empty()) out.push_back(std::move(sec));
     };
 
@@ -268,7 +279,7 @@ static std::vector<Section> sections() {
         Section sec{categoryName(c), tone, {}};
         for (auto* m : list)
             if (!m->favorite() && !serverGroup(*m) && catOf(*m) == c && (searching || modules::tierOf(m->name()) <= 1)) sec.items.push_back(m);
-        add(std::move(sec));
+        add(std::move(sec), c == Category::Pvp && !searching);
     }
     if (searching) {
         if (!onServer) serverSection();
