@@ -488,10 +488,13 @@ void dispatchServer(const ServerEvent& ev) {
 }
 
 void refreshSigs() {
+    int open = 0;
     for (auto& m : list) {
         m->checkSigs();
         m->setEnabled(m->userEnabled());
+        open += m->available();
     }
+    logger::info("modules: {} usable, {} locked", open, int(list.size()) - open);
 }
 
 }

@@ -22,8 +22,8 @@ bool (*originalAttack)(void*, void*) = nullptr;
 int off(const char* name) { return sigs::offset(name, -1); }
 
 // Fields that live behind other objects carry their pointer path as "<field>.via0", "<field>.via1", ...
-// (1.26.52: the position sits in a block reached from the player through the ClientInstance, the view angles
-// in an object hanging off the player).
+// (1.26.52: position and view angles share an object at player>0x138>0x990; the copy reached through the
+// ClientInstance only refreshes every few seconds).
 uintptr_t follow(uintptr_t p, const char* name) {
     char key[96];
     for (int k = 0; k < 4 && p; k++) {
@@ -123,7 +123,13 @@ private:
         int o = off(name);
         if (o < 0) return fallback;
         uintptr_t at = follow(base, name);
-        return at ? mem::get<uint8_t>(at + o, fallback ? 1 : 0) != 0 : fallback;
+        if (!at) return fallback;
+        // some states are one value of a shared enum byte ("<field>.is")
+        char key[96];
+        std::snprintf(key, sizeof(key), "%s.is", name);
+        uint8_t v = mem::get<uint8_t>(at + o, fallback ? 1 : 0);
+        int is = off(key);
+        return is >= 0 ? v == is : v != 0;
     }
 
     void readPlayer(State& s) {
@@ -135,6 +141,8 @@ private:
         auto& pl = s.player;
         int px = off("player.posX");
         pl.pos = {mem::get<float>(pb + px), mem::get<float>(pb + px + 4), mem::get<float>(pb + px + 8)};
+        // the game keeps the player's position at eye level, feet + 1.62 even while sneaking
+        if (off("player.eyeLevel") > 0) pl.pos.y -= 1.62f;
         if (int vx = off("player.velX"); vx >= 0) {
             uintptr_t vb = follow(p, "player.velX");
             pl.vel = {mem::get<float>(vb + vx) * 20.f, mem::get<float>(vb + vx + 4) * 20.f, mem::get<float>(vb + vx + 8) * 20.f};

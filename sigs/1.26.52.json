@@ -9,15 +9,21 @@
     }
   },
   "offsets": {
-    "player.posX.via0": 40,
-    "player.posX.via1": 600,
-    "player.posX.via2": 1504,
-    "player.posX": 1536,
+    "player.posX.via0": 312,
+    "player.posX.via1": 2448,
+    "player.posX": 0,
+    "player.eyeLevel": 1,
     "player.pitch.via0": 312,
     "player.pitch.via1": 2448,
     "player.pitch": 12,
     "player.yaw.via0": 312,
     "player.yaw.via1": 2448,
-    "player.yaw": 16
+    "player.yaw": 16,
+    "player.sneaking.via0": 416,
+    "player.sneaking": 12,
+    "player.sneaking.is": 5,
+    "player.sprinting.via0": 416,
+    "player.sprinting": 12,
+    "player.sprinting.is": 3
   }
 }
