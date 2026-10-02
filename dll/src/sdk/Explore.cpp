@@ -36,6 +36,7 @@ namespace {
 namespace fs = std::filesystem;
 
 std::atomic<bool> busy{false};
+std::atomic<bool> stopping{false};
 fs::path scriptDir;
 fs::path outDir;
 
@@ -735,6 +736,7 @@ int lRun(lua_State* L) {
 
 void work(std::string name) {
     lua_State* L = luaL_newstate();
+    lua_sethook(L, [](lua_State* s, lua_Debug*) { if (stopping) luaL_error(s, "stopped"); }, LUA_MASKCOUNT, 1000);
     luaL_requiref(L, "_G", luaopen_base, 1);
     luaL_requiref(L, LUA_STRLIBNAME, luaopen_string, 1);
     luaL_requiref(L, LUA_TABLIBNAME, luaopen_table, 1);
@@ -783,11 +785,24 @@ void run(const std::string& name) {
         scriptDir = dir;
         outDir = paths::root() / L"out";
     }
+    if (name == "stop") {
+        stop();
+        return;
+    }
     if (busy.exchange(true)) {
         logger::warn("explore: a script is still running");
         return;
     }
+    stopping = false;
     std::thread(work, name).detach();
+}
+
+void stop() {
+    if (!busy) return;
+    stopping = true;
+    // a long scan inside one call only notices the flag when it returns to Lua
+    for (int i = 0; i < 300 && busy; i++) Sleep(50);
+    logger::info("explore: {}", busy ? "script still busy" : "stopped");
 }
 
 }
@@ -797,6 +812,7 @@ void run(const std::string& name) {
 namespace explore {
 
 void run(const std::string&) {}
+void stop() {}
 
 }
 

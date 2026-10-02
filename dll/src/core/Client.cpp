@@ -12,6 +12,7 @@
 #include "gui/Notify.hpp"
 #include "hook/Net.hpp"
 #include "modules/Manager.hpp"
+#include "sdk/Explore.hpp"
 #include "server/Rules.hpp"
 #include "sig/Sigs.hpp"
 #include "system/Tweaks.hpp"
@@ -52,6 +53,7 @@ static void boot() {
 
 static void teardown() {
     logger::info("unloading");
+    explore::stop();
     config::save();
     input::uninstall();
     hook::disableAll();

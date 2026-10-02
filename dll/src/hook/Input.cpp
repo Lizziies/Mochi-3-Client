@@ -417,6 +417,9 @@ static void swallow(MSG* m, int slot) {
     });
     if (!handled) return;
     spy[slot]++;
+    // the game never sees this key, so it never calls TranslateMessage on it; without that no WM_CHAR is posted
+    // and the menu's text fields get no letters
+    if (m->message == WM_KEYDOWN || m->message == WM_SYSKEYDOWN) TranslateMessage(m);
     if (isPointerMessage(m->message)) {
         spy[7]++;
         DefWindowProcW(m->hwnd, m->message, m->wParam, m->lParam);

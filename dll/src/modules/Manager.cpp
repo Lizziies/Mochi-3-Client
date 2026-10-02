@@ -405,6 +405,8 @@ void frame(ImDrawList* hud) {
     post::submit(hud);
     capture::submit(hud, capture::Stage::Game);
     bool inWorld = game::state().inWorld;
+    // chat, pause menu, inventory and the game's settings belong to the game, the HUD only shows while playing
+    bool gameScreen = game::state().screen != game::Screen::None;
     static bool wasInWorld = false;
     if (inWorld != wasInWorld) {
         wasInWorld = inWorld;
@@ -414,7 +416,7 @@ void frame(ImDrawList* hud) {
         auto& m = list[i];
         if (!m->enabled()) continue;
         if (!inWorld && !editing) continue;
-        if (m->isHud() && (hudHidden && !editing)) continue;
+        if (m->isHud() && (hudHidden || gameScreen) && !editing) continue;
         LARGE_INTEGER from;
         QueryPerformanceCounter(&from);
         if (!guard::call(m->name().c_str(), [&] { m->onRender(hud); })) fault(*m);
