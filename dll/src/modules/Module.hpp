@@ -75,6 +75,8 @@ public:
     bool anySigs() const { return anySig_; }
     bool favorite() const { return favorite_; }
     void setFavorite(bool on);
+    bool parked() const { return parked_; }
+    void setParked(bool on);
 
     nlohmann::json save() const;
     void load(const nlohmann::json& j);
@@ -132,6 +134,7 @@ private:
     bool wanted_ = false;
     bool risky_ = false;
     bool favorite_ = false;
+    bool parked_ = false;
     RuleLevel rule_ = RuleLevel::Allowed;
     std::string ruleNote_;
     std::string riskNote_;

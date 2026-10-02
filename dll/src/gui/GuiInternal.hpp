@@ -25,17 +25,12 @@ int& settingsTab();
 void pollDevCommands();
 Page page();
 Module*& selectedModule();
-void restartContentAnim();
 
 char* searchText();
 void openAllGroups();
 bool& favoritesOnly();
-int& sectionIndex();
-bool panelOpen();
-void closePanel();
 
 void drawModulesPage(ImVec2 origin, ImVec2 size);
-void drawModulePanel();
 void drawSettingsPage(ImVec2 origin, ImVec2 size);
 void drawCosmeticsPage(ImVec2 origin, ImVec2 size);
 void reloadCosmetics();

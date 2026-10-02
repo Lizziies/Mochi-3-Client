@@ -76,7 +76,6 @@ void pollDevCommands() {
             setOpen(true);
             go(Page::Settings);
             settingsTab() = std::atoi(rest.c_str());
-            restartContentAnim();
         } else if (cmd == "module") {
             if (auto* m = modules::find(rest)) showModule(m);
         } else if (cmd == "explore") {

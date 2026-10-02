@@ -132,6 +132,11 @@ void Module::setFavorite(bool on) {
     config::markDirty();
 }
 
+void Module::setParked(bool on) {
+    parked_ = on;
+    config::markDirty();
+}
+
 void Module::applyRule(RuleLevel level, std::string note) {
     rule_ = level;
     ruleNote_ = std::move(note);
@@ -146,6 +151,7 @@ json Module::save() const {
     json j;
     j["enabled"] = persistent() && wanted_;
     if (favorite_) j["favorite"] = true;
+    if (parked_) j["parked"] = true;
     json s = json::object();
     for (auto& set : settings_) s[set.id] = set.save();
     j["settings"] = s;
@@ -154,6 +160,7 @@ json Module::save() const {
 
 void Module::load(const json& j) {
     favorite_ = j.value("favorite", false);
+    parked_ = j.value("parked", false);
     if (j.contains("settings") && j["settings"].is_object()) {
         auto& s = j["settings"];
         for (auto& set : settings_)
