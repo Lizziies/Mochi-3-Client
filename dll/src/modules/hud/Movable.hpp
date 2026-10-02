@@ -16,7 +16,6 @@ public:
         sub("HUD parts");
         background_.b = false;
         requireAny({fx::sig(channel)});
-        placed_.hidden = true;
     }
 
     void onFrame() override {
@@ -41,6 +40,7 @@ public:
     }
 
 protected:
+    bool autoPlace() const override { return false; }
     virtual ImVec2 homeAt(ImVec2 display, float guiScale) const = 0;
     virtual ImVec2 sizeAt(float guiScale) const = 0;
 
@@ -58,7 +58,6 @@ protected:
 
 private:
     fx::Id channel_;
-    Setting& placed_ = toggleSetting("placed", "placed", false);
     Setting& guiScale_ = slider("guiScale", "GUI scale of the game (0 = automatic)", 0.f, 0.f, 6.f, "%.0f");
 };
 

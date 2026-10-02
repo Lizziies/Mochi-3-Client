@@ -27,6 +27,7 @@ public:
 
 protected:
     virtual ImVec2 pivot() const { return {0.f, 0.f}; }
+    virtual bool autoPlace() const { return true; }
     virtual ImVec2 content(ImDrawList* dl, ImVec2 origin, float scale) = 0;
 
     ImVec2 drawText(ImDrawList* dl, ImVec2 at, float scale, const std::string& text, ImU32 color);
@@ -60,12 +61,17 @@ protected:
     Setting& blur_;
     Setting& blurRadius_;
     Setting& rotation_;
+    Setting& placed_;
 
 private:
+    void makeRoom();
+
     Setting& x_;
     Setting& y_;
     Setting& scale_;
+    ImVec2 defaultPos_;
     ImVec2 lastSize_{0, 0};
+    int settled_ = 0;
 };
 
 class TextHud : public HudModule {

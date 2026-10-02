@@ -388,7 +388,7 @@ static void settingList(Module& m) {
     if (widgets::button("Reset all")) m.resetSettings([](const Setting& st) { return st.id != "x" && st.id != "y" && st.id != "key"; });
     if (!m.isHud()) return;
     ImGui::SameLine();
-    if (widgets::button("Reset position")) m.resetSettings([](const Setting& st) { return st.id == "x" || st.id == "y" || st.id == "scale"; });
+    if (widgets::button("Reset position")) m.resetSettings([](const Setting& st) { return st.id == "x" || st.id == "y" || st.id == "scale" || st.id == "placed"; });
     ImGui::SameLine();
     if (widgets::button("Edit HUD", {0, 0}, true)) setEditingHud(true);
 }

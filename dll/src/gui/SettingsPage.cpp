@@ -226,7 +226,7 @@ static void drawModuleDefaults() {
     settingRows({"hudScale"});
     if (widgets::button("Reset all HUD positions", {0, 0}, false))
         for (auto& m : modules::all())
-            if (m->isHud()) m->resetSettings([](const Setting& st) { return st.id == "x" || st.id == "y" || st.id == "scale"; });
+            if (m->isHud()) m->resetSettings([](const Setting& st) { return st.id == "x" || st.id == "y" || st.id == "scale" || st.id == "placed"; });
     ImGui::Dummy({0, 6 * s});
 
     endScroll("moddefaults");

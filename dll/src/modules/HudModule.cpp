@@ -34,11 +34,14 @@ HudModule::HudModule(std::string name, std::string description, std::vector<std:
       blur_(toggleSetting("blur", "Background blur", false)),
       blurRadius_(slider("blurRadius", "Blur strength", 8.f, 2.f, 24.f, "%.0f")),
       rotation_(slider("rotation", "Rotation", 0.f, -180.f, 180.f, "%.0f")),
+      placed_(toggleSetting("placed", "placed", false)),
       x_(slider("x", "x", defaultPos.x, 0.f, 1.f)),
       y_(slider("y", "y", defaultPos.y, 0.f, 1.f)),
-      scale_(slider("scale", "Size", 1.f, 0.4f, 3.f, "%.2fx")) {
+      scale_(slider("scale", "Size", 1.f, 0.4f, 3.f, "%.2fx")),
+      defaultPos_(defaultPos) {
     x_.hidden = true;
     y_.hidden = true;
+    placed_.hidden = true;
     for (Setting* st : {&background_, &bgColor_, &textColor_, &useAccent_, &rounding_, &padding_, &shadow_, &padY_, &shadowOffset_, &align_, &minWidth_,
                         &border_, &borderColor_, &borderWidth_, &glow_, &glowColor_, &glowSize_, &dropShadow_, &dropShadowColor_, &dropShadowSize_,
                         &blur_, &blurRadius_, &rotation_, &scale_})
@@ -72,6 +75,7 @@ void HudModule::setPosition(ImVec2 p) {
     ImVec2 pv = pivot();
     x_.f = (p.x + pv.x * lastSize_.x) / ds.x;
     y_.f = (p.y + pv.y * lastSize_.y) / ds.y;
+    placed_.b = true;
     config::markDirty();
 }
 
@@ -92,6 +96,62 @@ static void ringGlow(ImDrawList* dl, ImVec2 min, ImVec2 max, float rounding, ImV
     }
 }
 
+namespace {
+
+struct Spot {
+    const HudModule* m;
+    ImVec2 min, max;
+    bool fixed;
+};
+
+// rects drawn so far this frame, and all of the previous frame
+std::vector<Spot> drawn, previous;
+int spotFrame = -1;
+
+bool overlaps(ImVec2 a0, ImVec2 a1, ImVec2 b0, ImVec2 b1) { return a0.x < b1.x && a1.x > b0.x && a0.y < b1.y && a1.y > b0.y; }
+
+}
+
+// A module that sits on its default spot and was never placed keeps clear of what is already on screen: it moves
+// below whatever it would cover, and into the next column when it reaches the bottom. Placed modules never move.
+void HudModule::makeRoom() {
+    if (placed_.b || !autoPlace() || gui::editingHud() || lastSize_.x < 1.f || lastSize_.y < 1.f) return;
+    if (x_.f != defaultPos_.x || y_.f != defaultPos_.y) {
+        placed_.b = true;
+        return;
+    }
+    std::vector<Spot> others = drawn;
+    for (auto& sp : previous)
+        if (sp.fixed && sp.m != this) others.push_back(sp);
+
+    auto ds = ImGui::GetIO().DisplaySize;
+    float gap = 4.f * hud::globalScale();
+    ImVec2 start = position(), p = start;
+    float column = 0.f;
+    bool moved = false;
+    for (int tries = 0; tries < 200; tries++) {
+        auto hit = std::find_if(others.begin(), others.end(), [&](const Spot& o) { return o.m != this && overlaps(p, p + lastSize_, o.min, o.max); });
+        if (hit == others.end()) break;
+        moved = true;
+        column = std::max(column, hit->max.x - p.x);
+        p.y = hit->max.y + gap;
+        if (p.y + lastSize_.y <= ds.y) continue;
+        p = {p.x + column + gap, start.y};
+        column = 0.f;
+        if (p.x + lastSize_.x > ds.x) {
+            placed_.b = true;
+            return;
+        }
+    }
+    if (moved) {
+        setPosition(p);
+        return;
+    }
+    if (++settled_ < 30) return;
+    placed_.b = true;
+    config::markDirty();
+}
+
 namespace hud {
 
 static float global = 1.f;
@@ -104,6 +164,12 @@ void setGlobalScale(float s) { global = s; }
 
 void HudModule::onRender(ImDrawList* dl) {
     if (ctx::hideModules && !gui::editingHud()) return;
+    if (int frame = ImGui::GetFrameCount(); frame != spotFrame) {
+        previous.swap(drawn);
+        drawn.clear();
+        spotFrame = frame;
+    }
+    makeRoom();
     float s = scale_.f * hud::globalScale();
     ImVec2 pos = position();
     ImVec2 pad{padding_.f * s, padY_.f * s};
@@ -137,6 +203,7 @@ void HudModule::onRender(ImDrawList* dl) {
         }
     }
     lastSize_ = size;
+    drawn.push_back({this, pos + shift, pos + shift + size, placed_.b});
 }
 
 ImVec2 HudModule::textSize(float scale, const std::string& text) const {
