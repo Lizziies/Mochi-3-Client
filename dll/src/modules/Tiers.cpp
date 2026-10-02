@@ -12,7 +12,7 @@ constexpr std::string_view core[] = {
     "Toggle Sneak", "Reach Counter", "Combo Counter", "Zoom", "Fullbright", "Freelook", "FOV Changer", "Hurt Color",
     "No Hurt Cam", "No View Bobbing", "Custom Crosshair", "Block Outline", "Animations", "Block Hit", "Render Options", "Auto GG",
     "Crystal Optimizer", "Hitbox", "Faster Inventory", "Item Use Delay Fix", "Insta Hurt Animation", "Target HUD", "Pot Counter", "Totem Counter", "Hit Ping", "Low Health Indicator",
-    "Scoreboard", "GUI Scale", "Instant Hit", "Low Latency", "Latency Meter", "Network Monitor", "Frame Limiter", "Performance Lock", "Mouse Sync", "Hive Utils",
+    "Scoreboard", "GUI Scale", "Low Latency", "Latency Meter", "Network Monitor", "Frame Limiter", "Performance Lock", "Mouse Sync", "Hive Utils",
 };
 
 constexpr std::string_view expected[] = {
@@ -41,7 +41,7 @@ constexpr std::string_view extras[] = {
 constexpr std::string_view pvp[] = {
     "Combo Counter", "Reach Counter", "Opponent Reach", "Hit Ping",
     "Pot Counter", "Arrow Counter", "Totem Counter", "Target HUD", "Hitbox", "Hurt Color", "Animations",
-    "Low Health Indicator", "Auto GG", "Toggle Sprint", "Toggle Sneak", "Snap Look", "Block Hit", "Crystal Optimizer", "Instant Hit", "CPS Limiter",
+    "Low Health Indicator", "Auto GG", "Toggle Sprint", "Toggle Sneak", "Snap Look", "Block Hit", "Crystal Optimizer", "CPS Limiter",
     "Hit Counter", "Null Movement", "Faster Inventory", "Item Use Delay Fix", "Insta Hurt Animation", "Kill Cleanup",
 };
 

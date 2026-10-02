@@ -64,7 +64,6 @@
 #include "input/CpsLimiter.hpp"
 #include "input/Gamemode.hpp"
 #include "input/HotbarKeys.hpp"
-#include "input/InstantInput.hpp"
 #include "input/NoScroll.hpp"
 #include "network/LatencyBlame.hpp"
 #include "network/Network.hpp"
@@ -284,7 +283,6 @@ void init() {
     add<ZeqaUtils>();
     add<HiveStats>();
     add<HiveLeaderboard>();
-    add<InstantInput>();
 
     add<Screenshot>();
 

@@ -33,7 +33,6 @@
         "Insta Hurt Animation",
         "Opponent Reach",
         "Hit Ping",
-        "Instant Hit",
         "Snap Look",
         "Waypoints",
         "Command Hotkey",
@@ -58,7 +57,6 @@
         "Item Use Delay Fix",
         "Null Movement",
         "Insta Hurt Animation",
-        "Instant Hit",
         "Snap Look",
         "Command Hotkey",
         "Text Hotkey",
@@ -76,8 +74,7 @@
         "Null Movement",
         "Faster Inventory",
         "Item Use Delay Fix",
-        "Insta Hurt Animation",
-        "Instant Hit"
+        "Insta Hurt Animation"
       ],
       "warnTags": [
         "info-others",
@@ -100,8 +97,7 @@
         "Null Movement",
         "Faster Inventory",
         "Item Use Delay Fix",
-        "Insta Hurt Animation",
-        "Instant Hit"
+        "Insta Hurt Animation"
       ],
       "warnTags": [
         "info-others",
@@ -121,7 +117,6 @@
       "warn": [
         "Toggle Sprint",
         "Bow Charge",
-        "Instant Hit",
         "Null Movement",
         "Faster Inventory",
         "Item Use Delay Fix"
@@ -135,7 +130,6 @@
       ],
       "rules": "https://mineville.org/support/what-are-the-rules/",
       "warn": [
-        "Instant Hit",
         "Null Movement",
         "Faster Inventory",
         "Item Use Delay Fix",
