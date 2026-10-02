@@ -124,7 +124,7 @@ static bool drawRow(const void* id, const Row& row, float indent, float h, float
         const char* text = i18n::tr("No game data");
         ImVec2 ts = fonts::regular()->CalcTextSizeA(12.5f * s, FLT_MAX, 0.f, text);
         x -= ts.x + 8 * s;
-        dl->AddText(fonts::regular(), 12.5f * s, {x, cy - 7 * s}, theme::col(t.textDim, 0.75f), text);
+        dl->AddText(fonts::regular(), 12.5f * s, {x, cy - 7 * s}, theme::col(t.textDim, 0.5f), text);
     } else if (row.key) {
         std::string k = widgets::keyName(row.key);
         ImVec2 ks = fonts::regular()->CalcTextSizeA(12.5f * s, FLT_MAX, 0.f, k.c_str());
@@ -215,18 +215,24 @@ static void settingGroups(Module& m) {
     group("Colors", false, [&](const Setting& st) { return st.type == SettingType::Color; });
 }
 
+static void smallHint(const char* text) {
+    ImGui::PushFont(fonts::regular(), 15.f);
+    widgets::hint(text);
+    ImGui::PopFont();
+}
+
 static void moduleBody(Module& m) {
     auto& t = theme::current();
     float s = ui::scale();
     ImGui::Dummy({0, 2 * s});
-    widgets::hint(m.description().c_str());
+    smallHint(m.description().c_str());
     if (!m.ruleNote().empty()) {
         ImGui::PushTextWrapPos(0.f);
         ImGui::TextColored(t.warn, "%s", m.ruleNote().c_str());
         ImGui::PopTextWrapPos();
     }
     if (locked(m) && m.rule() != RuleLevel::Block)
-        widgets::hint("This one needs game data for your Minecraft version. It turns on by itself once the data is there.");
+        smallHint("This one needs game data for your Minecraft version. It turns on by itself once the data is there.");
     ImGui::Dummy({0, 4 * s});
     keyRow(m);
     settingGroups(m);
@@ -323,7 +329,7 @@ static void entryItem(const Entry& e, int index) {
     expander(&e, 0.f, [&] {
         if (!e.blurb.empty()) {
             ImGui::Indent(28 * s);
-            widgets::hint(e.blurb.c_str());
+            smallHint(e.blurb.c_str());
             ImGui::Unindent(28 * s);
             ImGui::Dummy({0, 2 * s});
         }
@@ -383,8 +389,14 @@ void drawModulesPage(ImVec2 origin, ImVec2 size) {
         folded[int(Section::Server)] = !nowServer;
     }
 
+    static std::string lastQuery;
+    std::string query = std::string(searchText()) + (favoritesOnly() ? "*" : "");
+    bool jumpTop = query != lastQuery;
+    lastQuery = query;
+
     ImGui::SetCursorScreenPos(origin);
     ImGui::BeginChild("list", size, 0, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoScrollWithMouse);
+    if (jumpTop) ImGui::SetScrollY(0.f);
     smoothScroll();
     int index = 0;
     if (searchText()[0] || favoritesOnly()) {
