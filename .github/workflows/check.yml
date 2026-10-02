@@ -25,13 +25,14 @@ jobs:
       MOCHI_CI_SELFTEST: ${{ inputs.selftest && '1' || '' }}
       MOCHI_CI_SCRIPT: "6:k:161;8:c:380,343;9.5:c:700,126;12:c:380,275;14:c:380,122;17:c:380,100;18:c:721,124;20:t:107;20.3:t:101;20.6:t:121;23:k:27;24:w:380,400"
       MOCHI_CI_SHOTS: "7 11 13 16 19 22 25"
+      MOCHI_CI_TOUR: "1"
     steps:
       - uses: actions/checkout@v4
 
       - name: toolchain
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends cmake g++-mingw-w64-x86-64-posix wine64 xvfb imagemagick libgl1-mesa-dri
+          sudo apt-get install -y --no-install-recommends cmake g++-mingw-w64-x86-64-posix wine64 xvfb imagemagick libgl1-mesa-dri xdotool
 
       - name: build and screenshots
         run: tools/ci.sh "$RUNNER_TEMP/out"

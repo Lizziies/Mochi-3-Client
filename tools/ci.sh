@@ -49,4 +49,5 @@ for t in $shots; do
 done
 sleep 6
 cp "$(data)/logs/latest.log" "$out/menu.log" 2>/dev/null || true
+[ -n "${MOCHI_CI_TOUR:-}" ] && "$root/tools/tour.sh" "$out/tour"
 echo "done"
