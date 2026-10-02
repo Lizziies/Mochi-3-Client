@@ -1,7 +1,7 @@
 #include "Ui.hpp"
 #include "Fonts.hpp"
+#include "core/Config.hpp"
 #include "core/Log.hpp"
-#include "core/Paths.hpp"
 #include "gui/Gui.hpp"
 #include "gui/Notify.hpp"
 #include "gui/Theme.hpp"
@@ -14,7 +14,9 @@
 
 #include <algorithm>
 #include <atomic>
+#include <mutex>
 #include <string>
+#include <vector>
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND, UINT, WPARAM, LPARAM);
 
@@ -25,14 +27,12 @@ static std::atomic<bool> capture{false};
 static std::atomic<bool> cursor{false};
 static float uiScale = 1.f;
 static float appliedScale = 0.f;
-static std::string iniPath;
 
 bool init(HWND window, ID3D11Device* device, ID3D11DeviceContext* context) {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     auto& io = ImGui::GetIO();
-    iniPath = logger::narrow((paths::root() / L"imgui.ini").wstring());
-    io.IniFilename = iniPath.c_str();
+    io.IniFilename = nullptr;
     io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
 
     fonts::load();
@@ -55,9 +55,47 @@ static void updateScale() {
     theme::applyStyle();
 }
 
+// Window messages arrive on the game's window thread, ImGui runs on the render thread. Feeding ImGui from the
+// window thread races NewFrame, so everything waits here and is handed over at the start of the next frame.
+namespace {
+
+struct Pending {
+    HWND w;
+    UINT msg;
+    WPARAM wp;
+    LPARAM lp;
+    int button;
+    float wheel;
+};
+
+std::mutex inboxLock;
+std::vector<Pending> inbox, draining;
+
+void post(const Pending& p) {
+    std::scoped_lock g(inboxLock);
+    if (inbox.size() < 4096) inbox.push_back(p);
+}
+
+void drain() {
+    {
+        std::scoped_lock g(inboxLock);
+        draining.swap(inbox);
+    }
+    auto& io = ImGui::GetIO();
+    for (auto& p : draining) {
+        if (p.button >= 0) io.AddMouseButtonEvent(p.button, p.msg != 0);
+        else if (p.wheel != 0.f) io.AddMouseWheelEvent(0.f, p.wheel);
+        else ImGui_ImplWin32_WndProcHandler(p.w, p.msg, p.wp, p.lp);
+    }
+    draining.clear();
+}
+
+}
+
 void frame() {
     if (!ready) return;
     input::Ours ours;
+    drain();
     ImGui_ImplDX11_NewFrame();
     ImGui_ImplWin32_NewFrame();
     updateScale();
@@ -67,6 +105,7 @@ void frame() {
     modules::frame(ImGui::GetBackgroundDrawList());
     gui::draw();
     notify::draw();
+    config::tick();
 
     capture = gui::wantsInput();
     cursor = gui::wantsCursor();
@@ -89,8 +128,19 @@ void invalidate() {}
 
 bool wndProc(HWND w, UINT msg, WPARAM wp, LPARAM lp) {
     if (!ready) return false;
-    ImGui_ImplWin32_WndProcHandler(w, msg, wp, lp);
-    return capturing();
+    bool menu = capturing();
+    // with the menu closed ImGui needs no mouse movement, and it never reads WM_INPUT
+    if (msg == WM_INPUT || (!menu && msg == WM_MOUSEMOVE)) return menu;
+    post({w, msg, wp, lp, -1, 0.f});
+    return menu;
+}
+
+void mouseButton(int button, bool down) {
+    if (ready) post({nullptr, down ? 1u : 0u, 0, 0, button, 0.f});
+}
+
+void mouseWheel(float delta) {
+    if (ready) post({nullptr, 0, 0, 0, -1, delta});
 }
 
 bool wantsCursor() { return cursor || gui::wantsCursor(); }

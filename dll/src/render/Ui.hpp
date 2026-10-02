@@ -13,6 +13,8 @@ void shutdown();
 void invalidate();
 
 bool wndProc(HWND w, UINT msg, WPARAM wp, LPARAM lp);
+void mouseButton(int button, bool down);
+void mouseWheel(float delta);
 bool wantsCursor();
 bool capturing();
 

@@ -279,7 +279,8 @@ static bool ImGui_ImplWin32_UpdateMouseCursor(ImGuiIO& io, ImGuiMouseCursor imgu
 
 static bool IsVkDown(int vk)
 {
-    return (::GetKeyState(vk) & 0x8000) != 0;
+    // Mochi: messages are replayed on the render thread, where GetKeyState() does not see the window's input
+    return (::GetAsyncKeyState(vk) & 0x8000) != 0;
 }
 
 static void ImGui_ImplWin32_AddKeyEvent(ImGuiIO& io, ImGuiKey key, bool down, int native_keycode, int native_scancode = -1)
