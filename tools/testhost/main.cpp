@@ -240,6 +240,14 @@ int wmain(int argc, wchar_t** argv) {
             std::fflush(stdout);
             step++;
         }
+        static double lastReport = 0.0;
+        static int lastFrames = 0;
+        if (t - lastReport >= 2.0) {
+            std::printf("t=%.0f fps=%.1f\n", t, (frames - lastFrames) / (t - lastReport));
+            std::fflush(stdout);
+            lastReport = t;
+            lastFrames = frames;
+        }
         if (t > seconds) break;
         Sleep(4);
     }

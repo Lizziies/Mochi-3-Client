@@ -49,5 +49,13 @@ for t in $shots; do
 done
 sleep 6
 cp "$(data)/logs/latest.log" "$out/menu.log" 2>/dev/null || true
+wineserver -k 2>/dev/null
+
+# frame rate over time: the bare host, the client with the menu closed, the client with the menu open
+TESTHOST_MANUAL=1 timeout 60 wine64 testhost.exe none.dll 30 > "$out/perf-bare.txt" 2>&1
+TESTHOST_MANUAL=1 timeout 60 wine64 testhost.exe dll/Mochi.dll 30 > "$out/perf-client.txt" 2>&1
+TESTHOST_MANUAL=1 TESTHOST_SCRIPT="3:k:161" timeout 60 wine64 testhost.exe dll/Mochi.dll 30 > "$out/perf-menu.txt" 2>&1
+wineserver -k 2>/dev/null
+
 [ -n "${MOCHI_CI_TOUR:-}" ] && "$root/tools/tour.sh" "$out/tour"
 echo "done"

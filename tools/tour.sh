@@ -77,6 +77,14 @@ step 16-global-about "settings 5"
 step 17-cosmetics "page cosmetics"
 step 18-hud-editor "hudedit"
 step 19-zu "close"
+if command -v xdotool >/dev/null; then
+    # the fourth accent dot (purple) on the Appearance tab, in screen coordinates of the test window
+    step 23-akzent-blau "settings 2"
+    xdotool mousemove 906 294 click 1
+    sleep 1.2
+    shot 24-akzent-lila
+    step 25-akzent-lila-liste "module Reach Counter"
+fi
 cp "$(log)" "$dir/client.log"
 wineserver -k 2>/dev/null
 rm -f "$build/dll/Mochi.root"
