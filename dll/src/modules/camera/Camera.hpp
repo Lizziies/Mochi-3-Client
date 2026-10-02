@@ -116,6 +116,10 @@ public:
     }
 
     void onFrame() override {
+        if (zoom_.f != seenZoom_) {
+            seenZoom_ = zoom_.f;
+            level_ = zoom_.f;
+        }
         float target = active_ ? level_ : 1.f;
         if (snap_ && active_) current_ = target;
         snap_ = false;
@@ -192,6 +196,7 @@ private:
     Setting& always_ = toggleSetting("always", "Always animate (also when scrolling)", true);
     bool snap_ = false;
     bool active_ = false;
+    float seenZoom_ = -1.f;
     float level_ = 4.f;
     float current_ = 1.f;
 };

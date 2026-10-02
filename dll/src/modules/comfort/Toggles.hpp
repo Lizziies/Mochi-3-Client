@@ -45,9 +45,12 @@ public:
     }
 
     void onFrame() override {
-        if (held_ && !inject::focused()) held_ = false;
         if (mode() == 1) autoUpdate();
-        if (held_ || autoHeld_) gameinput::hold(key_.i);
+        else if (autoHeld_) {
+            inject::key(key_.i, false);
+            autoHeld_ = false;
+        }
+        if ((held_ || autoHeld_) && inject::focused()) gameinput::hold(key_.i);
     }
 
     void onDisable() override {
@@ -67,7 +70,7 @@ protected:
 
     ImVec2 content(ImDrawList* dl, ImVec2 o, float s) override {
         bool on = held_ || autoHeld_;
-        return drawText(dl, o, s, on ? onText_.text : offText_.text, on ? accentColor() : textColor());
+        return drawText(dl, o, s, i18n::tr((on ? onText_ : offText_).text.c_str()), on ? accentColor() : textColor());
     }
 
     Setting& key_;
@@ -80,7 +83,7 @@ protected:
 
 class ToggleSprint : public StickyKey {
 public:
-    ToggleSprint() : StickyKey("Toggle Sprint", "Sprinting stays on until you press the key again.", VK_LCONTROL, {0.01f, 0.90f}, i18n::tr("[Sprint: on]"), i18n::tr("[Sprint: off]")) {}
+    ToggleSprint() : StickyKey("Toggle Sprint", "Sprinting stays on until you press the key again.", VK_LCONTROL, {0.01f, 0.90f}, "[Sprint: on]", "[Sprint: off]") {}
 
 protected:
     int mode() const override { return mode_.i; }
@@ -103,7 +106,7 @@ private:
 
 class ToggleSneak : public StickyKey {
 public:
-    ToggleSneak() : StickyKey("Toggle Sneak", "Sneaking stays on until you press the sneak key again.", VK_LSHIFT, {0.01f, 0.94f}, i18n::tr("[Sneak: on]"), i18n::tr("[Sneak: off]")) {}
+    ToggleSneak() : StickyKey("Toggle Sneak", "Sneaking stays on until you press the sneak key again.", VK_LSHIFT, {0.01f, 0.94f}, "[Sneak: on]", "[Sneak: off]") {}
 
 protected:
     int mode() const override { return 0; }

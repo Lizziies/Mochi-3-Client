@@ -239,9 +239,9 @@ private:
     Setting& wpNames_ = toggleSetting("wpNames", "Waypoint names", true);
     Setting& wpDistance_ = toggleSetting("wpDistance", "Waypoint distance", true);
     Setting& wpMax_ = slider("wpMax", "Waypoint range (0 = unlimited)", 0.f, 0.f, 2000.f, "%.0f");
-    Setting& arrowColor_ = colorSetting("arrowColor", "Arrow", {1.f, 0.49f, 0.71f, 1.f});
-    Setting& cardinalColor_ = colorSetting("cardinalColor", "Cardinal text", {1.f, 0.49f, 0.71f, 1.f});
-    Setting& ordinalColor_ = colorSetting("ordinalColor", "Intercardinal text", {1.f, 0.95f, 0.97f, 1.f});
+    Setting& arrowColor_ = colorSetting("arrowColor", "Arrow", {0.23f, 0.65f, 0.93f, 1.f});
+    Setting& cardinalColor_ = colorSetting("cardinalColor", "Cardinal text", {0.23f, 0.65f, 0.93f, 1.f});
+    Setting& ordinalColor_ = colorSetting("ordinalColor", "Intercardinal text", {0.95f, 0.95f, 0.97f, 1.f});
     Setting& tickColor_ = colorSetting("tickColor", "Ticks", {0.8f, 0.75f, 0.85f, 1.f});
 };
 
@@ -575,7 +575,7 @@ private:
     Setting& offsetX_ = slider("offsetX", "Offset X", 0.f, -300.f, 300.f, "%.0f");
     Setting& offsetY_ = slider("offsetY", "Offset Y", 40.f, -300.f, 300.f, "%.0f");
     Setting& percent_ = toggleSetting("percent", "Percent", true);
-    Setting& color_ = colorSetting("color", "Color", {1.f, 0.49f, 0.71f, 1.f});
+    Setting& color_ = colorSetting("color", "Color", {0.23f, 0.65f, 0.93f, 1.f});
     Setting& doneColor_ = colorSetting("done", "Color when almost done", {0.55f, 0.91f, 0.69f, 1.f});
     float shown_ = 0.f;
     float last_ = 0.f;

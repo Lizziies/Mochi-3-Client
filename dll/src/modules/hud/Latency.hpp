@@ -64,10 +64,11 @@ protected:
             y += drawText(dl, o + ImVec2(0, y), s, i18n::fmt("1% low {:.0f} FPS  ·  peak {:.1f} ms", worst > 0 ? 1000.f / worst : 0.f, sorted[0]),
                           textColor()).y;
         }
-        if (cost_.b)
+        if (cost_.b) {
             y += drawText(dl, o + ImVec2(0, y), s, i18n::fmt("Overlay {:.2f} ms per frame", modules::costMs()), textColor()).y;
             if (auto* worst = modules::slowest(); worst && worst->costMs > 0.05f)
                 y += drawText(dl, o + ImVec2(0, y), s, i18n::fmt("Slowest: {} ({:.2f} ms)", worst->name(), worst->costMs), ImGui::GetColorU32(theme::current().textDim)).y;
+        }
         std::string mode = i18n::fmt("{}  ·  {}  ·  {} buffered", i18n::tr(fi.lowLatencyActive ? "Low latency on" : "Low latency off"),
                                        dx::tuning().allowTearing && fi.tearingSupported ? "Tearing" : i18n::tr("VSync/default"), fi.bufferCount);
         float tiny = fonts::hudSize() * s * 0.7f;

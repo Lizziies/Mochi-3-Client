@@ -25,7 +25,7 @@ public:
     void onKey(KeyEvent& ev) override {
         if (!ev.down || ev.repeat) return;
         if (ev.vk == startKey_.i) {
-            if (running_) remaining_ = left();
+            if (running_) done_ = elapsed();
             else start_ = ui::time();
             running_ = !running_;
         } else if (ev.vk == skipKey_.i) {
@@ -34,12 +34,12 @@ public:
             phase_ = 0;
             round_ = 0;
             running_ = false;
-            remaining_ = work_.f * 60.0;
+            done_ = 0;
         }
     }
 
     void onEnable() override {
-        remaining_ = work_.f * 60.0;
+        done_ = 0;
         running_ = false;
         phase_ = 0;
         round_ = 0;
@@ -90,7 +90,8 @@ private:
         return long_.f * 60.0;
     }
 
-    double left() const { return running_ ? remaining_ - (ui::time() - start_) : remaining_; }
+    double elapsed() const { return running_ ? done_ + (ui::time() - start_) : done_; }
+    double left() const { return phaseLength() - elapsed(); }
 
     void advance() {
         const char* title = "";
@@ -103,7 +104,7 @@ private:
             phase_ = 0;
             title = i18n::tr("Back to work");
         }
-        remaining_ = phaseLength();
+        done_ = 0;
         start_ = ui::time();
         running_ = auto_.b;
         if (toast_.b) notify::push("Pomodoro", title, notify::Kind::Info, 6.f);
@@ -127,5 +128,5 @@ private:
     int phase_ = 0;
     int round_ = 0;
     double start_ = 0;
-    double remaining_ = 25 * 60.0;
+    double done_ = 0;
 };

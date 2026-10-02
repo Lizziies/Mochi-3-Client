@@ -317,7 +317,8 @@ protected:
                     x += drawText(dl, o + ImVec2(x, y), s, seg.text, ImGui::GetColorU32(c)).x;
                 }
             } else {
-                x += drawText(dl, o + ImVec2(x, y), s, text::strip(shownText), base).x;
+                auto* cs = modules::get<ClientSettings>();
+                x += drawText(dl, o + ImVec2(x, y), s, text::strip(cs ? cs->tagged(shownText, true) : shownText), base).x;
             }
             if (count > 1) drawText(dl, o + ImVec2(x + 4 * s, y), s, std::format("x{}", count), ImGui::GetColorU32(withAlpha(theme::current().accent, a)));
             dl->PopClipRect();

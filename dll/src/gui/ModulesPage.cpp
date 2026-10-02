@@ -33,7 +33,6 @@ static bool wasOpen = false;
 
 static const ImVec4 gold{1.f, 0.82f, 0.4f, 1.f};
 
-static bool isCore(const Setting& st) { return st.id == "key" || st.id == "hold" || st.id == "x" || st.id == "y"; }
 
 static std::string lower(std::string s) {
     std::transform(s.begin(), s.end(), s.begin(), [](unsigned char c) { return (char)std::tolower(c); });
@@ -362,22 +361,18 @@ static void settingList(Module& m) {
         widgets::setting(m.hold());
     }
 
-    auto* hud = dynamic_cast<HudModule*>(&m);
-    auto isStyle = [hud](const Setting& st) {
-        static const char* ids[] = {"bg", "rounding", "padding", "shadow", "accent", "scale"};
-        if (!hud || st.type == SettingType::Color) return false;
-        return std::any_of(std::begin(ids), std::end(ids), [&](const char* id) { return st.id == id; });
-    };
+    auto core = [&](const Setting& st) { return &st == &m.keybind() || &st == &m.hold(); };
+    auto isStyle = [](const Setting& st) { return st.style && st.type != SettingType::Color; };
     auto isColor = [](const Setting& st) { return st.type == SettingType::Color; };
     auto isGeneral = [&](const Setting& st) { return !isColor(st) && !isStyle(st); };
     auto list = [&](auto&& belongs, const char* title) {
         bool any = false;
         for (auto& st : m.settings())
-            if (!isCore(st) && belongs(st) && st.shown()) any = true;
+            if (!core(st) && belongs(st) && st.shown()) any = true;
         if (!any) return;
         if (title) groupLabel(title);
         for (auto& st : m.settings())
-            if (!isCore(st) && belongs(st)) widgets::setting(st);
+            if (!core(st) && belongs(st)) widgets::setting(st);
     };
     list(isGeneral, nullptr);
     m.drawSettings();

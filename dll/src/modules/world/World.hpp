@@ -85,12 +85,12 @@ public:
 private:
     Setting& thickness_ = slider("thickness", "Thickness", 2.f, 1.f, 6.f, "%.1f");
     Setting& grow_ = slider("grow", "Distance to the block", 0.003f, 0.f, 0.05f, "%.3f");
-    Setting& color_ = colorSetting("color", "Color", {1.f, 0.49f, 0.71f, 1.f});
+    Setting& color_ = colorSetting("color", "Color", {0.23f, 0.65f, 0.93f, 1.f});
     Setting& rainbow_ = toggleSetting("rainbow", "Rainbow", false);
     Setting& pulse_ = toggleSetting("pulse", "Pulse", false);
     Setting& speed_ = slider("speed", "Speed", 1.f, 0.1f, 5.f, "%.1f");
     Setting& fill_ = toggleSetting("fill", "Fill the faces", false);
-    Setting& fillColor_ = colorSetting("fillColor", "Fill color", {1.f, 0.49f, 0.71f, 0.18f});
+    Setting& fillColor_ = colorSetting("fillColor", "Fill color", {0.23f, 0.65f, 0.93f, 0.18f});
     Setting& hideVanilla_ = toggleSetting("hideVanilla", "Hide the original outline", true);
 };
 
@@ -119,7 +119,7 @@ public:
 
 private:
     Setting& mode_ = choice("mode", "Mode", {"Fixed time", "Running", "Sunset"});
-    Setting& hour_ = slider("hour", "Time of day", 12.f, 0.f, 24.f, i18n::tr("%.1f h"));
+    Setting& hour_ = slider("hour", "Time of day", 12.f, 0.f, 24.f, "%.1f h");
     Setting& speed_ = slider("speed", "Minutes per day", 2.f, 0.2f, 20.f, "%.1f");
     float cycle_ = 6.f;
 };
@@ -275,7 +275,7 @@ private:
     Setting& subchunks_ = toggleSetting("subchunks", "Sub-chunk levels", true);
     Setting& thickness_ = slider("thickness", "Thickness", 1.5f, 1.f, 4.f, "%.1f");
     Setting& color_ = colorSetting("color", "Color neighbor chunks", {1.f, 0.82f, 0.49f, 0.7f});
-    Setting& edgeColor_ = colorSetting("edge", "Color current chunk", {1.f, 0.49f, 0.71f, 0.95f});
+    Setting& edgeColor_ = colorSetting("edge", "Color current chunk", {0.23f, 0.65f, 0.93f, 0.95f});
     Setting& subColor_ = colorSetting("sub", "Color levels", {0.7f, 0.6f, 1.f, 0.5f});
     bool visible_ = true;
 };
@@ -324,8 +324,8 @@ private:
     Setting& changeFov_ = toggleSetting("changeFov", "Change the item field of view", false);
     Setting& itemFov_ = slider("itemFov", "Item field of view", 70.f, 30.f, 140.f, "%.0f");
     Setting& third_ = toggleSetting("third", "Also in third person", false);
-    Setting& x_ = slider("x", "Position X", 0.f, -1.f, 1.f, "%.2f");
-    Setting& y_ = slider("y", "Position Y", 0.f, -1.f, 1.f, "%.2f");
+    Setting& x_ = slider("posX", "Position X", 0.f, -1.f, 1.f, "%.2f");
+    Setting& y_ = slider("posY", "Position Y", 0.f, -1.f, 1.f, "%.2f");
     Setting& z_ = slider("z", "Position Z", 0.f, -1.f, 1.f, "%.2f");
     Setting& uniform_ = slider("scale", "Overall size", 1.f, 0.3f, 2.f, "%.2fx");
     Setting& sx_ = slider("sx", "Width", 1.f, 0.3f, 2.f, "%.2fx");

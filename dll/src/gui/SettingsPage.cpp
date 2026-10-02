@@ -232,10 +232,12 @@ static void drawChat() {
     widgets::sectionTitle("Client tag");
     widgets::hint("Shown behind your own name in Better Chat and in the Tab List. Only you see it, nothing is sent to the server.");
     settingRows({"tag", "tagText", "tagColor", "tagPos", "brackets", "tabTag"});
-    if (auto* chat = modules::find("Better Chat")) {
-        if (!chat->available()) widgets::hint("Better Chat needs game data for this version. Until then the tag only shows in the Tab List.");
-        else if (!chat->userEnabled() && widgets::button("Turn on Better Chat", {0, 0}, true)) chat->setEnabled(true);
-    }
+    auto* chat = modules::find("Better Chat");
+    auto* tab = modules::find("Tab List");
+    bool chatOk = chat && chat->available(), tabOk = tab && tab->available();
+    if (!chatOk && !tabOk) widgets::hint("The tag needs game data for chat and the Tab List. It shows up by itself once the data for your version is there.");
+    else if (!chatOk) widgets::hint("Better Chat needs game data for this version. Until then the tag only shows in the Tab List.");
+    else if (!chat->userEnabled() && widgets::button("Turn on Better Chat", {0, 0}, true)) chat->setEnabled(true);
     ImGui::Dummy({0, 6 * s});
     widgets::sectionTitle("Watermark");
     settingRows({"invMark"});

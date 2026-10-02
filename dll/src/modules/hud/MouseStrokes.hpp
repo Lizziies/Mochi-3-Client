@@ -45,7 +45,7 @@ protected:
 private:
     Setting& boxSize_ = slider("box", "Size", 70.f, 40.f, 160.f, "%.0f");
     Setting& sensitivity_ = slider("sens", "Sensitivity", 1.f, 0.2f, 4.f, "%.1fx");
-    Setting& color_ = colorSetting("color", "Dot color", {1.f, 0.49f, 0.71f, 1.f});
+    Setting& color_ = colorSetting("color", "Dot color", {0.23f, 0.65f, 0.93f, 1.f});
     ImVec2 target_{0, 0};
     ImVec2 dot_{0, 0};
     std::deque<ImVec2> trail_;

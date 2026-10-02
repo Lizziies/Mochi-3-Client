@@ -20,6 +20,8 @@ const i18n::Entry entries[] = {
     {"Unbind", "Entfernen"},
     {"none", "keine"},
     {"Accent color", "Akzentfarbe"},
+    {"The tag needs game data for chat and the Tab List. It shows up by itself once the data for your version is there.",
+     "Das Tag braucht Spieldaten für Chat und Tab-Liste. Es erscheint von selbst, sobald die Daten für deine Version da sind."},
     {"Colors switches, sliders, buttons and modules that are on.", "Färbt Schalter, Slider, Buttons und eingeschaltete Module."},
     {"Change the panels and background. Your accent color stays.", "Ändern Panels und Hintergrund. Deine Akzentfarbe bleibt."},
     {"Right Shift to close", "Rechts-Shift schließt"},

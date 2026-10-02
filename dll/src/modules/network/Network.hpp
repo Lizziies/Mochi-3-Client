@@ -32,7 +32,10 @@ public:
     }
 
     void onEnable() override { probe::use(true); }
-    void onDisable() override { probe::use(false); }
+    void onDisable() override {
+        probe::use(false);
+        probe::configure(probe::Config{});
+    }
 
     void onFrame() override {
         probe::Config c;

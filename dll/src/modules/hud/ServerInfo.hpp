@@ -1,6 +1,7 @@
 #pragma once
 
 #include "I18n.hpp"
+#include "gui/Gui.hpp"
 #include "modules/HudModule.hpp"
 #include "server/Rules.hpp"
 
@@ -13,7 +14,7 @@ public:
     }
 
     void onRender(ImDrawList* dl) override {
-        if (onlyOnline_.b && rules::status().server.empty()) return;
+        if (onlyOnline_.b && rules::status().server.empty() && !gui::editingHud()) return;
         TextHud::onRender(dl);
     }
 

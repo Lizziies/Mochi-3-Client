@@ -131,7 +131,7 @@ private:
 
     Setting& visible_ = toggleSetting("visible", "Visible to other Mochi users", true);
     Setting& mode_ = choice("mode", "Name style", {"Solid", "Gradient", "Rainbow", "Pulse"});
-    Setting& colorA_ = colorSetting("colorA", "Name color", {1.f, 0.49f, 0.71f, 1.f});
+    Setting& colorA_ = colorSetting("colorA", "Name color", {0.23f, 0.65f, 0.93f, 1.f});
     Setting& colorB_ = colorSetting("colorB", "Second color", {1.f, 1.f, 1.f, 1.f});
     Setting& speed_ = slider("speed", "Speed", 1.f, 0.2f, 4.f, "%.1fx");
     Setting& heart_ = toggleSetting("heart", "Heart behind my name", true);

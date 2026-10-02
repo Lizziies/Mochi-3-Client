@@ -258,7 +258,7 @@ private:
 
     Setting& spec_ = textSetting("spec", "Items (name=seconds, comma separated)", "ender_pearl=1.0,chorus_fruit=1.0");
     Setting& bar_ = toggleSetting("bar", "Bar", true);
-    Setting& color_ = colorSetting("color", "Bar color", {1.f, 0.49f, 0.71f, 1.f});
+    Setting& color_ = colorSetting("color", "Bar color", {0.23f, 0.65f, 0.93f, 1.f});
     std::string parsed_;
     std::vector<Rule> rules_;
     std::map<std::string, std::pair<double, float>> active_;

@@ -21,7 +21,7 @@ public:
         sub("World");
         require(need::player | need::others | need::camera, need::sigs({"LocalPlayer"}));
         markRisky("Shows information the vanilla client doesn't. Only use it where the server allows it.");
-        shown_.visible = [this] { return style_.i != 1; };
+        shown_.visible = [this] { return style_.i != 0; };
         width_.visible = [this] { return style_.i != 1; };
     }
 

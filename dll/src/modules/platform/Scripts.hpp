@@ -34,6 +34,7 @@ public:
         engine_.setFolder(paths::scripts());
         engine_.setAllowChat(chat_.b);
         engine_.setDisabled(text::split(disabled_.text, ','));
+        appliedDisabled_ = disabled_.text;
         engine_.scan(true);
     }
 
@@ -44,6 +45,10 @@ public:
 
     void onFrame() override {
         engine_.setAllowChat(chat_.b);
+        if (disabled_.text != appliedDisabled_) {
+            appliedDisabled_ = disabled_.text;
+            engine_.setDisabled(text::split(disabled_.text, ','));
+        }
         if (reload_.b) engine_.scan(false);
         engine_.events();
         engine_.tick(float(ui::dt()));
@@ -205,6 +210,7 @@ end)
     Setting& chat_ = toggleSetting("chat", "Let scripts type in chat (mochi.say)", false);
     Setting& reload_ = toggleSetting("reload", "Reload scripts when the file changes", true);
     Setting& disabled_ = textSetting("disabled", "Disabled scripts", "");
+    std::string appliedDisabled_;
     script::Engine engine_;
     std::thread fetcher_;
     std::atomic<bool> busy_{false};

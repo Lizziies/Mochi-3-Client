@@ -13,15 +13,15 @@ public:
         sub("Games");
     }
 
-    void onEnable() override { next_ = ui::time() + interval_.f * 60.0; }
+    void onEnable() override { last_ = ui::time(); }
 
     void onFrame() override {
-        if (ui::time() < next_) return;
-        next_ = ui::time() + interval_.f * 60.0;
+        if (ui::time() - last_ < interval_.f * 60.0) return;
+        last_ = ui::time();
         notify::push(i18n::tr("Eye break"), i18n::tr("Look into the distance for 20 seconds."), notify::Kind::Info, 20.f);
     }
 
 private:
     Setting& interval_ = slider("interval", "Every (minutes)", 20.f, 5.f, 60.f, "%.0f min");
-    double next_ = 0;
+    double last_ = 0;
 };

@@ -55,5 +55,5 @@ public:
 
 private:
     Setting& holdMode_ = toggleSetting("holdMode", "Only while a key is held", false);
-    Setting& hold_ = keySetting("hold", "Hold key", VK_F8);
+    Setting& hold_ = keySetting("holdKey", "Hold key", VK_F8);
 };

@@ -116,7 +116,7 @@ private:
     Setting& tick_ = slider("tick", "Tick interval (ms)", 50.f, 25.f, 100.f, "%.0f");
     Setting& verdict_ = toggleSetting("verdict", "Name the biggest share", true);
     Setting& inputColor_ = colorSetting("inputColor", "Color input", {0.55f, 0.91f, 0.69f, 1.f});
-    Setting& renderColor_ = colorSetting("renderColor", "Color frame", {1.f, 0.49f, 0.71f, 1.f});
+    Setting& renderColor_ = colorSetting("renderColor", "Color frame", {0.23f, 0.65f, 0.93f, 1.f});
     Setting& netColor_ = colorSetting("netColor", "Color network", {0.71f, 0.61f, 1.f, 1.f});
     Setting& serverColor_ = colorSetting("serverColor", "Color server", {1.f, 0.82f, 0.49f, 1.f});
     std::array<float, 20> ring_{};

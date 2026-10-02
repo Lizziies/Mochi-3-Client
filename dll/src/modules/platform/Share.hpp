@@ -118,7 +118,10 @@ private:
     void apply() {
         if (pending_.is_null()) return;
         int count = 0;
-        if (pending_.contains("theme")) theme::load(pending_["theme"]);
+        if (pending_.contains("theme")) {
+            theme::load(pending_["theme"]);
+            theme::applyStyle();
+        }
         for (auto& m : modules::all()) {
             if (m.get() == this) continue;
             auto it = pending_["modules"].find(m->name());

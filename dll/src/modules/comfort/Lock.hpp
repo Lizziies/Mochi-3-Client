@@ -139,6 +139,13 @@ public:
 
     void onEnable() override { load(); }
 
+    // the hotbar keys may have been changed in the game's settings, which is a menu like any other
+    void onFrame() override {
+        bool free = mcopt::cursorFree();
+        if (wasFree_ && !free) load();
+        wasFree_ = free;
+    }
+
     void onKey(KeyEvent& ev) override {
         if (!ev.down || ev.repeat || inject::ours() || !mcopt::cursorFree()) return;
         for (int i = 0; i < 9; i++) {
@@ -182,5 +189,6 @@ private:
 
     std::array<int, 9> bound_{};
     bool found_ = false;
+    bool wasFree_ = false;
     int used_ = 0;
 };

@@ -203,6 +203,8 @@ public:
         if (ev.down && !ev.repeat && key_.i && ev.vk == key_.i) visible_ = !visible_;
     }
 
+    void onEnable() override { visible_ = true; }
+
     void onFrame() override {
         double ms = dx::frame().frameMs;
         if (ms <= 0.0) return;
@@ -399,7 +401,7 @@ private:
     Setting& bg_ = toggleSetting("bg", "Line background", true);
     Setting& bgColor_ = colorSetting("bgColor", "Background color", {0.f, 0.f, 0.f, 0.4f});
     Setting& textColor_ = colorSetting("textColor", "Text color", {1.f, 1.f, 1.f, 1.f});
-    Setting& titleColor_ = colorSetting("titleColor", "Block titles", {1.f, 0.49f, 0.71f, 1.f});
+    Setting& titleColor_ = colorSetting("titleColor", "Block titles", {0.23f, 0.65f, 0.93f, 1.f});
     bool visible_ = false;
     double smooth_ = 0.0;
     std::array<float, 360> history_{};

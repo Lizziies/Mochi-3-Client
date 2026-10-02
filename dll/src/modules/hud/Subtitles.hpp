@@ -64,6 +64,7 @@ public:
     }
 
 protected:
+    bool textLayout() const override { return true; }
     ImVec2 pivot() const override { return {float(anchor_.i % 3) * 0.5f, float(anchor_.i / 3) * 0.5f}; }
 
     ImVec2 content(ImDrawList* dl, ImVec2 o, float s) override {
@@ -143,6 +144,6 @@ private:
     Setting& ignore_ = textSetting("ignore", "Ignore sounds containing (comma)", "step");
     Setting& newestFirst_ = toggleSetting("newest", "Newest on top", true);
     Setting& anchor_ = choice("anchor", "Anchor", {"Top left", "Top center", "Top right", "Middle left", "Center", "Middle right", "Bottom left", "Bottom center", "Bottom right"}, 8);
-    Setting& arrowColor_ = colorSetting("arrowColor", "Arrow color", {1.f, 0.49f, 0.71f, 1.f});
+    Setting& arrowColor_ = colorSetting("arrowColor", "Arrow color", {0.23f, 0.65f, 0.93f, 1.f});
     std::deque<Line> list_;
 };

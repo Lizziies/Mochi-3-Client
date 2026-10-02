@@ -16,6 +16,8 @@ public:
         sub("HUD parts");
         background_.b = false;
         requireAny({fx::sig(channel)});
+        for (auto& st : settings())
+            if (st.style) st.hidden = true;
     }
 
     void onFrame() override {
@@ -48,8 +50,8 @@ protected:
         auto ds = ImGui::GetIO().DisplaySize;
         ImVec2 size = sizeAt(layout::guiScale(ds, guiScale_.f));
         if (gui::editingHud()) {
-            dl->AddRectFilled(o, o + size, IM_COL32(255, 125, 180, 40), 4.f);
-            dl->AddRect(o, o + size, IM_COL32(255, 125, 180, 200), 4.f, 0, 1.5f);
+            dl->AddRectFilled(o, o + size, IM_COL32(59, 167, 236, 40), 4.f);
+            dl->AddRect(o, o + size, IM_COL32(59, 167, 236, 200), 4.f, 0, 1.5f);
             ImVec2 ts = fonts::hud()->CalcTextSizeA(fonts::hudSize(), FLT_MAX, 0.f, name().c_str());
             dl->AddText(fonts::hud(), fonts::hudSize(), o + (size - ts) * 0.5f, IM_COL32(255, 235, 245, 230), name().c_str());
         }

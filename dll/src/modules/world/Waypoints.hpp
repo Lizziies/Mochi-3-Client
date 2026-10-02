@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/Config.hpp"
 #include "gui/Gui.hpp"
 #include "gui/Theme.hpp"
 #include "modules/Module.hpp"
@@ -47,7 +48,6 @@ public:
 
     void onRender(ImDrawList* dl) override {
         sync();
-        if (gui::open()) return;
         auto& p = game::state().player;
         auto ds = ImGui::GetIO().DisplaySize;
         float s = ui::scale();
@@ -104,7 +104,7 @@ public:
         for (size_t i = 0; i < list_.size(); i++) {
             auto& w = list_[i];
             ImGui::PushID(int(i));
-            ImGui::ColorEdit3("##c", w.color, ImGuiColorEditFlags_NoInputs);
+            if (ImGui::ColorEdit3("##c", w.color, ImGuiColorEditFlags_NoInputs)) save();
             ImGui::SameLine();
             ImGui::Text("%s  (%.0f, %.0f, %.0f)", w.name.c_str(), w.x, w.y, w.z);
             ImGui::SameLine();
@@ -181,10 +181,11 @@ private:
         for (auto& w : list_) j.push_back({{"name", w.name}, {"x", w.x}, {"y", w.y}, {"z", w.z}, {"dim", w.dim}, {"c", {w.color[0], w.color[1], w.color[2]}}});
         data_.text = j.dump();
         synced_ = data_.text;
+        config::markDirty();
     }
 
     Setting& addKey_ = keySetting("addKey", "Set a point at my position", 0);
-    Setting& color_ = colorSetting("color", "Default color", {1.f, 0.49f, 0.71f, 1.f});
+    Setting& color_ = colorSetting("color", "Default color", {0.23f, 0.65f, 0.93f, 1.f});
     Setting& iconStyle_ = choice("icon", "Icon", {"Diamond", "Dot", "Heart"});
     Setting& distance_ = toggleSetting("distance", "Show distance", true);
     Setting& labelScale_ = slider("labelScale", "Text size", 1.f, 0.6f, 2.f, "%.2fx");

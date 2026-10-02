@@ -197,7 +197,7 @@ private:
     Setting& showLabel_ = toggleSetting("label", "Label", true);
     Setting& showBest_ = toggleSetting("best", "Show record", true);
     Setting& flash_ = toggleSetting("flash", "Flash on a new hit", true);
-    Setting& flashColor_ = colorSetting("flashColor", "Flash color", {1.f, 0.49f, 0.71f, 1.f});
+    Setting& flashColor_ = colorSetting("flashColor", "Flash color", {0.23f, 0.65f, 0.93f, 1.f});
     Setting& gap_ = slider("gap", "Minimum time between hits (ms)", 480.f, 100.f, 1000.f, "%.0f ms");
     Setting& negatives_ = toggleSetting("negatives", "Count to negatives", false);
     Setting& expire_ = toggleSetting("expire", "Reset after a pause", true);
@@ -340,7 +340,7 @@ protected:
 private:
     Setting& rate_ = toggleSetting("rate", "Crit rate", true);
     Setting& damage_ = toggleSetting("damage", "Total damage", false);
-    Setting& critColor_ = colorSetting("critColor", "Color on crit", {1.f, 0.49f, 0.71f, 1.f});
+    Setting& critColor_ = colorSetting("critColor", "Color on crit", {0.23f, 0.65f, 0.93f, 1.f});
 };
 
 class EntityCounter : public GameText {

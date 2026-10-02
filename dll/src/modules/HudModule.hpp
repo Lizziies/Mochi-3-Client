@@ -28,6 +28,7 @@ public:
 protected:
     virtual ImVec2 pivot() const { return {0.f, 0.f}; }
     virtual bool autoPlace() const { return true; }
+    virtual bool textLayout() const { return false; }
     virtual ImVec2 content(ImDrawList* dl, ImVec2 origin, float scale) = 0;
 
     ImVec2 drawText(ImDrawList* dl, ImVec2 at, float scale, const std::string& text, ImU32 color);
@@ -79,6 +80,7 @@ public:
     using HudModule::HudModule;
 
 protected:
+    bool textLayout() const override { return true; }
     virtual std::string label() const { return ""; }
     virtual std::string value() = 0;
     virtual void tokens(std::vector<std::pair<std::string, std::string>>&) {}

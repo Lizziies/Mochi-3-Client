@@ -144,13 +144,13 @@ private:
     Setting& keyBorder_ = toggleSetting("keyBorder", "Key border", false);
     Setting& keyBorderWidth_ = slider("keyBorderWidth", "Key border thickness", 1.5f, 0.5f, 5.f, "%.1f");
     Setting& keyShadow_ = toggleSetting("keyShadow", "Key shadow", false);
-    Setting& idle_ = colorSetting("idle", "Key", {0.10f, 0.06f, 0.12f, 0.55f});
-    Setting& pressed_ = colorSetting("pressed", "Key pressed", {1.f, 0.49f, 0.71f, 0.9f});
+    Setting& idle_ = colorSetting("idle", "Key", {0.08f, 0.08f, 0.09f, 0.55f});
+    Setting& pressed_ = colorSetting("pressed", "Key pressed", {0.23f, 0.65f, 0.93f, 0.9f});
     Setting& pressedText_ = colorSetting("pressedText", "Text pressed", {1.f, 1.f, 1.f, 1.f});
-    Setting& glowColor_ = colorSetting("glowColor", "Glow when pressed", {1.f, 0.49f, 0.71f, 1.f});
+    Setting& glowColor_ = colorSetting("pressedGlow", "Glow when pressed", {0.23f, 0.65f, 0.93f, 1.f});
     Setting& idleGlowColor_ = colorSetting("idleGlowColor", "Glow when idle", {0.6f, 0.5f, 1.f, 1.f});
     Setting& keyBorderColor_ = colorSetting("keyBorderColor", "Key border", {1.f, 1.f, 1.f, 0.35f});
-    Setting& keyBorderPressed_ = colorSetting("keyBorderPressed", "Key border pressed", {1.f, 0.49f, 0.71f, 1.f});
+    Setting& keyBorderPressed_ = colorSetting("keyBorderPressed", "Key border pressed", {0.23f, 0.65f, 0.93f, 1.f});
     Setting& keyShadowColor_ = colorSetting("keyShadowColor", "Key shadow color", {0.f, 0.f, 0.f, 0.5f});
     Setting& forward_ = keySetting("forward", "Forward", 'W');
     Setting& left_ = keySetting("left", "Left", 'A');

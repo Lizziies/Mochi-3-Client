@@ -12,8 +12,8 @@
 HudModule::HudModule(std::string name, std::string description, std::vector<std::string> tags, ImVec2 defaultPos)
     : Module(std::move(name), std::move(description), Category::Hud, std::move(tags)),
       background_(toggleSetting("bg", "Background", true)),
-      bgColor_(colorSetting("bgColor", "Background color", {0.10f, 0.06f, 0.12f, 0.55f})),
-      textColor_(colorSetting("textColor", "Text color", {1.f, 0.95f, 0.97f, 1.f})),
+      bgColor_(colorSetting("bgColor", "Background color", {0.08f, 0.08f, 0.09f, 0.55f})),
+      textColor_(colorSetting("textColor", "Text color", {0.95f, 0.95f, 0.97f, 1.f})),
       useAccent_(toggleSetting("accent", "Accent color for labels", true)),
       rounding_(slider("rounding", "Corner radius", 8.f, 0.f, 20.f, "%.0f")),
       padding_(slider("padding", "Padding X", 6.f, 0.f, 30.f, "%.0f")),
@@ -23,10 +23,10 @@ HudModule::HudModule(std::string name, std::string description, std::vector<std:
       align_(choice("align", "Text alignment", {"Left", "Center", "Right"})),
       minWidth_(slider("minWidth", "Minimum width", 0.f, 0.f, 400.f, "%.0f")),
       border_(toggleSetting("border", "Border", false)),
-      borderColor_(colorSetting("borderColor", "Border color", {1.f, 0.49f, 0.71f, 0.9f})),
+      borderColor_(colorSetting("borderColor", "Border color", {0.23f, 0.65f, 0.93f, 0.9f})),
       borderWidth_(slider("borderWidth", "Border thickness", 1.5f, 0.5f, 6.f, "%.1f")),
       glow_(toggleSetting("glow", "Glow", false)),
-      glowColor_(colorSetting("glowColor", "Glow color", {1.f, 0.49f, 0.71f, 0.8f})),
+      glowColor_(colorSetting("glowColor", "Glow color", {0.23f, 0.65f, 0.93f, 0.8f})),
       glowSize_(slider("glowSize", "Glow size", 10.f, 2.f, 30.f, "%.0f")),
       dropShadow_(toggleSetting("dropShadow", "Box shadow", false)),
       dropShadowColor_(colorSetting("dropShadowColor", "Box shadow color", {0.f, 0.f, 0.f, 0.6f})),
@@ -47,6 +47,8 @@ HudModule::HudModule(std::string name, std::string description, std::vector<std:
                         &blur_, &blurRadius_, &rotation_, &scale_})
         st->style = true;
     bgColor_.visible = [this] { return background_.b; };
+    align_.visible = [this] { return textLayout(); };
+    minWidth_.visible = [this] { return textLayout(); };
     rounding_.visible = [this] { return background_.b || border_.b || glow_.b || dropShadow_.b || blur_.b; };
     shadowOffset_.visible = [this] { return shadow_.b; };
     borderColor_.visible = [this] { return border_.b; };

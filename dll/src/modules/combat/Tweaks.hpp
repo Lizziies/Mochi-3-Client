@@ -63,7 +63,7 @@ public:
     }
 
 private:
-    Setting& color_ = colorSetting("color", "Color", {1.f, 0.49f, 0.71f, 1.f});
+    Setting& color_ = colorSetting("color", "Color", {0.23f, 0.65f, 0.93f, 1.f});
     Setting& rainbow_ = toggleSetting("rainbow", "Rainbow", false);
     Setting& speed_ = slider("speed", "Speed", 1.f, 0.1f, 5.f, "%.1f");
 };
@@ -132,7 +132,7 @@ private:
     Setting& lookLength_ = slider("lookLength", "Look line length", 3.f, 0.5f, 10.f, "%.1f");
     Setting& java_ = toggleSetting("java", "Java-style size (+0.1)", false);
     Setting& javaKey_ = keySetting("javaKey", "Java size key", 0);
-    Setting& color_ = colorSetting("color", "Color", {1.f, 0.49f, 0.71f, 1.f});
+    Setting& color_ = colorSetting("color", "Color", {0.23f, 0.65f, 0.93f, 1.f});
     Setting& eyeColor_ = colorSetting("eyeColor", "Eye line color", {1.f, 0.3f, 0.3f, 1.f});
     Setting& lookColor_ = colorSetting("lookColor", "Look line color", {0.3f, 0.5f, 1.f, 1.f});
 };

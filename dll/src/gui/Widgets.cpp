@@ -353,7 +353,7 @@ bool setting(Setting& st) {
     case SettingType::Text: {
         rowBack(dl, p, size, false);
         rowLabel(dl, p, h, label, theme::col(t.text));
-        char buf[256];
+        char buf[2048];
         snprintf(buf, sizeof(buf), "%s", st.text.c_str());
         float iw = std::min(w * 0.5f, 240 * s);
         ImGui::SetCursorScreenPos({right - iw, cy - 11 * s});

@@ -399,9 +399,9 @@ private:
     Setting& held_ = toggleSetting("held", "Check item in hand", true);
     Setting& sound_ = toggleSetting("sound", "Sound", false);
     Setting& pulse_ = toggleSetting("pulse", "Pulse", true);
-    Setting& hold_ = slider("hold", "Display time (s, 0 = permanent)", 6.f, 0.f, 30.f, "%.0f s");
+    Setting& hold_ = slider("showTime", "Display time (s, 0 = permanent)", 6.f, 0.f, 30.f, "%.0f s");
     Setting& size_ = slider("size", "Size", 24.f, 12.f, 56.f, "%.0f");
-    Setting& y_ = slider("y", "Height (fraction)", 0.25f, 0.05f, 0.9f, "%.2f");
+    Setting& y_ = slider("height", "Height (fraction)", 0.25f, 0.05f, 0.9f, "%.2f");
     Setting& color_ = colorSetting("color", "Color", {1.f, 0.4f, 0.45f, 1.f});
     std::string current_;
     float worst_ = 1.f;

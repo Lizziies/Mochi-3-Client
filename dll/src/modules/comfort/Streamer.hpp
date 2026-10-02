@@ -50,7 +50,7 @@ private:
     }
 
     Setting& hotkey_ = keySetting("hotkey", "Toggle", 0);
-    Setting& list_ = textSetting("list", "Modules that get hidden (comma)", "IP Display, Coordinates, Server Display, Waypoints, Chat Plus, Death Logger");
+    Setting& list_ = textSetting("list", "Modules that get hidden (comma)", "IP Display, Coordinates, Server Display, Waypoints, Better Chat, Death Logger");
     Setting& toast_ = toggleSetting("toast", "Show notice", true);
     std::vector<std::string> hidden_;
     bool active_ = false;
