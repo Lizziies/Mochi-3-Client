@@ -19,6 +19,7 @@ export DISPLAY=:78
 data() { ls -d "$WINEPREFIX"/drive_c/users/*/AppData/Local/Mochi 2>/dev/null | head -1; }
 log() { echo "$(data)/logs/latest.log"; }
 
+[ -n "$(data)" ] || { echo "no Mochi data folder, run the client once first"; exit 1; }
 python3 - "$(data)" <<'PY'
 import json, os, sys
 data = sys.argv[1]
@@ -26,9 +27,12 @@ on = ["Keystrokes", "CPS", "FPS", "Armor HUD", "Potion HUD", "Coordinates", "Rea
       "Ping Counter", "Clock", "Toggle Sprint", "Low Latency", "Custom Crosshair", "Block Outline"]
 mods = {n: {"enabled": True, "settings": {}} for n in on}
 mods["Game Support"] = {"enabled": True, "settings": {"demo": True}}
+mods["Client Settings"] = {"enabled": True, "settings": {"cosmetics": "sakura_wings,mochi_cape"}}
 os.makedirs(os.path.join(data, "configs"), exist_ok=True)
 json.dump({"modules": mods}, open(os.path.join(data, "configs", "default.json"), "w"))
 PY
+rm -rf "$(data)/cosmetics"
+cp -r "$root/cosmetics" "$(data)/cosmetics"
 touch "$build/dll/Mochi.root"
 rm -f "$(log)"
 
