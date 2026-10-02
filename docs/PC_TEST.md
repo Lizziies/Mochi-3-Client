@@ -55,3 +55,17 @@ Die Demo-Daten im Modul "Game Support" (Einschalter) lassen alle Spiel-Module mi
 6. Sens Multiplier an, Basiswert auf 0,5: die Maus ist nur halb so schnell.
 7. Menü ansehen und mit den Onix-Screenshots vergleichen: drei Panels (Suche, Liste, Einstellungen), Blur hinter den Panels, Text scharf. Einen Screenshot in 1080p schicken.
 8. Im Menü einfach ein Wort tippen (z. B. "reach"): es landet in der Suche, auch der erste Buchstabe. Esc leert die Suche, nochmal Esc schließt das Menü.
+9. Global Settings → Appearance: eine andere Akzentfarbe anklicken. Schalter, Slider und aktive Zeilen wechseln sofort die Farbe, auch nach Neustart des Spiels. Der Launcher übernimmt die Farbe beim nächsten Start, solange dort keine eigene gewählt ist.
+
+## Live-Einstellungen und Owner
+
+Jede Einstellung muss sofort im Spiel wirken, ohne das Modul aus- und anzuschalten und ohne Neustart.
+
+1. Zoom an, C halten, im Menü den Zoom-Regler verschieben: die Vergrößerung ändert sich beim nächsten Halten sofort.
+2. FPS: "Show" auf "Frame time", dann "Both". "Update interval" auf 2 s: die Zahl springt nur noch alle 2 s.
+3. Keystrokes: "Glow when pressed" auf eine andere Farbe stellen und eine Taste drücken. Ping Counter: die Zahl ist grün, gelb oder rot je nach Ping.
+4. Ein paar HUD-Module mit Farben und Größe durchgehen (Coordinates, CPS, Armor HUD): jede Änderung ist sofort zu sehen.
+5. Minecraft-Einstellungen öffnen und wieder schließen, Alt-Tab, Vollbild umschalten, Server wechseln: alle Module bleiben an, das HUD ist sofort wieder da, im Log steht kein neuer Start der Module.
+6. GUI Scale an, Knopf "2" drücken: die Minecraft-Oberfläche hat die Größe 2 wie bei Flarial. Geht erst, wenn der Hook gebaut ist (`HOME_TODO.md` Punkt 5); bis dahin ist das Modul grau.
+7. Item Tracker an, etwas aufheben und etwas wegwerfen: rechts erscheint kurz "+3 …" grün und "−1 …" rot.
+8. Owner (erst nach `HOME_TODO.md` Punkt 2): Mochi Online an, auf einen Server. In der Tab-Liste und im Chat steht `vlisya [Owner]`. Ein Freund mit Mochi sieht das genauso, bei sich selbst steht kein Abzeichen.

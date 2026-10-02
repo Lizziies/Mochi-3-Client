@@ -35,3 +35,4 @@ Kurze Chronik, damit jede neue Session weiß, was schon passiert ist.
 - Merge von main in modules-b (Client Settings, HUD-Editor-Einrasten, Self-Test, "Info displays"), Konflikte in Chat/Clock/Compose/Cps/GameInfo/Keystrokes aufgelöst, Self-Test grün, fehlende deutsche Texte ergänzt, MODULES.md neu erzeugt.
 - Mochi Online: Client-Modul mit Herz, Namensstilen und Tags in Tab-Liste und Chat, Dienst in `server/` mit Tests, Strg+L-Fix in `hook/Input.cpp`.
 - Merge des neuen Menüs, Cosmetics-Modul entfernt, Mochi Online ohne freien Text, HD-Cosmetics-Generator nach tools/cosmetics_hd.
+- 2026-10-02 (claude/onix-ui-input-fixes): Menü wie Onix mit Akzentfarben, Launcher im selben Look mit Pixel-Herz, Rollen und Owner-Abzeichen in Mochi Online, tote Einstellungen repariert, nichts lädt neu, Item Tracker, CI-Tour mit Screenshots, Übergabe in `docs/HOME_TODO.md`.

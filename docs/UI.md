@@ -105,3 +105,10 @@ Die Leiste am Rand sah zu sehr nach Minecraft aus. Felix hat vier Onix-Screensho
 - Tippen irgendwo im Menü schreibt in die Suche. Esc leert die Suche, ein weiteres Esc schließt das Menü.
 - Schrift Poppins (Regular + Medium). Standard-Theme "Slate": Panels #24252A, Zeilen #393A40, Akzent #1E7CB5, Rand #5E6068, 8 px Rundung, 86 % Deckkraft. Wer "Carbon" oder das alte Graphite hatte, bekommt Slate.
 - Scrollbalken 4 px, nur sichtbar, wenn es etwas zu scrollen gibt.
+
+### Sechste Änderung (Felix, 2026-10-02 abends): Akzentfarben, Launcher, Owner
+
+- Akzent wählbar: 8 Farbpunkte unter Global Settings → Appearance (Blau #1E7CB5, Cyan #13899A, Grün #23905A, Lila #6E4FC4, Pink #B83D80, Rot #B8342D, Orange #C2702A, Grau #5F626B, jeweils mit hellerer Zweitfarbe). Die Theme-Presets sind nur noch dunkle Onix-Looks (Slate, Onyx, Steel, Glass) und behalten den gewählten Akzent. Keine Verläufe, Glitzer oder Herzchen mehr im Menü.
+- Einstellungen-Tabs als Pillen über dem Inhalt statt seitlicher Leiste. Toasts unten rechts im Panel-Stil.
+- Launcher im selben Look: Hintergrund #1C1D21, Seitenleiste #17181B, Karten #26272C mit Rand #393B42, flache Knöpfe, kleinere Schalter. Logo und Icon: blaues Pixel-Herz. Unter Settings dieselben 8 Akzentfarben; ohne eigene Wahl nimmt der Launcher die Farbe aus dem Client.
+- Owner-Abzeichen: hinter `vlisya` steht in Tab-Liste und Chat `[Owner]` in Blau (#3BA7EC), vergeben über die Rolle in Mochi Online. `[Team]` für Staff ist vorbereitet.

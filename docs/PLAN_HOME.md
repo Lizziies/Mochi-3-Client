@@ -4,7 +4,7 @@ Dieses Dokument ist für Claude Code am PC von Felix (Windows, Minecraft Bedrock
 
 ## Reihenfolge (verbindlich)
 
-1. **Zuerst den ganzen Code holen.** Im Ordner des Repos: `git fetch origin`, dann `git checkout -B claude/pc-test origin/main`. `main` enthält alles: Client, Launcher, Cosmetics, Mochi Online, die Pläne und die Arbeit des Modul-Chats. Danach einmal bauen (Befehle unten) und `MOCHI_SELFTEST=1` laufen lassen, damit klar ist, womit du startest.
+1. **Zuerst den ganzen Code holen.** Im Ordner des Repos: `git fetch origin`, dann `git checkout -B claude/pc-test origin/claude/onix-ui-input-fixes`. Dieser Branch enthält `main` vollständig plus das neue Menü, den neuen Launcher, Rollen in Mochi Online und alle Reparaturen vom 2. Oktober. Die konkrete Arbeitsliste steht in `docs/HOME_TODO.md`. Danach einmal bauen (Befehle unten) und `MOCHI_SELFTEST=1` laufen lassen, damit klar ist, womit du startest.
 2. **Alles testen und reparieren, im Terminal auf dem PC** (Phasen 0 bis 6). Gebaut wird dabei lokal mit `cmake`, die DLL wird mit dem Dev-Weg oder dem Launcher in das echte Minecraft geladen.
 3. **Die fertige Exe zum Schluss** (Phase 7): erst wenn alles geprüft ist, die einzelne `MochiLauncher.exe` bauen (lokal im Terminal mit `-DMOCHI_DLL` und `-DMOCHI_COSMETICS`) und als Release veröffentlichen (Tag pushen, die GitHub-Action baut dieselbe Exe). Vorher keine Exe verteilen.
 
@@ -50,7 +50,7 @@ Der beste Minecraft-Bedrock-PvP-Client, besser als Flarial und Onix: bessere Ein
 
 ## Arbeitsweise
 
-- Branch: `claude/modules-b` ist der aktuelle Stand der Module. Zuerst `git fetch origin`, dann prüfen, ob `main` schon alles enthält (`git log origin/main..origin/claude/modules-b`). Ist es nicht gemergt, `git merge origin/claude/modules-b` in einen Arbeitsbranch `claude/pc-test` und dort arbeiten. Nie auf eine fremde Branch pushen.
+- Branch: Arbeitsbranch `claude/pc-test`, abgezweigt von `origin/claude/onix-ui-input-fixes` (enthält `main` und `claude/modules-b`). Nie auf eine fremde Branch pushen.
 - Bauen auf Windows (der Launcher bettet Client und Cosmetics ein, das ergibt eine einzige Exe):
   ```
   cmake -S dll -B build -G "Visual Studio 17 2022" -A x64

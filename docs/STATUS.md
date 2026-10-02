@@ -1,6 +1,6 @@
 # Status
 
-Stand: 2026-10-01 abends. Wird nach jedem Arbeitsschritt aktualisiert.
+Stand: 2026-10-02 abends. Wird nach jedem Arbeitsschritt aktualisiert. Die Arbeitsliste für zuhause steht in `docs/HOME_TODO.md`.
 
 ## Überblick
 
@@ -20,10 +20,21 @@ Stand: 2026-10-01 abends. Wird nach jedem Arbeitsschritt aktualisiert.
 
 ## Nächste Schritte
 
-1. Test zuhause nach `docs/PC_TEST.md` (kein Terminal nötig), Log schicken.
-2. Signaturen am PC finden (Claude Code), `sigs/<version>.json` committen.
-3. Deutsche Texte der neuen Module übersetzen (Durchlauf, wenn Session B fertig ist).
-4. Pre-Release `v0.1.0-alpha.1` erzeugen, damit die exe zum Download bereitliegt.
+Alles Weitere geht nur am PC mit dem echten Spiel und steht in `docs/HOME_TODO.md`: bauen mit MSVC, Mochi Online veröffentlichen und Owner setzen, Test im Spiel, Signaturen bis kein Modul mehr grau ist, GUI-Scale-Hook, Latenz messen gegen Flarial, Cosmetics im Spiel, zum Schluss die Exe.
+
+## 2026-10-02 abends, Branch claude/onix-ui-input-fixes (Cloud)
+
+- **Akzentfarben:** 8 Farben (Blau, Cyan, Grün, Lila, Pink, Rot, Orange, Grau) unter Global Settings → Appearance. Presets behalten die gewählte Farbe. Die alten Pink-Themes laden als Slate.
+- **Launcher im neuen Look:** grau wie das Menü, flache Knöpfe, blaues Pixel-Herz im Logo und als Icon, dieselben 8 Akzentfarben unter Settings (startet mit der Farbe aus dem Client).
+- **Owner-Abzeichen:** Mochi Online kennt Rollen (`owner`, `staff`). `vlisya` bekommt per Admin-Aufruf die Rolle, alle Mochi-Nutzer sehen dann `[Owner]` hinter dem Namen in Tab-Liste und Chat. Nur für ihn, ein neu geclaimter Name verliert die Rolle. Der neue Dienst-Code ist gebaut und getestet (19 Tests), aber noch nicht veröffentlicht (zuhause, `HOME_TODO.md` Punkt 2).
+- **Einstellungen wirken sofort:** alle Module auf Einstellungen durchgesehen, die nichts taten oder erst nach Neustart wirkten, und repariert. Unter anderem: Zoom-Regler live, FPS mit Intervall und Anzeige FPS/Frametime, Ping-Farbe, View Model, Durability Warning, Upside Down, Keystrokes-Glow (doppelte Ids), Pomodoro, Eye Break, Scripts, Toggles nach Alt-Tab, Chat-Tag ohne Farbcodes, Debug Menu.
+- **Nichts lädt neu:** Config speichert im Hintergrund und nur bei Änderung, neue Swapchain auf demselben Gerät wird übernommen statt neu aufgebaut, ein Serverwechsel unter 8 s beendet die Sitzung nicht, HUD bleibt in Spiel-Menüs stehen.
+- **Eingabe:** Fensternachrichten werden auf dem Render-Thread abgearbeitet, der Eingabe-Thread wartet auf nichts mehr. Mausbewegung ohne offenes Menü geht gar nicht durch ImGui. Shader kompilieren im Hintergrund, keine Ruckler beim ersten Öffnen.
+- **Schwache PCs:** Auto-Profil "Low" schaltet Blur, Glow und Extras ab, Frame Limiter bleibt an. Gemessen im Testfenster (Software-Rendering): ohne Client 241 FPS, mit Client 221 FPS.
+- **GUI Scale:** Stufen 1 bis 6 wie bei Flarial, Knöpfe 1 / 1.5 / 2 / 2.5 / 3 / 4, "nur ganze Stufen". Der Hook ins Spiel fehlt noch (zuhause, Punkt 5).
+- **HUD:** neue Module stellen sich beim ersten Mal nicht mehr über andere (rücken darunter). Neues Modul **Item Tracker** (+3 Iron Ingot / −1 Ender Pearl, einige Sekunden).
+- **CI:** Tour mit 1080p-Screenshots von Menü, Seiten, HUD-Editor, Launcher und Akzentwahl. Die gebauten Dateien liegen mit den Ergebnissen auf `ci-results/claude-onix-ui-input-fixes` (`bin/`).
+- Nicht im echten Spiel geprüft. Was zuhause zu prüfen ist: `docs/PC_TEST.md`, Abschnitt "Live-Einstellungen und Owner".
 
 ## 2026-10-02 nachmittags, Branch claude/onix-ui-input-fixes (Cloud)
 
