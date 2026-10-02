@@ -10,6 +10,7 @@
 #include <json.hpp>
 
 #include <atomic>
+#include <cstdlib>
 #include <format>
 #include <fstream>
 #include <map>
@@ -287,6 +288,12 @@ static void load() {
         found[name] = fn + e.add;
     }
     writeFile(cachePath, newCache.dump());
+    if (std::getenv("MOCHI_SIGCHECK"))
+        for (auto& [name, e] : entries) {
+            auto hit = found.find(name);
+            if (hit == found.end()) logger::warn("sigcheck {}: not found", name);
+            else logger::info("sigcheck {}: ok, rva {:x}", name, hit->second - base);
+        }
 
     std::scoped_lock g(lock);
     addresses = std::move(found);

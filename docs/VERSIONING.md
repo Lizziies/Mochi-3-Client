@@ -41,7 +41,7 @@ Beim Start Version aus der Exe-Ressource (`VS_FIXEDFILEINFO`) lesen, zusätzlich
 - `rel: "func"` liefert diese Funktion, `rel: "vtable"` die vtable (Adresse von Slot 0), in der die Funktion an Position `slot` steht. `slot` ist der Index, den die Analyse ergeben hat. So braucht es keine Heuristik für den Anfang der vtable.
 - `vtable` und `index`: die Funktion in Slot `index` einer vtable, die ein anderer Eintrag geliefert hat.
 - `occurrence`: welcher Treffer, wenn der Anker nicht eindeutig ist (sortiert nach Adresse, Standard 0, es kommt eine Warnung). `add`: Verschiebung am Ergebnis.
-- Gefunden, gecacht und geloggt wie die Byte-Muster. Unter Wine ist der Auflöser mit `selftest: image resolver ok` abgesichert (`dll/src/sig/ImageCheck.cpp` prüft ihn an einer Klasse mit bekannter Anordnung in der DLL selbst). Ob er an der echten Minecraft-Exe dieselben Funktionen findet wie der Dev-Explorer, ist am PC zu prüfen.
+- Gefunden, gecacht und geloggt wie die Byte-Muster. Unter Wine ist der Auflöser mit `selftest: image resolver ok` abgesichert (`dll/src/sig/ImageCheck.cpp` prüft ihn an einer Klasse mit bekannter Anordnung in der DLL selbst). `MOCHI_SIGCHECK=1` (Umgebungsvariable vor dem Start) schreibt für jeden Eintrag eine Zeile `sigcheck <Name>: ok, rva ...` oder `not found` ins Log, damit sich eine neue `sigs/<version>.json` ehrlich prüfen lässt. Ob er an der echten Minecraft-Exe dieselben Funktionen findet wie der Dev-Explorer, ist am PC zu prüfen.
 
 ### 3. Laden
 1. Mitgelieferte `sigs/` im DLL-Ordner.
