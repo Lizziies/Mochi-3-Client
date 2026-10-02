@@ -72,11 +72,20 @@ void centered(ImDrawList* dl, ImFont* f, float size, ImVec2 mid, ImU32 c, const 
     dl->AddText(f, size, {mid.x - ts.x * 0.5f, mid.y - ts.y * 0.5f}, c, s);
 }
 
-void logo(ImDrawList* dl, ImVec2 pos, float size) {
-    label(dl, bold, size, pos, col(text), "Mochi");
-    float w = measure(bold, size, "Mochi").x;
-    float d = size * 0.2f;
-    dl->AddRectFilled({pos.x + w + d * 0.5f, pos.y + size * 0.72f}, {pos.x + w + d * 1.5f, pos.y + size * 0.72f + d}, col(accent), d * 0.25f);
+void pixelHeart(ImDrawList* dl, ImVec2 pos, float px) {
+    static const char* rows[] = {
+        "..ee...ee..", ".eHHe.eeee.", "eHHeeeeeeee", "eHeeeeeeeee", "eeeeeeeeeed",
+        ".eeeeeeeed.", "..eeeeeed..", "...eeeed...", "....eed....", ".....d.....",
+    };
+    for (int y = 0; y < 10; y++) {
+        for (int x = 0; x < 11; x++) {
+            char c = rows[y][x];
+            if (c == '.') continue;
+            ImVec4 k = c == 'H' ? mix(accent2, text, 0.75f) : c == 'd' ? accent : accent2;
+            ImVec2 p{pos.x + x * px, pos.y + y * px};
+            dl->AddRectFilled(p, {p.x + px, p.y + px}, col(k));
+        }
+    }
 }
 
 void chip(ImDrawList* dl, ImVec2 at, const char* s, ImVec4 c) {
@@ -206,7 +215,8 @@ bool busy(Phase p) {
 void sidebar(ImDrawList* dl, State& s, Events& ev) {
     dl->AddRectFilled({0, 0}, {232.f, height}, col(side));
     dl->AddLine({232.f, 0.f}, {232.f, height}, col(border, 0.7f));
-    logo(dl, {28.f, 30.f}, 28.f);
+    pixelHeart(dl, {28.f, 26.f}, 4.f);
+    label(dl, bold, 28.f, {84.f, 28.f}, col(text), "Mochi");
 
     struct Item { const char* name; Icon icon; Page page; };
     const Item items[] = {
@@ -509,8 +519,9 @@ void settings(ImDrawList* dl, State& s, Events& ev) {
         Reveal r(dl, 6);
         ImVec2 min{264.f, 482.f}, max{928.f, 580.f};
         card(dl, min, max);
-        label(dl, bold, 16.f, {min.x + 22.f, min.y + 14.f}, col(text), (std::string("Mochi Launcher ") + build::version).c_str());
-        label(dl, regular, 13.f, {min.x + 22.f, min.y + 38.f}, col(dim), tr("Mochi is an independent project and is not affiliated with Mojang or Microsoft."));
+        pixelHeart(dl, {min.x + 20.f, min.y + 18.f}, 3.f);
+        label(dl, bold, 16.f, {min.x + 62.f, min.y + 14.f}, col(text), (std::string("Mochi Launcher ") + build::version).c_str());
+        label(dl, regular, 13.f, {min.x + 62.f, min.y + 38.f}, col(dim), tr("Mochi is an independent project and is not affiliated with Mojang or Microsoft."));
         if (button("logs", {min.x + 22.f, max.y - 38.f}, {min.x + 162.f, max.y - 10.f}, tr("Open logs"), false)) ev.openLogs = true;
         if (button("folder", {min.x + 172.f, max.y - 38.f}, {min.x + 312.f, max.y - 10.f}, tr("Open folder"), false)) ev.openFolder = true;
     }
