@@ -1,6 +1,7 @@
 #pragma once
 
 #include "gui/Gui.hpp"
+#include "hook/Input.hpp"
 #include "modules/Module.hpp"
 
 #include <windows.h>
@@ -17,9 +18,9 @@ public:
     void onKey(KeyEvent& ev) override {
         if (!ev.down || ev.repeat) return;
         int key = keybind().i ? keybind().i : VK_RSHIFT;
-        if (ev.vk == key) {
-            gui::toggle();
-            ev.cancel = true;
-        }
+        if (ev.vk != key) return;
+        if (!gui::open() && !gui::editingHud() && !input::grabbed()) return;
+        gui::toggle();
+        ev.cancel = true;
     }
 };

@@ -448,15 +448,16 @@ void dispatchKey(KeyEvent& ev) {
     if (ev.down && !ev.repeat && ev.vk == VK_F1) hudHidden = !hudHidden;
 
     bool captured = gui::capturesKeyboard();
+    bool hotkeys = !captured && input::grabbed();
     for (auto& m : list) {
         int key = m->keybind().i;
         if (!key || key != ev.vk || m->alwaysOn()) continue;
         if (m->holdMode()) {
             if (!ev.down) m->setEnabled(false);
-            else if (!ev.repeat && !captured) m->setEnabled(true);
+            else if (!ev.repeat && hotkeys) m->setEnabled(true);
             continue;
         }
-        if (!ev.down || ev.repeat || captured) continue;
+        if (!ev.down || ev.repeat || !hotkeys) continue;
         m->toggle();
         if (m->rule() == RuleLevel::Block)
             notify::push(m->name(), i18n::tr("Not allowed on this server."), notify::Kind::Warn);

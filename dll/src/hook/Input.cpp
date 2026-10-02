@@ -17,6 +17,7 @@
 #include <atomic>
 #include <deque>
 #include <mutex>
+#include <string>
 
 namespace input {
 
@@ -448,13 +449,36 @@ static void flushSpy(int64_t now) {
                      n[0], n[1], n[2], n[3], n[4], n[5], n[6], n[7]);
 }
 
+bool inMinecraft() {
+    static const bool yes = [] {
+        wchar_t path[MAX_PATH]{};
+        GetModuleFileNameW(nullptr, path, MAX_PATH);
+        std::wstring exe = path;
+        exe = exe.substr(exe.find_last_of(L"\\/") + 1);
+        return exe.starts_with(L"Minecraft");
+    }();
+    return yes;
+}
+
+static bool focusedHere() {
+    DWORD owner = 0;
+    GetWindowThreadProcessId(GetForegroundWindow(), &owner);
+    return owner == GetCurrentProcessId();
+}
+
+bool grabbed() {
+    if (!inMinecraft()) return true;
+    if (!focusedHere()) return false;
+    CURSORINFO ci{sizeof(ci)};
+    return GetCursorInfo(&ci) && !(ci.flags & CURSOR_SHOWING);
+}
+
 bool gameplay() {
     int64_t now = qpc();
     flushSpy(now);
+    if (!inMinecraft()) return true;
 
-    DWORD owner = 0;
-    GetWindowThreadProcessId(GetForegroundWindow(), &owner);
-    if (owner != GetCurrentProcessId()) {
+    if (!focusedHere()) {
         hiddenSince = 0;
         lastPlaying = 0;
         if (playing.exchange(false)) logger::info("gameplay heuristic: menus (game not focused)");
