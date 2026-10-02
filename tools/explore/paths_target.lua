@@ -1,7 +1,7 @@
-local o = 0x1a1ca27a9b0
-TARGET = {rt.f32(o), rt.f32(o + 4), rt.f32(o + 8), rt.f32(o + 12), rt.f32(o + 16), rt.f32(o + 20)}
-TOL = 0.0001
-TAG = 'hr'
+local sv = rt.u64(rt.u64(BASE + 0x11d61a70) + 0x1e8)
+TARGET = {rt.f32(sv), rt.f32(sv + 4), rt.f32(sv + 8)}
+TOL = 0.001
+TAG = 'look3'
 MAXNODES = 30000
 SPAN = 0x1000
 ROOTSPAN = 0x2000
