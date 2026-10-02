@@ -4,6 +4,7 @@
 #include "gui/Gui.hpp"
 #include "gui/Notify.hpp"
 #include "hook/Dx.hpp"
+#include "hook/GameInput.hpp"
 #include "modules/HudModule.hpp"
 #include "modules/common/Keys.hpp"
 #include "render/Ui.hpp"
@@ -46,6 +47,7 @@ public:
     void onFrame() override {
         if (held_ && !inject::focused()) held_ = false;
         if (mode() == 1) autoUpdate();
+        if (held_ || autoHeld_) gameinput::hold(key_.i);
     }
 
     void onDisable() override {

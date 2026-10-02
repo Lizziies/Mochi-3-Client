@@ -6,6 +6,7 @@
 #include "gui/Gui.hpp"
 #include "gui/Notify.hpp"
 #include "gui/Widgets.hpp"
+#include "hook/GameInput.hpp"
 #include "hook/Input.hpp"
 #include "server/HiveApi.hpp"
 #include "server/Rules.hpp"
@@ -376,6 +377,8 @@ void frame(ImDrawList* hud) {
     perf::begin();
     post::begin();
     fx::begin();
+    gameinput::tick();
+    gameinput::beginFrame();
     guard::call("sdk", [] { game::update(); });
     input::consumeMotion(motion.x, motion.y);
 
@@ -419,6 +422,7 @@ void frame(ImDrawList* hud) {
     for (size_t i = 0; i < list.size(); i++) list[i]->costMs += (spent[i] - list[i]->costMs) * 0.05f;
 
     capture::submit(hud, capture::Stage::Overlay);
+    gameinput::publish();
     perf::apply();
     guard::call("effects", [] { fx::apply(); });
     QueryPerformanceCounter(&t1);

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/Config.hpp"
+#include "hook/GameInput.hpp"
 #include "hook/Input.hpp"
 #include "modules/Module.hpp"
 #include "modules/common/Context.hpp"
@@ -272,6 +273,12 @@ public:
     }
 
     void onDisable() override { releaseAll(); }
+
+    void onFrame() override {
+        for (int axis = 0; axis < 2; axis++)
+            for (int side = 0; side < 2; side++)
+                if (cut_[axis][side]) gameinput::drop(key(axis, side));
+    }
 
 private:
     int key(int axis, int side) const {
