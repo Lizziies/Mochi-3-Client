@@ -1,0 +1,53 @@
+name: check
+
+on:
+  push:
+    branches: ["claude/**"]
+  workflow_dispatch:
+    inputs:
+      selftest:
+        description: "Run the module self-test (about 6 minutes)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  wine:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    env:
+      MOCHI_CI_SELFTEST: ${{ inputs.selftest && '1' || '' }}
+      MOCHI_CI_SCRIPT: "3:k:161;6:c:459,360;12:c:640,200;18:k:27"
+      MOCHI_CI_SHOTS: "5 9 14 20 25"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends cmake g++-mingw-w64-x86-64-posix wine64 xvfb imagemagick libgl1-mesa-dri
+
+      - name: build and screenshots
+        run: tools/ci.sh "$RUNNER_TEMP/out"
+
+      - name: publish results
+        if: always()
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          branch="ci-results/${GITHUB_REF_NAME//\//-}"
+          cd "$RUNNER_TEMP/out"
+          echo "$GITHUB_SHA" > commit.txt
+          git init -q
+          git config user.name "mochi-ci"
+          git config user.email "mochi-ci@users.noreply.github.com"
+          git checkout -q -b "$branch"
+          git add -A
+          git commit -qm "ci results for ${GITHUB_SHA::7}"
+          git push -qf "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:refs/heads/$branch"
