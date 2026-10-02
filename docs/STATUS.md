@@ -34,6 +34,7 @@ Alles Weitere geht nur am PC mit dem echten Spiel und steht in `docs/HOME_TODO.m
 - **GUI Scale:** Stufen 1 bis 6 wie bei Flarial, Knöpfe 1 / 1.5 / 2 / 2.5 / 3 / 4, "nur ganze Stufen". Der Hook ins Spiel fehlt noch (zuhause, Punkt 5).
 - **HUD:** neue Module stellen sich beim ersten Mal nicht mehr über andere (rücken darunter). Neues Modul **Item Tracker** (+3 Iron Ingot / −1 Ender Pearl, einige Sekunden).
 - **CI:** Tour mit 1080p-Screenshots von Menü, Seiten, HUD-Editor, Launcher und Akzentwahl. Die gebauten Dateien liegen mit den Ergebnissen auf `ci-results/claude-onix-ui-input-fixes` (`bin/`).
+- **Absturz behoben:** Der Shader für Blur und Effekte kompilierte im Hintergrund auf einem Thread mit dem Standard-Stack der Exe; im Testfenster stürzte das in den ersten Sekunden nach dem Start manchmal ab (Seitenfehler im Compiler). Hintergrund-Threads haben jetzt 8 MB Stack-Reserve, Shader-Kompilierungen laufen nie gleichzeitig. Die CI startet den Client fünfmal frisch und zählt Abstürze (`fresh.txt`, danach 0 von 5). Abstürze, die in unserem Code beginnen, schreiben jetzt die Aufrufer ins Log (`fault … called from mochi+0x…`, auflösbar mit `objdump -t`).
 - Nicht im echten Spiel geprüft. Was zuhause zu prüfen ist: `docs/PC_TEST.md`, Abschnitt "Live-Einstellungen und Owner".
 
 ## 2026-10-02 nachmittags, Branch claude/onix-ui-input-fixes (Cloud)
