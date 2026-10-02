@@ -87,8 +87,8 @@ int main(int argc, char** argv) {
         return 1;
     }
     std::string fonts = argv[1];
-    std::string regularData = slurp((fonts + "/Barlow-Medium.ttf").c_str());
-    std::string boldData = slurp((fonts + "/Barlow-Bold.ttf").c_str());
+    std::string regularData = slurp((fonts + "/Poppins-Regular.ttf").c_str());
+    std::string boldData = slurp((fonts + "/Poppins-Medium.ttf").c_str());
 
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();

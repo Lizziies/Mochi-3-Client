@@ -1,7 +1,7 @@
 #include "resource.h"
 
-IDR_FONT_REGULAR RCDATA "../../assets/fonts/Barlow-Medium.ttf"
-IDR_FONT_BOLD    RCDATA "../../assets/fonts/Barlow-Bold.ttf"
+IDR_FONT_REGULAR RCDATA "../../assets/fonts/Poppins-Regular.ttf"
+IDR_FONT_BOLD    RCDATA "../../assets/fonts/Poppins-Medium.ttf"
 
 1 VERSIONINFO
 FILEVERSION 0,1,0,0
