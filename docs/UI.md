@@ -80,3 +80,14 @@ Die Liste passte nicht zu einem PvP-Client, zu viele Einzelmodule. Jetzt:
 - Zusammengefasst wird nur in der Oberfläche (`gui/Tiles.cpp`), die Module und ihre Configs bleiben einzeln. Eine Gruppen-Kachel öffnet rechts ein Panel mit allen Teilen, jeder mit Schalter und aufklappbaren Einstellungen. HUD-Teile behalten ihre eigene Position im HUD-Editor.
 - Suche und Favoriten zeigen einzelne Module statt Gruppen.
 - Standard-Theme "Carbon": fast schwarz, eine Akzentfarbe (Blau), 8 px Rundung, keine Verläufe, Herzen oder Funken.
+
+### Vierte Änderung (Felix, 2026-10-02): lange Liste links wie bei Onix
+
+Die Kacheln wirkten zu sehr nach KI (viele Symbole) und nicht nach Minecraft-Client. Jetzt:
+
+- Rechts-Shift öffnet eine Leiste am linken Bildschirmrand, das Spiel bleibt rechts sichtbar (nur leicht abgedunkelt). Oben Name, "HUD bearbeiten", "Cosmetics", "Einstellungen", darunter Suche und Favoriten-Stern, unten Server-Status.
+- Eine lange Liste zum Runterscrollen mit Abschnitten (PvP, HUD, Visual, Nützliches, Leistung, Server, Extras). Abschnitte lassen sich einklappen, Server und Extras sind standardmäßig zu (Server klappt auf, sobald man auf einem Server ist).
+- Doppelungen sind zu einem Punkt zusammengefasst (`gui/Catalog.cpp`), z. B. Keystrokes = Keystrokes + CPS + Mouse Strokes. Ein Klick auf die Zeile klappt darunter die Teile auf, jeder Teil hat Schalter und eigene Einstellungen, die wiederum darunter aufklappen. Der Schalter der Gruppe merkt sich, welche Teile an waren.
+- Keine Symbole mehr. Schrift Barlow, kleine Rundung, eckigere Schalter. Rahmenfarbe ist unter Einstellungen → Aussehen → "Rand" einstellbar.
+- Einstellungen und Cosmetics öffnen sich als Fenster rechts neben der Liste, die Liste bleibt stehen.
+- Nichts lädt mehr neu: Slot-Filter bei Cosmetics und Tabs in den Einstellungen wechseln ohne Einblend-Animation der ganzen Seite.

@@ -25,6 +25,13 @@ Stand: 2026-10-01 abends. Wird nach jedem Arbeitsschritt aktualisiert.
 3. Deutsche Texte der neuen Module übersetzen (Durchlauf, wenn Session B fertig ist).
 4. Pre-Release `v0.1.0-alpha.1` erzeugen, damit die exe zum Download bereitliegt.
 
+## 2026-10-02 mittags, Branch claude/onix-ui-input-fixes (Cloud)
+
+- Menü als lange Liste links (Onix-Richtung), Kacheln und Symbole wieder raus. Details in `docs/UI.md` unter "Vierte Änderung".
+- Cosmetics und Einstellungen laden beim Wechseln von Slot oder Tab nicht mehr neu, Cosmetics liest die Dateien nur noch beim ersten Öffnen.
+- HUD bleibt in Menüs innerhalb einer Welt (Pause, Inventar, Chat) bis zu 60 s stehen und ist nach dem Zurückkehren sofort da. Vorher verschwand es und kam erst 1,2 s nach dem Schließen wieder. Verlässt man einen Server, geht es sofort aus, nach einer Einzelspielerwelt nach spätestens 60 s.
+- Schrift Barlow statt Nunito, Rahmenfarbe einstellbar.
+
 ## 2026-10-02, Branch claude/onix-ui-input-fixes (Cloud)
 
 - **Menü-Taste nur im Spiel:** Rechts-Shift und Modul-Tasten wirken nur noch, wenn das Spiel den Fokus hat und der Mauszeiger versteckt ist (also wirklich gespielt wird). Im Hauptmenü öffnet sich nichts mehr. Netzwerkverkehr zählt nicht mehr allein als "in einer Welt", weil das Hauptmenü selbst sendet (LAN-Suche, Xbox Live, Serverliste); er hält den Zustand nur, wenn er schon beim Spielen da war.
