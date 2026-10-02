@@ -74,6 +74,11 @@ $bin = Join-Path $devDir 'bin'
 New-Item -ItemType Directory -Force $bin, (Join-Path $devDir 'data') | Out-Null
 $target = Join-Path $bin ("Mochi-{0:yyMMdd-HHmmss}.dll" -f (Get-Date))
 Copy-Item $dll $target -Force
+$sigs = Join-Path $PSScriptRoot '..\sigs'
+if (Test-Path $sigs) {
+    New-Item -ItemType Directory -Force (Join-Path $bin 'sigs') | Out-Null
+    Copy-Item (Join-Path $sigs '*.json') (Join-Path $bin 'sigs') -Force
+}
 [IO.File]::WriteAllText((Join-Path $bin 'Mochi.root'), (Join-Path $devDir 'data'))
 $marker = Join-Path $bin 'Mochi.explore'
 if ($Dev) { [IO.File]::WriteAllText($marker, (Resolve-Path (Join-Path $PSScriptRoot 'explore')).Path) }

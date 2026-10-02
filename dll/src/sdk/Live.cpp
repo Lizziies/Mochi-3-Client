@@ -21,6 +21,20 @@ bool (*originalAttack)(void*, void*) = nullptr;
 
 int off(const char* name) { return sigs::offset(name, -1); }
 
+// Fields that live behind other objects carry their pointer path as "<field>.via0", "<field>.via1", ...
+// (1.26.52: the position sits in a block reached from the player through the ClientInstance, the view angles
+// in an object hanging off the player).
+uintptr_t follow(uintptr_t p, const char* name) {
+    char key[96];
+    for (int k = 0; k < 4 && p; k++) {
+        std::snprintf(key, sizeof(key), "%s.via%d", name, k);
+        int o = off(key);
+        if (o < 0) break;
+        p = mem::pointer(p + o);
+    }
+    return p;
+}
+
 class Live : public Provider {
 public:
     Live() { self = this; }
@@ -93,27 +107,40 @@ private:
 
     static float f(uintptr_t base, const char* name, float fallback = 0.f) {
         int o = off(name);
-        return o < 0 ? fallback : mem::get<float>(base + o, fallback);
+        if (o < 0) return fallback;
+        uintptr_t at = follow(base, name);
+        return at ? mem::get<float>(at + o, fallback) : fallback;
     }
 
     static int i(uintptr_t base, const char* name, int fallback = 0) {
         int o = off(name);
-        return o < 0 ? fallback : mem::get<int>(base + o, fallback);
+        if (o < 0) return fallback;
+        uintptr_t at = follow(base, name);
+        return at ? mem::get<int>(at + o, fallback) : fallback;
     }
 
     static bool b(uintptr_t base, const char* name, bool fallback = false) {
         int o = off(name);
-        return o < 0 ? fallback : mem::get<uint8_t>(base + o, fallback ? 1 : 0) != 0;
+        if (o < 0) return fallback;
+        uintptr_t at = follow(base, name);
+        return at ? mem::get<uint8_t>(at + o, fallback ? 1 : 0) != 0 : fallback;
     }
 
     void readPlayer(State& s) {
         uintptr_t p = mem::pointer(sigs::address("LocalPlayer"));
         if (!p) return;
+        uintptr_t pb = follow(p, "player.posX");
+        if (!pb) return;
         playerPtr_ = p;
         auto& pl = s.player;
         int px = off("player.posX");
-        pl.pos = {mem::get<float>(p + px), mem::get<float>(p + px + 4), mem::get<float>(p + px + 8)};
-        if (int vx = off("player.velX"); vx >= 0) pl.vel = {mem::get<float>(p + vx) * 20.f, mem::get<float>(p + vx + 4) * 20.f, mem::get<float>(p + vx + 8) * 20.f};
+        pl.pos = {mem::get<float>(pb + px), mem::get<float>(pb + px + 4), mem::get<float>(pb + px + 8)};
+        if (int vx = off("player.velX"); vx >= 0) {
+            uintptr_t vb = follow(p, "player.velX");
+            pl.vel = {mem::get<float>(vb + vx) * 20.f, mem::get<float>(vb + vx + 4) * 20.f, mem::get<float>(vb + vx + 8) * 20.f};
+        } else {
+            deriveVelocity(pl);
+        }
         pl.yaw = f(p, "player.yaw", pl.yaw);
         pl.pitch = f(p, "player.pitch", pl.pitch);
         pl.health = f(p, "player.health", pl.health);
@@ -140,6 +167,24 @@ private:
         s.world.day = i(lv, "level.time", 0) / 24000 + 1;
         s.world.raining = f(lv, "level.rain", 0.f) > 0.05f;
         s.world.thundering = f(lv, "level.thunder", 0.f) > 0.05f;
+    }
+
+    // without a velocity field the speed comes from how far the position moved, smoothed over a few frames
+    void deriveVelocity(Player& pl) {
+        LARGE_INTEGER now, freq;
+        QueryPerformanceCounter(&now);
+        QueryPerformanceFrequency(&freq);
+        double dt = lastPosQpc_ ? double(now.QuadPart - lastPosQpc_) / double(freq.QuadPart) : 0.0;
+        if (dt > 0.0005 && dt < 0.5) {
+            Vec3 v{float((pl.pos.x - lastPos_.x) / dt), float((pl.pos.y - lastPos_.y) / dt), float((pl.pos.z - lastPos_.z) / dt)};
+            // a teleport or respawn is not movement
+            if (std::fabs(v.x) > 200.f || std::fabs(v.y) > 200.f || std::fabs(v.z) > 200.f) v = {};
+            float k = std::clamp(float(dt) * 12.f, 0.f, 1.f);
+            vel_ = {vel_.x + (v.x - vel_.x) * k, vel_.y + (v.y - vel_.y) * k, vel_.z + (v.z - vel_.z) * k};
+        }
+        lastPos_ = pl.pos;
+        lastPosQpc_ = now.QuadPart;
+        pl.vel = vel_;
     }
 
     static bool isCrystal(uintptr_t actor) {
@@ -172,6 +217,9 @@ private:
     std::vector<Event> pending_;
     uintptr_t playerPtr_ = 0;
     Vec3 eye_;
+    Vec3 lastPos_;
+    Vec3 vel_;
+    int64_t lastPosQpc_ = 0;
     float fallSpeed_ = 0.f;
     bool onGround_ = true;
     bool sprinting_ = false;

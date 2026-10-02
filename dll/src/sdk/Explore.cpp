@@ -17,6 +17,7 @@ extern "C" {
 }
 
 #include <algorithm>
+#include <cmath>
 #include <atomic>
 #include <cstdint>
 #include <cstring>
@@ -347,6 +348,79 @@ int lHeapFloats(lua_State* L) {
     return pushList(L, hits);
 }
 
+// offsets inside [addr, addr+len) where count consecutive floats match the given values within tol
+int lScanFloats(lua_State* L) {
+    uintptr_t at = arg(L, 1);
+    size_t len = std::min<size_t>(static_cast<size_t>(luaL_checkinteger(L, 2)), 1u << 20);
+    float tol = static_cast<float>(luaL_checknumber(L, 3));
+    int count = lua_gettop(L) - 3;
+    if (count < 1 || count > 8) return luaL_error(L, "1 to 8 values");
+    float want[8];
+    for (int i = 0; i < count; i++) want[i] = static_cast<float>(luaL_checknumber(L, 4 + i));
+    std::vector<uint8_t> buf(len);
+    if (!readMem(at, buf.data(), len)) {
+        lua_newtable(L);
+        return 1;
+    }
+    std::vector<uintptr_t> hits;
+    for (size_t i = 0; i + count * 4 <= len; i += 4) {
+        bool ok = true;
+        for (int k = 0; k < count && ok; k++) {
+            float v;
+            std::memcpy(&v, buf.data() + i + k * 4, 4);
+            ok = std::fabs(v - want[k]) <= tol;
+        }
+        if (ok) hits.push_back(i);
+    }
+    return pushList(L, hits);
+}
+
+// {offset, value} for every float in the block within [lo, hi], skipping values too small to be an angle
+int lFloatsIn(lua_State* L) {
+    uintptr_t at = arg(L, 1);
+    size_t len = std::min<size_t>(static_cast<size_t>(luaL_checkinteger(L, 2)), 1u << 16);
+    float lo = static_cast<float>(luaL_checknumber(L, 3)), hi = static_cast<float>(luaL_checknumber(L, 4));
+    std::vector<uint8_t> buf(len);
+    lua_newtable(L);
+    if (!readMem(at, buf.data(), len)) return 1;
+    int out = 1;
+    for (size_t i = 0; i + 4 <= len; i += 4) {
+        float v;
+        std::memcpy(&v, buf.data() + i, 4);
+        if (!(v >= lo && v <= hi) || std::fabs(v) < 0.01f) continue;
+        lua_pushinteger(L, static_cast<lua_Integer>(i));
+        lua_rawseti(L, -2, out++);
+        lua_pushnumber(L, v);
+        lua_rawseti(L, -2, out++);
+    }
+    return 1;
+}
+
+// offsets and values of 8-byte values in the block that point into readable private memory
+int lPointers(lua_State* L) {
+    uintptr_t at = arg(L, 1);
+    size_t len = std::min<size_t>(static_cast<size_t>(luaL_checkinteger(L, 2)), 1u << 16);
+    std::vector<uint8_t> buf(len);
+    lua_newtable(L);
+    if (!readMem(at, buf.data(), len)) return 1;
+    int out = 1;
+    for (size_t i = 0; i + 8 <= len; i += 8) {
+        uintptr_t v;
+        std::memcpy(&v, buf.data() + i, 8);
+        if (v < 0x10000 || v > 0x7FFFFFFFFFFF || (v & 7)) continue;
+        MEMORY_BASIC_INFORMATION mbi{};
+        if (!VirtualQuery(reinterpret_cast<void*>(v), &mbi, sizeof(mbi)) || mbi.State != MEM_COMMIT || mbi.Type != MEM_PRIVATE) continue;
+        if (!(mbi.Protect & (PAGE_READWRITE | PAGE_READONLY | PAGE_WRITECOPY)) || (mbi.Protect & PAGE_GUARD)) continue;
+        lua_newtable(L);
+        lua_pushinteger(L, static_cast<lua_Integer>(i));
+        lua_rawseti(L, -2, 1);
+        push(L, v);
+        lua_rawseti(L, -2, 2);
+        lua_rawseti(L, -2, out++);
+    }
+    return 1;
+}
+
 // only functions of the game's own code can be called, with plain integer arguments
 int lCall(lua_State* L) {
     using Fn = uintptr_t(__fastcall*)(uintptr_t, uintptr_t, uintptr_t, uintptr_t);
@@ -530,7 +604,7 @@ void work(std::string name) {
         {"i32", readValue<int32_t>},  {"f32", readValue<float>},    {"f64", readValue<double>},
         {"cstr", lCstr},       {"find", lFind},         {"findd", lFindData},  {"bytes", lBytes},
         {"xrefs", lXrefs},     {"callers", lCallers},   {"func", lFunc},       {"vtable", lVtable},
-        {"heap", lHeap},       {"heapf", lHeapFloats},  {"call", lCall}, {"callf", lCallF},       {"disasm", lDisasm},   {"disfunc", lDisFunc},
+        {"heap", lHeap},       {"heapf", lHeapFloats},  {"call", lCall}, {"callf", lCallF}, {"scanf", lScanFloats}, {"floatsin", lFloatsIn},{"pointers", lPointers},      {"disasm", lDisasm},   {"disfunc", lDisFunc},
         {"sleep", lSleep},     {"log", lLog},           {"out", lOut},         {"run", lRun},
         {nullptr, nullptr}};
     luaL_newlib(L, api);

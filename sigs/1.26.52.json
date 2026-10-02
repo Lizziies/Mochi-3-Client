@@ -1,0 +1,23 @@
+{
+  "version": "1.26.52",
+  "sigs": {
+    "LocalPlayer": {
+      "pattern": "ba 79 32 09 48 89 05 ? ? ? ? 48 81 c4 e8 00 00 00 5b",
+      "rel": "rip",
+      "ripOffset": 7,
+      "ripLength": 11
+    }
+  },
+  "offsets": {
+    "player.posX.via0": 40,
+    "player.posX.via1": 600,
+    "player.posX.via2": 1504,
+    "player.posX": 1536,
+    "player.pitch.via0": 312,
+    "player.pitch.via1": 2448,
+    "player.pitch": 12,
+    "player.yaw.via0": 312,
+    "player.yaw.via1": 2448,
+    "player.yaw": 16
+  }
+}
