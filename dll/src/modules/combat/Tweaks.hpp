@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/Config.hpp"
+#include "gui/Widgets.hpp"
 #include "hook/GameInput.hpp"
 #include "hook/Input.hpp"
 #include "modules/Module.hpp"
@@ -177,7 +178,14 @@ public:
         : Module("Sens Multiplier", "Own sensitivity while zooming, drawing a bow, blocking, sneaking and sprinting.",
                  Category::Pvp, {"input"}) {
         sub("Input");
-        require(0, {fx::sig(fx::Id::Sensitivity)});
+        bow_.visible = block_.visible = sneak_.visible = sprint_.visible = [] { return game::ready(need::player); };
+    }
+
+    void drawSettings() override {
+        ImGui::Spacing();
+        if (fx::available(fx::Id::Sensitivity)) return;
+        if (gameinput::active()) widgets::hint("Works on the mouse movement the game reads. Bow, block, sneak and sprint values need game data.");
+        else widgets::hint("Needs game data or the game's own input on this version.");
     }
 
     void onFrame() override {
@@ -188,7 +196,8 @@ public:
         if (p.blocking) m *= block_.f;
         if (p.sneaking) m *= sneak_.f;
         if (p.sprinting) m *= sprint_.f;
-        fx::scale(fx::Id::Sensitivity, m);
+        if (fx::available(fx::Id::Sensitivity)) fx::scale(fx::Id::Sensitivity, m);
+        else gameinput::scaleMouse(m);
     }
 
 private:

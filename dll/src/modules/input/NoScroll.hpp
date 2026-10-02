@@ -1,5 +1,6 @@
 #pragma once
 
+#include "hook/GameInput.hpp"
 #include "hook/Input.hpp"
 #include "modules/Module.hpp"
 
@@ -17,6 +18,10 @@ public:
         if (ev.wheel == 0) return;
         if (whileSneaking_.b && !input::down(sneak_.i)) return;
         ev.cancel = true;
+    }
+
+    void onFrame() override {
+        if (!whileSneaking_.b || input::down(sneak_.i)) gameinput::holdWheel();
     }
 
 private:

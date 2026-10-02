@@ -5,12 +5,14 @@
 
 #include <windows.h>
 
+#include <algorithm>
 #include <array>
 #include <atomic>
 #include <bitset>
 #include <cmath>
 #include <cstring>
 #include <mutex>
+#include <string>
 #include <utility>
 
 namespace gameinput {
@@ -101,7 +103,9 @@ const Known* knownOf(void* self) {
 std::mutex overlayLock;
 std::bitset<256> pendingHold, pendingDrop, activeHold, activeDrop;
 float pendingScale = 1.f;
+bool pendingWheel = false;
 std::atomic<float> activeScale{1.f};
+std::atomic<bool> activeWheel{false};
 
 std::mutex keyLock;
 std::bitset<256> stale;
@@ -232,6 +236,7 @@ void adjust(void* id, uint8_t* state, int wheel) {
     int64_t* v[4] = {reinterpret_cast<int64_t*>(state + 8), reinterpret_cast<int64_t*>(state + 16),
                      reinterpret_cast<int64_t*>(state + wheel), reinterpret_cast<int64_t*>(state + wheel + 8)};
     bool blocked = blockedNow();
+    bool wheelHeld = blocked || activeWheel.load();
     float scale = activeScale.load();
     Mouse& m = mouseFor(id);
     if (!m.used) {
@@ -245,7 +250,7 @@ void adjust(void* id, uint8_t* state, int wheel) {
             logger::info("gameinput: wheel {} -> {}", m.raw[i], *v[i]);
         }
         m.raw[i] = *v[i];
-        if (blocked) delta = 0;
+        if (blocked || (i >= 2 && wheelHeld)) delta = 0;
         else if (i < 2 && scale != 1.f) {
             double f = double(delta) * scale + m.frac[i];
             delta = int64_t(std::floor(f));
@@ -435,11 +440,17 @@ void scaleMouse(float factor) {
     pendingScale *= factor;
 }
 
+void holdWheel() {
+    std::scoped_lock g(overlayLock);
+    pendingWheel = true;
+}
+
 void beginFrame() {
     std::scoped_lock g(overlayLock);
     pendingHold.reset();
     pendingDrop.reset();
     pendingScale = 1.f;
+    pendingWheel = false;
 }
 
 void publish() {
@@ -447,6 +458,7 @@ void publish() {
     activeHold = pendingHold;
     activeDrop = pendingDrop;
     activeScale = pendingScale;
+    activeWheel = pendingWheel;
 }
 
 }
