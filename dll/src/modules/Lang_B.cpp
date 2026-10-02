@@ -1231,6 +1231,8 @@ const i18n::Entry entries[] = {
     {"Shows which modules run on this version. Also home of the demo data switch.", "Zeigt, welche Module auf dieser Version laufen. Hier gibt es auch Demo-Daten."},
     {"Shows your active global resource packs. Packs a server forces on top are not listed.", "Zeigt deine aktiven globalen Resource Packs. Packs, die ein Server zusätzlich erzwingt, stehen nicht in der Liste."},
     {"Unknown pack ({})", "Unbekanntes Pack ({})"},
+    {"Hits {}", "Treffer {}"},
+    {"The dimension is not detected yet, so waypoints show in every dimension.", "Die Dimension wird noch nicht erkannt, deshalb erscheinen Wegpunkte in jeder Dimension."},
     {"Shows yaw and pitch of your view direction.", "Zeigt Yaw und Pitch deiner Blickrichtung."},
     {"Shows your active effects with time left, sorted and colored. Turns red when an effect is about to run out.", "Zeigt deine aktiven Effekte mit Restzeit, sortiert und farbig. Wird rot, wenn ein Effekt gleich ausläuft."},
     {"Shows your armor and the item in your hand with durability as a number, percent or bar.", "Zeigt deine Rüstung und das Item in der Hand mit Haltbarkeit als Zahl, Prozent oder Balken."},
