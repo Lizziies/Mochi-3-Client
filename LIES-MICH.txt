@@ -1,0 +1,11 @@
+Mochi Übergabe für zuhause, Stand 2026-10-02, Commit fb196a4 (Branch claude/onix-ui-input-fixes)
+
+source/          Der ganze Code. Zum Arbeiten aber besser das Git-Repo nehmen:
+                   git fetch origin
+                   git checkout -B claude/pc-test origin/claude/onix-ui-input-fixes
+source/docs/HOME_TODO.md   Die Arbeitsliste für Claude Code zuhause. Damit anfangen.
+ci-testbuild/    Mochi.dll und MochiLauncher.exe aus der Cloud (MinGW-Testbau, nur unter Wine geprüft).
+                 Nicht verteilen. Die echte Exe baut Claude Code zuhause mit MSVC (HOME_TODO Punkt 9).
+screenshots/     Rundgang in 1080p: Menü, Module, Global Settings, Cosmetics, HUD-Editor, Launcher, Akzentfarben.
+
+An Claude Code zuhause: Lies CLAUDE.md, dann docs/HOME_TODO.md, und arbeite die Liste der Reihe nach ab.
