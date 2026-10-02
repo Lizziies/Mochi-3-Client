@@ -1,4 +1,5 @@
 #include "Config.hpp"
+#include "Bg.hpp"
 #include "modules/SelfTest.hpp"
 #include "Log.hpp"
 #include "Paths.hpp"
@@ -10,6 +11,8 @@
 #include <atomic>
 #include <cctype>
 #include <fstream>
+#include <mutex>
+#include <windows.h>
 
 using nlohmann::json;
 
@@ -18,6 +21,12 @@ namespace config {
 static std::string active = "default";
 static std::atomic<bool> dirty{false};
 static bool loading = false;
+static std::mutex fileLock;
+static std::string lastText;
+static std::filesystem::path lastFile;
+static uint64_t generation = 0;
+static uint64_t written = 0;
+static uint64_t lastAutosave = 0;
 
 static std::string clean(const std::string& name) {
     std::string out;
@@ -38,15 +47,34 @@ static json read(const std::filesystem::path& p) {
     return j.is_object() ? j : json::object();
 }
 
-static void write(const std::filesystem::path& p, const json& j) {
+static void write(const std::filesystem::path& p, const std::string& text) {
     auto tmp = p;
     tmp += L".tmp";
     {
         std::ofstream out(tmp, std::ios::trunc);
-        out << j.dump(2);
+        out << text;
     }
     std::error_code ec;
     std::filesystem::rename(tmp, p, ec);
+}
+
+static json snapshot() {
+    json mods = json::object();
+    for (auto& m : modules::all()) mods[m->name()] = m->save();
+    return {{"theme", theme::save()}, {"modules", mods}};
+}
+
+// Older snapshots never overwrite newer ones, and a file is only touched when its content changed.
+static void store(const std::filesystem::path& file, const std::string& profile, const json& j, uint64_t gen) {
+    std::string text = j.dump(2);
+    std::scoped_lock g(fileLock);
+    if (gen < written) return;
+    written = gen;
+    if (text == lastText && file == lastFile) return;
+    write(file, text);
+    write(paths::root() / L"settings.json", json{{"profile", profile}}.dump(2));
+    lastText = std::move(text);
+    lastFile = file;
 }
 
 static void apply(const json& j) {
@@ -84,15 +112,29 @@ void load() {
 
 void save() {
     if (selftest::active()) return;
-    json mods = json::object();
-    for (auto& m : modules::all()) mods[m->name()] = m->save();
-    write(fileFor(active), {{"theme", theme::save()}, {"modules", mods}});
-    write(paths::root() / L"settings.json", {{"profile", active}});
     dirty = false;
+    store(fileFor(active), active, snapshot(), ++generation);
+}
+
+// The snapshot is taken here on the render thread, the slow part (formatting and disk) runs in the background.
+void saveLater() {
+    if (selftest::active()) return;
+    dirty = false;
+    auto j = snapshot();
+    auto file = fileFor(active);
+    uint64_t gen = ++generation;
+    bg::run([j = std::move(j), file, profile = active, gen] { store(file, profile, j, gen); });
 }
 
 void saveIfDirty() {
-    if (dirty) save();
+    if (dirty) saveLater();
+}
+
+void tick() {
+    uint64_t now = GetTickCount64();
+    if (now - lastAutosave < 5000) return;
+    lastAutosave = now;
+    saveIfDirty();
 }
 
 void markDirty() {

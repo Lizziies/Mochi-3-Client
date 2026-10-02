@@ -7,7 +7,9 @@ namespace config {
 
 void load();
 void save();
+void saveLater();
 void saveIfDirty();
+void tick();
 void markDirty();
 
 const std::string& profile();

@@ -69,11 +69,7 @@ static void teardown() {
 static DWORD WINAPI mainThread(LPVOID) {
     guard::call("boot", boot);
 
-    int ticks = 0;
-    while (!leaving) {
-        Sleep(50);
-        if (++ticks % 100 == 0) config::saveIfDirty();
-    }
+    while (!leaving) Sleep(50);
 
     teardown();
     FreeLibraryAndExitThread(self, 0);

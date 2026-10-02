@@ -53,12 +53,15 @@ void beginFrame() {
 bool open() { return isOpen; }
 
 void setOpen(bool on) {
-    if (on && !isOpen) input::releaseHeld();
+    if (on && !isOpen) {
+        input::releaseHeld();
+        i18n::load();
+    }
     isOpen = on;
     if (on) {
         hudEdit = false;
     } else {
-        config::saveIfDirty();
+        config::saveLater();
     }
 }
 
@@ -114,7 +117,7 @@ static void beginPanel(const char* id, ImVec2 pos, ImVec2 size, float fade) {
     auto* cs = modules::get<ClientSettings>();
     float blur = cs ? cs->menuBlur() : 0.f;
     if (blur > 0.01f) post::blur(dl, pos, pos + size, r, blur * 16.f * s * fade, {0, 0, 0, 0});
-    dl->AddRectFilled(pos, pos + size, theme::col(t.bg, t.opacity), r);
+    dl->AddRectFilled(pos, pos + size, theme::col(t.bg, t.opacity * (1.f - 0.15f * blur)), r);
     dl->AddRect(pos, pos + size, theme::col(theme::border(), 0.85f), r, 0, 1.f);
     ImGui::PushFont(fonts::regular(), 14.f);
 }
