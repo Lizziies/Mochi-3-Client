@@ -1,0 +1,7 @@
+LoadLibrary -> 00006ffffbe10000 (err 0)
+t=2 fps=180.6
+t=4 fps=216.6
+t=6 fps=216.5
+t=8 fps=216.7
+t=10 fps=217.2
+frames=2530 still_loaded=1

@@ -1,0 +1,6 @@
+LoadLibrary -> 00006ffffc040000 (err 0)
+t=2 fps=100.5
+t=4 fps=121.4
+t=6 fps=44.6
+t=8 fps=8.7
+wine: Unhandled page fault on write access to 00007FFFFBA85228 at address 00006FFFFFC7792B (thread 0024), starting debugger...
