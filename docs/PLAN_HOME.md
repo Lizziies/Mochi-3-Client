@@ -128,6 +128,9 @@ Zuerst die Flaggschiffe: `fx.fov` (Zoom, FOV Changer), `fx.gamma` (Fullbright), 
 
 ### Nach jeder Welle
 
+Reihenfolge nach Felix' Wunsch (Details in `docs/HOME_TODO.md`, Punkt 4): erst alle Wellen im Code fertig, dazwischen nur ein kurzer Rauchtest (Spiel startet, kein Absturz, Log ohne Fehler). Die Prüfung im Spiel Modul für Modul kommt danach in einem Durchgang.
+
+
 - [ ] `MOCHI_SELFTEST=1` läuft ohne Fehler.
 - [ ] `docs/MODULES.md` neu erzeugen (`tools/modules_doc.py`), Zahl "läuft im Spiel" aktualisieren.
 - [ ] Module, die nach der Welle noch grau sind, mit Grund ("fehlt: X") in `docs/STATUS.md` listen. Sie müssen bis zum Release repariert, anders gelöst oder entfernt sein.

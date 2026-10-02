@@ -4,14 +4,26 @@ Für Claude Code am PC von Felix (Windows, Minecraft Bedrock GDK). In der Cloud 
 
 Zuerst lesen: `CLAUDE.md`, `docs/PLAN_HOME.md`, `docs/STATUS.md`, `docs/PC_TEST.md`, `docs/SDK.md`, `docs/VERSIONING.md`.
 
-## 0. Code holen
+## 0. Code holen: mit diesem Stand weiterarbeiten, nicht mit dem alten
 
-Der neueste Stand liegt auf `claude/onix-ui-input-fixes`. Er enthält `main` vollständig (main ist ein direkter Vorfahre), also reicht:
+**Wichtig:** Am 2. Oktober wurde in der Cloud viel mehr als nur die Oberfläche geändert. Das Menü ist komplett neu gebaut (Onix-Look, Akzentfarben), der Launcher auch. Dazu kommen Änderungen an Eingabe, Config, DX-Hooks, Live-Leser, HUD, rund 30 Modulen, Mochi Online (Rollen) und ein behobener Absturz. Ein Stand, den du am PC schon hast (zum Beispiel ein alter `claude/pc-test` oder `main` von vorher), ist veraltet. Weitergearbeitet wird nur auf dem Stand von `claude/onix-ui-input-fixes`. Er enthält `main`, `claude/modules-b` und den alten `claude/pc-test` vollständig.
+
+Zuerst sichern, ob am PC noch eigene Arbeit liegt, die nicht auf GitHub ist:
 
 ```
 git fetch origin
+git status
+git log --oneline origin/claude/onix-ui-input-fixes..HEAD
+```
+
+- Zeigt `git status` Änderungen oder das Log Commits, diese zuerst committen und danach in den neuen Stand übernehmen (`git checkout -B claude/pc-test origin/claude/onix-ui-input-fixes`, dann `git merge <alter-branch>`). Bei Konflikten in `dll/src/gui/`, `launcher/src/Ui.cpp` und `core/Config.cpp` gewinnt immer der neue Stand; nur die eigentliche Änderung von zuhause nachziehen.
+- Ist nichts offen, einfach:
+
+```
 git checkout -B claude/pc-test origin/claude/onix-ui-input-fixes
 ```
+
+Woran man den richtigen Stand erkennt: `docs/HOME_TODO.md` (diese Datei) existiert, `dll/src/modules/hud/ItemTracker.hpp` existiert, im Menü gibt es unter Global Settings → Appearance acht Akzentfarben.
 
 Wenn Felix zustimmt, `main` danach vorspulen: `git push origin claude/onix-ui-input-fixes:main` (reiner Fast-Forward, nichts geht verloren).
 
@@ -46,9 +58,23 @@ Ablauf und Erwartungen in `docs/PC_TEST.md`, Abschnitte "Branch claude/onix-ui-i
 - [ ] Jede Einstellung wirkt sofort am Modul (Felix' Fehler von zuhause: "die Extra-Einstellungen haben nichts verstellt"). In der Cloud wurden alle Module auf tote Einstellungen durchgesehen und repariert (siehe `docs/STATUS.md`, Abschnitt "abends"); im Spiel mit der Liste in `PC_TEST.md` gegenprüfen.
 - [ ] Strg+L entlädt, neu injizieren geht.
 
-## 4. Signaturen: kein Modul bleibt grau
+## 4. Graue Module: erst alles im Code, dann einzeln im Spiel testen
 
-Hauptarbeit. Phasen 1 und 2 aus `docs/PLAN_HOME.md` (Speicherabbild, `tools/sigcheck`, Wellen nach Nutzen). Nach jeder Welle Zahl der grauen Module in `docs/STATUS.md`.
+Hauptarbeit, Werkzeuge aus Phase 1 und 2 von `docs/PLAN_HOME.md` (Speicherabbild, Ghidra, `tools/sigcheck`). Felix möchte diese Reihenfolge, weil sie Zeit spart:
+
+**A. Erst alles im Code fertig machen.** Für alle grauen Module zuerst die Signaturen und Offsets im Speicherabbild finden, mit `tools/sigcheck` gegen das Abbild prüfen (genau ein Treffer) und Hooks bzw. Leser einbauen. Das geht ohne jedes Mal das Spiel zu starten. Reihenfolge nach Nutzen (`LocalPlayer` zuerst, schaltet über 50 Module frei). Am Ende von A steht hinter `locked:` im Log nichts mehr außer Sperren durch Server-Regeln.
+
+Damit ein Fehler trotzdem schnell zu finden ist: nach jeder Welle nur einmal kurz starten (Spiel lädt, kein Absturz, Log ohne `[error]`). Das ist kein Modultest, nur ein Rauchtest von einer Minute. Jeder Hook läuft im Crash-Guard; ein kaputter Hook darf das Spiel nie mitreißen.
+
+**B. Dann jedes Modul einzeln im Spiel testen.** Wenn alles im Code ist, die Module der Reihe nach durchgehen: einschalten, jede Einstellung verstellen (wirkt sofort?), ausschalten (ist das Spiel wieder wie vorher?), Serverwechsel, Alt-Tab. Ergebnis pro Modul in `docs/TESTLOG.md`: geht / geht nicht, Beleg (Logzeile, Screenshot). Was nicht geht, sofort reparieren, anders lösen oder entfernen (Regel aus `PLAN_HOME.md`, nie grau ausliefern).
+
+**C. Aufräumen bis kein einziger Fehler bleibt.** Spieler, die den Client ausprobieren, sollen keinen Grund finden, wieder zu gehen. Das heißt vor der Exe:
+- 2 Stunden echtes PvP (Hive, Zeqa, Einzelspieler) ohne Absturz, ohne Ruckler, ohne `[error]` oder `[warn]` im Log, die nicht erklärt sind.
+- `MOCHI_SELFTEST=1` ohne einen einzigen Fehler, keine fehlenden Übersetzungen, keine englischen Texte im deutschen Menü.
+- Kein Modul tut nichts: jedes eingeschaltete Modul hat eine sichtbare Wirkung.
+- Keine Einstellung tut nichts, kein Text abgeschnitten oder überlappend, keine Animation ruckelt.
+- Ein- und Ausschalten jedes Moduls 20-mal schnell hintereinander geht ohne Absturz und ohne Speicherwachstum.
+- Strg+L entlädt sauber, Minecraft läuft danach normal weiter.
 
 Zusätzlich zu den dort genannten Signaturen fehlen in `dll/src/sdk/Live.cpp` diese Spielerfelder (die Demo-Daten haben sie, der Live-Leser noch nicht): `inWater`, `flying`, `gliding`, `swimming`, `usingItem`, `useProgress`, `blocking`, `effects`, `view` (Perspektive), `mode` (Spielmodus), `team`. Module wie Toggle Sprint (Schwimmen/Fliegen), Item Use, Potion HUD, Perspektive und Teams hängen daran.
 
@@ -85,9 +111,17 @@ Mochi Online schickt schon, wer was trägt (`worn`) und die Namensfarbe; in Tab-
 - [ ] Schwache PCs: Profil "Low" (Auto-Leistung) auf einem schwachen Rechner oder mit gedrosselter GPU prüfen. Low schaltet Blur, Glow und Extras ab, der Frame Limiter bleibt an.
 - [ ] Parität mit Flarial und Onix Punkt für Punkt (`docs/PARITY.md`, `docs/FLARIAL_REAL.md`).
 
-## 9. Exe bauen und veröffentlichen (ganz zum Schluss)
+## 9. Versionen: Downgrade und neue Minecraft-Versionen (als Letztes vor der Exe)
 
-Erst wenn 1 bis 8 erledigt sind und `locked:` im Log leer ist (Ausnahme: Sperren durch Server-Regeln).
+Erst wenn 1 bis 8 sicher ohne Probleme laufen. Das steckt im Launcher (nicht in der DLL) und ist schon großteils gebaut, aber nie am PC geprüft. Details in `docs/UPDATES.md` und `docs/VERSIONING.md`.
+
+- [ ] **Downgrade / ältere Version:** Launcher → Versions. LeviLauncher wird von seinem offiziellen GitHub-Release geladen und installiert die Versionen (mit Felix' eigener Lizenz, Mochi liefert nie Minecraft-Dateien aus). "Rescan" findet die Installationen, "Use this one" merkt sich die Wahl, Play startet genau diese Version und verbindet den Client. Ungeprüft ist der direkte Start der Exe; wenn sie sofort schließt, herausfinden, wie LeviLauncher startet, und `launcher/src/Game.cpp` (`launchExe`) anpassen.
+- [ ] **Neue Minecraft-Version:** Nach einem Spiel-Update erkennt der Client die Version, lädt `sigs/<version>.json` aus dem Cache, aus der mitgelieferten Liste oder von GitHub. Fehlt sie, werden die betroffenen Module grau, das Spiel stürzt nie ab. Prüfen mit mindestens drei Versionen (aktuell, vorherige, Preview), pro Version `sigs/<version>.json` mit `inherits`.
+- [ ] **Client- und Launcher-Updates:** Selbst-Update des Launchers und Update der DLL über GitHub-Releases (`launcher/src/Update.cpp`), Prüfsummen. Wird mit dem ersten und einem zweiten Pre-Release in Punkt 10 geprüft.
+
+## 10. Exe bauen und veröffentlichen (ganz zum Schluss)
+
+Erst wenn 1 bis 9 erledigt sind, Punkt 4 C ohne offenen Fehler ist und `locked:` im Log leer ist (Ausnahme: Sperren durch Server-Regeln).
 
 - [ ] Einzelne `MochiLauncher.exe` mit `-DMOCHI_DLL` und `-DMOCHI_COSMETICS` (Befehle in `CLAUDE.md`), allein in einem leeren Ordner testen.
 - [ ] Tag `v0.1.0-alpha.1` pushen, `release.yml` baut dieselbe Exe. Herunterladen und wie ein Nutzer testen, Selbst-Update auf ein zweites Pre-Release prüfen.

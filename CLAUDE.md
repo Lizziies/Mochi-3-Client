@@ -10,8 +10,13 @@ Every decision is measured against this. "Works" is not done — done means it b
 
 Arbeitstitel "Mochi" — vor dem ersten Release umbenennen (global suchen/ersetzen).
 
+## Stand 2026-10-02: zuerst lesen
+
+Am 2. Oktober wurde in der Cloud weit mehr als die Oberfläche umgebaut: neues Menü und neuer Launcher, dazu Eingabe, Config, DX-Hooks, Live-Leser, HUD, rund 30 Module, Mochi Online (Rollen) und ein Absturz-Fix. Weitergearbeitet wird nur auf dem Stand von `origin/claude/onix-ui-input-fixes` (enthält `main`). Ein älterer Stand auf dem PC ist veraltet; eigene, nicht gepushte Arbeit von dort in diesen Stand übernehmen, nicht umgekehrt. Die Arbeitsliste ist `docs/HOME_TODO.md`, Schritt 0 erklärt das Umsteigen.
+
 ## Read first
 
+- `docs/HOME_TODO.md` — Arbeitsliste für den PC zuhause, in dieser Reihenfolge abarbeiten.
 - `docs/MASTER.md` — Gesamtübersicht, Wünsche, Arbeitsteilung, Test-Checkliste. Zuerst lesen.
 - `docs/PLAN.md` — architecture and phases. Work phase by phase, never skip ahead.
 - `docs/MODULES.md` — every module, its tier and phase.
