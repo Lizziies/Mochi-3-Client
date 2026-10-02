@@ -113,6 +113,7 @@ struct Slot {
     int arg = 1;
     bool rowMajor = false;
     bool before = false;
+    uintptr_t skipTo = 0;
     std::array<float, 2> acc{};
     uintptr_t patched = 0;
     std::array<uint8_t, 64> backup{};
@@ -176,7 +177,7 @@ struct Detour {
     static uintptr_t flag(uintptr_t a, uintptr_t b, uintptr_t c, uintptr_t d) {
         auto& sl = slots[N];
         if (sl.mode == Force) return sl.v[0] > 0.5f ? 1 : 0;
-        if (sl.mode == Skipped) return 0;
+        if (sl.mode == Skipped) return sl.skipTo;
         return reinterpret_cast<Fn>(sl.orig)(a, b, c, d);
     }
 
@@ -201,7 +202,7 @@ struct Detour {
 
     static uintptr_t skip(uintptr_t a, uintptr_t b, uintptr_t c, uintptr_t d) {
         auto& sl = slots[N];
-        if (sl.mode == Skipped) return 0;
+        if (sl.mode == Skipped) return sl.skipTo;
         return reinterpret_cast<Fn>(sl.orig)(a, b, c, d);
     }
 
@@ -282,6 +283,8 @@ void install(size_t i, Slot& sl, uintptr_t address) {
     sl.arg = sigs::offset(std::string(table[i].sig) + ".arg", 1);
     sl.rowMajor = sigs::offset(std::string(table[i].sig) + ".rowMajor", 0) == 1;
     sl.before = sigs::offset(std::string(table[i].sig) + ".before", 0) == 1;
+    // an option getter answers "skip" with the option's off value, which is 1 for options like "hide hand"
+    sl.skipTo = uintptr_t(sigs::offset(std::string(table[i].sig) + ".skip", 0));
     void* target = reinterpret_cast<void*>(address);
     const auto& row = detours[i];
     void* detour = nullptr;

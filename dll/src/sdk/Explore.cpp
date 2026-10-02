@@ -1,4 +1,5 @@
 #include "Explore.hpp"
+#include "Memory.hpp"
 
 #ifdef MOCHI_DEV
 
@@ -7,6 +8,7 @@
 #include "sig/Scanner.hpp"
 
 #include <windows.h>
+#include <tlhelp32.h>
 
 #include <capstone/capstone.h>
 
@@ -179,6 +181,11 @@ int readValue(lua_State* L) {
     return 1;
 }
 
+int lWriteF32(lua_State* L) {
+    lua_pushboolean(L, mem::write(arg(L, 1), static_cast<float>(luaL_checknumber(L, 2))));
+    return 1;
+}
+
 int lCstr(lua_State* L) {
     uintptr_t at = arg(L, 1);
     int max = static_cast<int>(std::min<lua_Integer>(luaL_optinteger(L, 2, 128), 4096));
@@ -315,14 +322,15 @@ int lHeap(lua_State* L) {
     return pushList(L, hits);
 }
 
-// three consecutive floats inside the given ranges, in private writable memory
+// one to three consecutive floats inside the given ranges, in private writable memory
 int lHeapFloats(lua_State* L) {
-    float lo[3], hi[3];
-    for (int i = 0; i < 3; i++) {
+    float lo[3] = {-3e38f, -3e38f, -3e38f}, hi[3] = {3e38f, 3e38f, 3e38f};
+    int given = std::min(3, lua_gettop(L) / 2);
+    for (int i = 0; i < given; i++) {
         lo[i] = static_cast<float>(luaL_checknumber(L, 1 + i * 2));
         hi[i] = static_cast<float>(luaL_checknumber(L, 2 + i * 2));
     }
-    size_t limit = static_cast<size_t>(luaL_optinteger(L, 7, 32));
+    size_t limit = static_cast<size_t>(luaL_optinteger(L, given * 2 + 1, 32));
     std::vector<uintptr_t> hits;
     MEMORY_BASIC_INFORMATION mbi{};
     uintptr_t at = 0x10000;
@@ -546,6 +554,70 @@ int lSleep(lua_State* L) {
     return 0;
 }
 
+constexpr size_t watchMax = 4096;
+std::atomic<size_t> watchCount{0};
+uintptr_t watchHits[watchMax];
+
+LONG CALLBACK onWatch(EXCEPTION_POINTERS* e) {
+    if (e->ExceptionRecord->ExceptionCode != EXCEPTION_SINGLE_STEP || !(e->ContextRecord->Dr6 & 1)) return EXCEPTION_CONTINUE_SEARCH;
+    size_t i = watchCount.fetch_add(1);
+    if (i < watchMax) watchHits[i] = reinterpret_cast<uintptr_t>(e->ExceptionRecord->ExceptionAddress);
+    e->ContextRecord->Dr6 = 0;
+    return EXCEPTION_CONTINUE_EXECUTION;
+}
+
+void armThreads(uintptr_t address, bool on) {
+    HANDLE snap = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
+    if (snap == INVALID_HANDLE_VALUE) return;
+    THREADENTRY32 te{sizeof(te)};
+    for (BOOL ok = Thread32First(snap, &te); ok; ok = Thread32Next(snap, &te)) {
+        if (te.th32OwnerProcessID != GetCurrentProcessId() || te.th32ThreadID == GetCurrentThreadId()) continue;
+        HANDLE t = OpenThread(THREAD_GET_CONTEXT | THREAD_SET_CONTEXT | THREAD_SUSPEND_RESUME, FALSE, te.th32ThreadID);
+        if (!t) continue;
+        if (SuspendThread(t) != DWORD(-1)) {
+            CONTEXT c{};
+            c.ContextFlags = CONTEXT_DEBUG_REGISTERS;
+            if (GetThreadContext(t, &c)) {
+                // slot 0, break on read or write (RW0 = 11), four bytes (LEN0 = 11)
+                c.Dr0 = on ? address : 0;
+                c.Dr7 = on ? (c.Dr7 & ~0xF0003ull) | 1ull | (3ull << 16) | (3ull << 18) : c.Dr7 & ~0xF0003ull;
+                SetThreadContext(t, &c);
+            }
+            ResumeThread(t);
+        }
+        CloseHandle(t);
+    }
+    CloseHandle(snap);
+}
+
+// instructions right after every access to a 4-byte value during the given time (hardware breakpoint, dev only)
+int lWatch(lua_State* L) {
+    uintptr_t address = arg(L, 1);
+    DWORD ms = static_cast<DWORD>(std::clamp<lua_Integer>(luaL_optinteger(L, 2, 2000), 50, 10000));
+    watchCount = 0;
+    PVOID veh = AddVectoredExceptionHandler(1, onWatch);
+    armThreads(address, true);
+    Sleep(ms);
+    armThreads(address, false);
+    Sleep(50);
+    RemoveVectoredExceptionHandler(veh);
+    size_t n = std::min(watchCount.load(), watchMax);
+    std::vector<uintptr_t> hits(watchHits, watchHits + n);
+    std::sort(hits.begin(), hits.end());
+    lua_newtable(L);
+    int out = 1;
+    for (size_t i = 0; i < hits.size();) {
+        size_t j = i;
+        while (j < hits.size() && hits[j] == hits[i]) j++;
+        lua_pushinteger(L, static_cast<lua_Integer>(hits[i]));
+        lua_rawseti(L, -2, out++);
+        lua_pushinteger(L, static_cast<lua_Integer>(j - i));
+        lua_rawseti(L, -2, out++);
+        i = j;
+    }
+    return 1;
+}
+
 int lLog(lua_State* L) {
     int n = lua_gettop(L);
     std::string s;
@@ -601,11 +673,11 @@ void work(std::string name) {
     static const luaL_Reg api[] = {
         {"base", lBase},       {"sections", lSections}, {"hex", lHex},         {"u8", readValue<uint8_t>},
         {"u16", readValue<uint16_t>}, {"u32", readValue<uint32_t>}, {"u64", readValue<uint64_t>},
-        {"i32", readValue<int32_t>},  {"f32", readValue<float>},    {"f64", readValue<double>},
+        {"i32", readValue<int32_t>},  {"f32", readValue<float>},    {"f64", readValue<double>}, {"wf32", lWriteF32},
         {"cstr", lCstr},       {"find", lFind},         {"findd", lFindData},  {"bytes", lBytes},
         {"xrefs", lXrefs},     {"callers", lCallers},   {"func", lFunc},       {"vtable", lVtable},
         {"heap", lHeap},       {"heapf", lHeapFloats},  {"call", lCall}, {"callf", lCallF}, {"scanf", lScanFloats}, {"floatsin", lFloatsIn},{"pointers", lPointers},      {"disasm", lDisasm},   {"disfunc", lDisFunc},
-        {"sleep", lSleep},     {"log", lLog},           {"out", lOut},         {"run", lRun},
+        {"sleep", lSleep},     {"watch", lWatch},     {"log", lLog},           {"out", lOut},         {"run", lRun},
         {nullptr, nullptr}};
     luaL_newlib(L, api);
     lua_setglobal(L, "rt");

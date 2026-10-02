@@ -92,6 +92,8 @@ void pollDevCommands() {
                     if (st.id == "demo") st.b = rest != "off";
         } else if (cmd == "enable") {
             if (auto* m = modules::find(rest)) m->setEnabled(true);
+        } else if (cmd == "disable") {
+            if (auto* m = modules::find(rest)) m->setEnabled(false);
         } else if (cmd == "shot") {
             shotName = rest.empty() ? "shot" : rest;
             pendingShot = true;

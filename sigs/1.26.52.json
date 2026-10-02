@@ -6,7 +6,12 @@
       "rel": "rip",
       "ripOffset": 7,
       "ripLength": 11
-    }
+    },
+    "fx.gamma": "48 83 EC 38 48 8B 05 ? ? ? ? 48 31 E0 48 89 44 24 30 48 8B 01 48 8B 40 08 48 8D 54 24 28 41 B8 32 00 00 00 FF 15 ? ? ? ? 48 8B 4C 24 28 48 89 C8 48 8B 49 08 48 8B 89 ? ? ? ? 48 85 C9 75 ED F3 0F 10 40 18",
+    "fx.perspective": "48 83 EC 38 48 8B 05 ? ? ? ? 48 31 E0 48 89 44 24 30 48 8B 01 48 8B 40 08 48 8D 54 24 28 41 B8 03 00 00 00 FF 15 ? ? ? ? 48 8B 4C 24 28 48 89 C8 48 8B 49 08 48 8B 89 ? ? ? ? 48 85 C9 75 ED 8B 40 18",
+    "fx.viewBob": "48 83 EC 38 48 8B 05 ? ? ? ? 48 31 E0 48 89 44 24 30 48 8B 01 48 8B 40 08 48 8D 54 24 28 41 B8 26 00 00 00 FF 15 ? ? ? ? 48 8B 4C 24 28 48 89 C8 48 8B 49 08 48 8B 89 ? ? ? ? 48 85 C9 75 ED 0F B6 40 10",
+    "fx.hideHand": "48 83 EC 38 48 8B 05 ? ? ? ? 48 31 E0 48 89 44 24 30 48 8B 01 48 8B 40 08 48 8D 54 24 28 41 B8 A6 01 00 00 FF 15 ? ? ? ? 48 8B 4C 24 28 48 89 C8 48 8B 49 08 48 8B 89 ? ? ? ? 48 85 C9 75 ED 0F B6 40 10",
+    "fx.clouds": "48 83 EC 38 48 8B 05 ? ? ? ? 48 31 E0 48 89 44 24 30 48 8B 01 48 8B 40 08 48 8D 54 24 28 41 B8 8A 01 00 00 FF 15 ? ? ? ? 48 8B 4C 24 28 48 89 C8 48 8B 49 08 48 8B 89 ? ? ? ? 48 85 C9 75 ED 0F B6 40 10"
   },
   "offsets": {
     "player.posX.via0": 312,
@@ -24,6 +29,17 @@
     "player.sneaking.is": 5,
     "player.sprinting.via0": 416,
     "player.sprinting": 12,
-    "player.sprinting.is": 3
+    "player.sprinting.is": 3,
+    "player.view.via0": 1912,
+    "player.view.via1": 184,
+    "player.view.via2": 40,
+    "player.view": 24,
+    "player.fov.via0": 1912,
+    "player.fov.via1": 184,
+    "player.fov.via2": 392,
+    "player.fov": 24,
+    "fx.viewBob.kind": 1,
+    "fx.hideHand.kind": 1,
+    "fx.hideHand.skip": 1
   }
 }

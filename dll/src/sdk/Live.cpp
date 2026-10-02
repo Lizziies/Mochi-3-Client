@@ -151,6 +151,8 @@ private:
         }
         pl.yaw = f(p, "player.yaw", pl.yaw);
         pl.pitch = f(p, "player.pitch", pl.pitch);
+        pl.fov = f(p, "player.fov", pl.fov);
+        pl.view = View(std::clamp(i(p, "player.view", int(pl.view)), 0, 2));
         pl.health = f(p, "player.health", pl.health);
         pl.maxHealth = f(p, "player.maxHealth", pl.maxHealth);
         pl.hunger = f(p, "player.hunger", pl.hunger);
