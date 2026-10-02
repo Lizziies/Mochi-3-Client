@@ -1,18 +1,32 @@
-const row = (r) => (r ? { ...r, style: JSON.parse(r.style), worn: JSON.parse(r.worn), visible: !!r.visible } : null);
+const row = (r) => (r ? { ...r, style: JSON.parse(r.style), worn: JSON.parse(r.worn), visible: !!r.visible, role: r.role ?? '' } : null);
 
 // db: { one(sql, args), all(sql, args), run(sql, args), batch([[sql, args], ...]) }
 export function sqlStore(db, counts = new Map()) {
+  // databases created before roles existed get the column the first time they are used
+  let migrated = false;
+  async function migrate() {
+    if (migrated) return;
+    migrated = true;
+    try {
+      await db.run("ALTER TABLE players ADD COLUMN role TEXT NOT NULL DEFAULT ''", []);
+    } catch {
+      // the column is already there
+    }
+  }
+
   return {
     async player(key) {
+      await migrate();
       return row(await db.one('SELECT * FROM players WHERE key = ?', [key]));
     },
     async savePlayer(p) {
+      await migrate();
       await db.run(
-        `INSERT INTO players (key, name, secret, style, worn, visible, server, client, seen, created)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `INSERT INTO players (key, name, secret, style, worn, visible, server, client, seen, created, role)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
          ON CONFLICT(key) DO UPDATE SET name = excluded.name, secret = excluded.secret, style = excluded.style, worn = excluded.worn,
-           visible = excluded.visible, server = excluded.server, client = excluded.client, seen = excluded.seen`,
-        [p.key, p.name, p.secret, JSON.stringify(p.style), JSON.stringify(p.worn), p.visible ? 1 : 0, p.server, p.client, p.seen, p.created],
+           visible = excluded.visible, server = excluded.server, client = excluded.client, seen = excluded.seen, role = excluded.role`,
+        [p.key, p.name, p.secret, JSON.stringify(p.style), JSON.stringify(p.worn), p.visible ? 1 : 0, p.server, p.client, p.seen, p.created, p.role ?? ''],
       );
     },
     async removePlayer(key) {

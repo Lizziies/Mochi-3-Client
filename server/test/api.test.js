@@ -180,3 +180,30 @@ test('health and unknown routes', async () => {
   const token = await login('Luna');
   assert.equal((await call('/v1/nope', {}, token)).status, 404);
 });
+
+test('admin gives a gamertag a role that others see in lookup', async () => {
+  const luna = await login('Luna');
+  const kiki = await login('Kiki', secretB);
+  const denied = await call('/v1/admin/role', { name: 'Luna', role: 'owner' }, '', { headers: { 'x-admin-key': 'wrong' } });
+  assert.equal(denied.status, 403);
+  assert.equal((await call('/v1/admin/role', { name: 'Luna', role: 'king' }, '', { headers: { 'x-admin-key': 'letmein' } })).status, 400);
+  assert.equal((await call('/v1/admin/role', { name: 'Nobody', role: 'owner' }, '', { headers: { 'x-admin-key': 'letmein' } })).status, 404);
+  const ok = await call('/v1/admin/role', { name: 'luna', role: 'owner' }, '', { headers: { 'x-admin-key': 'letmein' } });
+  assert.equal(ok.status, 200);
+  const r = await call('/v1/lookup', { names: ['Luna', 'Kiki'] }, kiki);
+  assert.equal(r.data.users.find((u) => u.name === 'Luna').role, 'owner');
+  assert.equal(r.data.users.find((u) => u.name === 'Kiki').role, '');
+  await call('/v1/profile', { style: { mode: 'pulse' } }, luna);
+  await call('/v1/presence', { server: 'The Hive' }, luna);
+  const again = await call('/v1/hello', { name: 'Luna', secret: secretA });
+  assert.equal(again.data.role, 'owner');
+});
+
+test('a reclaimed gamertag loses its role', async () => {
+  await login('Luna', secretA);
+  await call('/v1/admin/role', { name: 'Luna', role: 'owner' }, '', { headers: { 'x-admin-key': 'letmein' } });
+  clock += 31 * 86400;
+  const r = await call('/v1/hello', { name: 'Luna', secret: secretB });
+  assert.equal(r.status, 200);
+  assert.equal(r.data.role, '');
+});

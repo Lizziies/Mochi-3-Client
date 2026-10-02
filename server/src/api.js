@@ -1,4 +1,4 @@
-import { cleanServer, cleanStyle, cleanWorn, keyOf, nameOk } from './validate.js';
+import { cleanServer, cleanStyle, cleanWorn, keyOf, nameOk, roleOk } from './validate.js';
 
 const online = 300;
 const sessionTtl = 12 * 3600;
@@ -57,6 +57,7 @@ async function hello(body, ip, store, now) {
   if (existing && existing.secret !== secret && now - existing.seen < reclaimAfter) return fail(403, 'claimed');
 
   const style = cleanStyle(body.style);
+  const same = existing && existing.secret === secret;
   const player = {
     key,
     name: body.name,
@@ -67,13 +68,14 @@ async function hello(body, ip, store, now) {
     server: '',
     client: typeof body.client === 'string' ? body.client.slice(0, 16) : '',
     seen: now,
-    created: existing && existing.secret === secret ? existing.created : now,
+    created: same ? existing.created : now,
+    role: same ? existing.role ?? '' : '',
   };
   await store.savePlayer(player);
 
   const token = randomToken();
   await store.saveSession(await sha256(token), key, now + sessionTtl);
-  return json({ token, ttl: sessionTtl, style, worn: player.worn });
+  return json({ token, ttl: sessionTtl, style, worn: player.worn, role: player.role });
 }
 
 async function profile(body, auth, store, now) {
@@ -98,7 +100,7 @@ async function lookup(body, auth, store, now) {
   const names = Array.isArray(body.names) ? body.names.filter(nameOk).slice(0, 100) : [];
   const keys = [...new Set(names.map(keyOf))];
   const found = await store.lookup(keys, now - online);
-  const users = found.map((p) => ({ name: p.name, style: p.style, worn: p.worn }));
+  const users = found.map((p) => ({ name: p.name, style: p.style, worn: p.worn, role: p.role ?? '' }));
   return json({ users });
 }
 
@@ -113,12 +115,28 @@ async function forget(auth, store) {
   return json({ ok: true });
 }
 
-async function admin(request, body, store, env) {
+async function isAdmin(request, env) {
   const given = request.headers.get('x-admin-key') ?? '';
-  if (!env.ADMIN_KEY || given.length !== env.ADMIN_KEY.length || (await sha256(given)) !== (await sha256(env.ADMIN_KEY))) return fail(403, 'no');
+  return !!env.ADMIN_KEY && given.length === env.ADMIN_KEY.length && (await sha256(given)) === (await sha256(env.ADMIN_KEY));
+}
+
+async function admin(request, body, store, env) {
+  if (!(await isAdmin(request, env))) return fail(403, 'no');
   if (!nameOk(body.name)) return fail(400, 'name');
   await store.block(keyOf(body.name), typeof body.reason === 'string' ? body.reason.slice(0, 200) : '');
   return json({ ok: true });
+}
+
+// A role sticks to the install that holds the gamertag: when someone else reclaims it, hello drops the role.
+async function setRole(request, body, store, env) {
+  if (!(await isAdmin(request, env))) return fail(403, 'no');
+  if (!nameOk(body.name)) return fail(400, 'name');
+  const role = body.role ?? '';
+  if (!roleOk(role)) return fail(400, 'role');
+  const player = await store.player(keyOf(body.name));
+  if (!player) return fail(404, 'unknown');
+  await store.savePlayer({ ...player, role });
+  return json({ ok: true, name: player.name, role });
 }
 
 export async function handle(request, env, store, now = Math.floor(Date.now() / 1000)) {
@@ -135,6 +153,7 @@ export async function handle(request, env, store, now = Math.floor(Date.now() / 
 
   if (path === '/v1/hello') return hello(body, ip, store, now);
   if (path === '/v1/admin/block') return admin(request, body, store, env);
+  if (path === '/v1/admin/role') return setRole(request, body, store, env);
 
   const auth = await authed(request, store, now);
   if (!auth) return fail(401, 'token');

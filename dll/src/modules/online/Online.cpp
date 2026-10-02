@@ -196,6 +196,7 @@ User userFrom(const json& j) {
     u.name = j.value("name", "");
     u.style = styleFrom(j.value("style", json::object()));
     u.worn = wornFrom(j.value("worn", json::array()));
+    if (auto r = j.value("role", ""); r == "owner" || r == "staff") u.role = r;
     return u;
 }
 
@@ -601,7 +602,14 @@ std::string tagLine(const std::string& line, bool names, bool hearts) {
         out += hit->name;
     }
     if (hearts && hit->style.heart) out += std::format(" §#{:06X};\x01§r", hit->style.heartColor & 0xffffff);
+    if (!hit->role.empty()) out += " §#3BA7EC;" + badge(hit->role) + "§r";
     return out + line.substr(to);
+}
+
+std::string badge(const std::string& role) {
+    if (role == "owner") return i18n::tr("[Owner]");
+    if (role == "staff") return i18n::tr("[Staff]");
+    return {};
 }
 
 }

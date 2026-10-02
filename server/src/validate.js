@@ -1,4 +1,7 @@
 const modes = ['solid', 'gradient', 'rainbow', 'pulse'];
+const roles = ['', 'owner', 'staff'];
+
+export const roleOk = (role) => roles.includes(role);
 
 export const nameOk = (name) => typeof name === 'string' && /^[A-Za-z0-9 _.-]{1,32}$/.test(name) && name.trim() === name;
 
@@ -12,7 +15,7 @@ export function cleanStyle(raw) {
   const speed = Math.min(5, Math.max(0.1, Number.isFinite(s.speed) ? s.speed : 1));
   return {
     mode,
-    a: hex(s.a, '#ff7eb6'),
+    a: hex(s.a, '#3ba7ec'),
     b: hex(s.b, '#ffffff'),
     speed: Math.round(speed * 100) / 100,
     heartColor: hex(s.heartColor, '#ff3b5c'),

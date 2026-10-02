@@ -8,7 +8,8 @@ CREATE TABLE IF NOT EXISTS players (
   server TEXT NOT NULL DEFAULT '',
   client TEXT NOT NULL DEFAULT '',
   seen INTEGER NOT NULL,
-  created INTEGER NOT NULL
+  created INTEGER NOT NULL,
+  role TEXT NOT NULL DEFAULT ''
 );
 
 CREATE INDEX IF NOT EXISTS players_seen ON players (seen);

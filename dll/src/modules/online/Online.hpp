@@ -12,7 +12,7 @@ enum class Mode { Solid, Gradient, Rainbow, Pulse };
 
 struct Style {
     Mode mode = Mode::Solid;
-    uint32_t a = 0xff7eb6;
+    uint32_t a = 0x3ba7ec;
     uint32_t b = 0xffffff;
     float speed = 1.f;
     uint32_t heartColor = 0xff3b5c;
@@ -32,6 +32,7 @@ struct User {
     std::string name;
     Style style;
     std::vector<Worn> worn;
+    std::string role;
 };
 
 struct Config {
@@ -86,5 +87,6 @@ float paint(const std::string& text, const Style& s, double t, Draw&& draw) {
 }
 
 std::string tagLine(const std::string& line, bool names, bool hearts);
+std::string badge(const std::string& role);
 
 }

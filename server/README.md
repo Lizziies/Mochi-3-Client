@@ -63,7 +63,10 @@ All bodies are JSON, all answers are JSON. Everything except `hello` and `health
 | `POST /v1/bye` | ends the session and hides the user. |
 | `POST /v1/forget` | deletes everything stored about the gamertag. |
 | `POST /v1/admin/block` | `{name, reason}` with header `X-Admin-Key`, blocks a gamertag. |
+| `POST /v1/admin/role` | `{name, role}` with header `X-Admin-Key`, `role` is `owner`, `staff` or empty. The gamertag must have signed in once. Mochi users see `[Owner]` / `[Team]` behind the name in chat and the Tab List. |
 | `GET /v1/health` | `{ok, online}` |
+
+`hello` and `lookup` also return `role` (empty for normal users). A role belongs to the install that holds the gamertag: if somebody else reclaims the name after 30 days, the role is gone.
 
 `style` is `{mode: solid|gradient|rainbow|pulse, a, b, speed, heart, heartColor}` with colors as `#rrggbb`. `worn` is a list of `{id, tint: [#rrggbb, ...]}` with at most 8 items.
 
@@ -79,3 +82,14 @@ Ten `hello` per minute per address, 30 calls per route per minute per gamertag (
 
 - Proof that you own the gamertag (the Xbox sign-in token). Until then the first claim wins, and the 30 day rule is the only way back for someone who lost their secret.
 - Reports. There is no free text, so only the admin block exists for now.
+
+## Owner badge
+
+1. Start Minecraft with Mochi Online on once, so the gamertag (for example `vlisya`) is signed in and claimed by this PC.
+2. Give it the role (the admin key is the `ADMIN_KEY` secret of the worker):
+
+```
+curl -X POST https://<worker>/v1/admin/role -H "X-Admin-Key: <ADMIN_KEY>" -H "content-type: application/json" -d "{\"name\":\"vlisya\",\"role\":\"owner\"}"
+```
+
+Older databases get the `role` column by themselves on the first request after the update.

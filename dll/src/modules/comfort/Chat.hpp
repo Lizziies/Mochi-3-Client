@@ -526,6 +526,7 @@ protected:
                 online::User peer;
                 bool mochi = mo && online::find(list[i].name, peer);
                 if (mochi && mo->hearts() && peer.style.heart) extra += "    ";
+                if (mochi && !peer.role.empty()) extra += " " + online::badge(peer.role);
                 float w = textSize(s, list[i].name).x + (extra.empty() ? 0.f : textSize(s, extra).x + 6 * s) + (heads_.b ? rowH : 0.f) + (platform_.b ? rowH : 0.f) + (ping_.b ? 56.f * s : 8.f * s);
                 colW = std::max(colW, w);
             }
@@ -564,7 +565,9 @@ protected:
                 if (mochi && mo->hearts() && peer.style.heart) {
                     float hs = icon * 0.8f;
                     online::heartIcon(dl, {after + hs * 0.5f - 3 * s, row.y + rowH * 0.5f}, hs, online::rgb(peer.style.heartColor));
+                    after += hs + 4 * s;
                 }
+                if (mochi && !peer.role.empty()) drawText(dl, {after, namePos.y}, s, online::badge(peer.role), online::rgb(0x3BA7EC));
                 if (ping_.b) {
                     ImVec4 c4 = rampColor(float(e.ping), 40.f, 200.f, good_.color, mid_.color, bad_.color);
                     if (pingBars_.b) {
