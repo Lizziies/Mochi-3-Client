@@ -25,7 +25,9 @@ Alles Weitere geht nur am PC mit dem echten Spiel und steht in `docs/HOME_TODO.m
 ## 2026-10-02 nachmittags, PC, Branch claude/pc-test
 
 - Erste echte Signatur: `LocalPlayer` (globaler Zeiger, Muster in `sigs/1.26.52.json`). Position, Pitch und Yaw liegen zusammen bei player>0x138>0x990 (+0x0 Position auf Augenhöhe, +0xc Pitch, +0x10 Yaw). Die Kopie über den ClientInstance-Pfad (player>0x28>0x258>0x5e0) wird nur alle paar Sekunden aktualisiert, nicht nehmen.
-- Bewegungszustand: player>0x1a0 +0xc, 4 normal, 5 schleichen, 3 sprinten. Neues Offset-Format `<feld>.is` für solche Enum-Bytes, `<feld>.viaN` für Zeigerpfade.
+- Schleichen/Sprinten: noch nicht gefunden. Der erste Kandidat player>0x1a0 +0xc war Zufall (das Byte springt periodisch zwischen 3, 4 und 5, unabhängig von der Eingabe), wieder entfernt. Offset-Formate: `<feld>.viaN` für Zeigerpfade, `<feld>.is` für Enum-Bytes.
+- HitResult (Fadenkreuz-Ziel): bei [[player+0x28]+0x258]+0x1f0, +0x18 mit Entities, +0x128 nur Blöcke. Aufbau: Start (3 float), Strahl (3 float), Typ (0 Block, 1 Entity, 3 nichts), Seite, Block (3 int), Trefferpunkt (3 float), Entity-Referenz (+0x38), Entity-Hitbox (min/max). Noch nicht im Live-Leser, weil Waila/Break Progress zusätzlich Blockname und Abbaufortschritt brauchen.
+- Weltzeit: Weltalter-Tickzähler gefunden (mehrere Kopien), Tageszeit-Getter offen.
 - Geschwindigkeit wird aus der Positionsänderung abgeleitet, solange kein velX-Offset gefunden ist.
 - Im Spiel geprüft: XYZ stimmt mit der Spielanzeige überein, Tempo zeigt beim Laufen einen Wert, Pitch/Yaw stimmen.
 - Offen bei den Spielerfeldern: Leben (die Testwelt hat Cheats aus, braucht eine Überlebenswelt mit Cheats für `/damage`), Hunger, onGround (kein Flag in Tiefe 1 gefunden), Dimension, Level, AttackEntity.

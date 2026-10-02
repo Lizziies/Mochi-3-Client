@@ -1,1 +1,1 @@
-FLAGTAG = 'fly'
+FLAGTAG = 'sneak'

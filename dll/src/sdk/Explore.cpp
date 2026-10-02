@@ -181,6 +181,15 @@ int readValue(lua_State* L) {
     return 1;
 }
 
+int lRaw(lua_State* L) {
+    uintptr_t at = arg(L, 1);
+    size_t n = std::min<size_t>(static_cast<size_t>(luaL_checkinteger(L, 2)), 1u << 20);
+    std::vector<char> buf(n);
+    if (!readMem(at, buf.data(), n)) return 0;
+    lua_pushlstring(L, buf.data(), n);
+    return 1;
+}
+
 int lWriteF32(lua_State* L) {
     lua_pushboolean(L, mem::write(arg(L, 1), static_cast<float>(luaL_checknumber(L, 2))));
     return 1;
@@ -342,6 +351,39 @@ int lHeapFloats(lua_State* L) {
             walk(reinterpret_cast<uintptr_t>(mbi.BaseAddress), mbi.RegionSize, 12, [&](uintptr_t base, const uint8_t* data, size_t count, size_t span) {
                 for (size_t i = 0; i + 12 <= count && i < span; i += 4) {
                     float v[3];
+                    std::memcpy(v, data + i, 12);
+                    if (v[0] >= lo[0] && v[0] <= hi[0] && v[1] >= lo[1] && v[1] <= hi[1] && v[2] >= lo[2] && v[2] <= hi[2])
+                        hits.push_back(base + i);
+                    if (hits.size() >= limit) return true;
+                }
+                return false;
+            });
+        }
+        if (next <= at) break;
+        at = next;
+    }
+    return pushList(L, hits);
+}
+
+// three consecutive 32-bit integers inside the given ranges (block positions), in private writable memory
+int lHeapInts(lua_State* L) {
+    int32_t lo[3], hi[3];
+    for (int i = 0; i < 3; i++) {
+        lo[i] = static_cast<int32_t>(luaL_checkinteger(L, 1 + i * 2));
+        hi[i] = static_cast<int32_t>(luaL_checkinteger(L, 2 + i * 2));
+    }
+    size_t limit = static_cast<size_t>(luaL_optinteger(L, 7, 32));
+    std::vector<uintptr_t> hits;
+    MEMORY_BASIC_INFORMATION mbi{};
+    uintptr_t at = 0x10000;
+    while (hits.size() < limit && VirtualQuery(reinterpret_cast<void*>(at), &mbi, sizeof(mbi))) {
+        uintptr_t next = reinterpret_cast<uintptr_t>(mbi.BaseAddress) + mbi.RegionSize;
+        bool ok = mbi.State == MEM_COMMIT && mbi.Type == MEM_PRIVATE && !(mbi.Protect & (PAGE_GUARD | PAGE_NOACCESS)) &&
+                  (mbi.Protect & (PAGE_READWRITE | PAGE_WRITECOPY));
+        if (ok) {
+            walk(reinterpret_cast<uintptr_t>(mbi.BaseAddress), mbi.RegionSize, 12, [&](uintptr_t base, const uint8_t* data, size_t count, size_t span) {
+                for (size_t i = 0; i + 12 <= count && i < span; i += 4) {
+                    int32_t v[3];
                     std::memcpy(v, data + i, 12);
                     if (v[0] >= lo[0] && v[0] <= hi[0] && v[1] >= lo[1] && v[1] <= hi[1] && v[2] >= lo[2] && v[2] <= hi[2])
                         hits.push_back(base + i);
@@ -555,16 +597,38 @@ int lSleep(lua_State* L) {
 }
 
 constexpr size_t watchMax = 4096;
+constexpr int watchDepth = 8;
 std::atomic<size_t> watchCount{0};
 uintptr_t watchHits[watchMax];
+uintptr_t watchStacks[watchMax][watchDepth];
+
+void unwind(const CONTEXT& from, uintptr_t* out) {
+    CONTEXT c = from;
+    for (int k = 0; k < watchDepth; k++) {
+        out[k] = 0;
+        DWORD64 base = 0;
+        auto* fn = RtlLookupFunctionEntry(c.Rip, &base, nullptr);
+        if (!fn) break;
+        void* handler = nullptr;
+        DWORD64 frame = 0;
+        RtlVirtualUnwind(UNW_FLAG_NHANDLER, base, c.Rip, fn, &c, &handler, &frame, nullptr);
+        if (!c.Rip) break;
+        out[k] = static_cast<uintptr_t>(c.Rip);
+    }
+}
 
 LONG CALLBACK onWatch(EXCEPTION_POINTERS* e) {
     if (e->ExceptionRecord->ExceptionCode != EXCEPTION_SINGLE_STEP || !(e->ContextRecord->Dr6 & 1)) return EXCEPTION_CONTINUE_SEARCH;
     size_t i = watchCount.fetch_add(1);
-    if (i < watchMax) watchHits[i] = reinterpret_cast<uintptr_t>(e->ExceptionRecord->ExceptionAddress);
+    if (i < watchMax) {
+        watchHits[i] = reinterpret_cast<uintptr_t>(e->ExceptionRecord->ExceptionAddress);
+        unwind(*e->ContextRecord, watchStacks[i]);
+    }
     e->ContextRecord->Dr6 = 0;
     return EXCEPTION_CONTINUE_EXECUTION;
 }
+
+bool watchWrites = false;
 
 void armThreads(uintptr_t address, bool on) {
     HANDLE snap = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
@@ -578,9 +642,9 @@ void armThreads(uintptr_t address, bool on) {
             CONTEXT c{};
             c.ContextFlags = CONTEXT_DEBUG_REGISTERS;
             if (GetThreadContext(t, &c)) {
-                // slot 0, break on read or write (RW0 = 11), four bytes (LEN0 = 11)
+                // slot 0, break on read or write (RW0 = 11) or only on write (01), four bytes (LEN0 = 11)
                 c.Dr0 = on ? address : 0;
-                c.Dr7 = on ? (c.Dr7 & ~0xF0003ull) | 1ull | (3ull << 16) | (3ull << 18) : c.Dr7 & ~0xF0003ull;
+                c.Dr7 = on ? (c.Dr7 & ~0xF0003ull) | 1ull | ((watchWrites ? 1ull : 3ull) << 16) | (3ull << 18) : c.Dr7 & ~0xF0003ull;
                 SetThreadContext(t, &c);
             }
             ResumeThread(t);
@@ -591,9 +655,11 @@ void armThreads(uintptr_t address, bool on) {
 }
 
 // instructions right after every access to a 4-byte value during the given time (hardware breakpoint, dev only)
+// returns rip, count, "caller,caller,..." triples; a true third argument watches writes only
 int lWatch(lua_State* L) {
     uintptr_t address = arg(L, 1);
     DWORD ms = static_cast<DWORD>(std::clamp<lua_Integer>(luaL_optinteger(L, 2, 2000), 50, 10000));
+    watchWrites = lua_toboolean(L, 3);
     watchCount = 0;
     PVOID veh = AddVectoredExceptionHandler(1, onWatch);
     armThreads(address, true);
@@ -602,16 +668,25 @@ int lWatch(lua_State* L) {
     Sleep(50);
     RemoveVectoredExceptionHandler(veh);
     size_t n = std::min(watchCount.load(), watchMax);
-    std::vector<uintptr_t> hits(watchHits, watchHits + n);
-    std::sort(hits.begin(), hits.end());
+    std::vector<size_t> order(n);
+    for (size_t i = 0; i < n; i++) order[i] = i;
+    std::stable_sort(order.begin(), order.end(), [](size_t a, size_t b) { return watchHits[a] < watchHits[b]; });
     lua_newtable(L);
     int out = 1;
-    for (size_t i = 0; i < hits.size();) {
+    for (size_t i = 0; i < n;) {
         size_t j = i;
-        while (j < hits.size() && hits[j] == hits[i]) j++;
-        lua_pushinteger(L, static_cast<lua_Integer>(hits[i]));
+        while (j < n && watchHits[order[j]] == watchHits[order[i]]) j++;
+        std::string stack;
+        for (int k = 0; k < watchDepth && watchStacks[order[i]][k]; k++) {
+            char tmp[24];
+            std::snprintf(tmp, sizeof(tmp), "%s%llx", k ? "," : "", static_cast<unsigned long long>(watchStacks[order[i]][k]));
+            stack += tmp;
+        }
+        lua_pushinteger(L, static_cast<lua_Integer>(watchHits[order[i]]));
         lua_rawseti(L, -2, out++);
         lua_pushinteger(L, static_cast<lua_Integer>(j - i));
+        lua_rawseti(L, -2, out++);
+        lua_pushstring(L, stack.c_str());
         lua_rawseti(L, -2, out++);
         i = j;
     }
@@ -673,10 +748,10 @@ void work(std::string name) {
     static const luaL_Reg api[] = {
         {"base", lBase},       {"sections", lSections}, {"hex", lHex},         {"u8", readValue<uint8_t>},
         {"u16", readValue<uint16_t>}, {"u32", readValue<uint32_t>}, {"u64", readValue<uint64_t>},
-        {"i32", readValue<int32_t>},  {"f32", readValue<float>},    {"f64", readValue<double>}, {"wf32", lWriteF32},
+        {"i32", readValue<int32_t>},  {"f32", readValue<float>},    {"f64", readValue<double>}, {"wf32", lWriteF32}, {"raw", lRaw},
         {"cstr", lCstr},       {"find", lFind},         {"findd", lFindData},  {"bytes", lBytes},
         {"xrefs", lXrefs},     {"callers", lCallers},   {"func", lFunc},       {"vtable", lVtable},
-        {"heap", lHeap},       {"heapf", lHeapFloats},  {"call", lCall}, {"callf", lCallF}, {"scanf", lScanFloats}, {"floatsin", lFloatsIn},{"pointers", lPointers},      {"disasm", lDisasm},   {"disfunc", lDisFunc},
+        {"heap", lHeap},       {"heapf", lHeapFloats}, {"heapi", lHeapInts},  {"call", lCall}, {"callf", lCallF}, {"scanf", lScanFloats}, {"floatsin", lFloatsIn},{"pointers", lPointers},      {"disasm", lDisasm},   {"disfunc", lDisFunc},
         {"sleep", lSleep},     {"watch", lWatch},     {"log", lLog},           {"out", lOut},         {"run", lRun},
         {nullptr, nullptr}};
     luaL_newlib(L, api);
