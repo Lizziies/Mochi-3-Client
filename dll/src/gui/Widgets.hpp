@@ -9,6 +9,8 @@
 namespace widgets {
 
 bool toggle(const char* id, bool& value, bool enabled = true);
+ImVec2 switchSize();
+void drawSwitch(ImDrawList* dl, ImVec2 p, float a, float alpha);
 bool setting(Setting& s);
 bool button(const char* label, ImVec2 size = {0, 0}, bool primary = false);
 bool keyCapture(const char* id, int& vk);

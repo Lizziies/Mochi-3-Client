@@ -17,45 +17,53 @@ namespace widgets {
 static ImGuiID capturing = 0;
 static bool capturedThisFrame = false;
 
-bool toggle(const char* id, bool& value, bool enabled) {
+void drawSwitch(ImDrawList* dl, ImVec2 p, float a, float alpha) {
     auto& t = theme::current();
     float s = ui::scale();
-    ImVec2 size{40 * s, 22 * s};
-    ImVec2 p = ImGui::GetCursorScreenPos();
+    ImVec2 size = switchSize();
+    ImVec4 track = theme::mix(t.off, theme::mix(t.bg, t.accent, 0.35f), a);
+    dl->AddRectFilled(p, p + size, theme::col(track, (0.55f + 0.45f * a) * alpha), size.y * 0.5f);
+    float r = 3.6f * s;
+    float x = p.x + size.y * 0.5f + (size.x - size.y) * draw::easeOutCubic(a);
+    ImVec4 knob = theme::mix(ImVec4(1, 1, 1, 1), t.accent2, a);
+    dl->AddCircleFilled({x, p.y + size.y * 0.5f}, r, theme::col(knob, alpha), 16);
+}
 
+ImVec2 switchSize() {
+    float s = ui::scale();
+    return {24 * s, 13 * s};
+}
+
+bool toggle(const char* id, bool& value, bool enabled) {
+    auto& t = theme::current();
+    ImVec2 size = switchSize();
+    ImVec2 p = ImGui::GetCursorScreenPos();
     ImGui::PushID(id);
     bool clicked = ImGui::InvisibleButton("##toggle", size) && enabled;
-    bool hovered = ImGui::IsItemHovered();
     ImGuiID key = ImGui::GetID("anim");
     ImGui::PopID();
-
     if (clicked) {
         value = !value;
         config::markDirty();
     }
-
     float& a = *ImGui::GetStateStorage()->GetFloatRef(key, value ? 1.f : 0.f);
     a = draw::approach(a, value ? 1.f : 0.f, 18.f * t.animSpeed);
+    drawSwitch(ImGui::GetWindowDrawList(), p, a, enabled ? 1.f : 0.4f);
+    return clicked;
+}
 
+static bool pill(const char* id, const char* label, bool primary, ImVec2 at, float h, float& width) {
+    auto& t = theme::current();
+    float s = ui::scale();
+    ImVec2 ts = fonts::regular()->CalcTextSizeA(12 * s, FLT_MAX, 0.f, label);
+    width = ts.x + 18 * s;
+    ImGui::SetCursorScreenPos(at);
+    bool clicked = ImGui::InvisibleButton(id, {width, h});
+    bool hov = ImGui::IsItemHovered();
     auto* dl = ImGui::GetWindowDrawList();
-    float alpha = enabled ? 1.f : 0.4f;
-    ImVec4 track = theme::mix(t.off, t.accent, a);
-    if (hovered && enabled) track = theme::mix(track, t.accent2, 0.15f);
-    float round = std::min(size.y * 0.5f, t.rounding * 0.6f * s + 1.f * s);
-    if (t.gradient && a > 0.01f)
-        draw::gradientRect(dl, p, p + size, theme::col(theme::mix(t.off, t.accent, a), alpha),
-                           theme::col(theme::mix(t.off, t.accent2, a), alpha), round);
-    else
-        dl->AddRectFilled(p, p + size, theme::col(track, alpha), round);
-
-    float r = size.y * 0.5f - 3 * s;
-    float x = p.x + size.y * 0.5f + (size.x - size.y) * draw::easeOutCubic(a);
-    ImVec2 c{x, p.y + size.y * 0.5f};
-    float knob = std::max(0.f, round - 3 * s);
-    dl->AddRectFilled(c - ImVec2(r, r - 1 * s), c + ImVec2(r, r + 1 * s), IM_COL32(0, 0, 0, int(40 * alpha)), knob);
-    dl->AddRectFilled(c - ImVec2(r, r), c + ImVec2(r, r), IM_COL32(255, 255, 255, int(255 * alpha)), knob);
-    if (a > 0.5f && t.hearts)
-        draw::heart(dl, {x, p.y + size.y * 0.5f + 0.5f * s}, r * 1.1f, theme::col(t.accent, (a - 0.5f) * 2 * alpha));
+    ImVec4 bg = primary ? (hov ? theme::mix(t.accent, t.accent2, 0.3f) : t.accent) : (hov ? t.surfaceHover : t.surface);
+    dl->AddRectFilled(at, at + ImVec2(width, h), theme::col(bg), 4 * s);
+    dl->AddText(fonts::regular(), 12 * s, at + ImVec2(9 * s, (h - ts.y) * 0.5f), theme::col(primary ? ImVec4(1, 1, 1, 1) : t.text), label);
     return clicked;
 }
 
@@ -63,30 +71,19 @@ bool button(const char* id, ImVec2 size, bool primary) {
     auto& t = theme::current();
     float s = ui::scale();
     const char* label = i18n::tr(id);
-    ImVec2 ts = ImGui::CalcTextSize(label);
-    if (size.x <= 0) size.x = ts.x + 28 * s;
-    if (size.y <= 0) size.y = ts.y + 14 * s;
+    const char* end = ImGui::FindRenderedTextEnd(label);
+    ImVec2 ts = fonts::regular()->CalcTextSizeA(13.5f * s, FLT_MAX, 0.f, label, end);
+    if (size.x <= 0) size.x = ts.x + 24 * s;
+    if (size.y <= 0) size.y = 28 * s;
     ImVec2 p = ImGui::GetCursorScreenPos();
     bool clicked = ImGui::InvisibleButton(id, size);
     bool hovered = ImGui::IsItemHovered();
     bool held = ImGui::IsItemActive();
-
     auto* dl = ImGui::GetWindowDrawList();
-    float r = t.rounding * 0.6f * s;
-    if (primary) {
-        ImVec4 a = held ? t.accent2 : t.accent;
-        if (t.gradient)
-            draw::gradientRect(dl, p, p + size, theme::col(a), theme::col(t.accent2), r);
-        else
-            dl->AddRectFilled(p, p + size, theme::col(a), r);
-        if (hovered) draw::glow(dl, p, p + size, r, theme::col(t.accent, 0.8f), 8 * s);
-    } else {
-        dl->AddRectFilled(p, p + size, theme::col(t.surfaceHover, hovered ? 1.f : 0.6f), r);
-    }
-    ImVec4 tc = primary ? ImVec4(1, 1, 1, 1) : t.text;
-    const char* end = ImGui::FindRenderedTextEnd(label);
-    ImVec2 lts = ImGui::CalcTextSize(label, end);
-    dl->AddText(p + (size - lts) * 0.5f, theme::col(tc), label, end);
+    float r = 5 * s;
+    if (primary) dl->AddRectFilled(p, p + size, theme::col(held ? t.accent2 : hovered ? theme::mix(t.accent, t.accent2, 0.3f) : t.accent), r);
+    else dl->AddRectFilled(p, p + size, theme::col(t.surface, hovered ? 1.f : 0.7f), r);
+    dl->AddText(fonts::regular(), 13.5f * s, p + (size - ts) * 0.5f, theme::col(primary ? ImVec4(1, 1, 1, 1) : t.text), label, end);
     return clicked;
 }
 
@@ -95,12 +92,8 @@ void sectionTitle(const char* text) {
     float s = ui::scale();
     ImGui::Dummy({0, 6 * s});
     ImVec2 p = ImGui::GetCursorScreenPos();
-    float w = ImGui::GetContentRegionAvail().x;
-    ImGui::Dummy({w, 34 * s});
-    auto* dl = ImGui::GetWindowDrawList();
-    dl->AddRectFilled(p, p + ImVec2(w, 34 * s), theme::col(t.surfaceHover, 0.85f), 10 * s);
-    dl->AddText(fonts::bold(), 16.f * s, p + ImVec2(14 * s, 8 * s), theme::col(t.text), i18n::tr(text));
-    ImGui::Dummy({0, 4 * s});
+    ImGui::GetWindowDrawList()->AddText(fonts::bold(), 13.5f * s, p + ImVec2(2 * s, 0), theme::col(t.text), i18n::tr(text));
+    ImGui::Dummy({0, 20 * s});
 }
 
 void hint(const char* text) {
@@ -158,20 +151,20 @@ bool keyCapture(const char* id, int& vk) {
     ImGuiID gid = ImGui::GetID(id);
     bool active = capturing == gid;
 
-    std::string label = active ? i18n::tr("Press a key…") : keyName(vk);
-    ImVec2 size{std::max(110 * s, ImGui::CalcTextSize(label.c_str()).x + 24 * s), ImGui::GetFrameHeight()};
+    std::string label = active ? "..." : (vk ? keyName(vk) : std::string(i18n::tr("none")));
+    ImVec2 ts = fonts::regular()->CalcTextSizeA(12 * s, FLT_MAX, 0.f, label.c_str());
+    ImVec2 size{std::max(40 * s, ts.x + 18 * s), 19 * s};
     ImVec2 p = ImGui::GetCursorScreenPos();
     ImGui::PushID(id);
     bool clicked = ImGui::InvisibleButton("##key", size);
     bool rclick = ImGui::IsItemClicked(ImGuiMouseButton_Right);
+    bool hov = ImGui::IsItemHovered();
     ImGui::PopID();
 
     auto* dl = ImGui::GetWindowDrawList();
-    dl->AddRectFilled(p, p + size, active ? theme::col(theme::mix(t.surfaceHover, t.accent, 0.25f)) : theme::col(t.bg, 0.7f),
-                      t.rounding * 0.5f * s);
-    if (active) dl->AddRect(p, p + size, theme::col(t.accent), t.rounding * 0.5f * s, 0, 1.5f * s);
-    ImVec2 ts = ImGui::CalcTextSize(label.c_str());
-    dl->AddText(p + (size - ts) * 0.5f, theme::col(active ? t.accent : t.text), label.c_str());
+    if (active) dl->AddRectFilled(p, p + size, theme::col(t.accent, 0.25f), 4 * s);
+    dl->AddRect(p, p + size, theme::col(active ? t.accent2 : (hov ? t.text : t.textDim), 0.9f), 4 * s, 0, 1.2f * s);
+    dl->AddText(fonts::regular(), 12 * s, p + (size - ts) * 0.5f, theme::col(active ? t.accent2 : t.text), label.c_str());
 
     bool changed = false;
     if (clicked && !active) {
@@ -203,57 +196,6 @@ bool keyCapture(const char* id, int& vk) {
     return changed;
 }
 
-static bool colorEdit(Setting& s) {
-    float col[4] = {s.color.x, s.color.y, s.color.z, s.color.w};
-    bool changed = ImGui::ColorEdit4(("##" + s.id).c_str(), col,
-                                     ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar |
-                                         ImGuiColorEditFlags_AlphaPreviewHalf);
-    if (changed) s.color = {col[0], col[1], col[2], col[3]};
-    return changed;
-}
-
-static bool pillSlider(float& v, float lo, float hi, const char* fmt, bool isInt) {
-    auto& t = theme::current();
-    float sc = ui::scale();
-    auto* dl = ImGui::GetWindowDrawList();
-    ImVec2 p = ImGui::GetCursorScreenPos();
-    float avail = ImGui::GetContentRegionAvail().x;
-    float h = ImGui::GetFrameHeight();
-    float pillW = 62 * sc;
-
-    char buf[32];
-    if (isInt) snprintf(buf, sizeof(buf), "%d", (int)std::lround(v));
-    else snprintf(buf, sizeof(buf), fmt, v);
-    ImVec2 ts = ImGui::CalcTextSize(buf);
-    dl->AddRectFilled(p, {p.x + pillW, p.y + h}, theme::col(t.surfaceHover), 8 * sc);
-    dl->AddText({p.x + (pillW - ts.x) * 0.5f, p.y + (h - ts.y) * 0.5f}, theme::col(t.text), buf);
-
-    float x0 = p.x + pillW + 14 * sc, x1 = p.x + avail - 8 * sc;
-    ImGui::SetCursorScreenPos({x0 - 8 * sc, p.y});
-    ImGui::InvisibleButton("slider", {x1 - x0 + 16 * sc, h});
-    bool active = ImGui::IsItemActive();
-    bool hovered = ImGui::IsItemHovered();
-
-    bool changed = false;
-    if (active) {
-        float k = std::clamp((ImGui::GetIO().MousePos.x - x0) / std::max(1.f, x1 - x0), 0.f, 1.f);
-        float nv = lo + k * (hi - lo);
-        if (isInt) nv = std::round(nv);
-        if (nv != v) {
-            v = nv;
-            changed = true;
-        }
-    }
-    float frac = hi > lo ? std::clamp((v - lo) / (hi - lo), 0.f, 1.f) : 0.f;
-    float cy = p.y + h * 0.5f;
-    dl->AddRectFilled({x0, cy - 2 * sc}, {x1, cy + 2 * sc}, theme::col(t.off), 2 * sc);
-    dl->AddRectFilled({x0, cy - 2 * sc}, {x0 + (x1 - x0) * frac, cy + 2 * sc}, theme::col(t.accent), 2 * sc);
-    float kr = (active ? 8.5f : hovered ? 8.f : 7.f) * sc;
-    dl->AddCircleFilled({x0 + (x1 - x0) * frac, cy}, kr, theme::col(t.accent2), 16);
-    dl->AddCircle({x0 + (x1 - x0) * frac, cy}, kr, theme::col(t.accent), 16, 1.5f * sc);
-    return changed;
-}
-
 static std::string hexOf(const ImVec4& c) {
     auto b = [](float x) { return (int)std::lround(std::clamp(x, 0.f, 1.f) * 255.f); };
     char buf[16];
@@ -262,87 +204,175 @@ static std::string hexOf(const ImVec4& c) {
     return buf;
 }
 
-bool setting(Setting& s) {
-    if (!s.shown()) return false;
-    float sc = ui::scale();
-    float labelW = ImGui::GetContentRegionAvail().x * 0.45f;
+static void rowBack(ImDrawList* dl, ImVec2 p, ImVec2 size, bool hov) {
+    auto& t = theme::current();
+    dl->AddRectFilled(p, p + size, theme::col(t.surface, hov ? 0.85f : 0.6f), 6 * ui::scale());
+}
+
+static void rowLabel(ImDrawList* dl, ImVec2 p, float h, const char* label, ImU32 col) {
+    float s = ui::scale();
+    ImVec2 ts = fonts::regular()->CalcTextSizeA(14.5f * s, FLT_MAX, 0.f, label);
+    dl->AddText(fonts::regular(), 14.5f * s, {p.x + 10 * s, p.y + (h - ts.y) * 0.5f}, col, label);
+}
+
+// the whole row is the slider, filled from the left like a progress bar
+static bool sliderRow(ImVec2 p, ImVec2 size, const char* label, float& v, float lo, float hi, const char* fmt, bool isInt) {
+    auto& t = theme::current();
+    float s = ui::scale();
+    auto* dl = ImGui::GetWindowDrawList();
+    ImGui::SetCursorScreenPos(p);
+    ImGui::InvisibleButton("slider", size);
+    bool active = ImGui::IsItemActive();
+    bool hov = ImGui::IsItemHovered();
     bool changed = false;
+    if (active) {
+        float k = std::clamp((ImGui::GetIO().MousePos.x - p.x) / std::max(1.f, size.x), 0.f, 1.f);
+        float nv = lo + k * (hi - lo);
+        if (isInt) nv = std::round(nv);
+        if (nv != v) {
+            v = nv;
+            changed = true;
+        }
+    }
+    float frac = hi > lo ? std::clamp((v - lo) / (hi - lo), 0.f, 1.f) : 0.f;
+    rowBack(dl, p, size, hov);
+    float& shown = *ImGui::GetStateStorage()->GetFloatRef(ImGui::GetID("fill"), frac);
+    shown = active ? frac : draw::approach(shown, frac, 22.f * t.animSpeed);
+    if (shown > 0.001f) dl->AddRectFilled(p, {p.x + std::max(12 * s, size.x * shown), p.y + size.y}, theme::col(t.accent, active ? 1.f : 0.9f), 6 * s);
+    rowLabel(dl, p, size.y, label, theme::col(t.text));
+    char buf[32];
+    if (isInt) snprintf(buf, sizeof(buf), "%d", (int)std::lround(v));
+    else snprintf(buf, sizeof(buf), fmt, v);
+    ImVec2 vs = fonts::regular()->CalcTextSizeA(14 * s, FLT_MAX, 0.f, buf);
+    dl->AddText(fonts::regular(), 14 * s, {p.x + size.x - vs.x - 10 * s, p.y + (size.y - vs.y) * 0.5f}, theme::col(t.text), buf);
+    return changed;
+}
 
-    ImGui::PushID(s.id.c_str());
-    ImGui::AlignTextToFramePadding();
-    const char* label = i18n::tr(s.label.c_str());
-    ImGui::TextUnformatted(label);
-    bool stacked = s.type != SettingType::Bool && ImGui::CalcTextSize(label).x > labelW - 12 * sc;
-    if (!stacked) ImGui::SameLine(labelW);
-    ImGui::SetNextItemWidth(-1);
+bool setting(Setting& st) {
+    if (!st.shown()) return false;
+    auto& t = theme::current();
+    float s = ui::scale();
+    auto* dl = ImGui::GetWindowDrawList();
+    ImVec2 p = ImGui::GetCursorScreenPos();
+    float w = ImGui::GetContentRegionAvail().x;
+    float h = 31 * s;
+    ImVec2 size{w, h};
+    const char* label = i18n::tr(st.label.c_str());
+    bool changed = false;
+    float right = p.x + w - 10 * s;
+    float cy = p.y + h * 0.5f;
 
-    switch (s.type) {
+    ImGui::PushID(st.id.c_str());
+    switch (st.type) {
     case SettingType::Bool: {
-        float w = 40 * sc;
-        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x - w);
-        changed = toggle("v", s.b);
+        ImGui::SetCursorScreenPos(p);
+        bool clicked = ImGui::InvisibleButton("row", size);
+        rowBack(dl, p, size, ImGui::IsItemHovered());
+        rowLabel(dl, p, h, label, theme::col(t.text));
+        if (clicked) {
+            st.b = !st.b;
+            changed = true;
+        }
+        float& a = *ImGui::GetStateStorage()->GetFloatRef(ImGui::GetID("anim"), st.b ? 1.f : 0.f);
+        a = draw::approach(a, st.b ? 1.f : 0.f, 18.f * t.animSpeed);
+        ImVec2 sw = switchSize();
+        drawSwitch(dl, {right - sw.x, cy - sw.y * 0.5f}, a, 1.f);
         break;
     }
     case SettingType::Float:
-        changed = pillSlider(s.f, s.fmin, s.fmax, s.format, false);
+        changed = sliderRow(p, size, label, st.f, st.fmin, st.fmax, st.format, false);
         break;
     case SettingType::Int: {
-        float v = (float)s.i;
-        changed = pillSlider(v, (float)s.imin, (float)s.imax, "%d", true);
-        if (changed) s.i = (int)std::lround(v);
+        float v = (float)st.i;
+        changed = sliderRow(p, size, label, v, (float)st.imin, (float)st.imax, "%d", true);
+        if (changed) st.i = (int)std::lround(v);
         break;
     }
     case SettingType::Color: {
-        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x - ImGui::GetFrameHeight());
-        {
-            auto& th = theme::current();
-            std::string hex = hexOf(s.color);
-            ImVec2 hs = ImGui::CalcTextSize(hex.c_str());
-            ImVec2 sp = ImGui::GetCursorScreenPos();
-            float pw = hs.x + 20 * sc, fh = ImGui::GetFrameHeight();
-            auto* dl = ImGui::GetWindowDrawList();
-            dl->AddRectFilled({sp.x - pw - 8 * sc, sp.y}, {sp.x - 8 * sc, sp.y + fh}, theme::col(th.surfaceHover), 8 * sc);
-            dl->AddText({sp.x - pw - 8 * sc + 10 * sc, sp.y + (fh - hs.y) * 0.5f}, theme::col(th.text), hex.c_str());
+        rowBack(dl, p, size, ImGui::IsMouseHoveringRect(p, p + size));
+        rowLabel(dl, p, h, label, theme::col(t.text));
+        float sw = 26 * s, sh = 15 * s;
+        ImVec2 swp{right - sw, cy - sh * 0.5f};
+        dl->AddRectFilled(swp, swp + ImVec2(sw, sh), theme::col(st.color), 4 * s);
+        dl->AddRect(swp, swp + ImVec2(sw, sh), theme::col(t.text, 0.25f), 4 * s);
+        float pw = fonts::regular()->CalcTextSizeA(12 * s, FLT_MAX, 0.f, i18n::tr("Change Color")).x + 18 * s;
+        ImGui::SetCursorScreenPos(swp);
+        bool swClicked = ImGui::InvisibleButton("swatch", {sw, sh});
+        bool pillClicked = pill("change", i18n::tr("Change Color"), true, {swp.x - pw - 8 * s, cy - 9.5f * s}, 19 * s, pw);
+        if (swClicked || pillClicked) ImGui::OpenPopup("picker");
+        if (ImGui::BeginPopup("picker")) {
+            float c[4] = {st.color.x, st.color.y, st.color.z, st.color.w};
+            if (ImGui::ColorPicker4("##pick", c, ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_NoSidePreview)) {
+                st.color = {c[0], c[1], c[2], c[3]};
+                changed = true;
+            }
+            ImGui::TextDisabled("%s", hexOf(st.color).c_str());
+            ImGui::EndPopup();
         }
-        changed = colorEdit(s);
         break;
     }
     case SettingType::Choice: {
-        const char* preview = s.choices.empty() ? "" : i18n::tr(s.choices[std::clamp(s.i, 0, (int)s.choices.size() - 1)].c_str());
-        if (ImGui::BeginCombo("##v", preview)) {
-            for (int i = 0; i < (int)s.choices.size(); i++) {
-                bool sel = i == s.i;
-                if (ImGui::Selectable(i18n::tr(s.choices[i].c_str()), sel)) {
-                    s.i = i;
+        ImGui::SetCursorScreenPos(p);
+        bool clicked = ImGui::InvisibleButton("row", size);
+        bool hov = ImGui::IsItemHovered();
+        rowBack(dl, p, size, hov);
+        rowLabel(dl, p, h, label, theme::col(t.text));
+        const char* value = st.choices.empty() ? "" : i18n::tr(st.choices[std::clamp(st.i, 0, (int)st.choices.size() - 1)].c_str());
+        ImVec2 vs = fonts::regular()->CalcTextSizeA(12.5f * s, FLT_MAX, 0.f, value);
+        ImVec2 bmin{right - vs.x - 28 * s, cy - 10 * s}, bmax{right, cy + 10 * s};
+        dl->AddRect(bmin, bmax, theme::col(hov ? t.text : t.textDim, 0.8f), 4 * s, 0, 1.2f * s);
+        dl->AddText(fonts::regular(), 12.5f * s, {bmin.x + 9 * s, cy - vs.y * 0.5f}, theme::col(t.text), value);
+        ImVec2 ac{bmax.x - 9 * s, cy};
+        dl->AddTriangleFilled(ac + ImVec2(-3.5f * s, -1.5f * s), ac + ImVec2(3.5f * s, -1.5f * s), ac + ImVec2(0, 2.5f * s), theme::col(t.textDim));
+        if (clicked) ImGui::OpenPopup("choices");
+        if (ImGui::BeginPopup("choices")) {
+            for (int i = 0; i < (int)st.choices.size(); i++)
+                if (ImGui::Selectable(i18n::tr(st.choices[i].c_str()), i == st.i)) {
+                    st.i = i;
                     changed = true;
                 }
-            }
-            ImGui::EndCombo();
+            ImGui::EndPopup();
         }
         break;
     }
     case SettingType::Key: {
-        float w = std::max(110 * sc, ImGui::CalcTextSize(keyName(s.i).c_str()).x + 24 * sc);
-        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x - w);
-        changed = keyCapture("key", s.i);
+        rowBack(dl, p, size, ImGui::IsMouseHoveringRect(p, p + size));
+        rowLabel(dl, p, h, label, theme::col(t.text));
+        std::string name = st.i ? keyName(st.i) : std::string(i18n::tr("none"));
+        float kw = std::max(40 * s, fonts::regular()->CalcTextSizeA(12 * s, FLT_MAX, 0.f, name.c_str()).x + 18 * s);
+        ImGui::SetCursorScreenPos({right - kw, cy - 9.5f * s});
+        changed = keyCapture("key", st.i);
+        float uw = 0.f;
+        float unbindW = fonts::regular()->CalcTextSizeA(12 * s, FLT_MAX, 0.f, i18n::tr("Unbind")).x + 18 * s;
+        if (pill("unbind", i18n::tr("Unbind"), true, {right - kw - 8 * s - unbindW, cy - 9.5f * s}, 19 * s, uw)) {
+            st.i = 0;
+            changed = true;
+        }
         break;
     }
     case SettingType::Text: {
+        rowBack(dl, p, size, false);
+        rowLabel(dl, p, h, label, theme::col(t.text));
         char buf[256];
-        snprintf(buf, sizeof(buf), "%s", s.text.c_str());
-        auto& t = theme::current();
-        ImGui::PushStyleColor(ImGuiCol_FrameBg, t.surfaceHover);
-        ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 8 * sc);
+        snprintf(buf, sizeof(buf), "%s", st.text.c_str());
+        float iw = std::min(w * 0.5f, 240 * s);
+        ImGui::SetCursorScreenPos({right - iw, cy - 11 * s});
+        ImGui::SetNextItemWidth(iw);
+        ImGui::PushStyleColor(ImGuiCol_FrameBg, theme::col(t.bg, 0.7f));
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4 * s);
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {8 * s, 3 * s});
         if (ImGui::InputText("##v", buf, sizeof(buf))) {
-            s.text = buf;
+            st.text = buf;
             changed = true;
         }
-        ImGui::PopStyleVar();
+        ImGui::PopStyleVar(2);
         ImGui::PopStyleColor();
         break;
     }
     }
     ImGui::PopID();
+    ImGui::SetCursorScreenPos(p);
+    ImGui::Dummy({w, h});
     if (changed) config::markDirty();
     return changed;
 }
