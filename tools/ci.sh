@@ -8,8 +8,8 @@ out="${1:-$root/ci-out}"
 build="${MOCHI_BUILD:-/tmp/mochi-build}"
 export MOCHI_BUILD="$build"
 export PATH="$PATH:/usr/lib/wine"
-export WINEPREFIX="${WINEPREFIX:-/tmp/wineprefix}" WINEDEBUG=-all WINEARCH=win64
-mkdir -p "$out"
+export WINEPREFIX="${WINEPREFIX:-$HOME/.wine-mochi}" WINEDEBUG=-all WINEARCH=win64
+mkdir -p "$out" "$WINEPREFIX"
 
 if ! "$root/tools/cross.sh" build > "$out/build.log" 2>&1; then
     grep -E "error|Error" "$out/build.log" | head -40 > "$out/errors.txt"
