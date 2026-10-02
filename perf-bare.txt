@@ -1,0 +1,16 @@
+LoadLibrary -> 0000000000000000 (err 126)
+t=2 fps=237.0
+t=4 fps=240.9
+t=6 fps=240.8
+t=8 fps=240.9
+t=10 fps=240.9
+t=12 fps=240.9
+t=14 fps=240.6
+t=16 fps=240.9
+t=18 fps=240.9
+t=20 fps=240.9
+t=22 fps=240.8
+t=24 fps=240.8
+t=26 fps=240.8
+t=28 fps=241.1
+frames=7214 still_loaded=0

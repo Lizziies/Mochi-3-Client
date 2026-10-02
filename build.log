@@ -1,0 +1,164 @@
+[  0%] Building CXX object CMakeFiles/Mochi.dir/src/Main.cpp.obj
+[  1%] Building CXX object CMakeFiles/Mochi.dir/src/core/Bg.cpp.obj
+[  2%] Building CXX object CMakeFiles/Mochi.dir/src/core/Client.cpp.obj
+[  3%] Building CXX object CMakeFiles/Mochi.dir/src/core/Config.cpp.obj
+[  4%] Building CXX object CMakeFiles/Mochi.dir/src/core/Guard.cpp.obj
+[  5%] Building CXX object CMakeFiles/Mochi.dir/src/core/Http.cpp.obj
+In file included from /usr/share/mingw-w64/include/winnt.h:27,
+                 from /usr/share/mingw-w64/include/minwindef.h:163,
+                 from /usr/share/mingw-w64/include/windef.h:9,
+                 from /usr/share/mingw-w64/include/windows.h:69,
+                 from /home/runner/work/Mochi-3-Client/Mochi-3-Client/dll/src/core/Guard.cpp:4:
+In function ‘long long unsigned int __readgsqword(long unsigned int)’,
+    inlined from ‘_TEB* NtCurrentTeb()’ at /usr/share/mingw-w64/include/winnt.h:10013:86,
+    inlined from ‘std::string guard::callers(uintptr_t)’ at /home/runner/work/Mochi-3-Client/Mochi-3-Client/dll/src/core/Guard.cpp:73:55,
+    inlined from ‘LONG guard::net(EXCEPTION_POINTERS*)’ at /home/runner/work/Mochi-3-Client/Mochi-3-Client/dll/src/core/Guard.cpp:95:57:
+/usr/share/mingw-w64/include/psdk_inc/intrin-impl.h:838:1: warning: array subscript 0 is outside array bounds of ‘long long unsigned int [0]’ [-Warray-bounds=]
+  838 | __buildreadseg(__readgsqword, unsigned __int64, "gs", "q")
+      | ^~~~~~~~~~~~~~
+In function ‘LONG guard::net(EXCEPTION_POINTERS*)’:
+cc1plus: note: source object is likely at address zero
+[  6%] Building CXX object CMakeFiles/Mochi.dir/src/core/Lang.cpp.obj
+[  7%] Building CXX object CMakeFiles/Mochi.dir/src/core/Log.cpp.obj
+[  8%] Building CXX object CMakeFiles/Mochi.dir/src/core/Paths.cpp.obj
+[  9%] Building CXX object CMakeFiles/Mochi.dir/src/cosmetics/Cosmetics.cpp.obj
+[ 10%] Building CXX object CMakeFiles/Mochi.dir/src/cosmetics/Preview.cpp.obj
+[ 11%] Building CXX object CMakeFiles/Mochi.dir/src/gui/Catalog.cpp.obj
+[ 12%] Building CXX object CMakeFiles/Mochi.dir/src/gui/CosmeticsPage.cpp.obj
+In file included from /home/runner/work/Mochi-3-Client/Mochi-3-Client/dll/src/cosmetics/Cosmetics.cpp:13:
+In function ‘int stbi__compute_transparency16(stbi__png*, stbi__uint16*, int)’,
+    inlined from ‘int stbi__parse_png_file(stbi__png*, int, int)’ at /home/runner/work/Mochi-3-Client/Mochi-3-Client/dll/lib/stb/stb_image.h:5217:52:
+/home/runner/work/Mochi-3-Client/Mochi-3-Client/dll/lib/stb/stb_image.h:4943:15: warning: ‘tc16[0]’ may be used uninitialized [-Wmaybe-uninitialized]
+ 4943 |          p[1] = (p[0] == tc[0] ? 0 : 65535);
+      |          ~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/runner/work/Mochi-3-Client/Mochi-3-Client/dll/lib/stb/stb_image.h: In function ‘int stbi__parse_png_file(stbi__png*, int, int)’:
+/home/runner/work/Mochi-3-Client/Mochi-3-Client/dll/lib/stb/stb_image.h:5082:17: note: ‘tc16[0]’ was declared here
+ 5082 |    stbi__uint16 tc16[3];
+      |                 ^~~~
+[ 12%] Building CXX object CMakeFiles/Mochi.dir/src/gui/DevCmd.cpp.obj
+[ 13%] Building CXX object CMakeFiles/Mochi.dir/src/gui/Gui.cpp.obj
+[ 14%] Building CXX object CMakeFiles/Mochi.dir/src/gui/GuiCommon.cpp.obj
+[ 15%] Building CXX object CMakeFiles/Mochi.dir/src/gui/HudEditor.cpp.obj
+[ 16%] Building CXX object CMakeFiles/Mochi.dir/src/gui/LangMenu.cpp.obj
+[ 17%] Building CXX object CMakeFiles/Mochi.dir/src/gui/ModulesPage.cpp.obj
+[ 18%] Building CXX object CMakeFiles/Mochi.dir/src/gui/Notify.cpp.obj
+[ 19%] Building CXX object CMakeFiles/Mochi.dir/src/gui/SettingsPage.cpp.obj
+[ 20%] Building CXX object CMakeFiles/Mochi.dir/src/gui/Theme.cpp.obj
+[ 21%] Building CXX object CMakeFiles/Mochi.dir/src/gui/Widgets.cpp.obj
+[ 22%] Building CXX object CMakeFiles/Mochi.dir/src/hook/Dx.cpp.obj
+[ 23%] Building CXX object CMakeFiles/Mochi.dir/src/hook/GameInput.cpp.obj
+[ 24%] Building CXX object CMakeFiles/Mochi.dir/src/hook/Hook.cpp.obj
+[ 25%] Building CXX object CMakeFiles/Mochi.dir/src/hook/Input.cpp.obj
+[ 25%] Building CXX object CMakeFiles/Mochi.dir/src/hook/Net.cpp.obj
+[ 26%] Building CXX object CMakeFiles/Mochi.dir/src/modules/HudModule.cpp.obj
+[ 27%] Building CXX object CMakeFiles/Mochi.dir/src/modules/LangClient.cpp.obj
+[ 28%] Building CXX object CMakeFiles/Mochi.dir/src/modules/Lang_B.cpp.obj
+[ 29%] Building CXX object CMakeFiles/Mochi.dir/src/modules/Manager.cpp.obj
+[ 30%] Building CXX object CMakeFiles/Mochi.dir/src/modules/Module.cpp.obj
+[ 31%] Building CXX object CMakeFiles/Mochi.dir/src/modules/SelfTest.cpp.obj
+[ 32%] Building CXX object CMakeFiles/Mochi.dir/src/modules/Setting.cpp.obj
+[ 33%] Building CXX object CMakeFiles/Mochi.dir/src/modules/Tiers.cpp.obj
+[ 34%] Building CXX object CMakeFiles/Mochi.dir/src/modules/common/Image.cpp.obj
+[ 35%] Building CXX object CMakeFiles/Mochi.dir/src/modules/network/Link.cpp.obj
+[ 36%] Building CXX object CMakeFiles/Mochi.dir/src/modules/network/Probe.cpp.obj
+[ 37%] Building CXX object CMakeFiles/Mochi.dir/src/modules/online/Online.cpp.obj
+[ 37%] Building CXX object CMakeFiles/Mochi.dir/src/modules/perf/Tuning.cpp.obj
+[ 38%] Building CXX object CMakeFiles/Mochi.dir/src/modules/platform/Discord.cpp.obj
+[ 39%] Building CXX object CMakeFiles/Mochi.dir/src/modules/platform/Script.cpp.obj
+[ 40%] Building CXX object CMakeFiles/Mochi.dir/src/modules/post/Capture.cpp.obj
+[ 41%] Building CXX object CMakeFiles/Mochi.dir/src/modules/post/PostFx.cpp.obj
+[ 42%] Building CXX object CMakeFiles/Mochi.dir/src/modules/server/HiveApi.cpp.obj
+[ 43%] Building CXX object CMakeFiles/Mochi.dir/src/render/Draw.cpp.obj
+[ 44%] Building CXX object CMakeFiles/Mochi.dir/src/render/Fonts.cpp.obj
+[ 45%] Building CXX object CMakeFiles/Mochi.dir/src/render/Ui.cpp.obj
+[ 46%] Building CXX object CMakeFiles/Mochi.dir/src/sdk/Demo.cpp.obj
+[ 47%] Building CXX object CMakeFiles/Mochi.dir/src/sdk/Effects.cpp.obj
+[ 48%] Building CXX object CMakeFiles/Mochi.dir/src/sdk/Explore.cpp.obj
+[ 49%] Building CXX object CMakeFiles/Mochi.dir/src/sdk/Game.cpp.obj
+[ 50%] Building CXX object CMakeFiles/Mochi.dir/src/sdk/Inject.cpp.obj
+[ 50%] Building CXX object CMakeFiles/Mochi.dir/src/sdk/Live.cpp.obj
+[ 51%] Building CXX object CMakeFiles/Mochi.dir/src/server/Rules.cpp.obj
+[ 52%] Building CXX object CMakeFiles/Mochi.dir/src/sig/Image.cpp.obj
+[ 53%] Building CXX object CMakeFiles/Mochi.dir/src/sig/ImageCheck.cpp.obj
+[ 54%] Building CXX object CMakeFiles/Mochi.dir/src/sig/Scanner.cpp.obj
+/home/runner/work/Mochi-3-Client/Mochi-3-Client/dll/src/sig/ImageCheck.cpp: In function ‘bool image::selfCheck(std::string&)’:
+/home/runner/work/Mochi-3-Client/Mochi-3-Client/dll/src/sig/ImageCheck.cpp:35:20: warning: dereferencing type-punned pointer will break strict-aliasing rules [-Wstrict-aliasing]
+   35 |     auto vtable = *reinterpret_cast<uintptr_t*>(&probe);
+      |                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[ 55%] Building CXX object CMakeFiles/Mochi.dir/src/sig/Sigs.cpp.obj
+[ 56%] Building CXX object CMakeFiles/Mochi.dir/src/system/Mice.cpp.obj
+[ 57%] Building CXX object CMakeFiles/Mochi.dir/src/system/Music.cpp.obj
+[ 58%] Building CXX object CMakeFiles/Mochi.dir/src/system/Tweaks.cpp.obj
+[ 59%] Building CXX object CMakeFiles/Mochi.dir/home/runner/work/Mochi-3-Client/Mochi-3-Client/common/I18n.cpp.obj
+[ 60%] Building C object CMakeFiles/Mochi.dir/lib/minhook/src/buffer.c.obj
+[ 61%] Building C object CMakeFiles/Mochi.dir/lib/minhook/src/hde/hde64.c.obj
+[ 62%] Building C object CMakeFiles/Mochi.dir/lib/minhook/src/hook.c.obj
+[ 62%] Building C object CMakeFiles/Mochi.dir/lib/minhook/src/trampoline.c.obj
+[ 63%] Building C object CMakeFiles/Mochi.dir/_deps/lua-src/lapi.c.obj
+[ 64%] Building C object CMakeFiles/Mochi.dir/_deps/lua-src/lauxlib.c.obj
+[ 65%] Building C object CMakeFiles/Mochi.dir/_deps/lua-src/lbaselib.c.obj
+[ 66%] Building C object CMakeFiles/Mochi.dir/_deps/lua-src/lcode.c.obj
+[ 67%] Building C object CMakeFiles/Mochi.dir/_deps/lua-src/lcorolib.c.obj
+[ 68%] Building C object CMakeFiles/Mochi.dir/_deps/lua-src/lctype.c.obj
+[ 69%] Building C object CMakeFiles/Mochi.dir/_deps/lua-src/ldblib.c.obj
+[ 70%] Building C object CMakeFiles/Mochi.dir/_deps/lua-src/ldebug.c.obj
+[ 71%] Building C object CMakeFiles/Mochi.dir/_deps/lua-src/ldo.c.obj
+[ 72%] Building C object CMakeFiles/Mochi.dir/_deps/lua-src/ldump.c.obj
+[ 73%] Building C object CMakeFiles/Mochi.dir/_deps/lua-src/lfunc.c.obj
+[ 74%] Building C object CMakeFiles/Mochi.dir/_deps/lua-src/lgc.c.obj
+[ 75%] Building C object CMakeFiles/Mochi.dir/_deps/lua-src/linit.c.obj
+[ 75%] Building C object CMakeFiles/Mochi.dir/_deps/lua-src/liolib.c.obj
+[ 76%] Building C object CMakeFiles/Mochi.dir/_deps/lua-src/llex.c.obj
+[ 77%] Building C object CMakeFiles/Mochi.dir/_deps/lua-src/lmathlib.c.obj
+[ 78%] Building C object CMakeFiles/Mochi.dir/_deps/lua-src/lmem.c.obj
+[ 79%] Building C object CMakeFiles/Mochi.dir/_deps/lua-src/loadlib.c.obj
+[ 80%] Building C object CMakeFiles/Mochi.dir/_deps/lua-src/lobject.c.obj
+[ 81%] Building C object CMakeFiles/Mochi.dir/_deps/lua-src/lopcodes.c.obj
+[ 82%] Building C object CMakeFiles/Mochi.dir/_deps/lua-src/loslib.c.obj
+[ 83%] Building C object CMakeFiles/Mochi.dir/_deps/lua-src/lparser.c.obj
+[ 84%] Building C object CMakeFiles/Mochi.dir/_deps/lua-src/lstate.c.obj
+[ 85%] Building C object CMakeFiles/Mochi.dir/_deps/lua-src/lstring.c.obj
+[ 86%] Building C object CMakeFiles/Mochi.dir/_deps/lua-src/lstrlib.c.obj
+[ 87%] Building C object CMakeFiles/Mochi.dir/_deps/lua-src/ltable.c.obj
+[ 87%] Building C object CMakeFiles/Mochi.dir/_deps/lua-src/ltablib.c.obj
+[ 88%] Building C object CMakeFiles/Mochi.dir/_deps/lua-src/ltm.c.obj
+[ 89%] Building C object CMakeFiles/Mochi.dir/_deps/lua-src/lundump.c.obj
+[ 90%] Building C object CMakeFiles/Mochi.dir/_deps/lua-src/lutf8lib.c.obj
+[ 91%] Building C object CMakeFiles/Mochi.dir/_deps/lua-src/lvm.c.obj
+[ 92%] Building C object CMakeFiles/Mochi.dir/_deps/lua-src/lzio.c.obj
+[ 93%] Building CXX object CMakeFiles/Mochi.dir/lib/imgui/imgui.cpp.obj
+[ 94%] Building CXX object CMakeFiles/Mochi.dir/lib/imgui/imgui_draw.cpp.obj
+[ 95%] Building CXX object CMakeFiles/Mochi.dir/lib/imgui/imgui_tables.cpp.obj
+[ 96%] Building CXX object CMakeFiles/Mochi.dir/lib/imgui/imgui_widgets.cpp.obj
+[ 97%] Building CXX object CMakeFiles/Mochi.dir/lib/imgui/backends/imgui_impl_dx11.cpp.obj
+[ 98%] Building CXX object CMakeFiles/Mochi.dir/lib/imgui/backends/imgui_impl_win32.cpp.obj
+[ 99%] Building RC object CMakeFiles/Mochi.dir/res/resources.rc.res
+[100%] Linking CXX shared library Mochi.dll
+[100%] Built target Mochi
+[  4%] Building CXX object CMakeFiles/MochiLauncher.dir/src/App.cpp.obj
+[  8%] Building CXX object CMakeFiles/MochiLauncher.dir/src/Embedded.cpp.obj
+[ 13%] Building CXX object CMakeFiles/MochiLauncher.dir/src/Files.cpp.obj
+[ 17%] Building CXX object CMakeFiles/MochiLauncher.dir/src/Game.cpp.obj
+[ 21%] Building CXX object CMakeFiles/MochiLauncher.dir/src/LangApp.cpp.obj
+[ 26%] Building CXX object CMakeFiles/MochiLauncher.dir/src/LangUi.cpp.obj
+[ 30%] Building CXX object CMakeFiles/MochiLauncher.dir/src/Levi.cpp.obj
+[ 34%] Building CXX object CMakeFiles/MochiLauncher.dir/src/Main.cpp.obj
+[ 39%] Building CXX object CMakeFiles/MochiLauncher.dir/src/Net.cpp.obj
+[ 43%] Building CXX object CMakeFiles/MochiLauncher.dir/src/Settings.cpp.obj
+[ 47%] Building CXX object CMakeFiles/MochiLauncher.dir/src/Ui.cpp.obj
+[ 52%] Building CXX object CMakeFiles/MochiLauncher.dir/src/Update.cpp.obj
+/home/runner/work/Mochi-3-Client/Mochi-3-Client/launcher/src/Ui.cpp:209:8: warning: ‘ImVec2 ui::{anonymous}::cardMin(float, float)’ defined but not used [-Wunused-function]
+  209 | ImVec2 cardMin(float x, float y) { return {x, y}; }
+      |        ^~~~~~~
+[ 56%] Building CXX object CMakeFiles/MochiLauncher.dir/src/Versions.cpp.obj
+[ 60%] Building CXX object CMakeFiles/MochiLauncher.dir/home/runner/work/Mochi-3-Client/Mochi-3-Client/common/I18n.cpp.obj
+[ 65%] Building RC object CMakeFiles/MochiLauncher.dir/embed.rc.res
+[ 69%] Building CXX object CMakeFiles/MochiLauncher.dir/home/runner/work/Mochi-3-Client/Mochi-3-Client/dll/lib/imgui/imgui.cpp.obj
+[ 73%] Building CXX object CMakeFiles/MochiLauncher.dir/home/runner/work/Mochi-3-Client/Mochi-3-Client/dll/lib/imgui/imgui_draw.cpp.obj
+[ 78%] Building CXX object CMakeFiles/MochiLauncher.dir/home/runner/work/Mochi-3-Client/Mochi-3-Client/dll/lib/imgui/imgui_tables.cpp.obj
+[ 82%] Building CXX object CMakeFiles/MochiLauncher.dir/home/runner/work/Mochi-3-Client/Mochi-3-Client/dll/lib/imgui/imgui_widgets.cpp.obj
+[ 86%] Building CXX object CMakeFiles/MochiLauncher.dir/home/runner/work/Mochi-3-Client/Mochi-3-Client/dll/lib/imgui/backends/imgui_impl_dx11.cpp.obj
+[ 91%] Building CXX object CMakeFiles/MochiLauncher.dir/home/runner/work/Mochi-3-Client/Mochi-3-Client/dll/lib/imgui/backends/imgui_impl_win32.cpp.obj
+[ 95%] Building RC object CMakeFiles/MochiLauncher.dir/res/launcher.rc.res
+[100%] Linking CXX executable MochiLauncher.exe
+[100%] Built target MochiLauncher

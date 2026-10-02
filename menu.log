@@ -1,0 +1,35 @@
+[20:40:19.710] [info] Mochi 0.1.0 loading
+[20:40:19.711] [info] minecraft unknown
+[20:40:19.840] [info] modules: 76 usable, 103 locked
+[20:40:19.840] [info] 179 modules registered
+[20:40:19.843] [info] usable: ClickGUI; Client Settings; FPS; CPS; Keystrokes; Mouse Strokes; Clock; Stopwatch; Pomodoro; Session Timer; Memory; Latency Meter; Server Display; IP Display; Pack Display; Stats HUD; Watermark; Debug Menu; Ping Counter; Network Monitor; Lag Analyzer; Saturation / Hue; Brightness / Contrast; Screen Tint; Sharpen; Depth of Field; Blur; Shader Packs; Color Filter; Night Shift; Motion Blur; Zoom; Custom Crosshair; Hit Marker; Sens Multiplier; Null Movement; CPS Limiter; Disable Mouse Wheel; Hotbar Keys; Toggle Sprint; Toggle Sneak; Command Hotkey; Text Hotkey; Profile Hotkeys; Music; Streamer Mode; Server Profiles; Modern Keybind Handling; Java Inventory Hotkeys; Pack Changer; Nick; Discord Rich Presence; Lua Scripts; Config Sharing; Mochi Online; Black Bars; Gamemode Hotkeys; Hive Leaderboard; Screenshot+; Low Latency; Frame Limiter; Auto Profile; Background Load; System Boost; Performance Lock; Mouse Sync; Game Support; Snake; Flappy Heart; DVD Screen; 20-20-20; Block Game; Pet; Petals; Deepfry; Upside Down; 
+[20:40:19.843] [info] locked: Coordinates; Direction HUD; Speed Display; Look Angles; Health Display; Experience Info; Day Counter; Held Item; Item Tracker; Paperdoll; Armor HUD; Potion HUD; Pot Counter; Arrow Counter; Totem Counter; Item Counter; Durability Warning; Low Health Indicator; Better Hunger Bar; FOV Changer; Java Dynamic FOV; Freelook; Cinematic Camera; No View Bobbing; Minimal View Bobbing; No Hurt Cam; Smooth Sneak; Auto Perspective; Fullbright; Block Outline; Time Changer; Weather Changer; Environment Changer; Fog Color; Water Color; Chunk Border; Waypoints; Hide Hand; View Model; Animations; Break Progress; Reach Counter; Opponent Reach; Combo Counter; Hit Counter; Hit Ping; Session Stats; Hit Info; Entity Counter; Target HUD; Waila; Bow Charge; Cooldown Indicator; Damage Indicator; Hit Effects; Kill Effects; Hit Sound; Totem Pop; Hitbox; Hurt Color; Glint Color; Low Fire; Particle Multiplier; Bow Sensitivity; Snap Look; Block Hit; Crystal Optimizer; Kill Cleanup; Item Use Delay Fix; Faster Inventory; Insta Hurt Animation; Auto GG; Message Logger; Better Chat; Death Logger; Player Notifier; Scoreboard; Tab List; Mumble Link; GUI Scale; Match Summary; Inventory Lock; Hotbar Animation; Item Physics; Nametag Modifier; TNT Timer; Light Overlay; Subtitles; Movable Hotbar; Movable Title; Movable Bossbar; Skin Stealer; Hotbar Armor; Fall Predictor; Inventory Viewer; Arrow Trail; Left Hand; Third Person Nametag; Health Above Head; Hive Utils; Zeqa Utils; Hive Stats; Render Options; 
+[20:40:19.851] [info] config 'default' loaded
+[20:40:19.946] [info] server rules from GitHub
+[20:40:19.978] [info] hook Present at 0x6ffffbbcd3b0
+[20:40:19.978] [info] hook ResizeBuffers at 0x6ffffbbcbae0
+[20:40:19.978] [info] hook Present1 at 0x6ffffbbcd2e0
+[20:40:19.987] [info] sigs: 0/0 from no signature file
+[20:40:20.046] [info] renderer: frames arrive through the swapchain table
+[20:40:20.047] [info] renderer: dx11 hwnd=0x30042
+[20:40:20.049] [info] ui ready
+[20:40:20.053] [info] modules: 76 usable, 103 locked
+[20:40:20.062] [info] in world: true
+[20:40:20.062] [info] hook sendto at 0x6ffffea306f0
+[20:40:20.062] [info] hook WSASendTo at 0x6ffffea306e0
+[20:40:20.063] [info] hook getaddrinfo at 0x6ffffea24c30
+[20:40:20.063] [info] hook GetAddrInfoW at 0x6ffffea25f30
+[20:40:20.062] [info] dev channel off (Z:\tmp\mochi-build\dll)
+[20:40:20.081] [info] game imports (input related): KERNEL32.dll!RtlCaptureContext USER32.dll!LoadCursorW 
+[20:40:20.081] [info] hook ClipCursor at 0x6ffffdf98294
+[20:40:20.081] [info] hook SetCursorPos at 0x6ffffdf98414
+[20:40:20.081] [info] hook GetCursorPos at 0x6ffffdfc27e0
+[20:40:20.081] [info] hook GetAsyncKeyState at 0x6ffffdf982c4
+[20:40:20.081] [info] hook GetKeyState at 0x6ffffdf982dc
+[20:40:20.082] [info] hook GetRawInputData at 0x6ffffe011d40
+[20:40:20.082] [info] hook GetRawInputBuffer at 0x6ffffe011d30
+[20:40:20.082] [info] hook PeekMessageW at 0x6ffffdfd3690
+[20:40:20.092] [info] ready
+[20:40:28.134] [info] gameinput: runtime not loaded, the game reads input through window messages
+[20:40:28.135] [info] menu open, game polled: GetCursorPos=0 GetAsyncKeyState=0 GetKeyState=0 RawData=0 RawBuffer=0 Peek=3 Pointer=0
+[20:40:28.189] [error] fault 0xC0000005 at ntdll.dll+0x2792B, access write 0x7FFFFDC1A6C6, called from mochi+0x5B9B08 mochi+0x476E3C mochi+0x10B453 mochi+0x8323A mochi+0x272A9A mochi+0x82230 mochi+0x4814E0 mochi+0x82230 mochi+0x25DC51 mochi+0x82230
