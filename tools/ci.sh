@@ -20,7 +20,8 @@ fi
 (Xvfb :77 -screen 0 1280x720x24 >/dev/null 2>&1 &)
 sleep 2
 export DISPLAY=:77
-wineboot -i >/dev/null 2>&1 || true
+timeout 180 wine64 wineboot -i >/dev/null 2>&1 || true
+sleep 3
 
 data() { ls -d "$WINEPREFIX"/drive_c/users/*/AppData/Local/Mochi 2>/dev/null | head -1; }
 
@@ -35,7 +36,7 @@ fi
 script="${MOCHI_CI_SCRIPT:-}"
 shots="${MOCHI_CI_SHOTS:-4 7 10 13 16 19 22 25}"
 rm -rf "$(data)/configs"
-(TESTHOST_MANUAL=1 TESTHOST_SCRIPT="$script" timeout 120 wine64 testhost.exe dll/Mochi.dll 30 > "$out/menu-host.txt" 2>&1 &)
+(TESTHOST_MANUAL=1 TESTHOST_SCRIPT="$script" timeout 120 wine64 testhost.exe dll/Mochi.dll 34 > "$out/menu-host.txt" 2>&1 &)
 start=$(date +%s)
 for t in $shots; do
     while [ $(( $(date +%s) - start )) -lt "$t" ]; do sleep 0.2; done

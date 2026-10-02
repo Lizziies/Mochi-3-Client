@@ -23,8 +23,8 @@ jobs:
     timeout-minutes: 40
     env:
       MOCHI_CI_SELFTEST: ${{ inputs.selftest && '1' || '' }}
-      MOCHI_CI_SCRIPT: "3:k:161;6:c:459,360;12:c:640,200;18:k:27"
-      MOCHI_CI_SHOTS: "5 9 14 20 25"
+      MOCHI_CI_SCRIPT: "6:k:161;9:c:708,200;12:c:708,276;16:k:27;17:c:290,238;21:c:290,266;25:c:450,139;26:t:122;26.3:t:111;26.6:t:111;27:t:109"
+      MOCHI_CI_SHOTS: "4 8 11 14 19 23 29"
     steps:
       - uses: actions/checkout@v4
 
