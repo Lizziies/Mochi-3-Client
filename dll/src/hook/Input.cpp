@@ -40,7 +40,6 @@ using KeyStateFn = SHORT(WINAPI*)(int);
 using RawDataFn = UINT(WINAPI*)(HRAWINPUT, UINT, LPVOID, PUINT, UINT);
 using RawBufferFn = UINT(WINAPI*)(PRAWINPUT, PUINT, UINT);
 using PeekFn = BOOL(WINAPI*)(LPMSG, HWND, UINT, UINT, UINT);
-using GetMsgFn = BOOL(WINAPI*)(LPMSG, HWND, UINT, UINT);
 static ClipCursorFn oClipCursor = nullptr;
 static SetCursorPosFn oSetCursorPos = nullptr;
 static GetCursorPosFn oGetCursorPos = nullptr;
@@ -49,7 +48,6 @@ static KeyStateFn oGetKeyState = nullptr;
 static RawDataFn oGetRawInputData = nullptr;
 static RawBufferFn oGetRawInputBuffer = nullptr;
 static PeekFn oPeekMessage = nullptr;
-static GetMsgFn oGetMessage = nullptr;
 
 static thread_local int oursDepth = 0;
 static POINT frozen{};
@@ -432,12 +430,6 @@ static BOOL WINAPI peekMessage(LPMSG m, HWND w, UINT lo, UINT hi, UINT remove) {
     return r;
 }
 
-static BOOL WINAPI getMessage(LPMSG m, HWND w, UINT lo, UINT hi) {
-    BOOL r = oGetMessage(m, w, lo, hi);
-    if (r > 0) swallow(m, 6);
-    return r;
-}
-
 static void flushSpy(int64_t now) {
     if (now - spyAt < qpf.QuadPart) return;
     spyAt = now;
@@ -445,8 +437,8 @@ static void flushSpy(int64_t now) {
     int total = 0;
     for (int i = 0; i < 8; i++) total += n[i] = spy[i].exchange(0);
     if (total)
-        logger::info("menu open, game polled: GetCursorPos={} GetAsyncKeyState={} GetKeyState={} RawData={} RawBuffer={} Peek={} GetMessage={} Pointer={}",
-                     n[0], n[1], n[2], n[3], n[4], n[5], n[6], n[7]);
+        logger::info("menu open, game polled: GetCursorPos={} GetAsyncKeyState={} GetKeyState={} RawData={} RawBuffer={} Peek={} Pointer={}",
+                     n[0], n[1], n[2], n[3], n[4], n[5], n[7]);
 }
 
 bool inMinecraft() {
@@ -551,7 +543,8 @@ bool install(HWND window) {
     hook::create("GetRawInputData", hook::exported(L"user32.dll", "GetRawInputData"), getRawInputData, &oGetRawInputData);
     hook::create("GetRawInputBuffer", hook::exported(L"user32.dll", "GetRawInputBuffer"), getRawInputBuffer, &oGetRawInputBuffer);
     hook::create("PeekMessageW", hook::exported(L"user32.dll", "PeekMessageW"), peekMessage, &oPeekMessage);
-    hook::create("GetMessageW", hook::exported(L"user32.dll", "GetMessageW"), getMessage, &oGetMessage);
+    // GetMessageW is left alone on purpose: a game thread blocks inside it, and after Ctrl+L that thread would
+    // return into the unloaded DLL. The game's own window loop uses PeekMessageW.
     hook::enableAll();
     return true;
 }

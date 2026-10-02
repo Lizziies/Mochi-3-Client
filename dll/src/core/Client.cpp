@@ -57,6 +57,7 @@ static void teardown() {
     hook::disableAll();
     dx::unhookTables();
     Sleep(300);
+    net::waitIdle(6000);
     modules::shutdown();
     bg::drain(8000);
     tweaks::restore();

@@ -12,6 +12,7 @@ struct Peer {
 };
 
 void install();
+void waitIdle(int timeoutMs);
 bool session();
 std::vector<Peer> drain();
 

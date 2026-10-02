@@ -6,6 +6,7 @@
 #include <ws2tcpip.h>
 
 #include <algorithm>
+#include <atomic>
 #include <map>
 #include <mutex>
 
@@ -92,13 +93,27 @@ static int WSAAPI wsaSendTo(SOCKET s, LPWSABUF bufs, DWORD n, LPDWORD sent, DWOR
     return oWSASendTo(s, bufs, n, sent, flags, to, tolen, ov, cr);
 }
 
+// name lookups can block for seconds; unloading waits until no thread is still inside one of these
+static std::atomic<int> inside{0};
+
+struct Inside {
+    Inside() { inside++; }
+    ~Inside() { inside--; }
+};
+
+void waitIdle(int timeoutMs) {
+    for (int waited = 0; inside > 0 && waited < timeoutMs; waited += 20) Sleep(20);
+}
+
 static int WSAAPI getAddrInfo(PCSTR node, PCSTR service, const ADDRINFOA* hints, PADDRINFOA* res) {
+    Inside guard;
     int r = oGetAddrInfo(node, service, hints, res);
     if (r == 0 && res) remember(node, *res);
     return r;
 }
 
 static int WSAAPI getAddrInfoW(PCWSTR node, PCWSTR service, const ADDRINFOW* hints, PADDRINFOW* res) {
+    Inside guard;
     int r = oGetAddrInfoW(node, service, hints, res);
     if (r == 0 && res && *res && node) {
         auto host = logger::narrow(node);
