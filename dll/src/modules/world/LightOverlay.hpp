@@ -23,7 +23,6 @@ public:
     }
 
     void onRender(ImDrawList* dl) override {
-        if (gui::open()) return;
         auto& g = game::state().light;
         auto& p = game::state().player;
         if (!g.valid()) return;

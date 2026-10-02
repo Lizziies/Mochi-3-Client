@@ -28,7 +28,7 @@ public:
 
     void onRender(ImDrawList* dl) override {
         auto& st = game::state();
-        if (gui::open() || st.player.mode == game::Mode::Spectator) return;
+        if (st.player.mode == game::Mode::Spectator) return;
         auto ds = ImGui::GetIO().DisplaySize;
         float k = layout::guiScale(ds, guiScale_.f);
         float cell = 18.f * k * size_.f;

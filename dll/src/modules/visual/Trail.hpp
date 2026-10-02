@@ -42,7 +42,6 @@ public:
     }
 
     void onRender(ImDrawList* dl) override {
-        if (gui::open()) return;
         double now = ui::time();
         float s = ui::scale();
         for (auto& [id, line] : trails_) {
@@ -98,7 +97,7 @@ private:
     Setting& glow_ = toggleSetting("glow", "Glow", true);
     Setting& colorMode_ = choice("colorMode", "Colors", {"One color", "Rainbow", "By kind"}, 2);
     Setting& rainbowSpeed_ = slider("rainbowSpeed", "Rainbow speed", 1.f, 0.2f, 4.f, "%.1f");
-    Setting& color_ = colorSetting("color", "Color", {1.f, 0.49f, 0.71f, 1.f});
+    Setting& color_ = colorSetting("color", "Color", {0.23f, 0.65f, 0.93f, 1.f});
     Setting& arrowColor_ = colorSetting("arrowColor", "Arrow", {1.f, 0.55f, 0.65f, 1.f});
     Setting& pearlColor_ = colorSetting("pearlColor", "Ender pearl", {0.55f, 0.45f, 1.f, 1.f});
     Setting& tridentColor_ = colorSetting("tridentColor", "Trident", {0.4f, 0.95f, 0.85f, 1.f});

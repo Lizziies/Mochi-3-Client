@@ -52,7 +52,6 @@ public:
     }
 
     void onRender(ImDrawList* dl) override {
-        if (gui::open()) return;
         ImVec2 c = screenCenter();
         double now = ui::time();
         for (auto& m : marks_) {
@@ -119,7 +118,7 @@ private:
     Setting& grow_ = toggleSetting("grow", "Grows while fading", true);
     Setting& outline_ = toggleSetting("outline", "Outline", true);
     Setting& color_ = colorSetting("color", "Color", {1.f, 1.f, 1.f, 1.f});
-    Setting& critColor_ = colorSetting("critColor", "Color on crit", {1.f, 0.49f, 0.71f, 1.f});
+    Setting& critColor_ = colorSetting("critColor", "Color on crit", {0.23f, 0.65f, 0.93f, 1.f});
     std::deque<Mark> marks_;
     int64_t seen_ = 0;
 };
@@ -160,7 +159,7 @@ private:
     Setting& gravity_ = slider("gravity", "Gravity", 180.f, -200.f, 600.f, "%.0f");
     Setting& onlyCrit_ = toggleSetting("onlyCrit", "Only on crit", false);
     Setting& rainbow_ = toggleSetting("rainbow", "Rainbow", false);
-    Setting& color_ = colorSetting("color", "Color", {1.f, 0.49f, 0.71f, 1.f});
+    Setting& color_ = colorSetting("color", "Color", {0.23f, 0.65f, 0.93f, 1.f});
     Setting& critColor_ = colorSetting("critColor", "Color on crit", {1.f, 0.85f, 0.4f, 1.f});
     Setting& offsetX_ = slider("offsetX", "Offset X", 0.f, -200.f, 200.f, "%.0f");
     Setting& offsetY_ = slider("offsetY", "Offset Y", 0.f, -200.f, 200.f, "%.0f");
@@ -204,7 +203,7 @@ private:
     Setting& style_ = choice("style", "Particles", {"Dots", "Hearts", "Sparks", "Stars"}, 1);
     Setting& count_ = intSlider("count", "Amount", 28, 5, 120);
     Setting& title_ = toggleSetting("title", "Show text", true);
-    Setting& color_ = colorSetting("color", "Color", {1.f, 0.49f, 0.71f, 1.f});
+    Setting& color_ = colorSetting("color", "Color", {0.23f, 0.65f, 0.93f, 1.f});
     std::string title_text_;
     double title_at_ = -10.0;
     Particles particles_;
@@ -261,7 +260,7 @@ private:
     Setting& hearts_ = toggleSetting("hearts", "Show in hearts", false);
     Setting& shadow_ = toggleSetting("shadow", "Shadow", true);
     Setting& color_ = colorSetting("color", "Color", {1.f, 1.f, 1.f, 1.f});
-    Setting& critColor_ = colorSetting("critColor", "Color on crit", {1.f, 0.49f, 0.71f, 1.f});
+    Setting& critColor_ = colorSetting("critColor", "Color on crit", {0.23f, 0.65f, 0.93f, 1.f});
     Setting& offsetX_ = slider("offsetX", "Offset X", 40.f, -200.f, 200.f, "%.0f");
     Setting& offsetY_ = slider("offsetY", "Offset Y", -20.f, -200.f, 200.f, "%.0f");
     std::deque<Num> numbers_;

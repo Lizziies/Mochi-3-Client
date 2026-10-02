@@ -4,6 +4,7 @@
 #include "hook/Hook.hpp"
 #include "hook/Input.hpp"
 #include "hook/Net.hpp"
+#include "render/Ui.hpp"
 #include "sig/Sigs.hpp"
 
 #include <algorithm>
@@ -56,14 +57,21 @@ public:
         bool playing = input::gameplay();
         // menu screens keep sending (LAN discovery, Xbox Live, server list pings), so traffic only counts
         // as "in a world" when it carried on from a moment the player was actually playing
+        // a server transfer (lobby to game) drops the session for a moment, so only a longer silence counts
         bool online = net::session();
-        if (input::grabbed()) onlineSincePlay_ = online;
-        else if (onlineSincePlay_ && !online) {
+        uint64_t now = GetTickCount64();
+        if (online) offlineSince_ = 0;
+        else if (!offlineSince_) offlineSince_ = now;
+        bool left = !online && now - offlineSince_ > 8000;
+        bool grabbed = input::grabbed();
+        if (grabbed) onlineSincePlay_ = online || (onlineSincePlay_ && !left);
+        else if (onlineSincePlay_ && left) {
             onlineSincePlay_ = false;
             input::forgetPlay();
             playing = false;
         }
         s.inWorld = playerPtr_ != 0 || (!sigs::address("LocalPlayer") && (playing || onlineSincePlay_));
+        s.screen = s.inWorld && !grabbed && !ui::wantsCursor() ? Screen::Other : Screen::None;
     }
 
     void attacked(void* actor) {
@@ -169,6 +177,7 @@ private:
     bool sprinting_ = false;
     bool wantAttack_ = false;
     bool onlineSincePlay_ = false;
+    uint64_t offlineSince_ = 0;
     bool hooked_ = false;
 };
 

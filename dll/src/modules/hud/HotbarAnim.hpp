@@ -23,7 +23,7 @@ public:
 
     void onRender(ImDrawList* dl) override {
         auto& st = game::state();
-        if (gui::open() || gui::editingHud() || st.player.mode == game::Mode::Spectator) return;
+        if (gui::editingHud() || st.player.mode == game::Mode::Spectator) return;
         auto ds = ImGui::GetIO().DisplaySize;
         float scale = guiScale_.f > 0.f ? guiScale_.f : std::clamp(std::floor(std::min(ds.x / 320.f, ds.y / 240.f)), 1.f, 6.f);
         float pitch = 20.f * scale, left = (ds.x - 182.f * scale) * 0.5f + 1.f * scale;
@@ -61,8 +61,8 @@ private:
     Setting& fill_ = slider("fill", "Fill", 0.f, 0.f, 0.6f, "%.2f");
     Setting& glow_ = toggleSetting("glow", "Glow", true);
     Setting& glowSize_ = slider("glowSize", "Glow size", 6.f, 2.f, 14.f, "%.0f");
-    Setting& color_ = colorSetting("color", "Frame", {1.f, 0.49f, 0.71f, 1.f});
-    Setting& glowColor_ = colorSetting("glowColor", "Glow color", {1.f, 0.49f, 0.71f, 1.f});
+    Setting& color_ = colorSetting("color", "Frame", {0.23f, 0.65f, 0.93f, 1.f});
+    Setting& glowColor_ = colorSetting("glowColor", "Glow color", {0.23f, 0.65f, 0.93f, 1.f});
     float pos_ = 0.f;
     float pop_ = 0.f;
     int last_ = -1;

@@ -56,7 +56,7 @@ public:
     }
 
     void onRender(ImDrawList* dl) override {
-        if (gui::open() || gui::editingHud()) return;
+        if (gui::editingHud()) return;
         auto& st = game::state();
         if (game::has(game::Domain::Player)) {
             if (hideThird_.b && st.player.view != game::View::First) return;
@@ -389,7 +389,7 @@ private:
     Setting& outlineWidth_ = slider("outlineWidth", "Outline thickness", 1.f, 0.5f, 4.f, "%.1f");
     Setting& outlineColor_ = colorSetting("outlineColor", "Outline color", {0.f, 0.f, 0.f, 0.8f});
     Setting& clickColor_ = toggleSetting("clickColor", "Color while clicking", true);
-    Setting& activeColor_ = colorSetting("activeColor", "Click color / second color", {1.f, 0.49f, 0.71f, 1.f});
+    Setting& activeColor_ = colorSetting("activeColor", "Click color / second color", {0.23f, 0.65f, 0.93f, 1.f});
     Setting& clickPulse_ = toggleSetting("pulse", "Pulse while clicking", true);
     Setting& dynamic_ = toggleSetting("dynamic", "Dynamic (walking, jumping, sneaking)", false);
     Setting& moveSpread_ = slider("moveSpread", "Spread while walking", 3.f, 0.f, 16.f, "%.1f");

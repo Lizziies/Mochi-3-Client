@@ -132,7 +132,7 @@ static bool handleRaw(LPARAM lp) {
     // the game asks for raw mouse input, so the menu gets its clicks and wheel from here as well
     bool menu = ui::capturing();
     auto feed = [&](MouseButton b, bool down) {
-        if (menu) ImGui::GetIO().AddMouseButtonEvent(b == MouseButton::Left ? 0 : b == MouseButton::Right ? 1 : 2, down);
+        if (menu) ui::mouseButton(b == MouseButton::Left ? 0 : b == MouseButton::Right ? 1 : 2, down);
     };
     rawPass = false;
     for (auto& e : map) {
@@ -152,7 +152,7 @@ static bool handleRaw(LPARAM lp) {
         }
     }
     if (m.usButtonFlags & RI_MOUSE_WHEEL) {
-        if (menu) ImGui::GetIO().AddMouseWheelEvent(0, static_cast<short>(m.usButtonData) / 120.f);
+        if (menu) ui::mouseWheel(static_cast<short>(m.usButtonData) / 120.f);
         MouseEvent ev{MouseButton::None, false, (short)m.usButtonData, 0, 0, t};
         modules::dispatchMouse(ev);
         cancel |= ev.cancel;
@@ -474,8 +474,9 @@ bool grabbed() {
 }
 
 // Without game data the cursor is the best hint: hidden means the player is in a world. Menus inside a world
-// (pause, inventory, chat) show it, so the HUD stays for a while after the cursor appears instead of blinking
-// off and on. Only the very first entry waits a moment, so loading screens with a hidden cursor don't count.
+// (pause, inventory, chat, settings) show it, so the HUD stays for 15 minutes after the cursor appears instead
+// of blinking off and on, and alt-tab keeps whatever was there. Only the very first entry waits a moment, so
+// loading screens with a hidden cursor don't count. Leaving a server ends it at once (forgetPlay).
 bool gameplay() {
     int64_t now = qpc();
     flushSpy(now);
@@ -485,19 +486,19 @@ bool gameplay() {
     int64_t last = lastPlaying;
     if (!focusedHere()) {
         hiddenSince = 0;
-        return false;
+        return playing;
     }
     CURSORINFO ci{sizeof(ci)};
     bool hidden = GetCursorInfo(&ci) && !(ci.flags & CURSOR_SHOWING);
+    bool recent = last && now - last < sec * 900;
     if (!hidden) {
         hiddenSince = 0;
     } else {
         if (!hiddenSince) hiddenSince = now;
-        bool recent = last && now - last < sec * 600;
         if (recent || now - hiddenSince > sec * 12 / 10) lastPlaying = last = now;
     }
 
-    bool on = last && now - last < sec * 60;
+    bool on = last && now - last < sec * 900;
     if (on != playing.exchange(on)) logger::info("gameplay heuristic: {} (cursor {})", on ? "in game" : "menus", hidden ? "hidden" : "visible");
     return on;
 }
