@@ -43,12 +43,15 @@ void add(const Entry* entries, size_t count) {
 }
 
 Lang system() {
+    static const Lang lang = [] {
 #ifdef _WIN32
-    return (GetUserDefaultUILanguage() & 0x3FF) == LANG_GERMAN ? Lang::German : Lang::English;
+        return (GetUserDefaultUILanguage() & 0x3FF) == LANG_GERMAN ? Lang::German : Lang::English;
 #else
-    const char* env = std::getenv("MOCHI_LANG");
-    return env && parse(env) == Lang::German ? Lang::German : Lang::English;
+        const char* env = std::getenv("MOCHI_LANG");
+        return env && parse(env) == Lang::German ? Lang::German : Lang::English;
 #endif
+    }();
+    return lang;
 }
 
 Lang chosen() { return pick; }
