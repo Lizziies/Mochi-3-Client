@@ -25,6 +25,18 @@ Stand: 2026-10-01 abends. Wird nach jedem Arbeitsschritt aktualisiert.
 3. Deutsche Texte der neuen Module übersetzen (Durchlauf, wenn Session B fertig ist).
 4. Pre-Release `v0.1.0-alpha.1` erzeugen, damit die exe zum Download bereitliegt.
 
+## 2026-10-02, Branch claude/onix-ui-input-fixes (Cloud)
+
+- **Menü-Taste nur im Spiel:** Rechts-Shift und Modul-Tasten wirken nur noch, wenn das Spiel den Fokus hat und der Mauszeiger versteckt ist (also wirklich gespielt wird). Im Hauptmenü öffnet sich nichts mehr. Netzwerkverkehr zählt nicht mehr allein als "in einer Welt", weil das Hauptmenü selbst sendet (LAN-Suche, Xbox Live, Serverliste); er hält den Zustand nur, wenn er schon beim Spielen da war.
+- **Spiel steht still, solange das Menü offen ist:** Die GDK-Version liest Tastatur und Maus über GameInput (das Spiel bringt `GameInputRedist.msi` mit). Die bisherigen Hooks auf Fenster-Nachrichten konnten das nicht stoppen. Neu ist `hook/GameInput.cpp`: hookt `GetKeyCount`, `GetKeyState` und `GetMouseState` der Readings (alle API-Versionen v0 bis v3, Slots aus den öffentlichen Headern), bei offenem Menü sieht das Spiel keine Tasten, keine Klicks und keine Mausbewegung. Beim Schließen gibt es keinen Kamerasprung und Tasten, die beim Schließen noch gedrückt sind (Esc, Rechts-Shift), kommen erst nach dem Loslassen wieder durch.
+- Toggle Sprint, Toggle Sneak und Null Movement wirken jetzt auch über GameInput (gehaltene bzw. unterdrückte Tasten). Sens Multiplier skaliert ohne Signatur die Mausbewegung, Disable Mouse Wheel hält das Mausrad an.
+- **Zoom ohne Signatur:** vergrößert vorerst das Bild per Post-Shader, mit angepasster Mausempfindlichkeit und Mausrad-Stufen. Mit der FOV-Signatur nimmt Zoom wieder das echte Sichtfeld.
+- **Instant Hit entfernt:** war dieselbe Funktion wie Low Latency (Frame-Queue, Tearing, Thread-Priorität). Low Latency hat jetzt die Thread-Priorität und die Klick-bis-Bild-Messung.
+- **FPS-Limiter:** wartet jetzt nach Present statt davor. Vorher hielt er ein fertiges Bild zurück und erhöhte damit die Latenz.
+- **Neues Menü (Richtung Onix):** Rechts-Shift öffnet direkt das Menü, kein Hub mehr. Links eine Leiste mit Abschnitten (Alle, PvP, HUD, Visual, Nützliches, Leistung, Server, Extras), Cosmetics, Settings und Edit HUD. Rechts Kacheln mit Symbol, Name und Status, Klick schaltet um, Zahnrad oder Rechtsklick öffnet die Einstellungen. 175 Module stecken in 55 Kacheln (`gui/Tiles.cpp`), z. B. Kampf-Infos (Reach, Combo, Hit Ping, Target …), Item-Zähler, Treffer-Feedback, Klare Sicht, Kamera. Gruppen öffnen rechts ein Panel mit allen Teilen, jeder Teil hat Schalter und aufklappbare Einstellungen. Suche und Favoriten zeigen einzelne Module. Neues Standard-Theme "Carbon" (dunkel, ein blauer Akzent), wer noch das alte Standard-Theme hatte, bekommt Carbon.
+- **CI:** `.github/workflows/check.yml` baut bei jedem Push auf `claude/**` mit MinGW, startet den Client im Testfenster unter Wine, klickt durchs Menü und legt Screenshots und Logs auf den Branch `ci-results/<branch>`. Damit lässt sich ohne apt-Zugang in der Cloud bauen und prüfen.
+- Nicht im echten Spiel geprüft: alles oben. Was zuhause zu prüfen ist, steht in `docs/PC_TEST.md` unter "Branch claude/onix-ui-input-fixes".
+
 ---
 
 ## Frühere Einträge

@@ -44,3 +44,12 @@ Spiel-Module (Zoom, Fullbright, Hitbox, Armor HUD …) brauchen Adressen aus der
 3. Commit, Push. Danach lädt jeder Client die Signaturen automatisch, ohne neues Release.
 
 Die Demo-Daten im Modul "Game Support" (Einschalter) lassen alle Spiel-Module mit simulierten Werten laufen, damit man sie ohne Signaturen im Menü ausprobieren kann. Im echten Spiel greifen sie erst mit Signaturen.
+
+## Branch claude/onix-ui-input-fixes: was zuhause zu prüfen ist
+
+1. Spiel starten, Client verbinden, **im Hauptmenü Rechts-Shift drücken: es darf nichts passieren.** In eine Welt gehen, Rechts-Shift: das Menü öffnet sich.
+2. Im Log nach `gameinput:` suchen. Erwartet: `gameinput: readings hooked (v…) with … hooks, menu now blocks keyboard and mouse`. Steht dort `runtime not loaded`, liest diese Version die Eingabe anders, dann das Log schicken.
+3. Menü offen lassen, WASD drücken, Maus bewegen, klicken: **die Figur bleibt stehen, die Kamera bewegt sich nicht, es wird nicht angegriffen.** Menü mit Rechts-Shift oder Esc schließen: kein Kamerasprung, kein Pause-Menü von Minecraft.
+4. Toggle Sprint an, Strg einmal drücken, loslaufen: die Figur sprintet ohne gehaltene Taste. Die ersten Zeilen `gameinput: key scan=… vk=…` im Log zeigen, welche Tastencodes das Spiel sieht, die bitte mitschicken.
+5. Zoom an, C halten: das Bild wird vergrößert, die Maus ist langsamer, das Mausrad ändert die Stufe und blättert nicht durch die Hotbar.
+6. Sens Multiplier an, Basiswert auf 0,5: die Maus ist nur halb so schnell.

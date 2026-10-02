@@ -70,3 +70,13 @@ Basis ist Vorschlag A (Palette) mit einem Schalter oben rechts, der auf B (Panel
 ### Zweite Änderung (Felix): schlichte Liste
 
 Entwürfe `m1_plain_twopane.png` und `m2_plain_inline.png`. Eine einzige Liste mit allem, geordnet in Abschnitten. Reihenfolge: Server (Hive, Zeqa), HUD, PvP, Visual, Comfort, Performance. Zwischenüberschriften klein, farbig (je Abschnitt eine Pastellfarbe) und dezent, nicht auffällig. Keine Kategorie-Tabs, keine Sprungleiste.
+
+### Dritte Änderung (Felix, 2026-10-02): Richtung Onix
+
+Die Liste passte nicht zu einem PvP-Client, zu viele Einzelmodule. Jetzt:
+
+- Rechts-Shift öffnet direkt das Menü (kein Hub). Links eine schmale Leiste: Alle, PvP, HUD, Visual, Nützliches, Leistung, Server, Extras, darunter Cosmetics, Settings und Edit HUD. Zahlen in der Leiste = eingeschaltete Module im Abschnitt.
+- Rechts ein Raster aus Kacheln: Symbol, Name, Status ("An", "Aus", "3 von 8 an", "Braucht Spieldaten"). Klick schaltet ein Modul um, Zahnrad oder Rechtsklick öffnet seine Einstellungen. Eingeschaltete Kacheln haben einen blauen Rand und eine Linie unten.
+- Zusammengefasst wird nur in der Oberfläche (`gui/Tiles.cpp`), die Module und ihre Configs bleiben einzeln. Eine Gruppen-Kachel öffnet rechts ein Panel mit allen Teilen, jeder mit Schalter und aufklappbaren Einstellungen. HUD-Teile behalten ihre eigene Position im HUD-Editor.
+- Suche und Favoriten zeigen einzelne Module statt Gruppen.
+- Standard-Theme "Carbon": fast schwarz, eine Akzentfarbe (Blau), 8 px Rundung, keine Verläufe, Herzen oder Funken.
