@@ -82,10 +82,6 @@ void pollDevCommands() {
             explore::run(rest);
         } else if (cmd == "hudedit") {
             setEditingHud(true);
-        } else if (cmd == "more") {
-            setOpen(true);
-            go(Page::Modules);
-            openAllGroups();
         } else if (cmd == "search") {
             setOpen(true);
             go(Page::Modules);

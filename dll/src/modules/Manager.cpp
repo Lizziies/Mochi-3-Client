@@ -398,7 +398,6 @@ void frame(ImDrawList* hud) {
         spent[i] += elapsed(from);
     }
 
-    post::params().blur = std::max(post::params().blur, gui::menuBlurPx());
     post::submit(hud);
     capture::submit(hud, capture::Stage::Game);
     bool inWorld = game::state().inWorld;

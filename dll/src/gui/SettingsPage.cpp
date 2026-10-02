@@ -23,39 +23,48 @@
 
 namespace gui {
 
+static void beginTab(const char* id) {
+    ImGui::BeginChild(id, {ImGui::GetContentRegionAvail().x, 0}, 0,
+                      ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_AlwaysVerticalScrollbar);
+    smoothScroll();
+}
+
 static void drawAppearance() {
     auto& t = theme::current();
     float s = ui::scale();
-    ImGui::BeginChild("themes", {ImGui::GetContentRegionAvail().x, 0}, 0, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoScrollWithMouse);
-    smoothScroll();
+    beginTab("themes");
     widgets::sectionTitle("Presets");
 
     float avail = ImGui::GetContentRegionAvail().x;
-    float gap = 10 * s;
-    int cols = std::max(1, int((avail + gap) / (160 * s + gap)));
+    float gap = 8 * s;
+    float h = 56 * s;
+    int cols = std::max(1, int((avail + gap) / (150 * s + gap)));
     float w = (avail - gap * (cols - 1)) / cols;
     ImVec2 origin = ImGui::GetCursorScreenPos();
     auto& presets = theme::presets();
     for (size_t i = 0; i < presets.size(); i++) {
         auto& p = presets[i];
-        ImVec2 pos = origin + ImVec2((i % cols) * (w + gap), (i / cols) * (74 * s + gap));
+        ImVec2 pos = origin + ImVec2((i % cols) * (w + gap), (i / cols) * (h + gap));
         ImGui::SetCursorScreenPos(pos);
         ImGui::PushID((int)i);
-        bool clicked = ImGui::InvisibleButton("preset", {w, 74 * s});
+        bool clicked = ImGui::InvisibleButton("preset", {w, h});
         bool hovered = ImGui::IsItemHovered();
         ImGui::PopID();
         auto* dl = ImGui::GetWindowDrawList();
-        float r = t.rounding * 0.7f * s;
-        dl->AddRectFilled(pos, pos + ImVec2(w, 74 * s), theme::col(p.bg), r);
-        if (t.name == p.name) dl->AddRect(pos, pos + ImVec2(w, 74 * s), theme::col(t.accent), r, 0, 2 * s);
-        else if (hovered) dl->AddRect(pos, pos + ImVec2(w, 74 * s), theme::col(p.accent, 0.6f), r, 0, 1.5f * s);
-        draw::gradientRect(dl, pos + ImVec2(12 * s, 14 * s), pos + ImVec2(w - 12 * s, 30 * s), theme::col(p.accent),
-                           theme::col(p.accent2), 8 * s);
-        dl->AddText(fonts::bold(), 16 * s, pos + ImVec2(12 * s, 43 * s), theme::col(p.text), p.name.c_str());
+        float r = t.rounding * 0.75f * s;
+        dl->AddRectFilled(pos, pos + ImVec2(w, h), theme::col(p.bg), r);
+        ImVec2 chip = pos + ImVec2(10 * s, 10 * s);
+        float cw = w - 20 * s;
+        dl->AddRectFilled(chip, chip + ImVec2(cw, 15 * s), theme::col(theme::mix(p.bg, p.accent, 0.6f)), 4 * s);
+        dl->AddRectFilled(chip + ImVec2(cw - 24 * s, 3.5f * s), chip + ImVec2(cw - 8 * s, 11.5f * s), theme::col(theme::mix(p.bg, p.accent, 0.35f)), 4 * s);
+        dl->AddCircleFilled(chip + ImVec2(cw - 12 * s, 7.5f * s), 2.6f * s, theme::col(p.accent2));
+        dl->AddText(fonts::regular(), 13 * s, pos + ImVec2(10 * s, 32 * s), theme::col(p.text), p.name.c_str());
+        ImVec4 edge = t.name == p.name ? t.accent : (hovered ? p.accent : theme::border());
+        dl->AddRect(pos, pos + ImVec2(w, h), theme::col(edge, t.name == p.name ? 1.f : 0.6f), r, 0, t.name == p.name ? 1.5f * s : 1.f);
         if (clicked) theme::use(p);
     }
     int rows = int((presets.size() + cols - 1) / cols);
-    ImGui::SetCursorScreenPos(origin + ImVec2(0, rows * (74 * s + gap)));
+    ImGui::SetCursorScreenPos(origin + ImVec2(0, rows * (h + gap)));
 
     widgets::sectionTitle("Custom theme");
     bool changed = false;
@@ -92,8 +101,7 @@ static void drawAppearance() {
 static void drawProfiles() {
     float s = ui::scale();
     auto& t = theme::current();
-    ImGui::BeginChild("profiles", {ImGui::GetContentRegionAvail().x, 0}, 0, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoScrollWithMouse);
-    smoothScroll();
+    beginTab("profiles");
     widgets::sectionTitle("Profile");
     widgets::hint("Each profile stores modules, settings, HUD positions and theme.");
     ImGui::Dummy({0, 4 * s});
@@ -127,8 +135,7 @@ static void drawProfiles() {
 
 static void drawAbout() {
     auto& t = theme::current();
-    ImGui::BeginChild("info", {ImGui::GetContentRegionAvail().x, 0}, 0, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoScrollWithMouse);
-    smoothScroll();
+    beginTab("info");
     widgets::sectionTitle("Mochi");
     ImGui::Text(i18n::tr("Version %s"), build::version);
     ImGui::Text(i18n::tr("Renderer: %s"), dx::api() == dx::Api::Dx12 ? "DirectX 12" : dx::api() == dx::Api::Dx11 ? "DirectX 11" : "–");
@@ -163,8 +170,7 @@ static void settingRows(std::initializer_list<const char*> ids) {
 
 static void drawGeneral() {
     float s = ui::scale();
-    ImGui::BeginChild("general", {ImGui::GetContentRegionAvail().x, 0}, 0, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoScrollWithMouse);
-    smoothScroll();
+    beginTab("general");
     widgets::sectionTitle("Language");
     widgets::hint("Auto follows your Windows language.");
     const char* names[] = {"Auto", "English", "Deutsch"};
@@ -183,8 +189,7 @@ static void drawGeneral() {
 
 static void drawChat() {
     float s = ui::scale();
-    ImGui::BeginChild("chat", {ImGui::GetContentRegionAvail().x, 0}, 0, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoScrollWithMouse);
-    smoothScroll();
+    beginTab("chat");
     widgets::sectionTitle("Client tag");
     widgets::hint("Shown behind your own name in Better Chat and in the Tab List. Only you see it, nothing is sent to the server.");
     settingRows({"tag", "tagText", "tagColor", "tagPos", "brackets", "tabTag"});
@@ -211,8 +216,7 @@ static void applyPreset(int kind) {
 
 static void drawModuleDefaults() {
     float s = ui::scale();
-    ImGui::BeginChild("moddefaults", {ImGui::GetContentRegionAvail().x, 0}, 0, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoScrollWithMouse);
-    smoothScroll();
+    beginTab("moddefaults");
     widgets::sectionTitle("Presets");
     widgets::hint("Switch many modules at once. Modules that are blocked on your server or need game data stay as they are.");
     if (widgets::button("Minimal", {0, 0}, false)) applyPreset(0);
@@ -242,39 +246,33 @@ void drawSettingsPage(ImVec2 origin, ImVec2 size) {
     float s = ui::scale();
     int& tab = settingsTab();
     static const char* names[] = {"General", "Chat & watermark", "Appearance", "Modules", "Profiles", "About"};
-    float navW = 210 * s;
     auto* dl = ImGui::GetWindowDrawList();
-
-    ImGui::SetCursorScreenPos(origin);
-    ImGui::BeginChild("settingsnav", {navW, size.y}, 0, ImGuiWindowFlags_NoBackground);
+    float fs = 12.5f * s;
+    float h = 24 * s;
+    float limit = origin.x + size.x - 10 * s;
+    ImVec2 at = origin;
     for (int i = 0; i < 6; i++) {
+        const char* label = i18n::tr(names[i]);
+        ImVec2 ts = fonts::regular()->CalcTextSizeA(fs, FLT_MAX, 0.f, label);
+        ImVec2 sz{ts.x + 20 * s, h};
+        if (at.x > origin.x && at.x + sz.x > limit) at = {origin.x, at.y + h + 6 * s};
         ImGui::PushID(i);
-        ImVec2 p = ImGui::GetCursorScreenPos();
-        ImVec2 sz{navW - 8 * s, 40 * s};
-        bool clicked = ImGui::InvisibleButton("n", sz);
+        ImGui::SetCursorScreenPos(at);
+        bool clicked = ImGui::InvisibleButton("tab", sz);
         bool hov = ImGui::IsItemHovered();
-        float& a = *ImGui::GetStateStorage()->GetFloatRef(ImGui::GetItemID(), 0.f);
-        a = draw::approach(a, tab == i ? 1.f : (hov ? 0.5f : 0.f), 16.f * t.animSpeed);
-        auto* cdl = ImGui::GetWindowDrawList();
-        if (a > 0.01f) cdl->AddRectFilled(p, p + sz, theme::col(t.surfaceHover, 0.9f * a), 10 * s);
-        if (tab == i) cdl->AddRectFilled({p.x, p.y + 10 * s}, {p.x + 3 * s, p.y + sz.y - 10 * s}, theme::col(t.accent), 2 * s);
-        const char* txt = i18n::tr(names[i]);
-        cdl->AddText(fonts::regular(), 15.5f * s, {p.x + 16 * s, p.y + (sz.y - 15.5f * s) * 0.5f}, theme::col(theme::mix(t.textDim, t.text, std::max(a, tab == i ? 1.f : 0.f))), txt);
+        float& a = *ImGui::GetStateStorage()->GetFloatRef(ImGui::GetID("a"), tab == i ? 1.f : 0.f);
+        a = draw::approach(a, tab == i ? 1.f : 0.f, 16.f * t.animSpeed);
+        ImVec4 fill = theme::mix(t.surface, t.accent, a);
+        if (hov && tab != i) fill = theme::mix(fill, t.text, 0.06f);
+        dl->AddRectFilled(at, at + sz, theme::col(fill, 0.95f), 5 * s);
+        dl->AddText(fonts::regular(), fs, at + (sz - ts) * 0.5f, theme::col(theme::mix(t.textDim, ImVec4(1, 1, 1, 1), a)), label);
         if (clicked) tab = i;
         ImGui::PopID();
-        ImGui::Dummy({0, 2 * s});
+        at.x += sz.x + 6 * s;
     }
-    ImGui::EndChild();
-    dl->AddLine({origin.x + navW + 6 * s, origin.y + 6 * s}, {origin.x + navW + 6 * s, origin.y + size.y - 6 * s}, theme::col(t.surfaceHover, 0.7f), 1.f);
-
-    static const char* subtitles[] = {"Language and menu", "Client tag and inventory mark", "Colors, shapes and effects", "Presets and defaults for all modules", "Save and switch setups", "Version, game and server"};
-    ImVec2 pmin{origin.x + navW + 22 * s, origin.y}, psize{size.x - navW - 22 * s, size.y};
-    dl->AddRectFilled(pmin, pmin + psize, theme::col(t.surface, 0.97f), t.rounding * s);
-    dl->AddRect(pmin, pmin + psize, theme::col(t.surfaceHover, 0.9f), t.rounding * s, 0, 1.f);
-    dl->AddText(fonts::bold(), 22 * s, pmin + ImVec2(18 * s, 14 * s), theme::col(t.text), i18n::tr(names[tab]));
-    dl->AddText(fonts::regular(), 13.5f * s, pmin + ImVec2(18 * s, 42 * s), theme::col(t.textDim), i18n::tr(subtitles[tab]));
-    ImGui::SetCursorScreenPos(pmin + ImVec2(18 * s, 72 * s));
-    ImGui::BeginChild("settingscontent", {psize.x - 36 * s, psize.y - 84 * s}, 0, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoScrollWithMouse);
+    float top = at.y + h + 12 * s;
+    ImGui::SetCursorScreenPos({origin.x, top});
+    ImGui::BeginChild("settingscontent", {size.x, origin.y + size.y - top}, 0, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoScrollWithMouse);
     switch (tab) {
     case 0: drawGeneral(); break;
     case 1: drawChat(); break;

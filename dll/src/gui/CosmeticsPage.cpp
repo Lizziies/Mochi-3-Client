@@ -7,7 +7,6 @@
 #include "cosmetics/Cosmetics.hpp"
 #include "modules/Manager.hpp"
 #include "modules/client/ClientSettings.hpp"
-#include "render/Draw.hpp"
 #include "render/Fonts.hpp"
 #include "render/Ui.hpp"
 
@@ -180,31 +179,29 @@ void drawCosmeticsPage(ImVec2 origin, ImVec2 size) {
         ImGui::PopID();
         bool eq = cs && isEquipped(cs->equipped().text, it.id);
         auto* cdl = ImGui::GetWindowDrawList();
-        float r = 16 * s;
-        cdl->AddRectFilled(p, p + ImVec2(w, 176 * s), theme::col(hov ? t.surfaceHover : t.surface), r);
-        if (eq) cdl->AddRect(p, p + ImVec2(w, 176 * s), theme::col(t.accent), r, 0, 2 * s);
-        draw::gradientRect(cdl, p + ImVec2(10 * s, 10 * s), p + ImVec2(w - 10 * s, 104 * s), theme::col(t.accent, 0.35f), theme::col(t.accent2, 0.15f), 12 * s);
+        float r = t.rounding * 0.75f * s;
+        cdl->AddRectFilled(p, p + ImVec2(w, 176 * s), theme::col(theme::mix(t.surface, t.text, hov ? 0.05f : 0.f), 0.92f), r);
+        cdl->AddRect(p, p + ImVec2(w, 176 * s), theme::col(eq ? t.accent : theme::border(), eq ? 1.f : 0.5f), r, 0, eq ? 1.5f * s : 1.f);
+        cdl->AddRectFilled(p + ImVec2(8 * s, 8 * s), p + ImVec2(w - 8 * s, 104 * s), theme::col(t.bg, 0.55f), r * 0.8f);
         auto fr = cardFrame(it.slot);
         cdl->PushClipRect(p + ImVec2(10 * s, 10 * s), p + ImVec2(w - 10 * s, 104 * s), true);
         cosmetics::drawPreview(cdl, p + ImVec2(w * 0.5f, 57 * s), fr.zoom * s, fr.yaw + std::sin(float(ui::time()) * 0.8f) * 12.f, 10.f, {{&it, savedTints(cs, it)}}, t.accent,
                                {cs ? cs->slim().b : false, fr.focus, &rig});
         cdl->PopClipRect();
-        cdl->AddText(fonts::bold(), 15.f * s, p + ImVec2(14 * s, 114 * s), theme::col(t.text), it.name.c_str());
-        cdl->AddText(fonts::regular(), 12.5f * s, p + ImVec2(14 * s, 135 * s), theme::col(t.textDim), it.slot.c_str());
+        cdl->AddText(fonts::regular(), 13.5f * s, p + ImVec2(12 * s, 114 * s), theme::col(t.text), it.name.c_str());
+        cdl->AddText(fonts::regular(), 11.5f * s, p + ImVec2(12 * s, 134 * s), theme::col(t.textDim), it.slot.c_str());
         const char* label = i18n::tr(eq ? "Equipped" : "Equip");
-        ImVec2 ls = ImGui::CalcTextSize(label);
-        ImVec2 bmin{p.x + w - ls.x - 34 * s, p.y + 138 * s}, bmax{p.x + w - 12 * s, p.y + 164 * s};
-        if (eq) draw::gradientRect(cdl, bmin, bmax, theme::col(t.accent), theme::col(t.accent2), 13 * s);
-        else cdl->AddRectFilled(bmin, bmax, theme::col(t.surfaceHover), 13 * s);
-        cdl->AddText({(bmin.x + bmax.x) * 0.5f - ls.x * 0.5f, (bmin.y + bmax.y) * 0.5f - ls.y * 0.5f}, theme::col(eq ? t.bg : t.textDim), label);
+        ImVec2 ls = fonts::regular()->CalcTextSizeA(12 * s, FLT_MAX, 0.f, label);
+        ImVec2 bmin{p.x + w - ls.x - 30 * s, p.y + 142 * s}, bmax{p.x + w - 10 * s, p.y + 164 * s};
+        cdl->AddRectFilled(bmin, bmax, theme::col(eq ? t.accent : t.surfaceHover), 5 * s);
+        cdl->AddText(fonts::regular(), 12 * s, (bmin + bmax - ls) * 0.5f, theme::col(eq ? ImVec4(1, 1, 1, 1) : t.textDim), label);
         if (clicked && cs) toggleEquipped(cs->equipped(), it);
     }
     ImGui::EndChild();
 
     ImVec2 po{origin.x + listW + gap, origin.y};
     float stageH = size.y * 0.52f;
-    dl->AddRectFilled(po, po + ImVec2(previewW, size.y), theme::col(t.surface, 0.8f), 18 * s);
-    draw::glow(dl, po + ImVec2(previewW * 0.2f, stageH * 0.2f), po + ImVec2(previewW * 0.8f, stageH * 0.7f), 40 * s, theme::col(t.accent, 0.12f), 50 * s);
+    dl->AddRectFilled(po, po + ImVec2(previewW, size.y), theme::col(t.surface, 0.6f), t.rounding * 0.75f * s);
     ImGui::SetCursorScreenPos(po);
     ImGui::InvisibleButton("preview", {previewW, stageH});
     float spin = cs ? cs->spin().f : 18.f;

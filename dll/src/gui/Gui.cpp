@@ -4,12 +4,11 @@
 #include "HudEditor.hpp"
 #include "Theme.hpp"
 #include "Widgets.hpp"
-#include "core/Build.hpp"
 #include "core/Config.hpp"
 #include "hook/Input.hpp"
 #include "modules/Manager.hpp"
 #include "modules/client/ClientSettings.hpp"
-#include "modules/Tiers.hpp"
+#include "modules/post/PostFx.hpp"
 #include "render/Draw.hpp"
 #include "render/Fonts.hpp"
 #include "render/Ui.hpp"
@@ -19,8 +18,6 @@
 
 #include <algorithm>
 #include <atomic>
-#include <cctype>
-#include <cmath>
 #include <string>
 
 namespace gui {
@@ -30,8 +27,7 @@ static std::atomic<bool> hudEdit{false};
 static std::atomic<bool> keyboardClaim{false};
 static bool keyboardClaimNext = false;
 static float openAnim = 0.f;
-static float sideAnim = 0.f;
-static Page current = Page::Modules;
+static Page current = Page::Settings;
 static Module* selected = nullptr;
 static char search[64] = "";
 static bool onlyFavorites = false;
@@ -75,7 +71,6 @@ void toggle() {
         setOpen(false);
         return;
     }
-    if (current != Page::Modules) go(Page::Modules);
     search[0] = 0;
     setOpen(true);
 }
@@ -94,92 +89,67 @@ void setEditingHud(bool on) {
     if (on) isOpen = false;
 }
 
-float menuBlurPx() {
-    auto* cs = modules::get<ClientSettings>();
-    float strength = cs ? cs->menuBlur() : 0.f;
-    return strength * 22.f * ui::scale() * std::clamp(openAnim, 0.f, 1.f);
-}
-
 bool wantsInput() { return isOpen || hudEdit || keyboardClaim; }
 bool wantsCursor() { return isOpen || hudEdit; }
 bool capturesKeyboard() { return isOpen || widgets::capturingKey() || keyboardClaim || ImGui::GetIO().WantTextInput; }
 void claimKeyboard() { keyboardClaimNext = true; }
 
-static bool textButton(const char* id, const char* label, bool active, ImVec2 at, float h, float& width) {
+// Every panel floats on its own: blurred game behind it, a translucent fill and a thin outline.
+static void beginPanel(const char* id, ImVec2 pos, ImVec2 size, float fade) {
     auto& t = theme::current();
     float s = ui::scale();
-    const char* text = i18n::tr(label);
-    ImVec2 ts = fonts::regular()->CalcTextSizeA(14 * s, FLT_MAX, 0.f, text);
-    width = ts.x + 18 * s;
-    ImGui::SetCursorScreenPos(at);
-    bool clicked = ImGui::InvisibleButton(id, {width, h});
-    bool hov = ImGui::IsItemHovered();
+    float r = t.rounding * s;
+    ImGui::SetNextWindowPos(pos);
+    ImGui::SetNextWindowSize(size);
+    ImGui::PushStyleVar(ImGuiStyleVar_Alpha, fade);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {0, 0});
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 0));
+    ImGui::Begin(id, nullptr,
+                 ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
+                     ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoBringToFrontOnFocus);
+    ImGui::PopStyleColor();
+    theme::setFade(fade);
     auto* dl = ImGui::GetWindowDrawList();
-    if (hov || active) dl->AddRectFilled(at, at + ImVec2(width, h), theme::col(t.surfaceHover, active ? 0.9f : 0.6f), t.rounding * s);
-    dl->AddText(fonts::regular(), 14 * s, {at.x + 9 * s, at.y + (h - ts.y) * 0.5f}, theme::col(active || hov ? t.text : t.textDim), text);
-    if (active) dl->AddRectFilled({at.x + 9 * s, at.y + h - 3 * s}, {at.x + width - 9 * s, at.y + h - 1.5f * s}, theme::col(t.accent));
-    return clicked;
+    auto* cs = modules::get<ClientSettings>();
+    float blur = cs ? cs->menuBlur() : 0.f;
+    if (blur > 0.01f) post::blur(dl, pos, pos + size, r, blur * 16.f * s * fade, {0, 0, 0, 0});
+    dl->AddRectFilled(pos, pos + size, theme::col(t.bg, t.opacity), r);
+    dl->AddRect(pos, pos + size, theme::col(theme::border(), 0.85f), r, 0, 1.f);
+    ImGui::PushFont(fonts::regular(), 14.f);
 }
 
-static void header(ImVec2 pos, float w) {
-    auto& t = theme::current();
-    float s = ui::scale();
-    auto* dl = ImGui::GetWindowDrawList();
-    float pad = 14 * s;
-    float y = pos.y + 14 * s;
-    std::string brand = build::name;
-    for (auto& c : brand) c = (char)std::toupper((unsigned char)c);
-    dl->AddText(fonts::bold(), 22 * s, {pos.x + pad, y + 2 * s}, theme::col(t.text), brand.c_str());
-    float bw = fonts::bold()->CalcTextSizeA(22 * s, FLT_MAX, 0.f, brand.c_str()).x;
-    dl->AddRectFilled({pos.x + pad + bw + 6 * s, y + 18 * s}, {pos.x + pad + bw + 11 * s, y + 23 * s}, theme::col(t.accent));
-
-    float h = 28 * s;
-    float x = pos.x + w - pad;
-    float bwid = 0.f;
-    struct Item {
-        const char* id;
-        const char* label;
-        Page page;
-    };
-    const Item items[] = {{"hdr_settings", "Settings", Page::Settings}, {"hdr_cosmetics", "Cosmetics", Page::Cosmetics}};
-    for (auto& it : items) {
-        float width = fonts::regular()->CalcTextSizeA(14 * s, FLT_MAX, 0.f, i18n::tr(it.label)).x + 18 * s;
-        x -= width;
-        if (textButton(it.id, it.label, current == it.page, {x, y}, h, bwid)) go(current == it.page ? Page::Modules : it.page);
-        x -= 4 * s;
-    }
-    float width = fonts::regular()->CalcTextSizeA(14 * s, FLT_MAX, 0.f, i18n::tr("Edit HUD")).x + 18 * s;
-    x -= width;
-    if (textButton("hdr_hud", "Edit HUD", false, {x, y}, h, bwid)) setEditingHud(true);
+static void endPanel() {
+    ImGui::PopFont();
+    ImGui::End();
+    ImGui::PopStyleVar(2);
+    theme::setFade(1.f);
 }
 
-static void searchBar(ImVec2 at, float w) {
+static void searchBar(ImVec2 at, ImVec2 size) {
     auto& t = theme::current();
     float s = ui::scale();
-    auto* dl = ImGui::GetWindowDrawList();
-    float h = 34 * s;
-    float sw = 34 * s;
-    float fw = w - sw - 6 * s;
-    dl->AddRectFilled(at, at + ImVec2(fw, h), theme::col(t.surface), t.rounding * s);
-    dl->AddRect(at, at + ImVec2(fw, h), theme::col(theme::border()), t.rounding * s, 0, 1.f);
+    float sw = size.y;
     ImGui::SetCursorScreenPos(at + ImVec2(4 * s, 0));
-    ImGui::SetNextItemWidth(fw - 8 * s);
+    ImGui::SetNextItemWidth(size.x - sw - 6 * s);
     ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
     ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0, 0, 0, 0));
     ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0, 0, 0, 0));
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {8 * s, (h - ImGui::GetFontSize()) * 0.5f});
-    ImGui::InputTextWithHint("##search", i18n::tr("Search modules"), search, sizeof(search));
+    ImGui::PushStyleColor(ImGuiCol_TextDisabled, t.textDim);
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {8 * s, (size.y - ImGui::GetFontSize()) * 0.5f});
+    // typing anywhere in the menu goes into the search
+    auto& queue = ImGui::GetIO().InputQueueCharacters;
+    bool typed = std::any_of(queue.begin(), queue.end(), [](ImWchar c) { return c > 32; });
+    if (typed && !ImGui::IsAnyItemActive() && !widgets::capturingKey()) ImGui::SetKeyboardFocusHere();
+    ImGui::InputTextWithHint("##search", i18n::tr("Search..."), search, sizeof(search), ImGuiInputTextFlags_EscapeClearsAll);
     ImGui::PopStyleVar();
-    ImGui::PopStyleColor(3);
+    ImGui::PopStyleColor(4);
 
-    ImVec2 sp{at.x + w - sw, at.y};
+    ImVec2 sp{at.x + size.x - sw, at.y};
     ImGui::SetCursorScreenPos(sp);
-    bool clicked = ImGui::InvisibleButton("favs", {sw, h});
+    bool clicked = ImGui::InvisibleButton("favs", {sw, sw});
     bool hov = ImGui::IsItemHovered();
-    ImVec4 bg = onlyFavorites ? theme::mix(t.surface, t.accent, 0.25f) : (hov ? t.surfaceHover : t.surface);
-    dl->AddRectFilled(sp, sp + ImVec2(sw, h), theme::col(bg), t.rounding * s);
-    dl->AddRect(sp, sp + ImVec2(sw, h), theme::col(onlyFavorites ? t.accent : theme::border()), t.rounding * s, 0, 1.f);
-    star(dl, sp + ImVec2(sw, h) * 0.5f, 7 * s, theme::col(onlyFavorites ? ImVec4{1.f, 0.82f, 0.4f, 1.f} : t.textDim), onlyFavorites);
+    ImU32 c = theme::col(onlyFavorites ? ImVec4{1.f, 0.82f, 0.4f, 1.f} : (hov ? t.text : t.textDim));
+    star(ImGui::GetWindowDrawList(), sp + ImVec2(sw, sw) * 0.5f, 6.5f * s, c, onlyFavorites);
     if (hov) ImGui::SetTooltip("%s", i18n::tr("Favorites"));
     if (clicked) onlyFavorites = !onlyFavorites;
 }
@@ -192,115 +162,57 @@ static void footer(ImVec2 at, float w) {
     std::string label = info.server.empty() ? std::string(i18n::tr("No server")) : info.server;
     if (info.blocked) label += "  ·  " + i18n::fmt("{} blocked", info.blocked);
     ImVec4 dot = info.server.empty() ? t.off : (info.blocked ? t.warn : t.ok);
-    dl->AddLine(at, at + ImVec2(w, 0), theme::col(theme::border()), 1.f);
-    float cy = at.y + 16 * s;
-    dl->AddCircleFilled({at.x + 6 * s, cy}, 3.5f * s, theme::col(dot));
-    dl->AddText(fonts::regular(), 13 * s, {at.x + 16 * s, cy - 7 * s}, theme::col(t.textDim), label.c_str());
-    const char* hint = i18n::tr("Right Shift to close");
-    ImVec2 hs = fonts::regular()->CalcTextSizeA(13 * s, FLT_MAX, 0.f, hint);
-    dl->AddText(fonts::regular(), 13 * s, {at.x + w - hs.x, cy - 7 * s}, theme::col(t.textDim, 0.7f), hint);
-}
-
-static void openWindow(const char* id, ImVec2 pos, ImVec2 size, float fade) {
-    auto& t = theme::current();
-    float s = ui::scale();
-    ImGui::SetNextWindowPos(pos);
-    ImGui::SetNextWindowSize(size);
-    ImGui::PushStyleVar(ImGuiStyleVar_Alpha, fade);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, t.rounding * s);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {0, 0});
-    ImGui::Begin(id, nullptr,
-                 ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
-                     ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoBringToFrontOnFocus);
-    ImGui::GetWindowDrawList()->AddRect(pos, pos + size, theme::col(theme::border()), t.rounding * s, 0, 1.5f * s);
-}
-
-static void closeWindow() {
-    ImGui::End();
-    ImGui::PopStyleVar(3);
-}
-
-static ImVec2 listSize() {
-    float s = ui::scale();
-    auto ds = ImGui::GetIO().DisplaySize;
-    return {std::clamp(410 * s, 300 * s, ds.x * 0.45f), ds.y - 36 * s};
-}
-
-static void drawList(float anim) {
-    float s = ui::scale();
-    float e = draw::easeOutCubic(std::clamp(anim, 0.f, 1.f));
-    float fade = std::clamp(anim, 0.f, 1.f);
-    ImVec2 size = listSize();
-    ImVec2 pos{18 * s - (1.f - e) * 26 * s, 18 * s};
-    theme::setFade(fade);
-    openWindow("##mochi", pos, size, fade);
-    header(pos, size.x);
-    float pad = 14 * s;
-    searchBar({pos.x + pad, pos.y + 56 * s}, size.x - pad * 2);
-    float top = pos.y + 56 * s + 34 * s + 10 * s;
-    float foot = 34 * s;
-    drawModulesPage({pos.x + 8 * s, top}, {size.x - 12 * s, pos.y + size.y - foot - top});
-    footer({pos.x + pad, pos.y + size.y - foot}, size.x - pad * 2);
-    closeWindow();
-    theme::setFade(1.f);
-}
-
-static void drawSide(Page page, float anim) {
-    auto& t = theme::current();
-    float s = ui::scale();
-    auto ds = ImGui::GetIO().DisplaySize;
-    float e = draw::easeOutCubic(std::clamp(anim, 0.f, 1.f));
-    float fade = std::clamp(anim, 0.f, 1.f);
-    ImVec2 list = listSize();
-    float x = 18 * s + list.x + 12 * s;
-    ImVec2 size{std::min(ds.x - x - 18 * s, 980 * s), list.y};
-    ImVec2 pos{x - (1.f - e) * 20 * s, 18 * s};
-    theme::setFade(fade);
-    openWindow("##mochi_side", pos, size, fade);
-    auto* dl = ImGui::GetWindowDrawList();
-    float pad = 18 * s;
-    const char* title = page == Page::Cosmetics ? "Cosmetics" : "Settings";
-    dl->AddText(fonts::bold(), 20 * s, pos + ImVec2(pad, 16 * s), theme::col(t.text), i18n::tr(title));
-    ImVec2 cp{pos.x + size.x - pad - 26 * s, pos.y + 14 * s};
-    ImGui::SetCursorScreenPos(cp);
-    bool close = ImGui::InvisibleButton("sideclose", {26 * s, 26 * s});
-    bool hov = ImGui::IsItemHovered();
-    if (hov) dl->AddRectFilled(cp, cp + ImVec2(26 * s, 26 * s), theme::col(t.surfaceHover), t.rounding * s);
-    ImVec2 c = cp + ImVec2(13 * s, 13 * s);
-    ImU32 xc = theme::col(hov ? t.text : t.textDim);
-    dl->AddLine(c + ImVec2(-4.5f * s, -4.5f * s), c + ImVec2(4.5f * s, 4.5f * s), xc, 1.6f * s);
-    dl->AddLine(c + ImVec2(4.5f * s, -4.5f * s), c + ImVec2(-4.5f * s, 4.5f * s), xc, 1.6f * s);
-    ImVec2 origin{pos.x + pad, pos.y + 56 * s};
-    ImVec2 area{size.x - pad * 2, size.y - 56 * s - pad};
-    if (page == Page::Cosmetics) drawCosmeticsPage(origin, area);
-    else drawSettingsPage(origin, area);
-    closeWindow();
-    theme::setFade(1.f);
-    if (close) go(Page::Modules);
-}
-
-static void backdrop(float strength) {
-    auto ds = ImGui::GetIO().DisplaySize;
-    ImGui::GetBackgroundDrawList()->AddRectFilled({0, 0}, ds, IM_COL32(0, 0, 0, int(70 * strength)));
+    float cy = at.y + 13 * s;
+    float fs = 11.5f * s;
+    dl->AddCircleFilled({at.x + 4 * s, cy}, 3 * s, theme::col(dot));
+    std::string shown = fitText(fonts::regular(), fs, label, w - 14 * s);
+    dl->AddText(fonts::regular(), fs, {at.x + 12 * s, cy - fs * 0.53f}, theme::col(t.textDim), shown.c_str());
 }
 
 static void drawMenu() {
     auto& t = theme::current();
-    openAnim = draw::approach(openAnim, isOpen ? 1.f : 0.f, 14.f * t.animSpeed);
-    sideAnim = draw::approach(sideAnim, isOpen && current != Page::Modules ? 1.f : 0.f, 14.f * t.animSpeed);
+    float s = ui::scale();
+    openAnim = draw::approach(openAnim, isOpen ? 1.f : 0.f, 12.f * t.animSpeed);
     if (openAnim < 0.01f) return;
 
-    static Page side = Page::Settings;
-    if (current != Page::Modules) side = current;
-    backdrop(std::clamp(openAnim, 0.f, 1.f));
-    drawList(openAnim);
-    if (sideAnim > 0.01f) drawSide(side, sideAnim);
+    auto ds = ImGui::GetIO().DisplaySize;
+    float margin = 24 * s;
+    float top = std::max(margin, ds.y * 0.08f);
+    float bottom = ds.y - std::max(margin, ds.y * 0.07f);
+    float listW = std::clamp(ds.x * 0.26f, 220 * s, 320 * s);
+    float gap = 10 * s;
+    float x = std::max(margin, (ds.x - (listW + gap + 700 * s)) * 0.5f);
+    float dx = x + listW + gap;
+    static float detailsW = 0.f;
+    float wantW = std::max(200 * s, std::min(detailsWidth(), ds.x - dx - margin));
+    detailsW = detailsW <= 0.f || !draw::motion() ? wantW : draw::approach(detailsW, wantW, 16.f * t.animSpeed);
+
+    auto stage = [&](int i) { return std::clamp(openAnim * 1.3f - i * 0.15f, 0.f, 1.f); };
+    auto lift = [&](float a) { return (1.f - draw::easeOutCubic(a)) * 12 * s; };
+    ImGui::GetBackgroundDrawList()->AddRectFilled({0, 0}, ds, IM_COL32(0, 0, 0, int(45 * std::clamp(openAnim, 0.f, 1.f))));
+
+    float a = stage(0);
+    ImVec2 sp{x, top + lift(a)}, ss{listW, 30 * s};
+    beginPanel("##mochi_search", sp, ss, a);
+    searchBar(sp, ss);
+    endPanel();
+
+    a = stage(1);
+    float foot = 26 * s;
+    ImVec2 lp{x, top + 38 * s + lift(a)}, ls{listW, bottom - top - 38 * s};
+    beginPanel("##mochi", lp, ls, a);
+    drawModulesPage(lp + ImVec2(8 * s, 8 * s), {ls.x - 10 * s, ls.y - 8 * s - foot});
+    footer({lp.x + 12 * s, lp.y + ls.y - foot}, ls.x - 24 * s);
+    endPanel();
+
+    a = stage(2);
+    ImVec2 dp{dx, top + lift(a)}, dsz{detailsW, bottom - top};
+    beginPanel("##mochi_details", dp, dsz, a);
+    drawDetails(dp, dsz);
+    endPanel();
 
     bool typing = ImGui::GetIO().WantTextInput;
-    if (isOpen && ImGui::IsKeyPressed(ImGuiKey_Escape, false) && !widgets::capturingKey() && !typing) {
-        if (current != Page::Modules) go(Page::Modules);
-        else setOpen(false);
-    }
+    if (isOpen && ImGui::IsKeyPressed(ImGuiKey_Escape, false) && !widgets::capturingKey() && !typing) setOpen(false);
 }
 
 void draw() {

@@ -9,7 +9,6 @@
 #include "render/Draw.hpp"
 #include "render/Fonts.hpp"
 #include "render/Ui.hpp"
-#include "server/Rules.hpp"
 
 #include <imgui.h>
 #include <imgui_internal.h>
@@ -18,19 +17,21 @@
 #include <cctype>
 #include <cmath>
 #include <map>
-#include <vector>
 
 namespace gui {
 
-static std::map<const void*, bool> opened;
-static std::map<const void*, float> expandT;
-static std::map<const void*, float> heights;
-static std::map<int, bool> folded{{int(Section::Server), true}, {int(Section::Extras), true}};
-static const void* scrollTo = nullptr;
+static const Entry* pickedEntry = nullptr;
+static Module* pickedModule = nullptr;
+static Module* focusPart = nullptr;
+static bool scrollList = false;
+static bool scrollPart = false;
+static std::map<const void*, bool> partOpen;
+static std::map<const void*, float> partT;
+static std::map<const void*, float> partH;
 static double shownAt = 0.0;
 static bool wasOpen = false;
 
-void openAllGroups() { folded.clear(); }
+static const ImVec4 gold{1.f, 0.82f, 0.4f, 1.f};
 
 static bool isCore(const Setting& st) { return st.id == "key" || st.id == "hold" || st.id == "x" || st.id == "y"; }
 
@@ -61,317 +62,206 @@ static void chevron(ImDrawList* dl, ImVec2 c, float open, ImU32 col) {
     float s = ui::scale();
     float a = open * 1.5708f;
     auto rot = [&](float x, float y) { return ImVec2(c.x + (x * std::cos(a) - y * std::sin(a)) * s, c.y + (x * std::sin(a) + y * std::cos(a)) * s); };
-    dl->AddTriangleFilled(rot(-2.5f, -4.f), rot(-2.5f, 4.f), rot(3.5f, 0.f), col);
+    ImVec2 pts[3] = {rot(-1.5f, -3.5f), rot(2.f, 0.f), rot(-1.5f, 3.5f)};
+    dl->AddPolyline(pts, 3, col, 0, 1.4f * s);
 }
 
-static void warnMark(ImDrawList* dl, ImVec2 c, float dim) {
-    auto& t = theme::current();
-    float s = ui::scale();
-    dl->AddTriangleFilled({c.x, c.y - 6 * s}, {c.x - 6 * s, c.y + 5 * s}, {c.x + 6 * s, c.y + 5 * s}, theme::col(t.warn, dim));
-    dl->AddText(fonts::bold(), 9.5f * s, {c.x - 1.4f * s, c.y - 3.6f * s}, theme::col(t.bg), "!");
-}
+static float textY(float cy, float size) { return cy - size * 0.53f; }
 
 struct Row {
     std::string name;
     std::string extra;
+    const char* lockText = "no data";
+    Module* fav = nullptr;
+    float fold = -1.f;
     bool on = false;
     bool lock = false;
     bool warn = false;
     bool canToggle = true;
-    int key = 0;
-    Module* fav = nullptr;
+    bool selected = false;
+    bool hasSwitch = true;
+    bool scrollHere = false;
 };
 
-// returns true when the row itself (not its switch or star) was clicked
-static bool drawRow(const void* id, const Row& row, float indent, float h, float appear, bool& flipped) {
+enum class Hit { None, Row, Switch };
+
+static Hit listRow(const void* id, const Row& row, float appear = 1.f) {
     auto& t = theme::current();
     float s = ui::scale();
     ImGui::PushID(id);
-    ImVec2 origin = ImGui::GetCursorScreenPos();
-    ImVec2 p = origin + ImVec2(indent, 0);
-    float w = ImGui::GetContentRegionAvail().x - indent;
-    ImGui::SetCursorScreenPos(p);
+    ImVec2 p = ImGui::GetCursorScreenPos();
+    float w = ImGui::GetContentRegionAvail().x;
+    float h = 29 * s;
     ImGui::SetNextItemAllowOverlap();
     bool clicked = ImGui::InvisibleButton("row", {w, h});
-    bool hov = ImGui::IsItemHovered();
-    float open = draw::easeOutCubic(expandT[id]);
-    float& hv = *ImGui::GetStateStorage()->GetFloatRef(ImGui::GetID("hv"), 0.f);
-    hv = draw::approach(hv, hov ? 1.f : 0.f, 18.f * t.animSpeed);
+    bool hov = ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenOverlappedByItem);
+    if (row.scrollHere) ImGui::SetScrollHereY(0.3f);
+
+    auto* store = ImGui::GetStateStorage();
+    float speed = 16.f * t.animSpeed;
+    float& hv = *store->GetFloatRef(ImGui::GetID("hv"), 0.f);
+    float& lit = *store->GetFloatRef(ImGui::GetID("lit"), row.on ? 1.f : 0.f);
+    float& sel = *store->GetFloatRef(ImGui::GetID("sel"), row.selected ? 1.f : 0.f);
+    hv = draw::approach(hv, hov ? 1.f : 0.f, speed * 1.3f);
+    lit = draw::approach(lit, row.on ? 1.f : 0.f, speed);
+    sel = draw::approach(sel, row.selected ? 1.f : 0.f, speed);
 
     float base = theme::fade();
     theme::setFade(base * appear);
     auto* dl = ImGui::GetWindowDrawList();
-    ImVec2 a = p + ImVec2((1.f - appear) * 14 * s, 0), b = a + ImVec2(w, h);
-    float r = t.rounding * s;
-    float bg = std::max(0.55f * hv, 0.35f * open);
-    if (bg > 0.01f) dl->AddRectFilled(a, b, theme::col(t.surfaceHover, bg), r);
-    if (row.on) dl->AddRectFilled({a.x, a.y + 9 * s}, {a.x + 2.5f * s, b.y - 9 * s}, theme::col(t.accent), 1 * s);
+    ImVec2 a = p + ImVec2((1.f - appear) * 10 * s, 0), b = a + ImVec2(w, h);
+    float r = t.rounding * 0.75f * s;
+    ImVec4 fill = theme::mix(t.surface, theme::mix(t.bg, t.accent, 0.6f), lit);
+    fill = theme::mix(fill, t.text, 0.05f * hv + 0.07f * sel);
+    dl->AddRectFilled(a, b, theme::col(fill, 0.92f), r);
+    if (sel > 0.01f) dl->AddRect(a, b, theme::col(theme::border(), sel), r, 0, 1.f);
 
     float dim = row.lock ? 0.45f : 1.f;
     float cy = a.y + h * 0.5f;
-    chevron(dl, {a.x + 14 * s, cy}, open, theme::col(t.textDim, 0.8f * dim));
-    float tx = a.x + 28 * s;
-    float size = (indent > 0 ? 15.f : 16.f) * s;
-    ImFont* font = row.on ? fonts::bold() : fonts::regular();
-    float right = b.x - 52 * s;
-    std::string label = fitText(font, size, row.name, right - tx - 60 * s);
-    dl->AddText(font, size, {tx, cy - size * 0.55f}, theme::col(row.on ? t.text : theme::mix(t.textDim, t.text, 0.75f), dim), label.c_str());
-    float after = tx + font->CalcTextSizeA(size, FLT_MAX, 0.f, label.c_str()).x + 8 * s;
-    if (!row.extra.empty()) dl->AddText(fonts::regular(), 13 * s, {after, cy - 7 * s}, theme::col(t.textDim, 0.8f * dim), row.extra.c_str());
+    float tx = a.x + 10 * s;
+    if (row.fold >= 0.f) {
+        chevron(dl, {a.x + 12 * s, cy}, row.fold, theme::col(t.textDim, dim));
+        tx = a.x + 23 * s;
+    }
+    ImVec2 sw = widgets::switchSize();
+    bool showSwitch = row.hasSwitch && !row.lock;
+    float x = b.x - 10 * s - (showSwitch ? sw.x + 8 * s : 0.f);
+    float small = 11.5f * s;
 
-    float x = right;
     if (row.lock) {
-        const char* text = i18n::tr("No game data");
-        ImVec2 ts = fonts::regular()->CalcTextSizeA(12.5f * s, FLT_MAX, 0.f, text);
-        x -= ts.x + 8 * s;
-        dl->AddText(fonts::regular(), 12.5f * s, {x, cy - 7 * s}, theme::col(t.textDim, 0.5f), text);
-    } else if (row.key) {
-        std::string k = widgets::keyName(row.key);
-        ImVec2 ks = fonts::regular()->CalcTextSizeA(12.5f * s, FLT_MAX, 0.f, k.c_str());
-        float kw = ks.x + 12 * s;
-        x -= kw + 8 * s;
-        dl->AddRect({x, cy - 9 * s}, {x + kw, cy + 9 * s}, theme::col(theme::border()), r * 0.7f, 0, 1.f);
-        dl->AddText(fonts::regular(), 12.5f * s, {x + 6 * s, cy - ks.y * 0.5f}, theme::col(t.textDim), k.c_str());
+        const char* text = i18n::tr(row.lockText);
+        x -= fonts::regular()->CalcTextSizeA(small, FLT_MAX, 0.f, text).x;
+        dl->AddText(fonts::regular(), small, {x, textY(cy, small)}, theme::col(t.textDim, 0.7f), text);
+        x -= 8 * s;
+    } else if (!row.hasSwitch) {
+        chevron(dl, {b.x - 13 * s, cy}, 0.f, theme::col(t.textDim, 0.7f));
+    }
+    if (row.fav) {
+        ImVec2 sc{x - 7 * s, cy};
+        ImGui::SetCursorScreenPos(sc - ImVec2(9 * s, 9 * s));
+        bool starClicked = ImGui::InvisibleButton("fav", {18 * s, 18 * s});
+        bool starHov = ImGui::IsItemHovered();
+        if (row.fav->favorite()) star(dl, sc, 5.5f * s, theme::col(gold, dim), true);
+        else if (hov || starHov) star(dl, sc, 5.5f * s, theme::col(starHov ? t.text : t.textDim, 0.7f), false);
+        if (starClicked) row.fav->setFavorite(!row.fav->favorite());
+        x -= 20 * s;
     }
     if (row.warn) {
-        x -= 18 * s;
-        warnMark(dl, {x + 6 * s, cy}, dim);
-    }
-    bool starClicked = false;
-    if (row.fav) {
-        ImVec2 sc{x - 12 * s, cy};
-        ImGui::SetCursorScreenPos(sc - ImVec2(9 * s, 9 * s));
-        starClicked = ImGui::InvisibleButton("fav", {18 * s, 18 * s});
-        bool sh = ImGui::IsItemHovered();
-        if (row.fav->favorite()) star(dl, sc, 6 * s, theme::col({1.f, 0.82f, 0.4f, 1.f}, dim), true);
-        else if (hov || sh) star(dl, sc, 6 * s, theme::col(sh ? t.text : t.textDim, 0.7f), false);
-        if (starClicked) row.fav->setFavorite(!row.fav->favorite());
+        dl->AddCircleFilled({x - 3 * s, cy}, 2.6f * s, theme::col(t.warn, dim));
+        x -= 12 * s;
     }
 
-    ImGui::SetCursorScreenPos({b.x - 46 * s, cy - 11 * s});
-    bool state = row.on;
-    flipped = widgets::toggle("t", state, row.canToggle);
-    bool onSwitch = ImGui::IsItemHovered();
+    float size = 13.5f * s;
+    std::string label = fitText(fonts::regular(), size, row.name, x - tx - 4 * s);
+    dl->AddText(fonts::regular(), size, {tx, textY(cy, size)}, theme::col(t.text, dim), label.c_str());
+    if (!row.extra.empty()) {
+        float after = tx + fonts::regular()->CalcTextSizeA(size, FLT_MAX, 0.f, label.c_str()).x + 6 * s;
+        if (after + fonts::regular()->CalcTextSizeA(small, FLT_MAX, 0.f, row.extra.c_str()).x < x)
+            dl->AddText(fonts::regular(), small, {after, textY(cy, small)}, theme::col(t.textDim, 0.85f * dim), row.extra.c_str());
+    }
+
+    Hit hit = clicked ? Hit::Row : Hit::None;
+    if (showSwitch) {
+        ImVec2 sp{b.x - 10 * s - sw.x, cy - sw.y * 0.5f};
+        ImGui::SetCursorScreenPos({sp.x - 8 * s, a.y});
+        if (ImGui::InvisibleButton("switch", {sw.x + 16 * s, h}) && row.canToggle) hit = Hit::Switch;
+        float& knob = *store->GetFloatRef(ImGui::GetID("knob"), row.on ? 1.f : 0.f);
+        knob = draw::approach(knob, row.on ? 1.f : 0.f, 18.f * t.animSpeed);
+        widgets::drawSwitch(dl, sp, knob, row.canToggle ? 1.f : 0.45f);
+    }
 
     theme::setFade(base);
-    ImGui::SetCursorScreenPos(origin + ImVec2(0, h + 2 * s));
+    ImGui::SetCursorScreenPos(p + ImVec2(0, h + 3 * s));
     ImGui::PopID();
-    return clicked && !onSwitch && !starClicked;
+    return hit;
 }
 
-static void keyRow(Module& m) {
+static void sectionLabel(const char* text) {
     auto& t = theme::current();
     float s = ui::scale();
-    auto* dl = ImGui::GetWindowDrawList();
-    ImVec2 cp = ImGui::GetCursorScreenPos();
-    float full = ImGui::GetContentRegionAvail().x;
-    float h = 36 * s;
-    dl->AddRect(cp, cp + ImVec2(full, h), theme::col(theme::border()), t.rounding * s, 0, 1.f);
-    dl->AddText(fonts::regular(), 14 * s, cp + ImVec2(10 * s, (h - 14 * s) * 0.5f), theme::col(t.text), i18n::tr("Keybind"));
-    const char* holdLabel = i18n::tr("Hold");
-    ImVec2 hs = fonts::regular()->CalcTextSizeA(13 * s, FLT_MAX, 0.f, holdLabel);
-    float holdX = full - 48 * s;
-    float keyX = holdX - hs.x - 16 * s - 110 * s;
-    ImGui::SetCursorScreenPos(cp + ImVec2(keyX, (h - ImGui::GetFrameHeight()) * 0.5f));
-    widgets::keyCapture("key", m.keybind().i);
-    dl->AddText(fonts::regular(), 13 * s, {cp.x + holdX - hs.x - 8 * s, cp.y + (h - hs.y) * 0.5f}, theme::col(t.textDim), holdLabel);
-    ImGui::SetCursorScreenPos(cp + ImVec2(holdX, (h - 22 * s) * 0.5f));
-    widgets::toggle("hold", m.hold().b);
-    ImGui::SetCursorScreenPos(cp + ImVec2(0, h + 8 * s));
-}
-
-static void settingGroups(Module& m) {
-    auto& t = theme::current();
-    float s = ui::scale();
-    auto* hud = dynamic_cast<HudModule*>(&m);
-    auto isStyle = [hud](const Setting& st) {
-        static const char* ids[] = {"bg", "rounding", "padding", "shadow", "accent", "scale"};
-        if (!hud || st.type == SettingType::Color) return false;
-        for (auto id : ids)
-            if (st.id == id) return true;
-        return false;
-    };
-    auto group = [&](const char* title, bool startOpen, auto&& belongs) {
-        bool any = false;
-        for (auto& set : m.settings())
-            if (!isCore(set) && belongs(set) && set.shown()) any = true;
-        if (!any) return;
-        bool& open = *ImGui::GetStateStorage()->GetBoolRef(ImGui::GetID(title), startOpen);
-        ImVec2 hp = ImGui::GetCursorScreenPos();
-        float w = ImGui::GetContentRegionAvail().x;
-        bool clicked = ImGui::InvisibleButton(title, {w, 26 * s});
-        auto* dl = ImGui::GetWindowDrawList();
-        chevron(dl, {hp.x + 6 * s, hp.y + 13 * s}, open ? 1.f : 0.f, theme::col(t.textDim));
-        dl->AddText(fonts::bold(), 12 * s, hp + ImVec2(16 * s, 6 * s), theme::col(t.textDim), upper(i18n::tr(title)).c_str());
-        if (clicked) open = !open;
-        if (open)
-            for (auto& set : m.settings())
-                if (!isCore(set) && belongs(set)) widgets::setting(set);
-        ImGui::Dummy({0, 4 * s});
-    };
-    group("General", true, [&](const Setting& st) { return st.type != SettingType::Color && !isStyle(st); });
-    m.drawSettings();
-    group("Style", false, [&](const Setting& st) { return isStyle(st); });
-    group("Colors", false, [&](const Setting& st) { return st.type == SettingType::Color; });
-}
-
-static void smallHint(const char* text) {
-    ImGui::PushFont(fonts::regular(), 15.f);
-    widgets::hint(text);
-    ImGui::PopFont();
-}
-
-static void moduleBody(Module& m) {
-    auto& t = theme::current();
-    float s = ui::scale();
-    ImGui::Dummy({0, 2 * s});
-    smallHint(m.description().c_str());
-    if (!m.ruleNote().empty()) {
-        ImGui::PushTextWrapPos(0.f);
-        ImGui::TextColored(t.warn, "%s", m.ruleNote().c_str());
-        ImGui::PopTextWrapPos();
-    }
-    if (locked(m) && m.rule() != RuleLevel::Block)
-        smallHint("This one needs game data for your Minecraft version. It turns on by itself once the data is there.");
-    ImGui::Dummy({0, 4 * s});
-    keyRow(m);
-    settingGroups(m);
-    if (widgets::button("Reset all", {0, 0}, false))
-        m.resetSettings([](const Setting& st) { return st.id != "x" && st.id != "y" && st.id != "key"; });
-    if (m.isHud()) {
-        ImGui::SameLine();
-        if (widgets::button("Reset position", {0, 0}, false))
-            m.resetSettings([](const Setting& st) { return st.id == "x" || st.id == "y" || st.id == "scale"; });
-        ImGui::SameLine();
-        if (widgets::button("Edit HUD", {0, 0}, true)) setEditingHud(true);
-    }
-    ImGui::Dummy({0, 8 * s});
-}
-
-// Draws the body below a row in a child whose height follows the open animation, so rows below slide
-// instead of jumping. The height is the content measured in the previous frame.
-template <class F>
-static void expander(const void* id, float indent, F&& body) {
-    auto& t = theme::current();
-    float& a = expandT[id];
-    a = draw::motion() ? draw::approach(a, opened[id] ? 1.f : 0.f, 15.f * t.animSpeed) : (opened[id] ? 1.f : 0.f);
-    if (a < 0.002f) return;
-    float full = heights[id];
-    float h = std::max(1.f, full * draw::easeOutCubic(a));
     ImVec2 p = ImGui::GetCursorScreenPos();
-    ImGui::SetCursorScreenPos(p + ImVec2(indent, 0));
-    ImGui::PushID(id);
-    ImGui::BeginChild("body", {ImGui::GetContentRegionAvail().x - indent, h}, 0,
-                      ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-    float base = theme::fade();
-    theme::setFade(base * std::min(1.f, a * 1.4f));
-    ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * std::min(1.f, a * 1.4f));
-    body();
-    ImGui::PopStyleVar();
-    theme::setFade(base);
-    heights[id] = ImGui::GetCursorPosY();
-    ImGui::EndChild();
-    ImGui::PopID();
+    ImGui::GetWindowDrawList()->AddText(fonts::bold(), 11 * s, p + ImVec2(4 * s, 9 * s), theme::col(t.textDim, 0.75f), upper(text).c_str());
+    ImGui::SetCursorScreenPos(p + ImVec2(0, 27 * s));
 }
 
-static Row rowFor(Module& m, const std::string& extra) {
+static Row moduleRow(Module& m) {
     Row row;
     bool lock = locked(m);
     row.name = i18n::tr(m.name().c_str());
-    row.extra = extra;
     row.on = (m.userEnabled() && !lock) || m.alwaysOn();
     row.lock = lock;
+    row.lockText = m.rule() == RuleLevel::Block ? "blocked" : "no data";
     row.warn = m.risky() || m.rule() == RuleLevel::Warn;
     row.canToggle = !lock && !m.alwaysOn();
-    row.key = m.keybind().i;
-    row.fav = &m;
     return row;
 }
 
-static float appearAt(int index) {
-    if (!draw::motion()) return 1.f;
-    float t = float(ui::time() - shownAt) - index * 0.014f;
-    return draw::easeOutCubic(std::clamp(t / 0.22f, 0.f, 1.f));
-}
-
-static void moduleItem(Module& m, const std::string& extra, float indent, int index) {
-    float s = ui::scale();
-    bool flipped = false;
-    if (drawRow(&m, rowFor(m, extra), indent, (indent > 0 ? 34.f : 38.f) * s, appearAt(index), flipped)) opened[&m] = !opened[&m];
-    if (flipped) m.setEnabled(!m.userEnabled());
-    if (scrollTo == &m) {
-        ImGui::SetScrollHereY(0.2f);
-        scrollTo = nullptr;
-    }
-    expander(&m, indent + 14 * ui::scale(), [&] { moduleBody(m); });
-}
-
-static void entryItem(const Entry& e, int index) {
-    float s = ui::scale();
-    if (!e.group) {
-        moduleItem(*e.members.front(), "", 0.f, index);
-        return;
-    }
+static Row entryRow(const Entry& e) {
+    if (!e.group) return moduleRow(*e.members.front());
     Row row;
     row.name = i18n::tr(e.name.c_str());
-    row.extra = i18n::fmt("{}/{}", e.enabled(), e.members.size());
     row.on = e.on();
     row.lock = e.usable() == 0;
     row.warn = e.risky();
     row.canToggle = !row.lock;
-    bool flipped = false;
-    if (drawRow(&e, row, 0.f, 38 * s, appearAt(index), flipped)) opened[&e] = !opened[&e];
-    if (flipped) e.toggle();
-    if (scrollTo == &e) {
-        ImGui::SetScrollHereY(0.2f);
-        scrollTo = nullptr;
-    }
-    expander(&e, 0.f, [&] {
-        if (!e.blurb.empty()) {
-            ImGui::Indent(28 * s);
-            smallHint(e.blurb.c_str());
-            ImGui::Unindent(28 * s);
-            ImGui::Dummy({0, 2 * s});
-        }
-        for (auto* m : e.members) moduleItem(*m, "", 14 * s, 0);
-        ImGui::Dummy({0, 6 * s});
-    });
+    if (!row.lock) row.extra = i18n::fmt("{}/{}", e.enabled(), e.members.size());
+    if (std::any_of(e.members.begin(), e.members.end(), [](Module* m) { return m->rule() == RuleLevel::Block; })) row.lockText = "blocked";
+    return row;
 }
 
-static bool sectionHeader(int id, const char* title, int on) {
-    auto& t = theme::current();
-    float s = ui::scale();
-    ImGui::PushID(id);
-    ImVec2 p = ImGui::GetCursorScreenPos() + ImVec2(0, 6 * s);
-    float w = ImGui::GetContentRegionAvail().x;
-    ImGui::SetCursorScreenPos(p);
-    bool clicked = ImGui::InvisibleButton("sec", {w, 28 * s});
-    bool hov = ImGui::IsItemHovered();
-    ImGui::PopID();
-    bool& fold = folded[id];
-    if (clicked) fold = !fold;
-    auto* dl = ImGui::GetWindowDrawList();
-    float cy = p.y + 14 * s;
-    std::string label = upper(title);
-    dl->AddText(fonts::bold(), 13 * s, {p.x + 8 * s, cy - 7 * s}, theme::col(hov ? t.text : t.textDim), label.c_str());
-    float lx = p.x + 8 * s + fonts::bold()->CalcTextSizeA(13 * s, FLT_MAX, 0.f, label.c_str()).x + 10 * s;
-    std::string count = i18n::fmt("{} on", on);
-    ImVec2 cs = fonts::regular()->CalcTextSizeA(12 * s, FLT_MAX, 0.f, count.c_str());
-    float cx = p.x + w - cs.x - 24 * s;
-    dl->AddLine({lx, cy}, {cx - 10 * s, cy}, theme::col(theme::border()), 1.f);
-    dl->AddText(fonts::regular(), 12 * s, {cx, cy - 7 * s}, theme::col(t.textDim, on ? 1.f : 0.6f), count.c_str());
-    chevron(dl, {p.x + w - 10 * s, cy}, fold ? 0.f : 1.f, theme::col(t.textDim));
-    ImGui::SetCursorScreenPos(p + ImVec2(0, 30 * s));
-    return !fold;
+static Row pinned(const char* name, bool selected) {
+    Row row;
+    row.name = i18n::tr(name);
+    row.hasSwitch = false;
+    row.selected = selected;
+    return row;
+}
+
+static void pickEntry(const Entry& e) {
+    focusPart = nullptr;
+    pickedEntry = e.group ? &e : nullptr;
+    pickedModule = e.group ? nullptr : e.members.front();
+    go(Page::Modules);
 }
 
 static void reveal(Module* m) {
     const Entry* e = entryOf(*m);
-    if (!e) return;
-    folded[int(e->section)] = false;
-    opened[e] = true;
-    opened[m] = true;
-    scrollTo = e->group ? static_cast<const void*>(e) : static_cast<const void*>(m);
+    focusPart = nullptr;
+    if (e && e->group) {
+        pickedEntry = e;
+        pickedModule = nullptr;
+        partOpen[m] = true;
+        focusPart = m;
+        scrollPart = true;
+    } else {
+        pickedEntry = nullptr;
+        pickedModule = m;
+    }
+    go(Page::Modules);
+}
+
+static Page view() {
+    Page p = page();
+    return p == Page::Modules && !pickedEntry && !pickedModule ? Page::Settings : p;
+}
+
+static bool isPicked(Module* m) { return page() == Page::Modules && (pickedModule == m || (focusPart == m && pickedEntry == entryOf(*m))); }
+
+static float appearAt(int index) {
+    if (!draw::motion()) return 1.f;
+    float t = float(ui::time() - shownAt) - std::min(index, 30) * 0.012f;
+    return draw::easeOutCubic(std::clamp(t / 0.2f, 0.f, 1.f));
+}
+
+static void moduleItem(Module& m, std::string extra, int index) {
+    Row row = moduleRow(m);
+    row.extra = std::move(extra);
+    row.selected = isPicked(&m);
+    row.scrollHere = scrollList && row.selected;
+    Hit hit = listRow(&m, row, appearAt(index));
+    if (row.scrollHere) scrollList = false;
+    if (hit == Hit::Switch) m.setEnabled(!m.userEnabled());
+    else if (hit == Hit::Row) reveal(&m);
 }
 
 void drawModulesPage(ImVec2 origin, ImVec2 size) {
@@ -380,13 +270,8 @@ void drawModulesPage(ImVec2 origin, ImVec2 size) {
     wasOpen = open();
     if (Module*& want = selectedModule()) {
         reveal(want);
+        scrollList = true;
         want = nullptr;
-    }
-    static bool onServer = false;
-    bool nowServer = !rules::status().server.empty();
-    if (nowServer != onServer) {
-        onServer = nowServer;
-        folded[int(Section::Server)] = !nowServer;
     }
 
     static std::string lastQuery;
@@ -395,42 +280,289 @@ void drawModulesPage(ImVec2 origin, ImVec2 size) {
     lastQuery = query;
 
     ImGui::SetCursorScreenPos(origin);
-    ImGui::BeginChild("list", size, 0, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoScrollWithMouse);
-    if (jumpTop) ImGui::SetScrollY(0.f);
-    smoothScroll();
+    ImGui::BeginChild("list", size, 0, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_AlwaysVerticalScrollbar);
+    smoothScroll(jumpTop);
     int index = 0;
+    Page pg = page();
     if (searchText()[0] || favoritesOnly()) {
         bool any = false;
         for (auto& e : catalog())
             for (auto* m : e.members) {
                 if (!matches(*m)) continue;
                 any = true;
-                moduleItem(*m, e.group ? std::string(i18n::tr(e.name.c_str())) : std::string(), 0.f, index++);
+                moduleItem(*m, e.group ? std::string(i18n::tr(e.name.c_str())) : std::string(), index++);
             }
         if (!any) widgets::hint(favoritesOnly() && !searchText()[0] ? "No favorites yet. Click the star next to a module." : "Nothing found.");
     } else {
-        bool favs = false;
-        for (auto& m : modules::all())
-            if (m->favorite() && m->category() != Category::Client) favs = true;
-        ImGui::PushID("favorites");
-        if (favs && sectionHeader(100, i18n::tr("Favorites"), 0))
+        if (listRow("global", pinned("Global Settings", view() == Page::Settings), appearAt(index++)) == Hit::Row) go(Page::Settings);
+        if (listRow("cosmetics", pinned("Cosmetics", pg == Page::Cosmetics), appearAt(index++)) == Hit::Row) go(Page::Cosmetics);
+        if (listRow("hud", pinned("Edit HUD", false), appearAt(index++)) == Hit::Row) setEditingHud(true);
+
+        bool favs = std::any_of(modules::all().begin(), modules::all().end(),
+                                [](auto& m) { return m->favorite() && m->category() != Category::Client; });
+        if (favs) {
+            sectionLabel(i18n::tr("Favorites"));
             for (auto& m : modules::all())
-                if (m->favorite() && m->category() != Category::Client) moduleItem(*m, "", 0.f, index++);
-        ImGui::PopID();
-        for (int i = 0; i < sectionCount; i++) {
-            int on = 0, total = 0;
-            for (auto& e : catalog())
-                if (int(e.section) == i) {
-                    on += e.enabled();
-                    total++;
-                }
-            if (!total || !sectionHeader(i, sectionName(Section(i)), on)) continue;
-            for (auto& e : catalog())
-                if (int(e.section) == i) entryItem(e, index++);
+                if (m->favorite() && m->category() != Category::Client) moduleItem(*m, "", index++);
+        }
+        int section = -1;
+        for (auto& e : catalog()) {
+            if (int(e.section) != section) {
+                section = int(e.section);
+                sectionLabel(sectionName(e.section));
+            }
+            Row row = entryRow(e);
+            row.selected = pg == Page::Modules && (pickedEntry == &e || (!e.group && pickedModule == e.members.front()));
+            row.scrollHere = scrollList && row.selected;
+            Hit hit = listRow(&e, row, appearAt(index++));
+            if (row.scrollHere) scrollList = false;
+            if (hit == Hit::Switch) e.toggle();
+            else if (hit == Hit::Row) pickEntry(e);
         }
     }
-    ImGui::Dummy({0, 14 * s});
+    ImGui::Dummy({0, 6 * s});
     ImGui::EndChild();
+}
+
+float detailsWidth() {
+    float s = ui::scale();
+    switch (view()) {
+    case Page::Cosmetics: return 900 * s;
+    case Page::Settings: return 720 * s;
+    default: return 560 * s;
+    }
+}
+
+static void note(const std::string& text, const ImVec4& color) {
+    ImGui::PushStyleColor(ImGuiCol_Text, color);
+    ImGui::PushFont(fonts::regular(), 12.5f);
+    ImGui::PushTextWrapPos(0.f);
+    ImGui::TextUnformatted(text.c_str());
+    ImGui::PopTextWrapPos();
+    ImGui::PopFont();
+    ImGui::PopStyleColor();
+}
+
+static void groupLabel(const char* text) {
+    auto& t = theme::current();
+    float s = ui::scale();
+    ImGui::Dummy({0, 4 * s});
+    ImVec2 p = ImGui::GetCursorScreenPos();
+    ImGui::GetWindowDrawList()->AddText(fonts::bold(), 11 * s, p + ImVec2(2 * s, 0), theme::col(t.textDim, 0.8f), upper(i18n::tr(text)).c_str());
+    ImGui::Dummy({0, 13 * s});
+}
+
+static void settingList(Module& m) {
+    auto& t = theme::current();
+    float s = ui::scale();
+    if (!m.ruleNote().empty()) note(m.ruleNote(), t.warn);
+    if (locked(m) && m.rule() != RuleLevel::Block)
+        note(i18n::tr("This one needs game data for your Minecraft version. It turns on by itself once the data is there."), t.textDim);
+    if (!m.alwaysOn()) {
+        widgets::setting(m.keybind());
+        widgets::setting(m.hold());
+    }
+
+    auto* hud = dynamic_cast<HudModule*>(&m);
+    auto isStyle = [hud](const Setting& st) {
+        static const char* ids[] = {"bg", "rounding", "padding", "shadow", "accent", "scale"};
+        if (!hud || st.type == SettingType::Color) return false;
+        return std::any_of(std::begin(ids), std::end(ids), [&](const char* id) { return st.id == id; });
+    };
+    auto isColor = [](const Setting& st) { return st.type == SettingType::Color; };
+    auto isGeneral = [&](const Setting& st) { return !isColor(st) && !isStyle(st); };
+    auto list = [&](auto&& belongs, const char* title) {
+        bool any = false;
+        for (auto& st : m.settings())
+            if (!isCore(st) && belongs(st) && st.shown()) any = true;
+        if (!any) return;
+        if (title) groupLabel(title);
+        for (auto& st : m.settings())
+            if (!isCore(st) && belongs(st)) widgets::setting(st);
+    };
+    list(isGeneral, nullptr);
+    m.drawSettings();
+    list(isStyle, "Style");
+    list(isColor, "Colors");
+
+    ImGui::Dummy({0, 4 * s});
+    if (widgets::button("Reset all")) m.resetSettings([](const Setting& st) { return st.id != "x" && st.id != "y" && st.id != "key"; });
+    if (!m.isHud()) return;
+    ImGui::SameLine();
+    if (widgets::button("Reset position")) m.resetSettings([](const Setting& st) { return st.id == "x" || st.id == "y" || st.id == "scale"; });
+    ImGui::SameLine();
+    if (widgets::button("Edit HUD", {0, 0}, true)) setEditingHud(true);
+}
+
+// The body under a part slides open: the child's height follows the animation and the full height is the
+// content measured in the previous frame.
+template <class F>
+static void expander(const void* id, float a, F&& body) {
+    if (a < 0.002f) return;
+    float s = ui::scale();
+    float h = std::max(1.f, partH[id] * draw::easeOutCubic(a));
+    ImGui::PushID(id);
+    ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2(10 * s, 0));
+    ImGui::BeginChild("body", {ImGui::GetContentRegionAvail().x, h}, 0,
+                      ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+    float base = theme::fade();
+    float k = std::min(1.f, a * 1.4f);
+    theme::setFade(base * k);
+    ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * k);
+    ImGui::Dummy({0, 1 * s});
+    body();
+    ImGui::Dummy({0, 6 * s});
+    ImGui::PopStyleVar();
+    theme::setFade(base);
+    partH[id] = ImGui::GetCursorPosY();
+    ImGui::EndChild();
+    ImGui::PopID();
+}
+
+static void part(Module& m) {
+    auto& t = theme::current();
+    bool& isOpen = partOpen[&m];
+    float& a = partT[&m];
+    a = draw::motion() ? draw::approach(a, isOpen ? 1.f : 0.f, 15.f * t.animSpeed) : (isOpen ? 1.f : 0.f);
+    Row row = moduleRow(m);
+    row.fold = draw::easeOutCubic(a);
+    row.fav = &m;
+    row.scrollHere = scrollPart && focusPart == &m;
+    if (row.scrollHere) scrollPart = false;
+    Hit hit = listRow(&m, row);
+    if (hit == Hit::Switch) m.setEnabled(!m.userEnabled());
+    else if (hit == Hit::Row) isOpen = !isOpen;
+    expander(&m, a, [&] {
+        note(i18n::tr(m.description().c_str()), t.textDim);
+        ImGui::Dummy({0, 2 * ui::scale()});
+        settingList(m);
+    });
+}
+
+static bool statePill(ImVec2 topRight, bool on, bool lock, bool canToggle, float& width) {
+    auto& t = theme::current();
+    float s = ui::scale();
+    const char* label = i18n::tr(lock ? "Unavailable" : on ? "Enabled" : "Disabled");
+    float fs = 12.5f * s;
+    ImVec2 ts = fonts::regular()->CalcTextSizeA(fs, FLT_MAX, 0.f, label);
+    ImVec2 size{ts.x + 26 * s, 24 * s};
+    ImVec2 p{topRight.x - size.x, topRight.y};
+    width = size.x;
+    ImGui::SetCursorScreenPos(p);
+    bool clicked = ImGui::InvisibleButton("state", size) && canToggle;
+    bool hov = ImGui::IsItemHovered() && canToggle;
+    float& a = *ImGui::GetStateStorage()->GetFloatRef(ImGui::GetID("stateAnim"), on ? 1.f : 0.f);
+    a = draw::approach(a, on && !lock ? 1.f : 0.f, 16.f * t.animSpeed);
+    ImVec4 fill = theme::mix(t.surface, t.accent, a);
+    if (hov) fill = theme::mix(fill, t.text, 0.08f);
+    auto* dl = ImGui::GetWindowDrawList();
+    dl->AddRectFilled(p, p + size, theme::col(fill, lock ? 0.5f : 1.f), 5 * s);
+    dl->AddText(fonts::regular(), fs, p + (size - ts) * 0.5f, theme::col(theme::mix(t.textDim, ImVec4(1, 1, 1, 1), a)), label);
+    return clicked;
+}
+
+static void favButton(Module& m, ImVec2 p, float size) {
+    auto& t = theme::current();
+    ImGui::SetCursorScreenPos(p);
+    bool clicked = ImGui::InvisibleButton("fav", {size, size});
+    bool hov = ImGui::IsItemHovered();
+    auto* dl = ImGui::GetWindowDrawList();
+    if (hov) dl->AddRectFilled(p, p + ImVec2(size, size), theme::col(t.surface), 5 * ui::scale());
+    star(dl, p + ImVec2(size, size) * 0.5f, 6.5f * ui::scale(), theme::col(m.favorite() ? gold : (hov ? t.text : t.textDim)), m.favorite());
+    if (hov) ImGui::SetTooltip("%s", i18n::tr("Favorite"));
+    if (clicked) m.setFavorite(!m.favorite());
+}
+
+void drawDetails(ImVec2 origin, ImVec2 size) {
+    auto& t = theme::current();
+    float s = ui::scale();
+    float pad = 18 * s;
+    Page v = view();
+
+    static Page lastView = Page::Hub;
+    static const void* lastPick = nullptr;
+    static float swap = 1.f;
+    const void* pick = pickedEntry ? static_cast<const void*>(pickedEntry) : static_cast<const void*>(pickedModule);
+    bool fresh = v != lastView || (v == Page::Modules && pick != lastPick);
+    if (fresh) swap = 0.f;
+    lastView = v;
+    lastPick = pick;
+    swap = draw::motion() ? draw::approach(swap, 1.f, 14.f * t.animSpeed) : 1.f;
+    float e = draw::easeOutCubic(swap);
+
+    float base = theme::fade();
+    theme::setFade(base * e);
+    ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * e);
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, {8 * s, 4 * s});
+
+    ImVec2 o = origin + ImVec2(pad + (1.f - e) * 10 * s, pad);
+    float w = size.x - pad * 2;
+    std::string title, sub;
+    const Entry* group = v == Page::Modules ? pickedEntry : nullptr;
+    Module* single = v == Page::Modules && !group ? pickedModule : nullptr;
+    if (v == Page::Settings) {
+        title = i18n::tr("Global Settings");
+        sub = i18n::tr("Change global settings for the client.");
+    } else if (v == Page::Cosmetics) {
+        title = i18n::tr("Cosmetics");
+        sub = i18n::tr("Wings, capes and more. Only you and other Mochi players see them.");
+    } else if (group) {
+        title = i18n::tr(group->name.c_str());
+        sub = i18n::tr(group->blurb.c_str());
+    } else {
+        title = i18n::tr(single->name().c_str());
+        sub = i18n::tr(single->description().c_str());
+    }
+
+    auto* dl = ImGui::GetWindowDrawList();
+    float right = o.x + w;
+    if (group || single) {
+        bool on = single ? (single->userEnabled() && !locked(*single)) || single->alwaysOn() : group->on();
+        bool lock = single ? locked(*single) : group->usable() == 0;
+        bool canToggle = !lock && !(single && single->alwaysOn());
+        float pw = 0.f;
+        if (statePill({right, o.y + 3 * s}, on, lock, canToggle, pw)) {
+            if (single) single->setEnabled(!single->userEnabled());
+            else group->toggle();
+        }
+        right -= pw + 6 * s;
+        if (single) {
+            favButton(*single, {right - 24 * s, o.y + 3 * s}, 24 * s);
+            right -= 30 * s;
+        }
+    }
+    float ts = 24 * s;
+    std::string shown = fitText(fonts::regular(), ts, title, right - o.x - 8 * s);
+    dl->AddText(fonts::regular(), ts, o, theme::col(t.text), shown.c_str());
+    float y = o.y + 34 * s;
+    if (!sub.empty()) {
+        float fs = 12.5f * s;
+        dl->AddText(fonts::regular(), fs, {o.x, y}, theme::col(t.textDim), sub.c_str(), nullptr, w);
+        y += fonts::regular()->CalcTextSizeA(fs, FLT_MAX, w, sub.c_str()).y;
+    }
+    y += 14 * s;
+    ImVec2 body{o.x, y};
+    ImVec2 area{w + 10 * s, origin.y + size.y - y - pad * 0.6f};
+
+    if (v == Page::Settings) {
+        drawSettingsPage(body, area);
+    } else if (v == Page::Cosmetics) {
+        drawCosmeticsPage(body, {w, area.y});
+    } else {
+        ImGui::SetCursorScreenPos(body);
+        ImGui::BeginChild("detail", area, 0,
+                          ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_AlwaysVerticalScrollbar);
+        smoothScroll(fresh && !scrollPart);
+        if (group)
+            for (auto* m : group->members) part(*m);
+        else
+            settingList(*single);
+        ImGui::Dummy({0, 8 * s});
+        ImGui::EndChild();
+    }
+
+    ImGui::PopStyleVar(2);
+    theme::setFade(base);
 }
 
 }
