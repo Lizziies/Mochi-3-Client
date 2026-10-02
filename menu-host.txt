@@ -1,0 +1,5 @@
+LoadLibrary -> 00006ffff8e70000 (err 0)
+t=2 fps=169.7
+t=4 fps=214.3
+t=6 fps=216.5
+t=8 fps=19.5

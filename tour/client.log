@@ -1,0 +1,72 @@
+[13:20:12.562] [info] Mochi 0.1.0 loading
+[13:20:12.564] [info] minecraft unknown
+[13:20:12.671] [info] server rules from GitHub
+[13:20:12.672] [info] sigs: 0/0 from no signature file
+[13:20:12.707] [info] 179 modules registered
+[13:20:12.707] [info] usable: ClickGUI; Client Settings; FPS; CPS; Keystrokes; Mouse Strokes; Clock; Stopwatch; Pomodoro; Session Timer; Memory; Latency Meter; Server Display; IP Display; Stats HUD; Watermark; Debug Menu; Ping Counter; Network Monitor; Lag Analyzer; Saturation / Hue; Brightness / Contrast; Screen Tint; Sharpen; Depth of Field; Blur; Shader Packs; Color Filter; Night Shift; Motion Blur; Zoom; Custom Crosshair; Hit Marker; Sens Multiplier; Null Movement; CPS Limiter; Disable Mouse Wheel; Hotbar Keys; Toggle Sprint; Toggle Sneak; Command Hotkey; Text Hotkey; Profile Hotkeys; Music; Streamer Mode; Server Profiles; Modern Keybind Handling; Java Inventory Hotkeys; Pack Changer; Nick; Discord Rich Presence; Lua Scripts; Config Sharing; Mochi Online; Black Bars; Gamemode Hotkeys; Hive Leaderboard; Screenshot+; Low Latency; Frame Limiter; Auto Profile; Background Load; System Boost; Performance Lock; Mouse Sync; Game Support; Snake; Flappy Heart; DVD Screen; 20-20-20; Block Game; Pet; Petals; Deepfry; Upside Down; 
+[13:20:12.707] [info] locked: Coordinates; Direction HUD; Speed Display; Look Angles; Health Display; Experience Info; Day Counter; Pack Display; Held Item; Item Tracker; Paperdoll; Armor HUD; Potion HUD; Pot Counter; Arrow Counter; Totem Counter; Item Counter; Durability Warning; Low Health Indicator; Better Hunger Bar; FOV Changer; Java Dynamic FOV; Freelook; Cinematic Camera; No View Bobbing; Minimal View Bobbing; No Hurt Cam; Smooth Sneak; Auto Perspective; Fullbright; Block Outline; Time Changer; Weather Changer; Environment Changer; Fog Color; Water Color; Chunk Border; Waypoints; Hide Hand; View Model; Animations; Break Progress; Reach Counter; Opponent Reach; Combo Counter; Hit Counter; Hit Ping; Session Stats; Hit Info; Entity Counter; Target HUD; Waila; Bow Charge; Cooldown Indicator; Damage Indicator; Hit Effects; Kill Effects; Hit Sound; Totem Pop; Hitbox; Hurt Color; Glint Color; Low Fire; Particle Multiplier; Bow Sensitivity; Snap Look; Block Hit; Crystal Optimizer; Kill Cleanup; Item Use Delay Fix; Faster Inventory; Insta Hurt Animation; Auto GG; Message Logger; Better Chat; Death Logger; Player Notifier; Scoreboard; Tab List; Mumble Link; GUI Scale; Match Summary; Inventory Lock; Hotbar Animation; Item Physics; Nametag Modifier; TNT Timer; Light Overlay; Subtitles; Movable Hotbar; Movable Title; Movable Bossbar; Skin Stealer; Hotbar Armor; Fall Predictor; Inventory Viewer; Arrow Trail; Left Hand; Third Person Nametag; Health Above Head; Hive Utils; Zeqa Utils; Hive Stats; Render Options; 
+[13:20:12.708] [info] config 'default' loaded
+[13:20:12.832] [info] hook Present at 0x6ffffa6dd3b0
+[13:20:12.833] [info] hook ResizeBuffers at 0x6ffffa6dbae0
+[13:20:12.833] [info] hook Present1 at 0x6ffffa6dd2e0
+[13:20:12.919] [info] hook sendto at 0x6ffffea306f0
+[13:20:12.919] [info] hook WSASendTo at 0x6ffffea306e0
+[13:20:12.919] [info] hook getaddrinfo at 0x6ffffea24c30
+[13:20:12.919] [info] hook GetAddrInfoW at 0x6ffffea25f30
+[13:20:12.941] [info] renderer: dx11 hwnd=0x20058
+[13:20:12.944] [info] ui ready
+[13:20:12.957] [info] dev channel on (Z:\tmp\mochi-build\dll)
+[13:20:12.972] [info] in world: true
+[13:20:12.985] [info] game imports (input related): KERNEL32.dll!RtlCaptureContext USER32.dll!LoadCursorW 
+[13:20:12.985] [info] hook ClipCursor at 0x6ffffda48294
+[13:20:12.985] [info] hook SetCursorPos at 0x6ffffda48414
+[13:20:12.985] [info] hook GetCursorPos at 0x6ffffda727e0
+[13:20:12.985] [info] hook GetAsyncKeyState at 0x6ffffda482c4
+[13:20:12.985] [info] hook GetKeyState at 0x6ffffda482dc
+[13:20:12.985] [info] hook GetRawInputData at 0x6ffffdac1d40
+[13:20:12.985] [info] hook GetRawInputBuffer at 0x6ffffdac1d30
+[13:20:12.985] [info] hook PeekMessageW at 0x6ffffda83690
+[13:20:12.985] [info] hook GetMessageW at 0x6ffffda837b0
+[13:20:12.996] [info] ready
+[13:20:17.251] [info] dev file found C:\users\runner\AppData\Local\Mochi\dev.cmd
+[13:20:17.253] [info] dev command: open
+[13:20:19.303] [info] dev file found C:\users\runner\AppData\Local\Mochi\dev.cmd
+[13:20:19.305] [info] dev command: module Hitbox
+[13:20:21.138] [info] gameinput: runtime not loaded, the game reads input through window messages
+[13:20:21.572] [info] dev file found C:\users\runner\AppData\Local\Mochi\dev.cmd
+[13:20:21.572] [info] dev command: module Reach Counter
+[13:20:23.772] [info] dev file found C:\users\runner\AppData\Local\Mochi\dev.cmd
+[13:20:23.775] [info] dev command: module CPS
+[13:20:25.997] [info] dev file found C:\users\runner\AppData\Local\Mochi\dev.cmd
+[13:20:25.998] [info] dev command: module Zoom
+[13:20:28.215] [info] dev file found C:\users\runner\AppData\Local\Mochi\dev.cmd
+[13:20:28.215] [info] dev command: module Auto GG
+[13:20:30.420] [info] dev file found C:\users\runner\AppData\Local\Mochi\dev.cmd
+[13:20:30.420] [info] dev command: module Frame Limiter
+[13:20:32.520] [info] dev file found C:\users\runner\AppData\Local\Mochi\dev.cmd
+[13:20:32.520] [info] dev command: module Hive Utils
+[13:20:34.704] [info] dev file found C:\users\runner\AppData\Local\Mochi\dev.cmd
+[13:20:34.704] [info] dev command: search reach
+[13:20:36.928] [info] dev file found C:\users\runner\AppData\Local\Mochi\dev.cmd
+[13:20:36.928] [info] dev command: search
+[13:20:36.928] [info] dev command: settings 0
+[13:20:39.407] [info] dev file found C:\users\runner\AppData\Local\Mochi\dev.cmd
+[13:20:39.407] [info] dev command: settings 1
+[13:20:41.868] [info] dev file found C:\users\runner\AppData\Local\Mochi\dev.cmd
+[13:20:41.869] [info] dev command: settings 2
+[13:20:44.344] [info] dev file found C:\users\runner\AppData\Local\Mochi\dev.cmd
+[13:20:44.344] [info] dev command: settings 3
+[13:20:46.790] [info] dev file found C:\users\runner\AppData\Local\Mochi\dev.cmd
+[13:20:46.791] [info] dev command: settings 4
+[13:20:49.279] [info] dev file found C:\users\runner\AppData\Local\Mochi\dev.cmd
+[13:20:49.280] [info] dev command: settings 5
+[13:20:51.789] [info] dev file found C:\users\runner\AppData\Local\Mochi\dev.cmd
+[13:20:51.829] [info] dev command: page cosmetics
+[13:20:59.615] [info] dev file found C:\users\runner\AppData\Local\Mochi\dev.cmd
+[13:20:59.618] [info] dev command: hudedit
+[13:21:01.803] [info] dev file found C:\users\runner\AppData\Local\Mochi\dev.cmd
+[13:21:01.806] [info] dev command: close
+[13:21:03.875] [info] dev file found C:\users\runner\AppData\Local\Mochi\dev.cmd
+[13:21:03.876] [info] dev command: settings 2
+[13:21:08.693] [info] dev file found C:\users\runner\AppData\Local\Mochi\dev.cmd
+[13:21:08.693] [info] dev command: module Reach Counter

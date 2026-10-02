@@ -1,0 +1,31 @@
+[13:16:33.211] [info] Mochi 0.1.0 loading
+[13:16:33.212] [info] minecraft unknown
+[13:16:33.354] [info] 179 modules registered
+[13:16:33.354] [info] usable: ClickGUI; Client Settings; FPS; CPS; Keystrokes; Mouse Strokes; Clock; Stopwatch; Pomodoro; Session Timer; Memory; Latency Meter; Server Display; IP Display; Stats HUD; Watermark; Debug Menu; Ping Counter; Network Monitor; Lag Analyzer; Saturation / Hue; Brightness / Contrast; Screen Tint; Sharpen; Depth of Field; Blur; Shader Packs; Color Filter; Night Shift; Motion Blur; Zoom; Custom Crosshair; Hit Marker; Sens Multiplier; Null Movement; CPS Limiter; Disable Mouse Wheel; Hotbar Keys; Toggle Sprint; Toggle Sneak; Command Hotkey; Text Hotkey; Profile Hotkeys; Music; Streamer Mode; Server Profiles; Modern Keybind Handling; Java Inventory Hotkeys; Pack Changer; Nick; Discord Rich Presence; Lua Scripts; Config Sharing; Mochi Online; Black Bars; Gamemode Hotkeys; Hive Leaderboard; Screenshot+; Low Latency; Frame Limiter; Auto Profile; Background Load; System Boost; Performance Lock; Mouse Sync; Game Support; Snake; Flappy Heart; DVD Screen; 20-20-20; Block Game; Pet; Petals; Deepfry; Upside Down; 
+[13:16:33.354] [info] locked: Coordinates; Direction HUD; Speed Display; Look Angles; Health Display; Experience Info; Day Counter; Pack Display; Held Item; Item Tracker; Paperdoll; Armor HUD; Potion HUD; Pot Counter; Arrow Counter; Totem Counter; Item Counter; Durability Warning; Low Health Indicator; Better Hunger Bar; FOV Changer; Java Dynamic FOV; Freelook; Cinematic Camera; No View Bobbing; Minimal View Bobbing; No Hurt Cam; Smooth Sneak; Auto Perspective; Fullbright; Block Outline; Time Changer; Weather Changer; Environment Changer; Fog Color; Water Color; Chunk Border; Waypoints; Hide Hand; View Model; Animations; Break Progress; Reach Counter; Opponent Reach; Combo Counter; Hit Counter; Hit Ping; Session Stats; Hit Info; Entity Counter; Target HUD; Waila; Bow Charge; Cooldown Indicator; Damage Indicator; Hit Effects; Kill Effects; Hit Sound; Totem Pop; Hitbox; Hurt Color; Glint Color; Low Fire; Particle Multiplier; Bow Sensitivity; Snap Look; Block Hit; Crystal Optimizer; Kill Cleanup; Item Use Delay Fix; Faster Inventory; Insta Hurt Animation; Auto GG; Message Logger; Better Chat; Death Logger; Player Notifier; Scoreboard; Tab List; Mumble Link; GUI Scale; Match Summary; Inventory Lock; Hotbar Animation; Item Physics; Nametag Modifier; TNT Timer; Light Overlay; Subtitles; Movable Hotbar; Movable Title; Movable Bossbar; Skin Stealer; Hotbar Armor; Fall Predictor; Inventory Viewer; Arrow Trail; Left Hand; Third Person Nametag; Health Above Head; Hive Utils; Zeqa Utils; Hive Stats; Render Options; 
+[13:16:33.365] [info] config 'default' loaded
+[13:16:33.485] [info] hook Present at 0x6ffffbbcd3b0
+[13:16:33.485] [info] hook ResizeBuffers at 0x6ffffbbcbae0
+[13:16:33.485] [info] hook Present1 at 0x6ffffbbcd2e0
+[13:16:33.541] [info] server rules from GitHub
+[13:16:33.542] [info] sigs: 0/0 from no signature file
+[13:16:33.568] [info] hook sendto at 0x6ffffea306f0
+[13:16:33.568] [info] hook WSASendTo at 0x6ffffea306e0
+[13:16:33.568] [info] hook getaddrinfo at 0x6ffffea24c30
+[13:16:33.568] [info] hook GetAddrInfoW at 0x6ffffea25f30
+[13:16:33.586] [info] renderer: dx11 hwnd=0x30042
+[13:16:33.586] [info] game imports (input related): KERNEL32.dll!RtlCaptureContext USER32.dll!LoadCursorW 
+[13:16:33.588] [info] ui ready
+[13:16:33.588] [info] hook ClipCursor at 0x6ffffdf98294
+[13:16:33.589] [info] hook SetCursorPos at 0x6ffffdf98414
+[13:16:33.589] [info] hook GetCursorPos at 0x6ffffdfc27e0
+[13:16:33.589] [info] hook GetAsyncKeyState at 0x6ffffdf982c4
+[13:16:33.589] [info] hook GetKeyState at 0x6ffffdf982dc
+[13:16:33.589] [info] hook GetRawInputData at 0x6ffffe011d40
+[13:16:33.589] [info] hook GetRawInputBuffer at 0x6ffffe011d30
+[13:16:33.589] [info] hook PeekMessageW at 0x6ffffdfd3690
+[13:16:33.589] [info] hook GetMessageW at 0x6ffffdfd37b0
+[13:16:33.597] [info] ready
+[13:16:33.602] [info] in world: true
+[13:16:33.602] [info] dev channel off (Z:\tmp\mochi-build\dll)
+[13:16:41.644] [error] fault 0xC0000005 at ntdll.dll+0x2792B, access write 0x7FFFFDACFB5C, called from mochi+0x5AC948 mochi+0x46D77C mochi+0x106AD3 mochi+0x7F66A mochi+0x26D30A mochi+0x7E660 mochi+0x4774A0 mochi+0x7E660 mochi+0x2584C1 mochi+0x7E660
