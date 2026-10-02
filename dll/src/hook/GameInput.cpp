@@ -274,11 +274,13 @@ void adjust(void* id, uint8_t* state, int wheel) {
 
 bool onMouse(int slot, void* self, uint8_t* state) {
     auto original = reinterpret_cast<MouseFn>(originals[slot]);
+    if (depth) return original(self, state);
+    // a newer reading interface forwards to an older one we also hook; adjusting both scaled the motion twice
+    Nest nest;
     bool ok = original(self, state);
-    if (depth || !ok || !state) return ok;
+    if (!ok || !state) return ok;
     const Known* k = knownOf(self);
     if (!k) return ok;
-    Nest nest;
     void* device = nullptr;
     reinterpret_cast<DeviceFn>(hook::vfunc(self, k->layout->device))(self, &device);
     adjust(device, state, k->layout->wheel);

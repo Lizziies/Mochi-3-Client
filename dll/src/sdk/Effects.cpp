@@ -10,7 +10,11 @@
 #include <array>
 #include <atomic>
 #include <cmath>
+#include <cstring>
+#include <memory>
+#include <string>
 #include <utility>
+#include <vector>
 
 namespace fx {
 
@@ -134,6 +138,18 @@ std::array<Slot, count> slots;
 
 using Fn = uintptr_t (*)(uintptr_t, uintptr_t, uintptr_t, uintptr_t);
 using FnF = float (*)(uintptr_t, uintptr_t, uintptr_t, uintptr_t);
+// getters whose second argument is a float (in xmm1) need it passed through untouched
+using FnFF = float (*)(uintptr_t, float, uintptr_t, uintptr_t);
+
+float shaped(const Slot& sl, float r) {
+    switch (sl.mode.load()) {
+    case Set: return sl.v[0];
+    case Scale: return r * sl.v[0];
+    case Add: return r + sl.v[0];
+    case Skipped: return 0.f;
+    default: return r;
+    }
+}
 
 void multiply(const float* a, const float* b, float* r) {
     for (int c = 0; c < 4; c++)
@@ -208,14 +224,12 @@ struct Detour {
 
     static float value(uintptr_t a, uintptr_t b, uintptr_t c, uintptr_t d) {
         auto& sl = slots[N];
-        float r = reinterpret_cast<FnF>(sl.orig)(a, b, c, d);
-        switch (sl.mode.load()) {
-        case Set: return sl.v[0];
-        case Scale: return r * sl.v[0];
-        case Add: return r + sl.v[0];
-        case Skipped: return 0.f;
-        default: return r;
-        }
+        return shaped(sl, reinterpret_cast<FnF>(sl.orig)(a, b, c, d));
+    }
+
+    static float valueF(uintptr_t a, float b, uintptr_t c, uintptr_t d) {
+        auto& sl = slots[N];
+        return shaped(sl, reinterpret_cast<FnFF>(sl.orig)(a, b, c, d));
     }
 
     static uintptr_t out(uintptr_t a, uintptr_t b, uintptr_t c, uintptr_t d) {
@@ -256,12 +270,14 @@ auto makeTable(std::index_sequence<I...>) {
         void* integer;
         void* skip;
         void* value;
+        void* valueF;
         void* out;
         void* ghost;
         void* filter;
     };
     return std::array<Row, sizeof...(I)>{Row{reinterpret_cast<void*>(&Detour<I>::flag), reinterpret_cast<void*>(&Detour<I>::integer), reinterpret_cast<void*>(&Detour<I>::skip),
-                                              reinterpret_cast<void*>(&Detour<I>::value), reinterpret_cast<void*>(&Detour<I>::out),
+                                              reinterpret_cast<void*>(&Detour<I>::value), reinterpret_cast<void*>(&Detour<I>::valueF),
+                                              reinterpret_cast<void*>(&Detour<I>::out),
                                               reinterpret_cast<void*>(&Detour<I>::ghost), reinterpret_cast<void*>(&Detour<I>::filter)}...};
 }
 
@@ -269,7 +285,66 @@ const auto detours = makeTable(std::make_index_sequence<count>{});
 
 Kind kindOf(size_t i) {
     int o = sigs::offset(std::string(table[i].sig) + ".kind", -1);
-    return o >= 0 && o <= int(Kind::Filter) ? Kind(o) : table[i].kind;
+    return o >= 0 && o <= int(Kind::Option) ? Kind(o) : table[i].kind;
+}
+
+// Every option read walks option -> info -> redirect (info + "option.redirect") until the redirect is empty and
+// takes the value of the option it ends on. Pointing the redirect at a copy overrides the option for every
+// reader, while the option's own value, the one written to options.txt, stays untouched.
+struct Override {
+    std::array<uint8_t, 0x40> option{};
+    std::vector<uint8_t> info;
+    uintptr_t at = 0;
+    uintptr_t old = 0;
+};
+std::array<std::unique_ptr<Override>, count> overrides;
+
+uintptr_t optionObject(int id) {
+    if (sigs::offset("options.via0", -1) < 0) return 0;
+    uintptr_t p = mem::pointer(sigs::address("LocalPlayer"));
+    for (int k = 0; k < 4 && p; k++) {
+        int o = sigs::offset("options.via" + std::to_string(k), -1);
+        if (o < 0) break;
+        p = mem::pointer(p + o);
+    }
+    return p ? mem::pointer(p + sigs::offset("options.list", 16) + 8 * id) : 0;
+}
+
+void restoreOverride(size_t i) {
+    auto& ov = overrides[i];
+    if (!ov || !ov->at) return;
+    mem::write(ov->at, ov->old);
+    ov->at = 0;
+}
+
+void overrideOption(size_t i, const Slot& sl) {
+    int id = sigs::offset(std::string(table[i].sig) + ".option", -1);
+    int infoOff = sigs::offset("option.info", 8), redirect = sigs::offset("option.redirect", -1), valueOff = sigs::offset("option.value", 24);
+    uintptr_t opt = id >= 0 && redirect >= 0 ? optionObject(id) : 0;
+    uintptr_t info = opt ? mem::pointer(opt + infoOff) : 0;
+    if (!info) {
+        restoreOverride(i);
+        return;
+    }
+    auto& ov = overrides[i];
+    if (!ov) ov = std::make_unique<Override>();
+    uintptr_t at = info + redirect;
+    if (ov->at != at) {
+        restoreOverride(i);
+        ov->old = mem::get<uintptr_t>(at);
+        for (size_t k = 0; k < ov->option.size(); k++) ov->option[k] = mem::get<uint8_t>(opt + k);
+        ov->info.assign(size_t(redirect) + 8, 0);
+        for (size_t k = 0; k < size_t(redirect); k++) ov->info[k] = mem::get<uint8_t>(info + k);
+        uintptr_t copy = reinterpret_cast<uintptr_t>(ov->info.data());
+        std::memcpy(ov->option.data() + infoOff, &copy, sizeof(copy));
+        ov->at = at;
+    }
+    uintptr_t src = ov->old ? ov->old : opt;
+    float cur = mem::get<float>(src + valueOff), lo = mem::get<float>(src + valueOff - 8), hi = mem::get<float>(src + valueOff - 4);
+    float want = shaped(sl, cur);
+    float vals[3] = {std::min(lo, want), std::max(hi, want), want};
+    std::memcpy(ov->option.data() + valueOff - 8, vals, sizeof(vals));
+    mem::write(at, reinterpret_cast<uintptr_t>(ov->option.data()));
 }
 
 void restorePatch(Slot& sl) {
@@ -292,11 +367,12 @@ void install(size_t i, Slot& sl, uintptr_t address) {
     case Kind::Flag: detour = row.flag; break;
     case Kind::Int: detour = row.integer; break;
     case Kind::Skip: detour = row.skip; break;
-    case Kind::Value: detour = row.value; break;
+    case Kind::Value: detour = sigs::offset(std::string(table[i].sig) + ".float2", 0) == 1 ? row.valueF : row.value; break;
     case Kind::Out: detour = row.out; break;
     case Kind::Ghost: detour = row.ghost; break;
     case Kind::Filter: detour = row.filter; break;
-    case Kind::Data: return;
+    case Kind::Data:
+    case Kind::Option: return;
     }
     sl.hooked = hook::create(table[i].sig, target, detour, &sl.orig);
     if (sl.hooked) hook::enableAll();
@@ -441,16 +517,23 @@ void apply() {
         auto& sl = slots[i];
         sl.last.requested = r.mode != None;
         sl.last.value = r.v[0];
-        sl.last.installed = sl.hooked || sl.patched != 0;
+        sl.last.installed = sl.hooked || sl.patched != 0 || (overrides[i] && overrides[i]->at);
 
         uintptr_t address = demo ? 0 : sigs::address(table[i].sig);
         if (r.mode == None || !address) {
             sl.mode = None;
             restorePatch(sl);
+            restoreOverride(i);
             continue;
         }
 
         Kind kind = kindOf(i);
+        if (kind == Kind::Option) {
+            sl.mode = r.mode;
+            sl.v[0] = r.v[0];
+            overrideOption(i, sl);
+            continue;
+        }
         if (kind == Kind::Data) {
             patch(i, sl, r.mode == Set ? Request{Set, r.v, 1} : r, address);
             continue;
@@ -469,6 +552,7 @@ void shutdown() {
         sl.mode = None;
         restorePatch(sl);
     }
+    for (size_t i = 0; i < count; i++) restoreOverride(i);
 }
 
 }

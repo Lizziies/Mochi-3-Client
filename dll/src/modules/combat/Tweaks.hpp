@@ -214,12 +214,14 @@ public:
     BowSensitivity()
         : Module("Bow Sensitivity", "Own sensitivity while you draw the bow, for more precise aiming.", Category::Pvp, {"input"}) {
         sub("Input");
-        require(need::player, {fx::sig(fx::Id::Sensitivity), "LocalPlayer"});
+        require(need::player, need::sigs({"LocalPlayer", "UseState"}));
     }
 
     void onFrame() override {
         auto& p = game::state().player;
-        if (p.usingItem && (p.held().name == "bow" || !onlyBow_.b)) fx::scale(fx::Id::Sensitivity, factor_.f);
+        if (!p.usingItem || (p.held().name != "bow" && onlyBow_.b)) return;
+        if (fx::available(fx::Id::Sensitivity)) fx::scale(fx::Id::Sensitivity, factor_.f);
+        else gameinput::scaleMouse(factor_.f);
     }
 
 private:

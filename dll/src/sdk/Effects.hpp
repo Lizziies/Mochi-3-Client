@@ -7,7 +7,7 @@
 
 namespace fx {
 
-enum class Kind { Value, Flag, Skip, Out, Data, Int, Ghost, Filter };
+enum class Kind { Value, Flag, Skip, Out, Data, Int, Ghost, Filter, Option };
 
 enum class Id {
     Fov,

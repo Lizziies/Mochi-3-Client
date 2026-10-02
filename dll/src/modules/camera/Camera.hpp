@@ -61,11 +61,12 @@ public:
                  {"camera"}) {
         sub("Camera");
         require(need::player, {fx::sig(fx::Id::Fov), "LocalPlayer"});
+        base_.visible = [] { return !game::has(game::Domain::Player); };
     }
 
     void onFrame() override {
         auto& p = game::state().player;
-        float base = ctx::fovBase > 0.f ? ctx::fovBase : base_.f;
+        float base = ctx::fovBase > 0.f ? ctx::fovBase : game::has(game::Domain::Player) ? p.fov : base_.f;
         float mult = 1.f;
         if (p.sprinting) mult += sprint_.f;
         for (auto& e : p.effects) {
@@ -97,6 +98,7 @@ public:
         : Module("Zoom", "Zoom on a key with smooth animation, scroll wheel steps and adjusted sensitivity.", Category::Visual, {"camera"}) {
         sub("Camera");
         step_.visible = [this] { return scroll_.b; };
+        base_.visible = [] { return !game::has(game::Domain::Player); };
         smooth_.visible = [this] { return !instant_.b; };
         sensAmount_.visible = [this] { return sens_.b; };
         hideHand_.visible = [] { return fx::available(fx::Id::HideHand); };
@@ -134,7 +136,7 @@ public:
         if (current_ <= 1.001f) return;
         if (hideHand_.b) fx::skip(fx::Id::HideHand);
         if (fx::available(fx::Id::Fov)) {
-            float base = ctx::fovBase > 0.f ? ctx::fovBase : base_.f;
+            float base = ctx::fovBase > 0.f ? ctx::fovBase : game::has(game::Domain::Player) ? game::state().player.fov : base_.f;
             float fov = 2.f * std::atan(std::tan(base * 0.0174533f * 0.5f) / current_) * 57.2958f;
             fx::set(fx::Id::Fov, fov);
             fx::set(fx::Id::FovEffects, 1.f);
