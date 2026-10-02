@@ -11,11 +11,199 @@
 
 #include <algorithm>
 #include <cmath>
+#include <map>
+#include <vector>
 
 namespace widgets {
 
 static ImGuiID capturing = 0;
 static bool capturedThisFrame = false;
+
+struct Drop {
+    float open = 0.f;
+    float scroll = 0.f;
+    float scrollTo = 0.f;
+    float viewH = 0.f;
+    float fullH = 0.f;
+    int kb = -1;
+    int sel = 0;
+    bool swallow = false;
+    bool flip = false;
+    ImVec2 min, max;
+    std::vector<std::string> items;
+    std::vector<float> hv;
+};
+
+static std::map<ImGuiID, Drop> drops;
+static int escapeFrame = -1;
+
+static float itemH() { return 26 * ui::scale(); }
+static float edge() { return 4 * ui::scale(); }
+
+static void shadow(ImDrawList* dl, ImVec2 a, ImVec2 b, float r) {
+    float s = ui::scale();
+    for (int i = 5; i >= 1; i--) {
+        float g = i * 2.2f * s;
+        dl->AddRectFilled(a + ImVec2(-g, 3 * s - g), b + ImVec2(g, 3 * s + g), theme::col({0, 0, 0, 1}, 0.07f), r + g);
+    }
+}
+
+static int paintDrop(ImDrawList* dl, Drop& d, bool live) {
+    auto& t = theme::current();
+    auto& io = ImGui::GetIO();
+    float s = ui::scale();
+    float e = draw::easeOutCubic(d.open);
+    float r = std::min(t.rounding, 12.f) * 0.75f * s;
+
+    ImVec2 vmin = d.min, vmax = d.max;
+    if (d.flip) vmin.y = vmax.y - d.viewH * e;
+    else vmax.y = vmin.y + d.viewH * e;
+    shadow(dl, vmin, vmax, r);
+    dl->AddRectFilled(vmin, vmax, theme::col(theme::mix(t.surface, t.bg, 0.35f), 0.98f), r);
+    dl->AddRect(vmin, vmax, theme::col(theme::border(), 0.9f), r, 0, 1.f);
+
+    bool inside = live && ImGui::IsMouseHoveringRect(vmin, vmax, false);
+    float maxScroll = std::max(0.f, d.fullH - d.viewH);
+    if (live) {
+        if (inside && maxScroll > 0.f) d.scrollTo = std::clamp(d.scrollTo - io.MouseWheel * itemH() * 2.f, 0.f, maxScroll);
+        d.scroll = draw::approach(d.scroll, d.scrollTo, 18.f * t.animSpeed);
+    }
+
+    int n = (int)d.items.size();
+    int picked = -1;
+    bool moved = io.MouseDelta.x != 0.f || io.MouseDelta.y != 0.f;
+    if (live) {
+        int step = (ImGui::IsKeyPressed(ImGuiKey_DownArrow) ? 1 : 0) - (ImGui::IsKeyPressed(ImGuiKey_UpArrow) ? 1 : 0);
+        if (step) {
+            d.kb = std::clamp((d.kb < 0 ? d.sel : d.kb) + step, 0, n - 1);
+            float top = edge() + d.kb * itemH();
+            if (top < d.scrollTo) d.scrollTo = top - edge();
+            else if (top + itemH() > d.scrollTo + d.viewH) d.scrollTo = top + itemH() + edge() - d.viewH;
+            d.scrollTo = std::clamp(d.scrollTo, 0.f, maxScroll);
+        }
+        if (d.kb >= 0 && (ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter))) picked = d.kb;
+    }
+
+    dl->PushClipRect({vmin.x, vmin.y + 1}, {vmax.x, vmax.y - 1}, true);
+    float slide = (1.f - e) * (d.flip ? 8 : -8) * s;
+    d.hv.resize(n, 0.f);
+    for (int i = 0; i < n; i++) {
+        ImVec2 a{d.min.x + edge(), d.min.y + edge() + i * itemH() - d.scroll + slide};
+        ImVec2 b{d.max.x - edge(), a.y + itemH()};
+        float ia = std::clamp(d.open * 1.6f - i * 0.04f, 0.f, 1.f);
+        bool hov = inside && ImGui::IsMouseHoveringRect(a, b, false);
+        if (hov && moved) d.kb = i;
+        if (hov && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) picked = i;
+        d.hv[i] = draw::approach(d.hv[i], live && d.kb == i ? 1.f : 0.f, 26.f * t.animSpeed);
+
+        bool on = i == d.sel;
+        if (d.hv[i] > 0.01f) dl->AddRectFilled(a, b, theme::col(theme::mix(t.surfaceHover, t.accent, 0.3f), d.hv[i] * ia), r * 0.6f);
+        float cy = (a.y + b.y) * 0.5f;
+        if (on) dl->AddRectFilled({a.x + 1 * s, cy - 5 * s}, {a.x + 3.5f * s, cy + 5 * s}, theme::col(t.accent2, ia), 2 * s);
+        float fs = 13.f * s;
+        ImVec4 tc = on ? t.accent2 : theme::mix(t.textDim, t.text, 0.55f + 0.45f * d.hv[i]);
+        dl->AddText(fonts::regular(), fs, {a.x + 11 * s, cy - fs * 0.53f}, theme::col(tc, ia), d.items[i].c_str());
+        if (on) {
+            ImVec2 c{b.x - 12 * s, cy};
+            ImVec2 pts[3] = {c + ImVec2(-3.5f * s, 0.f), c + ImVec2(-1.2f * s, 2.6f * s), c + ImVec2(3.6f * s, -2.8f * s)};
+            dl->AddPolyline(pts, 3, theme::col(t.accent2, ia), 0, 1.6f * s);
+        }
+    }
+    dl->PopClipRect();
+
+    if (maxScroll > 0.f && e > 0.5f) {
+        float track = d.viewH - 2 * edge();
+        float len = std::max(14 * s, track * d.viewH / d.fullH);
+        float y = d.min.y + edge() + (track - len) * (d.scroll / maxScroll);
+        dl->AddRectFilled({d.max.x - 5 * s, y}, {d.max.x - 2.5f * s, y + len}, theme::col(t.textDim, 0.5f), 2 * s);
+    }
+    return picked;
+}
+
+float dropdownOpen(const char* id) {
+    auto it = drops.find(ImGui::GetID(id));
+    return it == drops.end() ? 0.f : draw::easeOutCubic(it->second.open);
+}
+
+bool dropdownEscaped() { return escapeFrame == ImGui::GetFrameCount(); }
+
+void closePopups() {
+    if (ImGui::GetCurrentContext() && ImGui::GetCurrentContext()->OpenPopupStack.Size > 0) ImGui::ClosePopupToLevel(0, true);
+    for (auto& [id, d] : drops) d.open = 0.f;
+}
+
+bool dropdown(const char* id, ImVec2 amin, ImVec2 amax, const std::vector<std::string>& choices, int& sel, bool hovered, bool clicked) {
+    float s = ui::scale();
+    Drop& d = drops[ImGui::GetID(id)];
+    bool isOpen = ImGui::IsPopupOpen(id);
+
+    if (hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && isOpen) d.swallow = true;
+    if (clicked) {
+        if (d.swallow) {
+            d.swallow = false;
+        } else {
+            ImGui::OpenPopup(id);
+            isOpen = true;
+            d.kb = sel;
+            d.scrollTo = d.scroll = 0.f;
+        }
+    } else if (!ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
+        d.swallow = false;
+    }
+
+    float step = draw::motion() ? ui::dt() / (isOpen ? 0.16f : 0.11f) : 1.f;
+    d.open = std::clamp(d.open + (isOpen ? step : -step), 0.f, 1.f);
+    if (!isOpen && d.open <= 0.f) return false;
+
+    if (isOpen) {
+        d.sel = sel;
+        d.items.clear();
+        for (auto& c : choices) d.items.push_back(i18n::tr(c.c_str()));
+    }
+    int n = (int)d.items.size();
+    auto ds = ImGui::GetIO().DisplaySize;
+    float gap = 4 * s, pad = 8 * s;
+    float widest = 0.f;
+    for (auto& it : d.items) widest = std::max(widest, fonts::regular()->CalcTextSizeA(13.f * s, FLT_MAX, 0.f, it.c_str()).x);
+    float width = std::max({amax.x - amin.x, widest + 2 * edge() + 38 * s, 110 * s});
+    d.fullH = n * itemH() + 2 * edge();
+    float below = ds.y - amax.y - gap - pad, above = amin.y - gap - pad;
+    d.flip = d.fullH > below && above > below;
+    d.viewH = std::min({d.fullH, std::max(d.flip ? above : below, 3 * itemH()), ds.y * 0.55f});
+    float x1 = std::min(amax.x, ds.x - pad);
+    float x0 = std::max(pad, x1 - width);
+    d.min = {x0, d.flip ? amin.y - gap - d.viewH : amax.y + gap};
+    d.max = {x0 + width, d.min.y + d.viewH};
+
+    if (!isOpen) {
+        paintDrop(ImGui::GetForegroundDrawList(), d, false);
+        return false;
+    }
+
+    float m = 16 * s;
+    ImGui::SetNextWindowPos(d.min - ImVec2(m, m));
+    ImGui::SetNextWindowSize(d.max - d.min + ImVec2(2 * m, 2 * m));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {0, 0});
+    ImGui::PushStyleVar(ImGuiStyleVar_PopupBorderSize, 0.f);
+    ImGui::PushStyleColor(ImGuiCol_PopupBg, ImVec4(0, 0, 0, 0));
+    bool changed = false;
+    if (ImGui::BeginPopup(id, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoMove)) {
+        int picked = paintDrop(ImGui::GetWindowDrawList(), d, true);
+        if (ImGui::IsKeyPressed(ImGuiKey_Escape, false)) {
+            escapeFrame = ImGui::GetFrameCount();
+            ImGui::CloseCurrentPopup();
+        } else if (picked >= 0) {
+            changed = picked != sel;
+            sel = picked;
+            d.sel = picked;
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
+    }
+    ImGui::PopStyleColor();
+    ImGui::PopStyleVar(2);
+    return changed;
+}
 
 void drawSwitch(ImDrawList* dl, ImVec2 p, float a, float alpha) {
     auto& t = theme::current();
@@ -300,6 +488,11 @@ bool setting(Setting& st) {
         bool swClicked = ImGui::InvisibleButton("swatch", {sw, sh});
         bool pillClicked = pill("change", i18n::tr("Change Color"), true, {swp.x - pw - 8 * s, cy - 9.5f * s}, 19 * s, pw);
         if (swClicked || pillClicked) ImGui::OpenPopup("picker");
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {12 * s, 12 * s});
+        ImGui::PushStyleVar(ImGuiStyleVar_PopupRounding, std::min(t.rounding, 12.f) * 0.75f * s);
+        ImGui::PushStyleVar(ImGuiStyleVar_PopupBorderSize, 1.f);
+        ImGui::PushStyleColor(ImGuiCol_PopupBg, theme::mix(t.surface, t.bg, 0.35f));
+        ImGui::PushStyleColor(ImGuiCol_Border, theme::border());
         if (ImGui::BeginPopup("picker")) {
             float c[4] = {st.color.x, st.color.y, st.color.z, st.color.w};
             if (ImGui::ColorPicker4("##pick", c, ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_NoSidePreview)) {
@@ -309,6 +502,8 @@ bool setting(Setting& st) {
             ImGui::TextDisabled("%s", hexOf(st.color).c_str());
             ImGui::EndPopup();
         }
+        ImGui::PopStyleColor(2);
+        ImGui::PopStyleVar(3);
         break;
     }
     case SettingType::Choice: {
@@ -319,20 +514,18 @@ bool setting(Setting& st) {
         rowLabel(dl, p, h, label, theme::col(t.text));
         const char* value = st.choices.empty() ? "" : i18n::tr(st.choices[std::clamp(st.i, 0, (int)st.choices.size() - 1)].c_str());
         ImVec2 vs = fonts::regular()->CalcTextSizeA(12.5f * s, FLT_MAX, 0.f, value);
-        ImVec2 bmin{right - vs.x - 28 * s, cy - 10 * s}, bmax{right, cy + 10 * s};
-        dl->AddRect(bmin, bmax, theme::col(hov ? t.text : t.textDim, 0.8f), 4 * s, 0, 1.2f * s);
-        dl->AddText(fonts::regular(), 12.5f * s, {bmin.x + 9 * s, cy - vs.y * 0.5f}, theme::col(t.text), value);
-        ImVec2 ac{bmax.x - 9 * s, cy};
-        dl->AddTriangleFilled(ac + ImVec2(-3.5f * s, -1.5f * s), ac + ImVec2(3.5f * s, -1.5f * s), ac + ImVec2(0, 2.5f * s), theme::col(t.textDim));
-        if (clicked) ImGui::OpenPopup("choices");
-        if (ImGui::BeginPopup("choices")) {
-            for (int i = 0; i < (int)st.choices.size(); i++)
-                if (ImGui::Selectable(i18n::tr(st.choices[i].c_str()), i == st.i)) {
-                    st.i = i;
-                    changed = true;
-                }
-            ImGui::EndPopup();
-        }
+        ImVec2 bmin{right - vs.x - 32 * s, cy - 10.5f * s}, bmax{right, cy + 10.5f * s};
+        float open = dropdownOpen("choices");
+        float lit = std::max(open, hov ? 0.6f : 0.f);
+        dl->AddRectFilled(bmin, bmax, theme::col(theme::mix(t.bg, t.surfaceHover, 0.5f + 0.5f * lit), 0.8f), 5 * s);
+        dl->AddRect(bmin, bmax, theme::col(theme::mix(theme::border(), t.accent2, open), 0.4f + 0.6f * lit), 5 * s, 0, 1.f);
+        dl->AddText(fonts::regular(), 12.5f * s, {bmin.x + 10 * s, cy - vs.y * 0.5f}, theme::col(t.text), value);
+        float ang = open * 3.14159f;
+        ImVec2 ac{bmax.x - 11 * s, cy};
+        auto rot = [&](float x, float y) { return ac + ImVec2((x * std::cos(ang) - y * std::sin(ang)) * s, (x * std::sin(ang) + y * std::cos(ang)) * s); };
+        ImVec2 pts[3] = {rot(-3.5f, -1.5f), rot(0.f, 2.f), rot(3.5f, -1.5f)};
+        dl->AddPolyline(pts, 3, theme::col(theme::mix(t.textDim, t.accent2, open)), 0, 1.5f * s);
+        if (dropdown("choices", bmin, bmax, st.choices, st.i, hov, clicked)) changed = true;
         break;
     }
     case SettingType::Key: {
