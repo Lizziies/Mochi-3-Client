@@ -19,6 +19,7 @@
 #include <algorithm>
 #include <atomic>
 #include <string>
+#include <vector>
 
 namespace gui {
 
@@ -136,11 +137,24 @@ static void searchBar(ImVec2 at, ImVec2 size) {
     ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0, 0, 0, 0));
     ImGui::PushStyleColor(ImGuiCol_TextDisabled, t.textDim);
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {8 * s, (size.y - ImGui::GetFontSize()) * 0.5f});
-    // typing anywhere in the menu goes into the search
-    auto& queue = ImGui::GetIO().InputQueueCharacters;
-    bool typed = std::any_of(queue.begin(), queue.end(), [](ImWchar c) { return c > 32; });
-    if (typed && !ImGui::IsAnyItemActive() && !widgets::capturingKey()) ImGui::SetKeyboardFocusHere();
+    // Typing anywhere in the menu goes into the search. The field only takes characters once it is active,
+    // so the ones that activated it are queued again for the next frame.
+    static std::vector<ImWchar> pending;
+    static int pendingFrame = 0;
+    auto& io = ImGui::GetIO();
+    bool typed = std::any_of(io.InputQueueCharacters.begin(), io.InputQueueCharacters.end(), [](ImWchar c) { return c > 32; });
+    if (typed && !ImGui::IsAnyItemActive() && !widgets::capturingKey()) {
+        ImGui::SetKeyboardFocusHere();
+        pending.insert(pending.end(), io.InputQueueCharacters.begin(), io.InputQueueCharacters.end());
+        pendingFrame = ImGui::GetFrameCount();
+    }
     ImGui::InputTextWithHint("##search", i18n::tr("Search..."), search, sizeof(search), ImGuiInputTextFlags_EscapeClearsAll);
+    if (ImGui::IsItemActive() && !pending.empty()) {
+        for (ImWchar c : pending) io.AddInputCharacter(c);
+        pending.clear();
+    } else if (ImGui::GetFrameCount() - pendingFrame > 10) {
+        pending.clear();
+    }
     ImGui::PopStyleVar();
     ImGui::PopStyleColor(4);
 
