@@ -413,7 +413,7 @@ public:
     LowHealth()
         : Module("Low Health Indicator", "A red, pulsing screen edge when your health is low.", Category::Hud, {"hud-self"}) {
         sub("Info displays");
-        require(need::player, need::sigs({"LocalPlayer"}));
+        require(need::player, need::sigs({"LocalPlayer", "PlayerStats"}));
     }
 
     void onRender(ImDrawList* dl) override {

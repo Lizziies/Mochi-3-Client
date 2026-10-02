@@ -314,7 +314,7 @@ private:
 class HealthDisplay : public GameText {
 public:
     HealthDisplay()
-        : GameText("Health Display", "Shows your health as a number, hearts or bar, with absorption.", need::player, need::sigs({"LocalPlayer"}),
+        : GameText("Health Display", "Shows your health as a number, hearts or bar, with absorption.", need::player, need::sigs({"LocalPlayer", "PlayerStats"}),
                    {"hud-self"}, {0.01f, 0.42f}) {
         sub("Info displays");
     }
@@ -348,7 +348,7 @@ private:
 class ExperienceInfo : public GameList {
 public:
     ExperienceInfo()
-        : GameList("Experience Info", "Shows your level and the progress to the next level.", need::player, need::sigs({"LocalPlayer"}),
+        : GameList("Experience Info", "Shows your level and the progress to the next level.", need::player, need::sigs({"LocalPlayer", "PlayerStats"}),
                    {"hud-self"}, {0.01f, 0.46f}) {
         sub("Info displays");
         percent_.visible = [this] { return mode_.i == 0 || mode_.i == 1; };

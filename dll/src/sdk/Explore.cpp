@@ -366,6 +366,34 @@ int lHeapFloats(lua_State* L) {
     return pushList(L, hits);
 }
 
+// 8-byte values in [lo, hi), in private writable memory: everything that points into an object
+int lHeapRange(lua_State* L) {
+    uint64_t lo = static_cast<uint64_t>(luaL_checkinteger(L, 1)), hi = static_cast<uint64_t>(luaL_checkinteger(L, 2));
+    size_t limit = static_cast<size_t>(luaL_optinteger(L, 3, 64));
+    std::vector<uintptr_t> hits;
+    MEMORY_BASIC_INFORMATION mbi{};
+    uintptr_t at = 0x10000;
+    while (hits.size() < limit && VirtualQuery(reinterpret_cast<void*>(at), &mbi, sizeof(mbi))) {
+        uintptr_t next = reinterpret_cast<uintptr_t>(mbi.BaseAddress) + mbi.RegionSize;
+        bool ok = mbi.State == MEM_COMMIT && mbi.Type == MEM_PRIVATE && !(mbi.Protect & (PAGE_GUARD | PAGE_NOACCESS)) &&
+                  (mbi.Protect & (PAGE_READWRITE | PAGE_WRITECOPY));
+        if (ok) {
+            walk(reinterpret_cast<uintptr_t>(mbi.BaseAddress), mbi.RegionSize, 8, [&](uintptr_t base, const uint8_t* data, size_t count, size_t span) {
+                for (size_t i = 0; i + 8 <= count && i < span; i += 8) {
+                    uint64_t v;
+                    std::memcpy(&v, data + i, 8);
+                    if (v >= lo && v < hi) hits.push_back(base + i);
+                    if (hits.size() >= limit) return true;
+                }
+                return false;
+            });
+        }
+        if (next <= at) break;
+        at = next;
+    }
+    return pushList(L, hits);
+}
+
 // three consecutive 32-bit integers inside the given ranges (block positions), in private writable memory
 int lHeapInts(lua_State* L) {
     int32_t lo[3], hi[3];
@@ -753,7 +781,7 @@ void work(std::string name) {
         {"i32", readValue<int32_t>},  {"f32", readValue<float>},    {"f64", readValue<double>}, {"wf32", lWriteF32}, {"raw", lRaw},
         {"cstr", lCstr},       {"find", lFind},         {"findd", lFindData},  {"bytes", lBytes},
         {"xrefs", lXrefs},     {"callers", lCallers},   {"func", lFunc},       {"vtable", lVtable},
-        {"heap", lHeap},       {"heapf", lHeapFloats}, {"heapi", lHeapInts},  {"call", lCall}, {"callf", lCallF}, {"scanf", lScanFloats}, {"floatsin", lFloatsIn},{"pointers", lPointers},      {"disasm", lDisasm},   {"disfunc", lDisFunc},
+        {"heap", lHeap},       {"heapf", lHeapFloats}, {"heapi", lHeapInts}, {"heapr", lHeapRange},  {"call", lCall}, {"callf", lCallF}, {"scanf", lScanFloats}, {"floatsin", lFloatsIn},{"pointers", lPointers},      {"disasm", lDisasm},   {"disfunc", lDisFunc},
         {"sleep", lSleep},     {"watch", lWatch},     {"log", lLog},           {"out", lOut},         {"run", lRun},
         {nullptr, nullptr}};
     luaL_newlib(L, api);
