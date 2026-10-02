@@ -18,6 +18,7 @@
   },
   "offsets": {
     "player.posX.via0": 488,
+    "hit.via0": 488,
     "player.posX": 0,
     "player.eyeLevel": 1,
     "player.look.via0": 312,

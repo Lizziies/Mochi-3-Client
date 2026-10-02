@@ -16,7 +16,7 @@ class ReachCounter : public GameText {
 public:
     ReachCounter()
         : GameText("Reach Counter", "Shows the distance of your last hit, as average or best value.", need::combat,
-                   need::sigs({"LocalPlayer", "AttackEntity"}), {"hud-self"}, {0.01f, 0.40f}) {
+                   need::sigs({"LocalPlayer"}), {"hud-self"}, {0.01f, 0.40f}) {
         sub("Combat displays");
         window_.visible = [this] { return mode_.i == 1; };
         warn_.visible = [this] { return colored_.b; };
@@ -150,7 +150,7 @@ class ComboCounter : public GameText {
 public:
     ComboCounter()
         : GameText("Combo Counter", "Counts your hits in a row until the opponent hits you.", need::combat,
-                   need::sigs({"LocalPlayer", "AttackEntity"}), {"hud-self"}, {0.01f, 0.48f}) {
+                   need::sigs({"LocalPlayer"}), {"hud-self"}, {0.01f, 0.48f}) {
         sub("Combat displays");
         timeout_.visible = [this] { return expire_.b; };
     }
@@ -215,7 +215,7 @@ class HitCounter : public GameText {
 public:
     HitCounter()
         : GameText("Hit Counter", "Hits, swings and hit rate of the current round.", need::combat,
-                   need::sigs({"LocalPlayer", "AttackEntity"}), {"hud-self"}, {0.01f, 0.52f}) {
+                   need::sigs({"LocalPlayer"}), {"hud-self"}, {0.01f, 0.52f}) {
         sub("Combat displays");
     }
 
@@ -319,7 +319,7 @@ class HitInfo : public GameText {
 public:
     HitInfo()
         : GameText("Hit Info", "Shows whether your last hit was a critical hit, and the crit rate.", need::combat,
-                   need::sigs({"LocalPlayer", "AttackEntity"}), {"hud-self"}, {0.01f, 0.64f}) {
+                   need::sigs({"LocalPlayer"}), {"hud-self"}, {0.01f, 0.64f}) {
         sub("Combat displays");
     }
 

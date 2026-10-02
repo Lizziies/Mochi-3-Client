@@ -44,6 +44,7 @@ public:
         unsigned m = 0;
         if (sigs::address("LocalPlayer") && off("player.posX") >= 0) m |= unsigned(Domain::Player) | unsigned(Domain::Camera);
         if (sigs::address("Level") && off("level.time") >= 0) m |= unsigned(Domain::World);
+        if ((m & unsigned(Domain::Player)) && off("hit.via0") >= 0) m |= unsigned(Domain::Target) | unsigned(Domain::Combat);
         if ((m & unsigned(Domain::Player)) && sigs::address("AttackEntity")) m |= unsigned(Domain::Combat);
         return m;
     }
@@ -67,6 +68,7 @@ public:
         unsigned have = supports();
         playerPtr_ = 0;
         if (have & unsigned(Domain::Player)) readPlayer(s);
+        if (playerPtr_ && (have & unsigned(Domain::Target))) readTarget(s, ev);
         if (have & unsigned(Domain::World)) readWorld(s);
         bool playing = input::gameplay();
         // menu screens keep sending (LAN discovery, Xbox Live, server list pings), so traffic only counts
@@ -172,6 +174,43 @@ private:
         eye_ = pl.eye();
     }
 
+    // The player's pick result (1.26.52: player+0x1e8): ray start = eye (3 float), ray (3 float), type (int, 0 block,
+    // 1 entity, 3 nothing), face, block position (3 int), hit point (3 float), entity reference (+0x38, entity id
+    // at +0x48). The game attacks whatever this points at when the attack button goes down, so a press while it
+    // holds an entity is a swing at that entity.
+    void readTarget(State& s, std::vector<Event>& ev) {
+        uintptr_t h = follow(playerPtr_, "hit");
+        auto& t = s.target;
+        if (!h) {
+            t.kind = Target::Kind::None;
+            return;
+        }
+        int type = mem::get<int>(h + 0x18, 3);
+        Vec3 from{mem::get<float>(h), mem::get<float>(h + 4), mem::get<float>(h + 8)};
+        Vec3 at{mem::get<float>(h + 0x2c), mem::get<float>(h + 0x30), mem::get<float>(h + 0x34)};
+        uintptr_t id = mem::get<uint32_t>(h + 0x48) | (uintptr_t(1) << 40);
+        t.kind = type == 0 ? Target::Kind::Block : type == 1 ? Target::Kind::Entity : Target::Kind::None;
+        t.pos = at;
+        t.distance = t.kind == Target::Kind::None ? 0.f : distance(from, at);
+        if (t.kind == Target::Kind::Block) {
+            t.blockX = mem::get<int>(h + 0x20);
+            t.blockY = mem::get<int>(h + 0x24);
+            t.blockZ = mem::get<int>(h + 0x28);
+        }
+
+        bool press = input::down(VK_LBUTTON) && input::grabbed() && !ui::wantsCursor();
+        bool edge = press && !wasPressed_;
+        wasPressed_ = press;
+        if (!edge || t.kind != Target::Kind::Entity) return;
+        Event e{EventKind::Hit};
+        e.reach = t.distance;
+        e.crit = !onGround_ && fallSpeed_ < 0.f && !sprinting_;
+        e.actor = id;
+        e.hasPos = true;
+        e.pos = at;
+        ev.push_back(std::move(e));
+    }
+
     void readWorld(State& s) {
         uintptr_t lv = mem::pointer(sigs::address("Level"));
         if (!lv) return;
@@ -263,6 +302,7 @@ private:
     Vec3 lastPos_;
     Vec3 vel_;
     int64_t lastPosQpc_ = 0;
+    bool wasPressed_ = false;
     uintptr_t look_ = 0;
     uintptr_t lookOwner_ = 0;
     uint64_t lookSearched_ = 0;

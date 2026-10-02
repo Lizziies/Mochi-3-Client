@@ -16,7 +16,7 @@ public:
         : Module("Match Summary", "Summary when you leave a server: duration, hits, combo, K/D.", Category::Server,
                  {"hud-self"}) {
         sub("Statistics");
-        require(need::combat, need::sigs({"LocalPlayer", "AttackEntity"}));
+        require(need::combat, need::sigs({"LocalPlayer"}));
     }
 
     void onServer(const ServerEvent& ev) override {

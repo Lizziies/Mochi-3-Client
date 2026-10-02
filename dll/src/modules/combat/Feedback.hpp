@@ -129,7 +129,7 @@ public:
         : Module("Hit Effects", "Particles and sparks at the crosshair on hits. Local only, visible only to you.", Category::Pvp,
                  {"cosmetic"}) {
         sub("Hit visuals");
-        require(need::combat, need::sigs({"LocalPlayer", "AttackEntity"}));
+        require(need::combat, need::sigs({"LocalPlayer"}));
         critColor_.visible = [this] { return !onlyCrit_.b; };
     }
 
@@ -273,7 +273,7 @@ public:
         : Module("Hit Sound", "Plays your own sound on every hit. Local only, creates no network packet.", Category::Pvp,
                  {"cosmetic"}) {
         sub("Hit visuals");
-        require(need::combat, need::sigs({"LocalPlayer", "AttackEntity"}));
+        require(need::combat, need::sigs({"LocalPlayer"}));
     }
 
     void onFrame() override {
