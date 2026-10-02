@@ -53,12 +53,17 @@ public:
         playerPtr_ = 0;
         if (have & unsigned(Domain::Player)) readPlayer(s);
         if (have & unsigned(Domain::World)) readWorld(s);
-        bool hidden = input::gameplay();
+        bool playing = input::gameplay();
         // menu screens keep sending (LAN discovery, Xbox Live, server list pings), so traffic only counts
         // as "in a world" when it carried on from a moment the player was actually playing
-        if (hidden) onlineSincePlay_ = net::session();
-        else if (!net::session()) onlineSincePlay_ = false;
-        s.inWorld = playerPtr_ != 0 || (!sigs::address("LocalPlayer") && (hidden || onlineSincePlay_));
+        bool online = net::session();
+        if (input::grabbed()) onlineSincePlay_ = online;
+        else if (onlineSincePlay_ && !online) {
+            onlineSincePlay_ = false;
+            input::forgetPlay();
+            playing = false;
+        }
+        s.inWorld = playerPtr_ != 0 || (!sigs::address("LocalPlayer") && (playing || onlineSincePlay_));
     }
 
     void attacked(void* actor) {

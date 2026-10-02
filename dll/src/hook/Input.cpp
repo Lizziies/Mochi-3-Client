@@ -473,31 +473,38 @@ bool grabbed() {
     return GetCursorInfo(&ci) && !(ci.flags & CURSOR_SHOWING);
 }
 
+// Without game data the cursor is the best hint: hidden means the player is in a world. Menus inside a world
+// (pause, inventory, chat) show it, so the HUD stays for a while after the cursor appears instead of blinking
+// off and on. Only the very first entry waits a moment, so loading screens with a hidden cursor don't count.
 bool gameplay() {
     int64_t now = qpc();
     flushSpy(now);
     if (!inMinecraft()) return true;
 
+    int64_t sec = qpf.QuadPart;
+    int64_t last = lastPlaying;
     if (!focusedHere()) {
         hiddenSince = 0;
-        lastPlaying = 0;
-        if (playing.exchange(false)) logger::info("gameplay heuristic: menus (game not focused)");
         return false;
     }
-
     CURSORINFO ci{sizeof(ci)};
     bool hidden = GetCursorInfo(&ci) && !(ci.flags & CURSOR_SHOWING);
     if (!hidden) {
         hiddenSince = 0;
     } else {
         if (!hiddenSince) hiddenSince = now;
-        if (now - hiddenSince > qpf.QuadPart * 12 / 10) lastPlaying = now;
+        bool recent = last && now - last < sec * 600;
+        if (recent || now - hiddenSince > sec * 12 / 10) lastPlaying = last = now;
     }
 
-    int64_t last = lastPlaying;
-    bool on = last && now - last < qpf.QuadPart * 8;
+    bool on = last && now - last < sec * 60;
     if (on != playing.exchange(on)) logger::info("gameplay heuristic: {} (cursor {})", on ? "in game" : "menus", hidden ? "hidden" : "visible");
     return on;
+}
+
+void forgetPlay() {
+    lastPlaying = 0;
+    hiddenSince = 0;
 }
 
 static void logInputImports() {

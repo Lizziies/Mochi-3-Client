@@ -17,6 +17,7 @@ struct Ours {
 };
 
 bool gameplay();
+void forgetPlay();
 bool grabbed();
 bool inMinecraft();
 void syncCursor(bool menuOpen);
