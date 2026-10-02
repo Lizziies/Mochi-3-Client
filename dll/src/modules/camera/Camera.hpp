@@ -97,6 +97,8 @@ public:
         : Module("Zoom", "Zoom on a key with smooth animation, scroll wheel steps and adjusted sensitivity.", Category::Visual, {"camera"}) {
         sub("Camera");
         step_.visible = [this] { return scroll_.b; };
+        smooth_.visible = [this] { return !instant_.b; };
+        sensAmount_.visible = [this] { return sens_.b; };
         hideHand_.visible = [] { return fx::available(fx::Id::HideHand); };
     }
 
@@ -121,7 +123,8 @@ public:
             level_ = zoom_.f;
         }
         float target = active_ ? level_ : 1.f;
-        if (snap_ && active_) current_ = target;
+        if ((snap_ || instant_.b) && active_) current_ = target;
+        if (instant_.b && !active_) current_ = 1.f;
         snap_ = false;
         current_ = std::fabs(current_ - target) < 0.002f ? target : current_ + (target - current_) * std::min(1.f, ui::dt() * smooth_.f);
         ctx::zooming = current_ > 1.02f;
@@ -139,7 +142,7 @@ public:
             post::params().zoom = std::max(post::params().zoom, current_);
         }
         if (!sens_.b) return;
-        float k = 1.f / std::pow(current_, 0.85f);
+        float k = 1.f / std::pow(current_, sensAmount_.f);
         if (fx::available(fx::Id::Sensitivity)) fx::scale(fx::Id::Sensitivity, k);
         else gameinput::scaleMouse(k);
     }
@@ -184,11 +187,13 @@ private:
     Setting& mode_ = choice("mode", "Mode", {"Hold", "Toggle"});
     Setting& zoom_ = slider("zoom", "Zoom level", 4.f, 1.5f, 20.f, "%.1fx");
     Setting& base_ = slider("base", "Base field of view", 70.f, 30.f, 120.f, "%.0f");
+    Setting& instant_ = toggleSetting("instant", "Instant (no animation)", false);
     Setting& smooth_ = slider("smooth", "Animation speed", 14.f, 2.f, 40.f, "%.0f");
     Setting& scroll_ = toggleSetting("scroll", "Change level with the mouse wheel", true);
     Setting& step_ = slider("step", "Step size", 1.2f, 1.05f, 1.6f, "%.2fx");
     Setting& remember_ = toggleSetting("remember", "Remember level", true);
     Setting& sens_ = toggleSetting("sens", "Adjust sensitivity while zooming", true);
+    Setting& sensAmount_ = slider("sensAmount", "Sensitivity reduction", 0.85f, 0.f, 1.f, "%.2f");
     Setting& vignette_ = slider("vignette", "Dark edge while zooming", 0.f, 0.f, 1.f, "%.2f");
     Setting& bars_ = slider("bars", "Cinematic bars", 0.f, 0.f, 0.2f, "%.2f");
     Setting& hideHand_ = toggleSetting("hideHand", "Hide the hand while zooming", false);
