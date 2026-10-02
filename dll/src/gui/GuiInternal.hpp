@@ -12,6 +12,8 @@ enum class Page { Hub, Modules, Cosmetics, Settings };
 
 std::string fitText(ImFont* font, float size, std::string text, float maxW);
 void smoothScroll(bool top = false);
+void beginScroll(const char* id, ImVec2 size, bool top = false);
+void endScroll(const char* id);
 void star(ImDrawList* dl, ImVec2 c, float r, ImU32 col, bool filled);
 
 void go(Page p);

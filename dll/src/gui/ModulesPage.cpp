@@ -280,8 +280,7 @@ void drawModulesPage(ImVec2 origin, ImVec2 size) {
     lastQuery = query;
 
     ImGui::SetCursorScreenPos(origin);
-    ImGui::BeginChild("list", size, 0, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_AlwaysVerticalScrollbar);
-    smoothScroll(jumpTop);
+    beginScroll("list", size, jumpTop);
     int index = 0;
     Page pg = page();
     if (searchText()[0] || favoritesOnly()) {
@@ -321,7 +320,7 @@ void drawModulesPage(ImVec2 origin, ImVec2 size) {
         }
     }
     ImGui::Dummy({0, 6 * s});
-    ImGui::EndChild();
+    endScroll("list");
 }
 
 float detailsWidth() {
@@ -550,15 +549,13 @@ void drawDetails(ImVec2 origin, ImVec2 size) {
         drawCosmeticsPage(body, {w, area.y});
     } else {
         ImGui::SetCursorScreenPos(body);
-        ImGui::BeginChild("detail", area, 0,
-                          ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_AlwaysVerticalScrollbar);
-        smoothScroll(fresh && !scrollPart);
+        beginScroll("detail", area, fresh && !scrollPart);
         if (group)
             for (auto* m : group->members) part(*m);
         else
             settingList(*single);
         ImGui::Dummy({0, 8 * s});
-        ImGui::EndChild();
+        endScroll("detail");
     }
 
     ImGui::PopStyleVar(2);

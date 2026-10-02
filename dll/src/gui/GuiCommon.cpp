@@ -46,6 +46,24 @@ void smoothScroll(bool top) {
     last = next;
 }
 
+// The scrollbar is drawn inside BeginChild from the previous frame's sizes, so whether there is anything
+// to scroll is remembered from the last frame and the grab stays invisible when there is not.
+void beginScroll(const char* id, ImVec2 size, bool top) {
+    bool idle = !ImGui::GetStateStorage()->GetBool(ImGui::GetID(id) ^ 0x5C3, false);
+    if (idle)
+        for (ImGuiCol c : {ImGuiCol_ScrollbarGrab, ImGuiCol_ScrollbarGrabHovered, ImGuiCol_ScrollbarGrabActive})
+            ImGui::PushStyleColor(c, ImVec4(0, 0, 0, 0));
+    ImGui::BeginChild(id, size, 0, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_AlwaysVerticalScrollbar);
+    if (idle) ImGui::PopStyleColor(3);
+    smoothScroll(top);
+}
+
+void endScroll(const char* id) {
+    bool scrollable = ImGui::GetScrollMaxY() > 0.5f;
+    ImGui::EndChild();
+    ImGui::GetStateStorage()->SetBool(ImGui::GetID(id) ^ 0x5C3, scrollable);
+}
+
 void star(ImDrawList* dl, ImVec2 c, float r, ImU32 col, bool filled) {
     ImVec2 pts[10];
     for (int i = 0; i < 10; i++) {

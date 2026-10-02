@@ -23,11 +23,7 @@
 
 namespace gui {
 
-static void beginTab(const char* id) {
-    ImGui::BeginChild(id, {ImGui::GetContentRegionAvail().x, 0}, 0,
-                      ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_AlwaysVerticalScrollbar);
-    smoothScroll();
-}
+static void beginTab(const char* id) { beginScroll(id, {ImGui::GetContentRegionAvail().x, 0}); }
 
 static void drawAppearance() {
     auto& t = theme::current();
@@ -95,7 +91,7 @@ static void drawAppearance() {
         const char* clip = ImGui::GetClipboardText();
         theme::importCode(clip ? clip : "");
     }
-    ImGui::EndChild();
+    endScroll("themes");
 }
 
 static void drawProfiles() {
@@ -130,7 +126,7 @@ static void drawProfiles() {
         config::switchProfile(newName);
         newName[0] = 0;
     }
-    ImGui::EndChild();
+    endScroll("profiles");
 }
 
 static void drawAbout() {
@@ -156,7 +152,7 @@ static void drawAbout() {
     if (!rs.host.empty()) ImGui::TextColored(t.textDim, "%s", rs.host.c_str());
     ImGui::TextColored(t.textDim, i18n::tr("Rules: %s"), i18n::tr(rules::source().c_str()));
 
-    ImGui::EndChild();
+    endScroll("info");
 }
 
 
@@ -184,7 +180,7 @@ static void drawGeneral() {
     settingRows({"motion", "menuBlur", "notifications"});
     if (auto* menu = modules::get<ClickGui>()) widgets::setting(menu->keybind());
     widgets::hint("Ctrl+L: unload client · F1: hide HUD · ESC: back · right-click a key: clear");
-    ImGui::EndChild();
+    endScroll("general");
 }
 
 static void drawChat() {
@@ -200,7 +196,7 @@ static void drawChat() {
     ImGui::Dummy({0, 6 * s});
     widgets::sectionTitle("Watermark");
     settingRows({"invMark"});
-    ImGui::EndChild();
+    endScroll("chat");
 }
 
 static void applyPreset(int kind) {
@@ -233,7 +229,7 @@ static void drawModuleDefaults() {
             if (m->isHud()) m->resetSettings([](const Setting& st) { return st.id == "x" || st.id == "y" || st.id == "scale"; });
     ImGui::Dummy({0, 6 * s});
 
-    ImGui::EndChild();
+    endScroll("moddefaults");
 }
 
 int& settingsTab() {
