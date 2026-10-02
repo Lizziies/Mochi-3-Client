@@ -25,12 +25,52 @@ namespace gui {
 
 static void beginTab(const char* id) { beginScroll(id, {ImGui::GetContentRegionAvail().x, 0}); }
 
+static bool sameColor(const ImVec4& a, const ImVec4& b) {
+    return std::fabs(a.x - b.x) + std::fabs(a.y - b.y) + std::fabs(a.z - b.z) < 0.01f;
+}
+
+static void accentRow() {
+    auto& t = theme::current();
+    float s = ui::scale();
+    auto* dl = ImGui::GetWindowDrawList();
+    ImVec2 o = ImGui::GetCursorScreenPos();
+    float r = 11 * s, gap = 10 * s;
+    auto& list = theme::accents();
+    for (size_t i = 0; i < list.size(); i++) {
+        auto& a = list[i];
+        ImVec2 c = o + ImVec2(r + 4 * s + i * (2 * r + gap), r + 4 * s);
+        ImGui::SetCursorScreenPos(c - ImVec2(r, r));
+        ImGui::PushID(int(i));
+        bool clicked = ImGui::InvisibleButton("accent", {2 * r, 2 * r});
+        bool hov = ImGui::IsItemHovered();
+        float& k = *ImGui::GetStateStorage()->GetFloatRef(ImGui::GetID("k"), 0.f);
+        ImGui::PopID();
+        bool on = sameColor(t.accent, a.accent);
+        k = draw::approach(k, on ? 1.f : 0.f, 16.f * t.animSpeed);
+        dl->AddCircleFilled(c, r * (hov && !on ? 1.f : 0.88f), theme::col(a.accent), 32);
+        dl->AddCircleFilled(c, r * 0.32f * k, theme::col(a.accent2), 24);
+        if (k > 0.01f) dl->AddCircle(c, r + 3 * s, theme::col(t.text, 0.85f * k), 32, 1.5f * s);
+        if (hov) ImGui::SetTooltip("%s", i18n::tr(a.name));
+        if (clicked) {
+            t.accent = a.accent;
+            t.accent2 = a.accent2;
+            theme::applyStyle();
+            config::markDirty();
+        }
+    }
+    ImGui::SetCursorScreenPos(o + ImVec2(0, 2 * r + 8 * s));
+}
+
 static void drawAppearance() {
     auto& t = theme::current();
     float s = ui::scale();
     beginTab("themes");
-    widgets::sectionTitle("Presets");
+    widgets::sectionTitle("Accent color");
+    widgets::hint("Colors switches, sliders, buttons and modules that are on.");
+    accentRow();
 
+    widgets::sectionTitle("Presets");
+    widgets::hint("Change the panels and background. Your accent color stays.");
     float avail = ImGui::GetContentRegionAvail().x;
     float gap = 8 * s;
     float h = 56 * s;
@@ -47,17 +87,23 @@ static void drawAppearance() {
         bool hovered = ImGui::IsItemHovered();
         ImGui::PopID();
         auto* dl = ImGui::GetWindowDrawList();
-        float r = t.rounding * 0.75f * s;
+        float r = p.rounding * 0.75f * s;
         dl->AddRectFilled(pos, pos + ImVec2(w, h), theme::col(p.bg), r);
         ImVec2 chip = pos + ImVec2(10 * s, 10 * s);
         float cw = w - 20 * s;
-        dl->AddRectFilled(chip, chip + ImVec2(cw, 15 * s), theme::col(theme::mix(p.bg, p.accent, 0.6f)), 4 * s);
-        dl->AddRectFilled(chip + ImVec2(cw - 24 * s, 3.5f * s), chip + ImVec2(cw - 8 * s, 11.5f * s), theme::col(theme::mix(p.bg, p.accent, 0.35f)), 4 * s);
-        dl->AddCircleFilled(chip + ImVec2(cw - 12 * s, 7.5f * s), 2.6f * s, theme::col(p.accent2));
+        dl->AddRectFilled(chip, chip + ImVec2(cw, 15 * s), theme::col(theme::mix(p.bg, t.accent, 0.6f)), 4 * s);
+        dl->AddRectFilled(chip + ImVec2(cw - 24 * s, 3.5f * s), chip + ImVec2(cw - 8 * s, 11.5f * s), theme::col(theme::mix(p.bg, t.accent, 0.35f)), 4 * s);
+        dl->AddCircleFilled(chip + ImVec2(cw - 12 * s, 7.5f * s), 2.6f * s, theme::col(t.accent2));
         dl->AddText(fonts::regular(), 13 * s, pos + ImVec2(10 * s, 32 * s), theme::col(p.text), p.name.c_str());
-        ImVec4 edge = t.name == p.name ? t.accent : (hovered ? p.accent : theme::border());
-        dl->AddRect(pos, pos + ImVec2(w, h), theme::col(edge, t.name == p.name ? 1.f : 0.6f), r, 0, t.name == p.name ? 1.5f * s : 1.f);
-        if (clicked) theme::use(p);
+        bool active = t.name == p.name;
+        ImVec4 edge = active ? t.accent : (hovered ? p.text : p.border);
+        dl->AddRect(pos, pos + ImVec2(w, h), theme::col(edge, active ? 1.f : 0.6f), r, 0, active ? 1.5f * s : 1.f);
+        if (clicked) {
+            Theme next = p;
+            next.accent = t.accent;
+            next.accent2 = t.accent2;
+            theme::use(next);
+        }
     }
     int rows = int((presets.size() + cols - 1) / cols);
     ImGui::SetCursorScreenPos(origin + ImVec2(0, rows * (h + gap)));
@@ -79,9 +125,6 @@ static void drawAppearance() {
     changed |= widgets::row("Corner radius", t.rounding, 0.f, 24.f, "%.0f");
     changed |= widgets::row("Opacity", t.opacity, 0.5f, 1.f, "%.2f");
     changed |= widgets::row("Animation speed", t.animSpeed, 0.25f, 3.f, "%.2fx");
-    changed |= widgets::row("Gradients", t.gradient);
-    changed |= widgets::row("Sparkles", t.sparkles);
-    changed |= widgets::row("Little hearts", t.hearts);
     if (changed) theme::applyStyle();
 
     ImGui::Dummy({0, 6 * s});

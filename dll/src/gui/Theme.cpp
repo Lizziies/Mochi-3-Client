@@ -17,18 +17,19 @@ static ImVec4 hex(unsigned rgb, float a = 1.f) {
 static std::vector<Theme> builtins = {
     {"Slate", hex(0x24252A), hex(0x393A40), hex(0x4A4C53), hex(0x1E7CB5), hex(0x3BA7EC), hex(0xF3F3F5),
      hex(0xA6A8AF), hex(0x3DDC84), hex(0xFFB547), hex(0x8D8F96), 8.f, 0.86f, 1.f, false, false, false, hex(0x5E6068)},
-    {"Graphite", hex(0x121214), hex(0x1D1D21), hex(0x2A2A30), hex(0x8FA6FF), hex(0xC3CEFF), hex(0xEEEEF2),
-     hex(0x9D9DAA), hex(0x7BD6A0), hex(0xF2C46B), hex(0x4B4B55), 12.f, 0.96f, 1.f, false, false, false},
-    {"Bubblegum", hex(0x1A0F1E), hex(0x2A1730), hex(0x36203D), hex(0xFF7EB6), hex(0xFFB3D1), hex(0xFFF1F7),
-     hex(0xC9A9BB), hex(0x8BE9B0), hex(0xFFD27E), hex(0x6B5570)},
-    {"Sakura", hex(0xFFF5F8), hex(0xFFE4EC), hex(0xFFD6E3), hex(0xF06292), hex(0xF8A5C2), hex(0x4A2B38),
-     hex(0x8E6A79), hex(0x4CAF7A), hex(0xE0A030), hex(0xC9B2BC)},
-    {"Lavender", hex(0x17132A), hex(0x241E3D), hex(0x2F2850), hex(0xB69CFF), hex(0xE2D6FF), hex(0xF4F0FF),
-     hex(0xA99FC9), hex(0x8BE9B0), hex(0xFFD27E), hex(0x5D5578)},
-    {"Strawberry Milk", hex(0xFFF8F3), hex(0xFDEBE4), hex(0xF9DCD3), hex(0xFF8FA3), hex(0xFFC2CC), hex(0x5A3A3F),
-     hex(0x9A7A7F), hex(0x5DBB8A), hex(0xE8A33D), hex(0xD4BFC2)},
-    {"Midnight Pink", hex(0x0B0710), hex(0x161019), hex(0x221829), hex(0xFF3EA5), hex(0xFF8AC8), hex(0xFFE8F4),
-     hex(0xB08AA0), hex(0x6CF0A8), hex(0xFFC857), hex(0x4A3A52)},
+    {"Onyx", hex(0x141518), hex(0x232428), hex(0x303137), hex(0x1E7CB5), hex(0x3BA7EC), hex(0xEDEDF0),
+     hex(0x8F9199), hex(0x3DDC84), hex(0xFFB547), hex(0x6E7078), 8.f, 0.92f, 1.f, false, false, false, hex(0x3A3C42)},
+    {"Steel", hex(0x1D222B), hex(0x2E3542), hex(0x3B4352), hex(0x1E7CB5), hex(0x3BA7EC), hex(0xEEF1F6),
+     hex(0x9AA3B2), hex(0x3DDC84), hex(0xFFB547), hex(0x7D8696), 8.f, 0.88f, 1.f, false, false, false, hex(0x4E5869)},
+    {"Glass", hex(0x1C1D21), hex(0x34353B), hex(0x45474E), hex(0x1E7CB5), hex(0x3BA7EC), hex(0xF5F5F7),
+     hex(0xB0B2B9), hex(0x3DDC84), hex(0xFFB547), hex(0x8D8F96), 12.f, 0.62f, 1.f, false, false, false, hex(0x6A6C74)},
+};
+
+static const std::vector<Accent> accentList = {
+    {"Blue", hex(0x1E7CB5), hex(0x3BA7EC)},   {"Cyan", hex(0x13899A), hex(0x45CFE0)},
+    {"Green", hex(0x23905A), hex(0x52D68C)},  {"Purple", hex(0x6E4FC4), hex(0xA58CF2)},
+    {"Pink", hex(0xB83D80), hex(0xF27BBD)},   {"Red", hex(0xB8342D), hex(0xF2675E)},
+    {"Orange", hex(0xC2702A), hex(0xF5A35C)}, {"Gray", hex(0x5F626B), hex(0xDADBE0)},
 };
 
 static Theme active = builtins[0];
@@ -37,6 +38,7 @@ Theme& current() { return active; }
 
 ImVec4 border() { return active.border.w > 0.f ? active.border : active.surfaceHover; }
 const std::vector<Theme>& presets() { return builtins; }
+const std::vector<Accent>& accents() { return accentList; }
 
 void use(const Theme& t) {
     active = t;
@@ -146,9 +148,10 @@ json save() {
 
 void load(const json& j) {
     if (!j.is_object()) return;
-    // the old default; whoever still has it gets the new default look instead
+    // themes from the old pastel menu do not fit the panels; whoever still has one gets the default look
+    static const char* retired[] = {"Carbon", "Graphite", "Bubblegum", "Sakura", "Lavender", "Strawberry Milk", "Midnight Pink"};
     std::string name = j.value("name", "");
-    if (name == "Carbon" || (name == "Graphite" && j.value("accent", json::array()) == color(builtins[1].accent))) {
+    if (std::find(std::begin(retired), std::end(retired), name) != std::end(retired)) {
         active = builtins[0];
         return;
     }

@@ -29,8 +29,15 @@ struct Theme {
 
 namespace theme {
 
+struct Accent {
+    const char* name;
+    ImVec4 accent;
+    ImVec4 accent2;
+};
+
 Theme& current();
 const std::vector<Theme>& presets();
+const std::vector<Accent>& accents();
 void use(const Theme& t);
 void applyStyle();
 
