@@ -111,7 +111,7 @@ while ((Get-Date) -lt $deadline) {
     Start-Sleep -Milliseconds 500
 }
 if (-not $mc) { Write-Host 'Minecraft did not start'; exit 1 }
-if (($mc.Modules | ForEach-Object { $_.ModuleName }) -contains 'Mochi.dll') { Write-Host 'already injected'; exit 0 }
+if ($mc.Modules | Where-Object { $_.ModuleName -like 'Mochi*.dll' }) { Write-Host 'already injected'; exit 0 }
 
 Start-Sleep -Seconds 2
 $r = [Inj]::Load($mc.Id, $target)
