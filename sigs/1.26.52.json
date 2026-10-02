@@ -1,4 +1,4 @@
-﻿{
+{
   "version": "1.26.52",
   "sigs": {
     "LocalPlayer": {
@@ -17,16 +17,11 @@
     "fx.clouds": "48 83 EC 38 48 8B 05 ? ? ? ? 48 31 E0 48 89 44 24 30 48 8B 01 48 8B 40 08 48 8D 54 24 28 41 B8 8A 01 00 00 FF 15 ? ? ? ? 48 8B 4C 24 28 48 89 C8 48 8B 49 08 48 8B 89 ? ? ? ? 48 85 C9 75 ED 0F B6 40 10"
   },
   "offsets": {
-    "player.posX.via0": 312,
-    "player.posX.via1": 2448,
+    "player.posX.via0": 488,
     "player.posX": 0,
     "player.eyeLevel": 1,
-    "player.pitch.via0": 312,
-    "player.pitch.via1": 2448,
-    "player.pitch": 12,
-    "player.yaw.via0": 312,
-    "player.yaw.via1": 2448,
-    "player.yaw": 16,
+    "player.look.via0": 312,
+    "player.look.span": 8192,
     "player.view.via0": 1912,
     "player.view.via1": 184,
     "player.view.via2": 40,

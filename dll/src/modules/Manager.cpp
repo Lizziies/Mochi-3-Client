@@ -466,8 +466,12 @@ void dispatchKey(KeyEvent& ev) {
             notify::push(m->name(), i18n::tr("Not allowed on this server."), notify::Kind::Warn);
     }
 
+    // with the cursor free the player is typing in chat or clicking through a game screen: presses stay there,
+    // releases still go through so nothing is left held
+    bool gameScreen = !input::grabbed() && !gui::open() && !gui::editingHud();
     for (auto& m : list) {
         if (!m->enabled() || (captured && !m->alwaysOn())) continue;
+        if (gameScreen && ev.down && !m->alwaysOn()) continue;
         if (!guard::call(m->name().c_str(), [&] { m->onKey(ev); })) fault(*m);
         if (ev.cancel) return;
     }
@@ -475,8 +479,10 @@ void dispatchKey(KeyEvent& ev) {
 
 void dispatchMouse(MouseEvent& ev) {
     if (!active()) return;
+    bool gameScreen = !input::grabbed() && !gui::open() && !gui::editingHud();
     for (auto& m : list) {
         if (!m->enabled()) continue;
+        if (gameScreen && (ev.down || ev.wheel) && !m->alwaysOn()) continue;
         if (!guard::call(m->name().c_str(), [&] { m->onMouse(ev); })) fault(*m);
         if (ev.cancel) return;
     }

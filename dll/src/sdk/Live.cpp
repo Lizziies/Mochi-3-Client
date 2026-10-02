@@ -149,8 +149,10 @@ private:
         } else {
             deriveVelocity(pl);
         }
-        pl.yaw = f(p, "player.yaw", pl.yaw);
-        pl.pitch = f(p, "player.pitch", pl.pitch);
+        if (uintptr_t look = findLook(p, pb + px)) {
+            pl.pitch = mem::get<float>(look + 12, pl.pitch);
+            pl.yaw = mem::get<float>(look + 16, pl.yaw);
+        }
         pl.fov = f(p, "player.fov", pl.fov);
         pl.view = View(std::clamp(i(p, "player.view", int(pl.view)), 0, 2));
         pl.health = f(p, "player.health", pl.health);
@@ -177,6 +179,37 @@ private:
         s.world.day = i(lv, "level.time", 0) / 24000 + 1;
         s.world.raining = f(lv, "level.rain", 0.f) > 0.05f;
         s.world.thundering = f(lv, "level.thunder", 0.f) > 0.05f;
+    }
+
+    // The view angles sit right behind a second copy of the eye position (pos, pitch, yaw), in a component the
+    // player reaches through a list ("player.look.via0") whose slot changes from world to world (1.26.52: 0x990
+    // in one world, 0xf20 in the next). Find the slot whose target starts with the same position, keep it while
+    // it still matches.
+    uintptr_t findLook(uintptr_t player, uintptr_t pos) {
+        int list = off("player.look.via0");
+        if (list < 0) return 0;
+        auto same = [&](uintptr_t at) {
+            for (int k = 0; k < 3; k++)
+                if (std::fabs(mem::get<float>(at + 4 * k, 1e9f) - mem::get<float>(pos + 4 * k, -1e9f)) > 0.05f) return false;
+            return true;
+        };
+        if (look_ && lookOwner_ == player && same(look_)) return look_;
+        uint64_t now = GetTickCount64();
+        if (now - lookSearched_ < 1000) return 0;
+        lookSearched_ = now;
+        look_ = 0;
+        uintptr_t slots = mem::pointer(player + list);
+        int span = off("player.look.span") > 0 ? off("player.look.span") : 0x2000;
+        for (int o = 0; slots && o < span; o += 8) {
+            uintptr_t c = mem::pointer(slots + o);
+            if (c > 0x10000 && same(c)) {
+                look_ = c;
+                lookOwner_ = player;
+                logger::info("live: view angles at list slot {:#x}", o);
+                break;
+            }
+        }
+        return look_;
     }
 
     // without a velocity field the speed comes from how far the position moved, smoothed over a few frames
@@ -230,6 +263,9 @@ private:
     Vec3 lastPos_;
     Vec3 vel_;
     int64_t lastPosQpc_ = 0;
+    uintptr_t look_ = 0;
+    uintptr_t lookOwner_ = 0;
+    uint64_t lookSearched_ = 0;
     float fallSpeed_ = 0.f;
     bool onGround_ = true;
     bool sprinting_ = false;
