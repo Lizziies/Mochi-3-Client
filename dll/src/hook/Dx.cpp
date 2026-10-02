@@ -230,15 +230,26 @@ static void applyLatency(IDXGISwapChain* sc) {
     }
 }
 
+static int64_t paced = 0;
+
+// Waits after Present, before the game starts its next frame: the next frame then samples input right before
+// it is drawn. Waiting before Present would hold back a frame that was already rendered with older input.
 static void limit() {
-    if (tune.fpsLimit < 10.f) return;
+    if (tune.fpsLimit < 10.f) {
+        paced = 0;
+        return;
+    }
     if (!limiterTimer)
         limiterTimer = CreateWaitableTimerExW(nullptr, nullptr, CREATE_WAITABLE_TIMER_HIGH_RESOLUTION, TIMER_ALL_ACCESS);
 
     int64_t period = (int64_t)(qpf.QuadPart / tune.fpsLimit);
-    int64_t target = lastPresent + period;
+    int64_t target = paced + period;
     int64_t t = now();
-    if (t >= target) return;
+    if (!paced || t >= target) {
+        paced = t;
+        return;
+    }
+    paced = target;
 
     int64_t remaining = target - t;
     int64_t spin = qpf.QuadPart / 2000;
@@ -316,7 +327,6 @@ static void beforePresent(IDXGISwapChain* sc, UINT& sync, UINT& flags) {
             flags |= DXGI_PRESENT_ALLOW_TEARING;
         }
     }
-    limit();
 }
 
 static void afterPresent() {
@@ -324,6 +334,7 @@ static void afterPresent() {
     if (lastPresent) info.frameMs = double(t - lastPresent) * 1000.0 / double(qpf.QuadPart);
     lastPresent = t;
     info.presentQpc = t;
+    limit();
 }
 
 static HRESULT WINAPI present(IDXGISwapChain* sc, UINT sync, UINT flags) {
