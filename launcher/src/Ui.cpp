@@ -310,8 +310,9 @@ void hero(ImDrawList* dl, State& s, Events& ev) {
     card(dl, min, max);
     dl->AddRectFilled({min.x, min.y + 22.f}, {min.x + 3.f, max.y - 22.f}, col(accent), 2.f);
 
-    label(dl, regular, 34.f, {min.x + 36.f, min.y + 30.f}, col(text), tr("Ready to play"));
-    std::string sub = "Minecraft Bedrock " + (s.gameVersion.empty() ? std::string(tr("not found")) : s.gameVersion);
+    bool found = !s.gameVersion.empty();
+    label(dl, regular, 34.f, {min.x + 36.f, min.y + 30.f}, col(text), found ? tr("Ready to play") : tr("Minecraft not found"));
+    std::string sub = found ? "Minecraft Bedrock " + s.gameVersion : std::string(tr("Install it from the Microsoft Store or add a folder under Versions."));
     label(dl, regular, 16.f, {min.x + 38.f, min.y + 78.f}, col(dim), sub.c_str());
 
     bool working = busy(s.phase);

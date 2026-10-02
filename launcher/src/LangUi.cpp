@@ -24,6 +24,8 @@ const i18n::Entry entries[] = {
     {"Update available", "Update verfügbar"},
     {"Up to date", "Alles aktuell"},
     {"Ready to play", "Bereit zum Spielen"},
+    {"Minecraft not found", "Minecraft nicht gefunden"},
+    {"Install it from the Microsoft Store or add a folder under Versions.", "Installiere es aus dem Microsoft Store oder füge unter Versionen einen Ordner hinzu."},
     {"Current", "Aktuell"},
     {"Missing", "Fehlt"},
     {"Supported", "Unterstützt"},
