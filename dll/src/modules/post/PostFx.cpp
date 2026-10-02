@@ -17,6 +17,7 @@
 #include <filesystem>
 #include <fstream>
 #include <map>
+#include <mutex>
 #include <sstream>
 
 namespace post {
@@ -296,12 +297,15 @@ static void dropAll() {
 enum class Compile { Idle, Running, Ready, Failed };
 static std::atomic<Compile> compileState{Compile::Idle};
 static ID3DBlob* blobs[3] = {};
+// the compiler is not guaranteed to be reentrant (Wine's is not), so compiles never overlap
+static std::mutex compileLock;
 
 static void compileShaders() {
     Compile expected = Compile::Idle;
     if (!compileState.compare_exchange_strong(expected, Compile::Running)) return;
     bg::run([] {
         static const char* entries[3][2] = {{"vs", "vs_5_0"}, {"ps", "ps_5_0"}, {"psBlur", "ps_5_0"}};
+        std::scoped_lock g(compileLock);
         for (int i = 0; i < 3; i++) {
             ID3DBlob* err = nullptr;
             HRESULT hr = D3DCompile(shaderSource, strlen(shaderSource), "postfx", nullptr, nullptr, entries[i][0], entries[i][1],
@@ -474,6 +478,8 @@ std::string shaderError(int index) {
 static ID3D11PixelShader* customShader(ID3D11Device* dev, int index) {
     if (auto it = gpu.custom.find(index); it != gpu.custom.end()) return it->second;
     if (gpu.customError.count(index) || index < 0 || index >= (int)shaderList.size()) return nullptr;
+    std::unique_lock g(compileLock, std::try_to_lock);
+    if (!g) return nullptr;
     std::string code = std::string(prelude) + shaderList[size_t(index)].source;
     ID3DBlob *blob = nullptr, *err = nullptr;
     HRESULT hr = D3DCompile(code.c_str(), code.size(), shaderList[size_t(index)].name.c_str(), nullptr, nullptr, "ps", "ps_5_0",

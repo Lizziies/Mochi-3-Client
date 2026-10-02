@@ -60,5 +60,15 @@ TESTHOST_MANUAL=1 timeout 60 wine64 testhost.exe dll/Mochi.dll 30 > "$out/perf-c
 TESTHOST_MANUAL=1 TESTHOST_SCRIPT="3:k:161" timeout 60 wine64 testhost.exe dll/Mochi.dll 30 > "$out/perf-menu.txt" 2>&1
 wineserver -k 2>/dev/null
 
+# fresh starts: config creation, the first autosave and the background shader compile all fall into the first seconds
+crashes=0
+for i in 1 2 3 4 5; do
+    rm -rf "$(data)/configs"
+    TESTHOST_MANUAL=1 timeout 40 wine64 testhost.exe dll/Mochi.dll 12 > "$out/fresh-$i.txt" 2>&1
+    grep -q "Unhandled" "$out/fresh-$i.txt" && crashes=$((crashes + 1))
+    wineserver -k 2>/dev/null
+done
+echo "$crashes of 5 fresh starts crashed" > "$out/fresh.txt"
+
 [ -n "${MOCHI_CI_TOUR:-}" ] && "$root/tools/tour.sh" "$out/tour"
 echo "done"
