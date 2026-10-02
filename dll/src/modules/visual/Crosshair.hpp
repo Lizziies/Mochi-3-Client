@@ -7,6 +7,7 @@
 #include "modules/Module.hpp"
 #include "modules/common/Colors.hpp"
 #include "modules/common/Image.hpp"
+#include "modules/common/Layout.hpp"
 #include "render/Draw.hpp"
 #include "render/Ui.hpp"
 #include "sdk/Effects.hpp"
@@ -31,7 +32,6 @@ public:
         gap_.visible = [this] { return style_.i == 0 || style_.i == 3 || style_.i == 5; };
         thickness_.visible = [this] { return style_.i != 9; };
         cell_.visible = [this] { return style_.i == 9; };
-        outlineWidth_.visible = [this] { return outline_.b; };
         outlineColor_.visible = [this] { return outline_.b; };
         activeColor_.visible = [this] { return clickColor_.b; };
         moveSpread_.visible = [this] { return dynamic_.b; };
@@ -46,8 +46,13 @@ public:
         imageScale_.visible = [this] { return style_.i == 10; };
         imageTint_.visible = [this] { return style_.i == 10; };
         imageTintColor_.visible = [this] { return style_.i == 10 && imageTint_.b; };
-        size_.visible = [this] { return style_.i != 9 && style_.i != 10; };
-        thickness_.visible = [this] { return style_.i != 9 && style_.i != 10; };
+        size_.visible = [this] { return style_.i != 9 && style_.i != 10 && style_.i != solid; };
+        thickness_.visible = [this] { return style_.i != 9 && style_.i != 10 && style_.i != solid; };
+        solidArm_.visible = [this] { return style_.i == solid; };
+        solidThick_.visible = [this] { return style_.i == solid; };
+        guiScale_.visible = [this] { return style_.i == solid; };
+        outlineWidth_.visible = [this] { return outline_.b && style_.i != solid; };
+        outline_.visible = [this] { return style_.i != solid || !covering(); };
         loadedFor_ = "";
     }
 
@@ -82,12 +87,23 @@ public:
 
         ImVec4 oc = outlineColor_.color;
         oc.w *= opacity_.f;
+        if (style_.i == solid) {
+            if (covering()) oc.w = 1.f;
+            solidCross(dl, ds, ImGui::GetColorU32(col), ImGui::GetColorU32(oc));
+            return;
+        }
         if (outline_.b) shape(dl, size, thickness_.f + outlineWidth_.f * 2.f, ImGui::GetColorU32(oc), true);
         shape(dl, size, thickness_.f, ImGui::GetColorU32(col), false);
     }
 
     void drawSettings() override {
         ImGui::Spacing();
+        if (covering() && style_.i != solid) {
+            ImGui::PushStyleColor(ImGuiCol_Text, theme::current().warn);
+            ImGui::TextWrapped("%s", i18n::tr("The original crosshair cannot be hidden on this version yet, so it shows through. Pick the shape \"Solid cross\" to cover it cleanly."));
+            ImGui::PopStyleColor();
+            ImGui::Spacing();
+        }
         if (style_.i == 10) {
             if (ImGui::SmallButton(i18n::tr("Paste path from clipboard"))) {
                 if (const char* clip = ImGui::GetClipboardText()) imagePath_.text = clip;
@@ -101,6 +117,42 @@ public:
 
 private:
     static constexpr int cells = 15;
+    static constexpr int solid = 11;
+    // the original cross measured in GUI pixels, with a margin so the cover never shows an edge
+    static constexpr float coverArm = 8.f;
+    static constexpr float coverThick = 1.f;
+
+    bool covering() const { return hideVanilla_.b && !fx::available(fx::Id::HideCrosshair); }
+
+    void solidCross(ImDrawList* dl, ImVec2 display, ImU32 col, ImU32 edgeCol) {
+        float k = layout::guiScale(display, guiScale_.f);
+        bool cover = covering();
+        float arm = solidArm_.f + spread_ / k;
+        float th = solidThick_.f;
+        if (cover) {
+            arm = std::max(arm, coverArm);
+            th = std::max(th, coverThick);
+        }
+        ImVec2 c{std::round(center_.x - 0.5f), std::round(center_.y - 0.5f)};
+        auto bar = [&](float hx, float hy, ImU32 color) {
+            ImVec2 a = ImVec2(std::round(c.x - hx), std::round(c.y - hy)), b = ImVec2(std::round(c.x + hx), std::round(c.y + hy));
+            if (rad_ == 0.f) {
+                dl->AddRectFilled(a, b, color);
+                return;
+            }
+            ImVec2 q[4] = {turn({a.x, a.y}), turn({b.x, a.y}), turn({b.x, b.y}), turn({a.x, b.y})};
+            dl->AddConvexPolyFilled(q, 4, color);
+        };
+        float hAxis = arm * k, hThick = th * k * 0.5f;
+        bool edge = outline_.b || cover;
+        if (edge) {
+            float e = k;
+            bar(hAxis + e, hThick + e, edgeCol);
+            bar(hThick + e, hAxis + e, edgeCol);
+        }
+        bar(hAxis, hThick, col);
+        bar(hThick, hAxis, col);
+    }
 
     static ImVec4 lerp(ImVec4 a, ImVec4 b, float t) {
         return {a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t, a.z + (b.z - a.z) * t, a.w + (b.w - a.w) * t};
@@ -190,7 +242,7 @@ private:
         case 9: grid(dl, col, alt, outline); break;
         case 10: picture(dl, col, outline); break;
         }
-        if (centerDot_.b && style_.i != 1 && style_.i != 3 && style_.i != 9 && style_.i != 10)
+        if (centerDot_.b && style_.i != 1 && style_.i != 3 && style_.i != 9 && style_.i != 10 && style_.i != solid)
             dl->AddCircleFilled(center_, th * 0.8f + (outline ? outlineWidth_.f : 0), col);
     }
 
@@ -371,7 +423,10 @@ private:
         }
     }
 
-    Setting& style_ = choice("style", "Shape", {"Cross", "Dot", "Circle", "Cross + dot", "Heart", "T shape", "Square", "Diamond", "Triangle", "Custom grid", "PNG image"});
+    Setting& style_ = choice("style", "Shape", {"Cross", "Dot", "Circle", "Cross + dot", "Heart", "T shape", "Square", "Diamond", "Triangle", "Custom grid", "PNG image", "Solid cross"}, solid);
+    Setting& solidArm_ = slider("solidArm", "Arm length (GUI pixels)", 9.f, 3.f, 16.f, "%.0f");
+    Setting& solidThick_ = slider("solidThick", "Thickness (GUI pixels)", 1.f, 0.5f, 4.f, "%.1f");
+    Setting& guiScale_ = slider("guiScale", "GUI scale of the game (0 = automatic)", 0.f, 0.f, 6.f, "%.0f");
     Setting& size_ = slider("size", "Size", 8.f, 2.f, 40.f, "%.0f");
     Setting& cell_ = slider("cell", "Pixel size", 2.f, 1.f, 6.f, "%.1f");
     Setting& imagePath_ = textSetting("imagePath", "PNG file path", "");
