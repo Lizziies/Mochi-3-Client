@@ -51,6 +51,7 @@
 #include "hud/Compose.hpp"
 #include "hud/Fps.hpp"
 #include "hud/GameInfo.hpp"
+#include "hud/ItemTracker.hpp"
 #include "hud/Inventory.hpp"
 #include "hud/Keystrokes.hpp"
 #include "hud/Paperdoll.hpp"
@@ -142,6 +143,7 @@ void init() {
     add<DayCounter>();
     add<PackDisplay>();
     add<HeldItem>();
+    add<ItemTracker>();
     add<Paperdoll>();
     add<StatsHud>();
     add<Watermark>();
