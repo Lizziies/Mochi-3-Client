@@ -91,3 +91,17 @@ Die Kacheln wirkten zu sehr nach KI (viele Symbole) und nicht nach Minecraft-Cli
 - Keine Symbole mehr. Schrift Barlow, kleine Rundung, eckigere Schalter. Rahmenfarbe ist unter Einstellungen → Aussehen → "Rand" einstellbar.
 - Einstellungen und Cosmetics öffnen sich als Fenster rechts neben der Liste, die Liste bleibt stehen.
 - Nichts lädt mehr neu: Slot-Filter bei Cosmetics und Tabs in den Einstellungen wechseln ohne Einblend-Animation der ganzen Seite.
+
+### Fünfte Änderung (Felix, 2026-10-02): genau wie Onix, kleine Farbakzente
+
+Die Leiste am Rand sah zu sehr nach Minecraft aus. Felix hat vier Onix-Screenshots geschickt, danach ist das Menü jetzt gebaut:
+
+- Drei schwebende Panels, zusammen mittig: oben links die Suche ("Search..." + Favoriten-Stern), darunter die Liste, rechts daneben das Einstellungs-Panel. Jedes Panel: dunkelgrau, leicht durchsichtig, Blur dahinter (Stärke = "Menu background blur"), dünner Rand in der Rahmenfarbe, Rundung aus dem Theme. Kein Vollbild-Blur mehr, nur eine leichte Abdunklung.
+- Liste: oben fest "Global Settings", "Cosmetics", "Edit HUD", danach kleine Abschnitts-Labels (PVP, HUD, …) und Zeilen. Zeile = abgerundetes Grau mit Mini-Schalter rechts. An = dunkelblau getönt, ausgewählt = heller mit Rand, gesperrt = blass mit "no data" bzw. "blocked". Gruppen zeigen "2/3". Orange Punkt = auf vielen Servern nicht erlaubt.
+- Klick auf die Zeile wählt aus, der Schalter schaltet um. Rechts erscheint das Panel: großer Titel, Beschreibung, oben rechts "Enabled"/"Disabled" (Klick schaltet) und bei Einzelmodulen ein Stern.
+- Einstellungs-Zeilen wie Onix: Taste = blaue "Unbind"-Pille + umrandetes Tastenfeld, Schalter = Mini-Schalter, Slider = die ganze Zeile füllt sich blau von links, Wert rechts. Farbe = blaue "Change Color"-Pille + Farbfeld. Auswahl = umrandetes Feld mit Pfeil.
+- Gruppen (z. B. Combat Info) zeigen rechts ihre Teile als Zeilen mit Pfeil, Schalter und Stern; ein Klick klappt die Einstellungen des Teils darunter auf.
+- Global Settings: Tabs als kleine Pillen (General, Chat & watermark, Appearance, Modules, Profiles, About), Inhalt darunter. Cosmetics im selben Panel, das Panel wird dafür breiter (animiert).
+- Tippen irgendwo im Menü schreibt in die Suche. Esc leert die Suche, ein weiteres Esc schließt das Menü.
+- Schrift Poppins (Regular + Medium). Standard-Theme "Slate": Panels #24252A, Zeilen #393A40, Akzent #1E7CB5, Rand #5E6068, 8 px Rundung, 86 % Deckkraft. Wer "Carbon" oder das alte Graphite hatte, bekommt Slate.
+- Scrollbalken 4 px, nur sichtbar, wenn es etwas zu scrollen gibt.

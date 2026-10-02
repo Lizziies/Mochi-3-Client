@@ -53,3 +53,5 @@ Die Demo-Daten im Modul "Game Support" (Einschalter) lassen alle Spiel-Module mi
 4. Toggle Sprint an, Strg einmal drücken, loslaufen: die Figur sprintet ohne gehaltene Taste. Die ersten Zeilen `gameinput: key scan=… vk=…` im Log zeigen, welche Tastencodes das Spiel sieht, die bitte mitschicken.
 5. Zoom an, C halten: das Bild wird vergrößert, die Maus ist langsamer, das Mausrad ändert die Stufe und blättert nicht durch die Hotbar.
 6. Sens Multiplier an, Basiswert auf 0,5: die Maus ist nur halb so schnell.
+7. Menü ansehen und mit den Onix-Screenshots vergleichen: drei Panels (Suche, Liste, Einstellungen), Blur hinter den Panels, Text scharf. Einen Screenshot in 1080p schicken.
+8. Im Menü einfach ein Wort tippen (z. B. "reach"): es landet in der Suche, auch der erste Buchstabe. Esc leert die Suche, nochmal Esc schließt das Menü.

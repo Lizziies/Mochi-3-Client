@@ -25,12 +25,19 @@ Stand: 2026-10-01 abends. Wird nach jedem Arbeitsschritt aktualisiert.
 3. Deutsche Texte der neuen Module übersetzen (Durchlauf, wenn Session B fertig ist).
 4. Pre-Release `v0.1.0-alpha.1` erzeugen, damit die exe zum Download bereitliegt.
 
+## 2026-10-02 nachmittags, Branch claude/onix-ui-input-fixes (Cloud)
+
+- Menü nach Felix' Onix-Screenshots neu gebaut: Suche, Liste und Einstellungs-Panel als drei schwebende Panels mit Blur und dünnem Rand, Mini-Schalter, blau getönte aktive Zeilen, Onix-Einstellungszeilen (Unbind + Tastenfeld, Zeilen-Slider, Change Color). Details in `docs/UI.md` unter "Fünfte Änderung".
+- Schrift Poppins statt Barlow (Client und Launcher), Standard-Theme "Slate".
+- Tippen im Menü startet die Suche, Scrollbalken nur wenn nötig.
+- Im Testfenster (Wine, CI) geprüft, im echten Spiel noch nicht.
+
 ## 2026-10-02 mittags, Branch claude/onix-ui-input-fixes (Cloud)
 
 - Menü als lange Liste links (Onix-Richtung), Kacheln und Symbole wieder raus. Details in `docs/UI.md` unter "Vierte Änderung".
 - Cosmetics und Einstellungen laden beim Wechseln von Slot oder Tab nicht mehr neu, Cosmetics liest die Dateien nur noch beim ersten Öffnen.
 - HUD bleibt in Menüs innerhalb einer Welt (Pause, Inventar, Chat) bis zu 60 s stehen und ist nach dem Zurückkehren sofort da. Vorher verschwand es und kam erst 1,2 s nach dem Schließen wieder. Verlässt man einen Server, geht es sofort aus, nach einer Einzelspielerwelt nach spätestens 60 s.
-- Schrift Barlow statt Nunito, Rahmenfarbe einstellbar.
+- Schrift Barlow statt Nunito (inzwischen Poppins), Rahmenfarbe einstellbar.
 
 ## 2026-10-02, Branch claude/onix-ui-input-fixes (Cloud)
 
