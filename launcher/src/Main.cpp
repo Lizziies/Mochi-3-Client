@@ -213,7 +213,7 @@ int WINAPI wWinMain(HINSTANCE inst, HINSTANCE, PWSTR args, int) {
         app::handle(state, events, window);
 
         ImGui::Render();
-        const float clear[4] = {26.f / 255.f, 15.f / 255.f, 30.f / 255.f, 1.f};
+        const float clear[4] = {28.f / 255.f, 29.f / 255.f, 33.f / 255.f, 1.f};
         context->OMSetRenderTargets(1, &target, nullptr);
         context->ClearRenderTargetView(target, clear);
         ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());

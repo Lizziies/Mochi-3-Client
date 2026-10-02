@@ -18,18 +18,19 @@ ImVec4 hex(unsigned rgb, float a = 1.f) {
     return {((rgb >> 16) & 0xFF) / 255.f, ((rgb >> 8) & 0xFF) / 255.f, (rgb & 0xFF) / 255.f, a};
 }
 
-const ImVec4 bg = hex(0x1A0F1E);
-const ImVec4 side = hex(0x140B18);
-const ImVec4 surface = hex(0x2A1730);
-const ImVec4 surfaceHover = hex(0x36203D);
-const ImVec4 accent = hex(0xFF7EB6);
-const ImVec4 accent2 = hex(0xFFB3D1);
-const ImVec4 deep = hex(0x7A2D5C);
-const ImVec4 text = hex(0xFFF1F7);
-const ImVec4 dim = hex(0xC9A9BB);
-const ImVec4 ok = hex(0x8BE9B0);
-const ImVec4 warn = hex(0xFFD27E);
-const ImVec4 off = hex(0x6B5570);
+const ImVec4 bg = hex(0x1C1D21);
+const ImVec4 side = hex(0x17181B);
+const ImVec4 surface = hex(0x26272C);
+const ImVec4 surfaceHover = hex(0x33343A);
+const ImVec4 field = hex(0x1A1B1F);
+const ImVec4 border = hex(0x393B42);
+const ImVec4 accent = hex(0x1E7CB5);
+const ImVec4 accent2 = hex(0x3BA7EC);
+const ImVec4 text = hex(0xF3F3F5);
+const ImVec4 dim = hex(0xA6A8AF);
+const ImVec4 ok = hex(0x3DDC84);
+const ImVec4 warn = hex(0xFFB547);
+const ImVec4 off = hex(0x4A4C53);
 
 ImFont* regular = nullptr;
 ImFont* bold = nullptr;
@@ -71,61 +72,17 @@ void centered(ImDrawList* dl, ImFont* f, float size, ImVec2 mid, ImU32 c, const 
     dl->AddText(f, size, {mid.x - ts.x * 0.5f, mid.y - ts.y * 0.5f}, c, s);
 }
 
-void gradient(ImDrawList* dl, ImVec2 min, ImVec2 max, ImVec4 a, ImVec4 b, float rounding, bool vertical = false) {
-    int start = dl->VtxBuffer.Size;
-    dl->AddRectFilled(min, max, IM_COL32_WHITE, rounding);
-    float span = std::max(1.f, vertical ? max.y - min.y : max.x - min.x);
-    for (int i = start; i < dl->VtxBuffer.Size; i++) {
-        auto& v = dl->VtxBuffer[i];
-        float t = std::clamp(((vertical ? v.pos.y - min.y : v.pos.x - min.x)) / span, 0.f, 1.f);
-        v.col = col(mix(a, b, t));
-    }
-}
-
-void heart(ImDrawList* dl, ImVec2 c, float size, ImU32 color) {
-    constexpr int n = 48;
-    ImVec2 pts[n];
-    float k = size / 34.f;
-    for (int i = 0; i < n; i++) {
-        float t = float(i) / n * 6.2831853f;
-        float x = 16.f * std::pow(std::sin(t), 3.f);
-        float y = 13.f * std::cos(t) - 5.f * std::cos(2.f * t) - 2.f * std::cos(3.f * t) - std::cos(4.f * t);
-        pts[i] = {c.x + x * k, c.y - y * k + size * 0.05f};
-    }
-    ImDrawListFlags saved = dl->Flags;
-    dl->Flags &= ~ImDrawListFlags_AntiAliasedFill;
-    ImVec2 mid{c.x, c.y + size * 0.05f};
-    for (int i = 0; i < n; i++) dl->AddTriangleFilled(mid, pts[i], pts[(i + 1) % n], color);
-    dl->Flags = saved;
-}
-
-void sparkle(ImDrawList* dl, ImVec2 c, float s, ImU32 color) {
-    float w = s * 0.2f;
-    ImVec2 pts[8] = {{c.x, c.y - s},     {c.x + w, c.y - w}, {c.x + s, c.y}, {c.x + w, c.y + w},
-                     {c.x, c.y + s},     {c.x - w, c.y + w}, {c.x - s, c.y}, {c.x - w, c.y - w}};
-    dl->AddConcavePolyFilled(pts, 8, color);
-}
-
-void pixelHeart(ImDrawList* dl, ImVec2 pos, float px) {
-    static const char* rows[] = {
-        "..ee...ee..", ".eHHe.eeee.", "eHHeeeeeeee", "eHeeeeeeeee", "eeeeeeeeeed",
-        ".eeeeeeeed.", "..eeeeeed..", "...eeeed...", "....eed....", ".....d.....",
-    };
-    for (int y = 0; y < 10; y++) {
-        for (int x = 0; x < 11; x++) {
-            char c = rows[y][x];
-            if (c == '.') continue;
-            ImVec4 k = c == 'H' ? accent2 : c == 'd' ? mix(accent, deep, 0.45f) : accent;
-            ImVec2 p{pos.x + x * px, pos.y + y * px};
-            dl->AddRectFilled(p, {p.x + px, p.y + px}, col(k));
-        }
-    }
+void logo(ImDrawList* dl, ImVec2 pos, float size) {
+    label(dl, bold, size, pos, col(text), "Mochi");
+    float w = measure(bold, size, "Mochi").x;
+    float d = size * 0.2f;
+    dl->AddRectFilled({pos.x + w + d * 0.5f, pos.y + size * 0.72f}, {pos.x + w + d * 1.5f, pos.y + size * 0.72f + d}, col(accent), d * 0.25f);
 }
 
 void chip(ImDrawList* dl, ImVec2 at, const char* s, ImVec4 c) {
     ImVec2 ts = measure(bold, 13.f, s);
     ImVec2 max{at.x + ts.x + 22.f, at.y + 24.f};
-    dl->AddRectFilled(at, max, col(c, 0.16f), 12.f);
+    dl->AddRectFilled(at, max, col(c, 0.14f), 6.f);
     label(dl, bold, 13.f, {at.x + 11.f, at.y + 12.f - ts.y * 0.5f}, col(c), s);
 }
 
@@ -143,36 +100,35 @@ bool button(const char* id, ImVec2 min, ImVec2 max, const char* s, bool primary,
     bool hovered, held;
     bool clicked = region(id, min, max, hovered, held) && enabled;
     float& h = anim(ImGui::GetItemID(), hovered && enabled ? 1.f : 0.f);
-    float lift = h * 2.f - (held ? 2.f : 0.f);
-    ImVec2 a{min.x, min.y - lift}, b{max.x, max.y - lift};
-    float r = (b.y - a.y) * 0.5f;
+    ImVec2 a = min, b = max;
+    float r = 8.f;
     auto* dl = ImGui::GetWindowDrawList();
 
     if (primary && enabled) {
-        dl->AddRectFilled({a.x, a.y + 6.f}, {b.x, b.y + 6.f + h * 3.f}, col(accent, 0.18f + 0.1f * h), r + 4.f);
-        gradient(dl, a, b, mix(accent, accent2, h * 0.25f), mix(accent2, accent, 0.15f), r);
-        centered(dl, bold, 20.f, {(a.x + b.x) * 0.5f, (a.y + b.y) * 0.5f}, col(hex(0x3A1030)), s);
+        dl->AddRectFilled(a, b, col(held ? accent2 : mix(accent, accent2, h * 0.3f)), r);
+        centered(dl, bold, 19.f, {(a.x + b.x) * 0.5f, (a.y + b.y) * 0.5f}, col(hex(0xFFFFFF)), s);
     } else if (primary) {
         dl->AddRectFilled(a, b, col(surfaceHover), r);
-        centered(dl, bold, 20.f, {(a.x + b.x) * 0.5f, (a.y + b.y) * 0.5f}, col(dim), s);
+        centered(dl, bold, 19.f, {(a.x + b.x) * 0.5f, (a.y + b.y) * 0.5f}, col(dim), s);
     } else {
-        dl->AddRectFilled(a, b, col(mix(surfaceHover, accent, h * 0.18f)), r);
-        centered(dl, bold, 15.f, {(a.x + b.x) * 0.5f, (a.y + b.y) * 0.5f}, col(enabled ? text : off), s);
+        dl->AddRectFilled(a, b, col(mix(surfaceHover, text, h * 0.06f)), r);
+        dl->AddRect(a, b, col(border), r);
+        centered(dl, bold, 14.f, {(a.x + b.x) * 0.5f, (a.y + b.y) * 0.5f}, col(enabled ? text : off), s);
     }
     return clicked;
 }
 
 bool toggle(const char* id, ImVec2 pos, bool& value) {
-    ImVec2 size{48.f, 26.f};
+    ImVec2 size{40.f, 22.f};
     bool hovered, held;
     bool clicked = region(id, pos, {pos.x + size.x, pos.y + size.y}, hovered, held);
     if (clicked) value = !value;
     float& t = anim(ImGui::GetItemID(), value ? 1.f : 0.f, 16.f);
     auto* dl = ImGui::GetWindowDrawList();
-    dl->AddRectFilled(pos, {pos.x + size.x, pos.y + size.y}, col(mix(off, accent, t)), 13.f);
+    dl->AddRectFilled(pos, {pos.x + size.x, pos.y + size.y}, col(mix(off, mix(bg, accent, 0.45f), t)), 11.f);
     float spring = easeOut(t);
-    float kx = pos.x + 13.f + (size.x - 26.f) * spring;
-    dl->AddCircleFilled({kx, pos.y + 13.f}, 9.5f + (hovered ? 0.8f : 0.f), col(mix(dim, text, t)), 24);
+    float kx = pos.x + 11.f + (size.x - 22.f) * spring;
+    dl->AddCircleFilled({kx, pos.y + 11.f}, 6.5f + (hovered ? 0.6f : 0.f), col(mix(hex(0xFFFFFF), accent2, t)), 24);
     return clicked;
 }
 
@@ -205,7 +161,8 @@ void icon(ImDrawList* dl, Icon kind, ImVec2 c, ImU32 color) {
 ImVec2 cardMin(float x, float y) { return {x, y}; }
 
 void card(ImDrawList* dl, ImVec2 min, ImVec2 max, ImVec4 fill = surface) {
-    dl->AddRectFilled(min, max, col(fill), 18.f);
+    dl->AddRectFilled(min, max, col(fill), 10.f);
+    dl->AddRect(min, max, col(border, 0.8f), 10.f);
 }
 
 Page lastPage = Page::Start;
@@ -248,8 +205,8 @@ bool busy(Phase p) {
 
 void sidebar(ImDrawList* dl, State& s, Events& ev) {
     dl->AddRectFilled({0, 0}, {232.f, height}, col(side));
-    pixelHeart(dl, {28.f, 26.f}, 4.f);
-    label(dl, bold, 28.f, {84.f, 28.f}, col(text), "Mochi");
+    dl->AddLine({232.f, 0.f}, {232.f, height}, col(border, 0.7f));
+    logo(dl, {28.f, 30.f}, 28.f);
 
     struct Item { const char* name; Icon icon; Page page; };
     const Item items[] = {
@@ -265,8 +222,8 @@ void sidebar(ImDrawList* dl, State& s, Events& ev) {
         if (items[i].page == s.page) active = i;
     marker = approach(marker, top + active * (rowH + 4.f), 14.f);
 
-    dl->AddRectFilled({14.f, marker}, {218.f, marker + rowH}, col(accent, 0.16f), 14.f);
-    dl->AddRectFilled({14.f, marker + 12.f}, {18.f, marker + rowH - 12.f}, col(accent), 3.f);
+    dl->AddRectFilled({14.f, marker}, {218.f, marker + rowH}, col(surfaceHover), 8.f);
+    dl->AddRectFilled({14.f, marker + 14.f}, {17.f, marker + rowH - 14.f}, col(accent), 2.f);
 
     for (int i = 0; i < 3; i++) {
         float y = top + i * (rowH + 4.f);
@@ -274,8 +231,8 @@ void sidebar(ImDrawList* dl, State& s, Events& ev) {
         if (region(items[i].name, {14.f, y}, {218.f, y + rowH}, hovered, held)) s.page = items[i].page;
         float& h = anim(ImGui::GetItemID(), hovered ? 1.f : 0.f);
         bool on = items[i].page == s.page;
-        if (!on && h > 0.f) dl->AddRectFilled({14.f, y}, {218.f, y + rowH}, col(accent, 0.07f * h), 14.f);
-        ImVec4 c = on ? accent : mix(dim, text, h);
+        if (!on && h > 0.f) dl->AddRectFilled({14.f, y}, {218.f, y + rowH}, col(surface, h), 8.f);
+        ImVec4 c = on ? accent2 : mix(dim, text, h);
         icon(dl, items[i].icon, {44.f, y + rowH * 0.5f}, col(c));
         label(dl, on ? bold : regular, 17.f, {68.f, y + rowH * 0.5f - 10.f}, col(on ? text : c), items[i].name);
     }
@@ -296,61 +253,52 @@ void titlebar(ImDrawList* dl, Events& ev) {
     bool hovered, held;
     if (region("min", {x, 0.f}, {x + 48.f, titleHeight}, hovered, held)) ev.minimize = true;
     float& hm = anim(ImGui::GetItemID(), hovered ? 1.f : 0.f);
-    dl->AddRectFilled({x + 8.f, 8.f}, {x + 40.f, titleHeight - 8.f}, col(surfaceHover, hm), 10.f);
+    dl->AddRectFilled({x + 8.f, 8.f}, {x + 40.f, titleHeight - 8.f}, col(surfaceHover, hm), 6.f);
     dl->AddLine({x + 17.f, titleHeight * 0.5f}, {x + 31.f, titleHeight * 0.5f}, col(mix(dim, text, hm)), 2.f);
 
     if (region("close", {x + 48.f, 0.f}, {x + 96.f, titleHeight}, hovered, held)) ev.close = true;
     float& hc = anim(ImGui::GetItemID(), hovered ? 1.f : 0.f);
-    dl->AddRectFilled({x + 56.f, 8.f}, {x + 88.f, titleHeight - 8.f}, col(mix(surfaceHover, accent, 0.6f), hc), 10.f);
+    dl->AddRectFilled({x + 56.f, 8.f}, {x + 88.f, titleHeight - 8.f}, col(hex(0xC0392B), hc), 6.f);
     ImVec2 c{x + 72.f, titleHeight * 0.5f};
-    ImU32 xc = col(mix(dim, hex(0x3A1030), hc));
+    ImU32 xc = col(mix(dim, hex(0xFFFFFF), hc));
     dl->AddLine({c.x - 6.f, c.y - 6.f}, {c.x + 6.f, c.y + 6.f}, xc, 2.f);
     dl->AddLine({c.x + 6.f, c.y - 6.f}, {c.x - 6.f, c.y + 6.f}, xc, 2.f);
 }
 
 void progressBar(ImDrawList* dl, ImVec2 min, ImVec2 max, float value, bool indeterminate) {
     float r = (max.y - min.y) * 0.5f;
-    dl->AddRectFilled(min, max, col(hex(0xFFFFFF), 0.18f), r);
+    dl->AddRectFilled(min, max, col(field), r);
     float w = max.x - min.x;
     float t = float(ImGui::GetTime());
     if (indeterminate) {
         float seg = w * 0.32f;
         float x = min.x + (w + seg) * std::fmod(t * 0.55f, 1.f) - seg;
         dl->PushClipRect(min, max, true);
-        dl->AddRectFilled({x, min.y}, {x + seg, max.y}, col(text, 0.95f), r);
+        dl->AddRectFilled({x, min.y}, {x + seg, max.y}, col(accent2), r);
         dl->PopClipRect();
         return;
     }
     float fill = std::max(r * 2.f, w * std::clamp(value, 0.f, 1.f));
-    dl->AddRectFilled(min, {min.x + fill, max.y}, col(text, 0.95f), r);
+    dl->AddRectFilled(min, {min.x + fill, max.y}, col(accent2), r);
 }
 
 void hero(ImDrawList* dl, State& s, Events& ev) {
     Reveal reveal(dl, 0);
     ImVec2 min{264.f, 62.f}, max{928.f, 292.f};
-    gradient(dl, min, max, mix(accent, deep, 0.15f), deep, 24.f);
+    card(dl, min, max);
+    dl->AddRectFilled({min.x, min.y + 22.f}, {min.x + 3.f, max.y - 22.f}, col(accent), 2.f);
 
-    dl->PushClipRect(min, max, true);
-    heart(dl, {max.x - 120.f, min.y + 130.f}, 260.f, col(hex(0xFFFFFF), 0.10f));
-    heart(dl, {max.x - 70.f, min.y + 52.f}, 70.f, col(hex(0xFFFFFF), 0.14f));
-    float t = float(ImGui::GetTime());
-    sparkle(dl, {max.x - 250.f, min.y + 46.f}, 8.f + 2.f * std::sin(t * 2.f), col(text, 0.9f));
-    sparkle(dl, {max.x - 190.f, min.y + 186.f}, 6.f + 1.5f * std::sin(t * 2.6f + 1.f), col(text, 0.75f));
-    sparkle(dl, {max.x - 330.f, min.y + 112.f}, 5.f + 1.5f * std::sin(t * 1.8f + 2.f), col(text, 0.6f));
-    dl->PopClipRect();
-
-    label(dl, bold, 38.f, {min.x + 36.f, min.y + 30.f}, col(text), tr("Ready to play"));
+    label(dl, regular, 34.f, {min.x + 36.f, min.y + 30.f}, col(text), tr("Ready to play"));
     std::string sub = "Minecraft Bedrock " + (s.gameVersion.empty() ? std::string(tr("not found")) : s.gameVersion);
-    label(dl, regular, 17.f, {min.x + 38.f, min.y + 80.f}, col(text, 0.82f), sub.c_str());
+    label(dl, regular, 16.f, {min.x + 38.f, min.y + 78.f}, col(dim), sub.c_str());
 
     bool working = busy(s.phase);
     bool playable = !working && s.phase != Phase::Done;
-    ImVec2 bmin{min.x + 36.f, min.y + 118.f}, bmax{min.x + 330.f, min.y + 176.f};
+    ImVec2 bmin{min.x + 36.f, min.y + 118.f}, bmax{min.x + 300.f, min.y + 170.f};
     if (button("play", bmin, bmax, playLabel(s.phase), true, playable)) ev.play = true;
-    if (playable) heart(dl, {bmax.x - 38.f, bmin.y + 27.f}, 22.f, col(hex(0x3A1030)));
 
     if (working || s.phase == Phase::Failed || s.phase == Phase::Done) {
-        label(dl, regular, 15.f, {min.x + 36.f, max.y - 34.f}, col(text, 0.9f), s.status.c_str());
+        label(dl, regular, 15.f, {min.x + 36.f, max.y - 34.f}, col(dim), s.status.c_str());
     }
     if (working) progressBar(dl, {min.x + 36.f, max.y - 16.f}, {max.x - 36.f, max.y - 10.f}, s.progress, s.progress <= 0.f);
 }
@@ -394,7 +342,7 @@ void changelogCard(ImDrawList* dl, State& s) {
     float y = min.y + 62.f;
     while (std::getline(in, line) && y < max.y - 24.f) {
         if (line.empty()) continue;
-        dl->AddCircleFilled({min.x + 28.f, y + 10.f}, 3.f, col(accent), 10);
+        dl->AddCircleFilled({min.x + 28.f, y + 10.f}, 3.f, col(accent2), 10);
         label(dl, regular, 15.f, {min.x + 42.f, y}, col(dim), line.c_str());
         y += 30.f;
     }
@@ -422,8 +370,8 @@ void versions(ImDrawList* dl, State& s, Events& ev) {
     {
         Reveal r(dl, 1);
         ImVec2 min{264.f, 126.f}, max{928.f, 218.f};
-        gradient(dl, min, max, mix(surface, accent, 0.10f), surface, 18.f);
-        icon(dl, Icon::Layers, {min.x + 36.f, min.y + 32.f}, col(accent));
+        card(dl, min, max);
+        icon(dl, Icon::Layers, {min.x + 36.f, min.y + 32.f}, col(accent2));
         label(dl, bold, 18.f, {min.x + 62.f, min.y + 12.f}, col(text), tr("Download older versions"));
         label(dl, regular, 13.f, {min.x + 62.f, min.y + 38.f}, col(dim), tr("LeviLauncher downloads versions with your own license."));
         label(dl, regular, 13.f, {min.x + 62.f, min.y + 58.f}, col(dim), tr("Free tool by LiteLDev (GPL-3.0). Mochi finds what it installs."));
@@ -458,14 +406,17 @@ void versions(ImDrawList* dl, State& s, Events& ev) {
         Reveal r(dl, int(i) + 3);
         auto& v = s.versions[i];
         ImVec2 min{264.f, y}, max{928.f, y + 54.f};
-        card(dl, min, max, v.active ? mix(surface, accent, 0.12f) : surface);
+        card(dl, min, max, v.active ? mix(surface, accent, 0.18f) : surface);
         std::string name = v.name.empty() ? std::string(tr("Not installed")) : v.name;
         label(dl, bold, 18.f, {min.x + 22.f, min.y + 6.f}, col(text), name.c_str());
         float cx = min.x + 22.f;
         const char* kind = v.store ? tr("Microsoft Store") : tr("Own copy");
         chip(dl, {cx, min.y + 28.f}, kind, dim);
         cx += chipWidth(kind) + 6.f;
-        if (v.preview) { chip(dl, {cx, min.y + 28.f}, "Preview", accent2); cx += chipWidth("Preview") + 6.f; }
+        if (v.preview) {
+            chip(dl, {cx, min.y + 28.f}, "Preview", accent2);
+            cx += chipWidth("Preview") + 6.f;
+        }
         if (v.supported) chip(dl, {cx, min.y + 28.f}, tr("Mochi compatible"), ok);
         else chip(dl, {cx, min.y + 28.f}, tr("Untested"), warn);
         if (!v.path.empty()) {
@@ -485,18 +436,18 @@ void versions(ImDrawList* dl, State& s, Events& ev) {
 int segment(const char* id, ImVec2 pos, const char* const* names, int count, int current) {
     float w = 92.f, h = 32.f;
     auto* dl = ImGui::GetWindowDrawList();
-    dl->AddRectFilled(pos, {pos.x + w * count, pos.y + h}, col(hex(0x1A0F1E)), h * 0.5f);
+    dl->AddRectFilled(pos, {pos.x + w * count, pos.y + h}, col(field), 8.f);
     float& slot = *ImGui::GetStateStorage()->GetFloatRef(ImGui::GetID(id), float(current));
     slot = approach(slot, float(current), 16.f);
     dl->AddRectFilled({pos.x + 3.f + slot * w, pos.y + 3.f}, {pos.x + w * (slot + 1.f) - 3.f, pos.y + h - 3.f},
-                      col(accent), (h - 6.f) * 0.5f);
+                      col(accent), 6.f);
     int result = current;
     for (int i = 0; i < count; i++) {
         bool hovered, held;
         std::string item = std::string(id) + std::to_string(i);
         if (region(item.c_str(), {pos.x + i * w, pos.y}, {pos.x + (i + 1) * w, pos.y + h}, hovered, held)) result = i;
         float on = std::clamp(1.f - std::fabs(slot - i), 0.f, 1.f);
-        centered(dl, bold, 14.f, {pos.x + (i + 0.5f) * w, pos.y + h * 0.5f}, col(mix(hovered ? text : dim, hex(0x3A1030), on)), names[i]);
+        centered(dl, bold, 14.f, {pos.x + (i + 0.5f) * w, pos.y + h * 0.5f}, col(mix(hovered ? text : dim, hex(0xFFFFFF), on)), names[i]);
     }
     return result;
 }
@@ -507,7 +458,7 @@ bool settingRow(ImDrawList* dl, const char* id, float y, int index, const char* 
     card(dl, min, max);
     label(dl, bold, 16.f, {min.x + 22.f, min.y + 9.f}, col(text), title);
     label(dl, regular, 14.f, {min.x + 22.f, min.y + 31.f}, col(dim), desc);
-    return toggle(id, {max.x - 22.f - 48.f, min.y + 15.f}, value);
+    return toggle(id, {max.x - 22.f - 40.f, min.y + 17.f}, value);
 }
 
 void settings(ImDrawList* dl, State& s, Events& ev) {
@@ -540,7 +491,8 @@ void settings(ImDrawList* dl, State& s, Events& ev) {
         label(dl, bold, 16.f, {min.x + 22.f, min.y + 9.f}, col(text), tr("Custom DLL (for developers)"));
         label(dl, regular, 14.f, {min.x + 22.f, min.y + 31.f}, col(dim), tr("Leave empty for the normal version."));
         ImVec2 fmin{min.x + 22.f, min.y + 50.f}, fmax{max.x - 150.f, min.y + 76.f};
-        dl->AddRectFilled(fmin, fmax, col(hex(0x1A0F1E)), 10.f);
+        dl->AddRectFilled(fmin, fmax, col(field), 6.f);
+        dl->AddRect(fmin, fmax, col(border, 0.8f), 6.f);
         ImGui::SetCursorScreenPos({fmin.x + 10.f, fmin.y + 3.f});
         ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
         ImGui::PushStyleColor(ImGuiCol_Text, text);
@@ -557,9 +509,8 @@ void settings(ImDrawList* dl, State& s, Events& ev) {
         Reveal r(dl, 6);
         ImVec2 min{264.f, 482.f}, max{928.f, 580.f};
         card(dl, min, max);
-        pixelHeart(dl, {min.x + 20.f, min.y + 18.f}, 3.f);
-        label(dl, bold, 16.f, {min.x + 62.f, min.y + 14.f}, col(text), (std::string("Mochi Launcher ") + build::version).c_str());
-        label(dl, regular, 13.f, {min.x + 62.f, min.y + 38.f}, col(dim), tr("Mochi is an independent project and is not affiliated with Mojang or Microsoft."));
+        label(dl, bold, 16.f, {min.x + 22.f, min.y + 14.f}, col(text), (std::string("Mochi Launcher ") + build::version).c_str());
+        label(dl, regular, 13.f, {min.x + 22.f, min.y + 38.f}, col(dim), tr("Mochi is an independent project and is not affiliated with Mojang or Microsoft."));
         if (button("logs", {min.x + 22.f, max.y - 38.f}, {min.x + 162.f, max.y - 10.f}, tr("Open logs"), false)) ev.openLogs = true;
         if (button("folder", {min.x + 172.f, max.y - 38.f}, {min.x + 312.f, max.y - 10.f}, tr("Open folder"), false)) ev.openFolder = true;
     }
