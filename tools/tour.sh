@@ -111,6 +111,12 @@ if command -v xdotool >/dev/null; then
     xdotool mousemove 596 486 click 1
     sleep 1.5
     lshot 22-launcher-einstellungen
+    xdotool mousemove 1264 451 click 1
+    sleep 1
+    lshot 22b-launcher-lila
+    xdotool mousemove 596 382 click 1
+    sleep 1.5
+    lshot 22c-launcher-start-lila
 fi
 wineserver -k 2>/dev/null
 echo "tour done"

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/Config.hpp"
 #include "gui/Notify.hpp"
 #include "gui/Theme.hpp"
 #include "hook/Dx.hpp"
@@ -92,13 +93,29 @@ private:
             if (auto* m = modules::find(name)) m->setEnabled(on);
         };
         set("Render Options", level <= 1);
-        set("Frame Limiter", level >= 1);
+        set("Frame Limiter", true);
         set("Low Latency", true);
         set("System Boost", true);
         set("Motion Blur", level == 2);
         set("Depth of Field", false);
         set("Sharpen", level == 2);
+        if (level == 0) lighten();
+        config::markDirty();
         notify::push(i18n::tr("Profile applied"), level == 0 ? i18n::tr("Low") : level == 1 ? i18n::tr("Medium") : i18n::tr("High"), notify::Kind::Ok);
+    }
+
+    // weak PCs: no blur, glow or shadows in the HUD and menu, and the decorative extras off
+    static void lighten() {
+        for (auto& m : modules::all()) {
+            if (!m->isHud()) continue;
+            for (auto& st : m->settings())
+                if (st.id == "blur" || st.id == "glow" || st.id == "dropShadow" || st.id == "glowPressed") st.b = false;
+        }
+        if (auto* cs = modules::find("Client Settings"))
+            for (auto& st : cs->settings())
+                if (st.id == "menuBlur") st.f = 0.f;
+        for (const char* name : {"Background Load", "Pet", "Petals", "Arrow Trail", "Kill Effects", "Hit Effects", "Motion Blur", "Blur"})
+            if (auto* m = modules::find(name)) m->setEnabled(false);
     }
 
     Setting& hint_ = toggleSetting("hint", "Notice on low FPS", true);
