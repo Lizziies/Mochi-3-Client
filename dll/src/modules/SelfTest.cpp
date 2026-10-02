@@ -3,6 +3,7 @@
 #include "Manager.hpp"
 #include "core/Client.hpp"
 #include "core/Log.hpp"
+#include "hook/Input.hpp"
 #include "sdk/Game.hpp"
 #include "sig/Image.hpp"
 
@@ -139,7 +140,8 @@ void tick() {
         game::setDemo(true);
         modules::refreshSigs();
         std::string why;
-        if (image::selfCheck(why)) logger::info("selftest: image resolver ok");
+        if (!input::inMinecraft()) logger::info("selftest: image resolver skipped, not running inside Minecraft");
+        else if (image::selfCheck(why)) logger::info("selftest: image resolver ok");
         else {
             failed.push_back("image resolver");
             logger::error("selftest: image resolver failed: {}", why);

@@ -39,7 +39,7 @@ std::vector<uintptr_t> Image::strings(const std::string& text) const {
     std::vector<uintptr_t> out;
     if (text.empty()) return out;
     for (auto& r : data_) {
-        auto* begin = reinterpret_cast<const uint8_t*>(r.start);
+        auto* begin = reinterpret_cast<const char*>(r.start);
         auto* end = begin + r.size;
         std::boyer_moore_horspool_searcher search(text.begin(), text.end());
         for (auto* it = begin;;) {

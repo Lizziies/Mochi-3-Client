@@ -373,39 +373,106 @@ static void afterPresent() {
     limit();
 }
 
-static HRESULT WINAPI present(IDXGISwapChain* sc, UINT sync, UINT flags) {
-    if (inPresent) return oPresent(sc, sync, flags);
+static HRESULT presentVia(PresentFn next, IDXGISwapChain* sc, UINT sync, UINT flags) {
+    if (inPresent) return next(sc, sync, flags);
     inPresent = true;
     beforePresent(sc, sync, flags);
-    HRESULT hr = oPresent(sc, sync, flags);
+    HRESULT hr = next(sc, sync, flags);
     afterPresent();
     inPresent = false;
     return hr;
 }
 
-static HRESULT WINAPI present1(IDXGISwapChain1* sc, UINT sync, UINT flags, const DXGI_PRESENT_PARAMETERS* params) {
-    if (inPresent) return oPresent1(sc, sync, flags, params);
+static HRESULT present1Via(Present1Fn next, IDXGISwapChain1* sc, UINT sync, UINT flags, const DXGI_PRESENT_PARAMETERS* params) {
+    if (inPresent) return next(sc, sync, flags, params);
     inPresent = true;
     beforePresent(sc, sync, flags);
-    HRESULT hr = oPresent1(sc, sync, flags, params);
+    HRESULT hr = next(sc, sync, flags, params);
     afterPresent();
     inPresent = false;
     return hr;
 }
 
-static HRESULT WINAPI resize(IDXGISwapChain* sc, UINT count, UINT w, UINT h, DXGI_FORMAT fmt, UINT flags) {
+static thread_local bool inResize = false;
+
+static HRESULT resizeVia(ResizeFn next, IDXGISwapChain* sc, UINT count, UINT w, UINT h, DXGI_FORMAT fmt, UINT flags) {
+    if (inResize) return next(sc, count, w, h, fmt, flags);
+    inResize = true;
     if (sc == chain) {
         dropTargets();
         ui::invalidate();
     }
-    HRESULT hr = oResize(sc, count, w, h, fmt, flags);
+    HRESULT hr = next(sc, count, w, h, fmt, flags);
     if (sc == chain) {
         DXGI_SWAP_CHAIN_DESC desc{};
         sc->GetDesc(&desc);
         info.tearingSupported = (desc.Flags & DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING) != 0;
         latencyApplied = !tune.lowLatency;
     }
+    inResize = false;
     return hr;
+}
+
+static HRESULT WINAPI present(IDXGISwapChain* sc, UINT sync, UINT flags) { return presentVia(oPresent, sc, sync, flags); }
+
+static HRESULT WINAPI present1(IDXGISwapChain1* sc, UINT sync, UINT flags, const DXGI_PRESENT_PARAMETERS* params) {
+    return present1Via(oPresent1, sc, sync, flags, params);
+}
+
+static HRESULT WINAPI resize(IDXGISwapChain* sc, UINT count, UINT w, UINT h, DXGI_FORMAT fmt, UINT flags) {
+    return resizeVia(oResize, sc, count, w, h, fmt, flags);
+}
+
+// Overlays like RTSS and MSI Afterburner restore the first bytes of dxgi's Present from time to time, which
+// silently removes an inline hook. The swapchain vtable is patched as well, so frames keep coming either way;
+// the thread-local flags stop a frame from being drawn twice when both paths are live.
+struct TableSlot {
+    void** at = nullptr;
+    void* original = nullptr;
+    void* detour = nullptr;
+};
+static TableSlot slotPresent, slotPresent1, slotResize;
+
+static HRESULT WINAPI presentTable(IDXGISwapChain* sc, UINT sync, UINT flags) {
+    static bool seen = false;
+    if (!seen && !inPresent) {
+        seen = true;
+        logger::info("renderer: frames arrive through the swapchain table");
+    }
+    return presentVia(reinterpret_cast<PresentFn>(slotPresent.original), sc, sync, flags);
+}
+
+static HRESULT WINAPI present1Table(IDXGISwapChain1* sc, UINT sync, UINT flags, const DXGI_PRESENT_PARAMETERS* params) {
+    return present1Via(reinterpret_cast<Present1Fn>(slotPresent1.original), sc, sync, flags, params);
+}
+
+static HRESULT WINAPI resizeTable(IDXGISwapChain* sc, UINT count, UINT w, UINT h, DXGI_FORMAT fmt, UINT flags) {
+    return resizeVia(reinterpret_cast<ResizeFn>(slotResize.original), sc, count, w, h, fmt, flags);
+}
+
+static void patchTable(void* object, int index, void* detour, TableSlot& slot) {
+    void** at = *static_cast<void***>(object) + index;
+    DWORD old = 0;
+    if (!VirtualProtect(at, sizeof(void*), PAGE_READWRITE, &old)) return;
+    slot = {at, *at, detour};
+    *at = detour;
+    VirtualProtect(at, sizeof(void*), old, &old);
+}
+
+static void restoreTable(TableSlot& slot) {
+    if (!slot.at) return;
+    DWORD old = 0;
+    if (VirtualProtect(slot.at, sizeof(void*), PAGE_READWRITE, &old)) {
+        if (*slot.at == slot.detour) *slot.at = slot.original;
+        VirtualProtect(slot.at, sizeof(void*), old, &old);
+    }
+    slot = {};
+}
+
+void unhookTables() {
+    restoreTable(slotPresent);
+    restoreTable(slotPresent1);
+    restoreTable(slotResize);
 }
 
 static void WINAPI execute(ID3D12CommandQueue* q, UINT n, ID3D12CommandList* const* lists) {
@@ -466,7 +533,12 @@ bool install() {
     IDXGISwapChain1* sc1 = nullptr;
     if (SUCCEEDED(sc->QueryInterface(IID_PPV_ARGS(&sc1)))) {
         hook::create("Present1", hook::vfunc(sc1, 22), present1, &oPresent1);
+        patchTable(sc1, 22, reinterpret_cast<void*>(present1Table), slotPresent1);
         sc1->Release();
+    }
+    if (ok) {
+        patchTable(sc, 8, reinterpret_cast<void*>(presentTable), slotPresent);
+        patchTable(sc, 13, reinterpret_cast<void*>(resizeTable), slotResize);
     }
 
     ID3D12Device* d12 = nullptr;

@@ -23,6 +23,7 @@ struct FrameInfo {
 };
 
 bool install();
+void unhookTables();
 void uninstall();
 
 Api api();

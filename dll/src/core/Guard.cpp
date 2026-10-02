@@ -101,7 +101,7 @@ static LONG CALLBACK net(EXCEPTION_POINTERS* info) {
     std::wstring name = path;
     name = name.substr(name.find_last_of(L"\\/") + 1);
     logger::error("fault 0x{:08X} at {}+0x{:X}, access {} 0x{:X}, called from {}", (unsigned)code,
-                  std::string(name.begin(), name.end()), at - reinterpret_cast<uintptr_t>(owner),
+                  logger::narrow(name), at - reinterpret_cast<uintptr_t>(owner),
                   info->ExceptionRecord->ExceptionInformation[0] ? "write" : "read",
                   info->ExceptionRecord->ExceptionInformation[1], trail.empty() ? "-" : trail);
     return EXCEPTION_CONTINUE_SEARCH;

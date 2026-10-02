@@ -55,6 +55,7 @@ static void teardown() {
     config::save();
     input::uninstall();
     hook::disableAll();
+    dx::unhookTables();
     Sleep(300);
     modules::shutdown();
     bg::drain(8000);
