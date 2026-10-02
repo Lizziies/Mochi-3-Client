@@ -40,14 +40,18 @@ public:
     }
 
 protected:
-    std::string label() const override { return "FPS"; }
+    std::string label() const override { return show_.i == 1 ? "MS" : "FPS"; }
 
     std::string value() override {
-        if (lowShown_.b) return std::format("{:.0f}  ·  1%: {:.0f}", fps_, low_);
-        return std::format("{:.0f}", fps_);
+        double ms = fps_ > 0 ? 1000.0 / fps_ : 0.0;
+        std::string out = show_.i == 1 ? std::format("{:.1f}", ms) : std::format("{:.0f}", fps_);
+        if (show_.i == 2) out += std::format("  ·  {:.1f} ms", ms);
+        if (lowShown_.b) out += std::format("  ·  1%: {:.0f}", low_);
+        return out;
     }
 
 private:
+    Setting& show_ = choice("show", "Show", {"FPS", "Frame time", "Both"});
     Setting& lowShown_ = toggleSetting("low", "Show 1% low", false);
     Setting& interval_ = slider("interval", "Update interval (s)", 0.5f, 0.1f, 2.f, "%.1f s");
     std::array<double, 512> samples_{};
