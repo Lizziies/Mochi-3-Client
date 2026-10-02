@@ -209,12 +209,16 @@ void drawSwitch(ImDrawList* dl, ImVec2 p, float a, float alpha) {
     auto& t = theme::current();
     float s = ui::scale();
     ImVec2 size = switchSize();
-    ImVec4 track = theme::mix(t.off, theme::mix(t.bg, t.accent, 0.35f), a);
-    dl->AddRectFilled(p, p + size, theme::col(track, (0.55f + 0.45f * a) * alpha), size.y * 0.5f);
-    float r = 3.6f * s;
-    float x = p.x + size.y * 0.5f + (size.x - size.y) * draw::easeOutCubic(a);
-    ImVec4 knob = theme::mix(ImVec4(1, 1, 1, 1), t.accent2, a);
-    dl->AddCircleFilled({x, p.y + size.y * 0.5f}, r, theme::col(knob, alpha), 16);
+    float r = size.y * 0.5f;
+    ImVec4 on = theme::mix(t.accent, t.accent2, 0.35f);
+    if (a > 0.02f) dl->AddRectFilled(p - ImVec2(2 * s, 2 * s), p + size + ImVec2(2 * s, 2 * s), theme::col(on, 0.2f * a * alpha), r + 2 * s);
+    dl->AddRectFilled(p, p + size, theme::col(theme::mix(t.off, on, a), (0.55f + 0.45f * a) * alpha), r);
+    float kr = 3.7f * s;
+    float kw = kr * (1.f + 0.5f * std::sin(a * 3.14159f));
+    float x = p.x + r + (size.x - size.y) * a;
+    ImVec2 c{x, p.y + r};
+    dl->AddRectFilled(c - ImVec2(kw, kr) + ImVec2(0, 0.8f * s), c + ImVec2(kw, kr) + ImVec2(0, 0.8f * s), theme::col({0, 0, 0, 1}, 0.25f * alpha), kr);
+    dl->AddRectFilled(c - ImVec2(kw, kr), c + ImVec2(kw, kr), theme::col(theme::mix(ImVec4(1, 1, 1, 1), t.accent2, 0.35f * a), alpha), kr);
 }
 
 ImVec2 switchSize() {
@@ -267,11 +271,19 @@ bool button(const char* id, ImVec2 size, bool primary) {
     bool clicked = ImGui::InvisibleButton(id, size);
     bool hovered = ImGui::IsItemHovered();
     bool held = ImGui::IsItemActive();
+    ImGuiID key = ImGui::GetItemID();
+    static std::map<ImGuiID, float> hover, press;
+    float& hv = hover[key];
+    float& pr = press[key];
+    hv = draw::approach(hv, hovered ? 1.f : 0.f, 20.f * t.animSpeed);
+    pr = draw::approach(pr, held ? 1.f : 0.f, 30.f * t.animSpeed);
     auto* dl = ImGui::GetWindowDrawList();
     float r = 5 * s;
-    if (primary) dl->AddRectFilled(p, p + size, theme::col(held ? t.accent2 : hovered ? theme::mix(t.accent, t.accent2, 0.3f) : t.accent), r);
-    else dl->AddRectFilled(p, p + size, theme::col(t.surface, hovered ? 1.f : 0.7f), r);
-    dl->AddText(fonts::regular(), 13.5f * s, p + (size - ts) * 0.5f, theme::col(primary ? ImVec4(1, 1, 1, 1) : t.text), label, end);
+    ImVec2 a = p + ImVec2(0, 0.6f * s * pr), b = p + size - ImVec2(0, 0) + ImVec2(0, 0.6f * s * pr);
+    ImVec4 fill = primary ? theme::mix(theme::mix(t.accent, t.accent2, 0.3f * hv), t.bg, 0.2f * pr) : theme::mix(theme::mix(t.surface, t.surfaceHover, hv), t.bg, 0.25f * pr);
+    dl->AddRectFilled(a, b, theme::col(fill, primary ? 1.f : 0.7f + 0.3f * hv), r);
+    if (hv > 0.01f) dl->AddRect(a, b, theme::col(primary ? t.accent2 : theme::border(), 0.5f * hv), r, 0, 1.f);
+    dl->AddText(fonts::regular(), 13.5f * s, a + (size - ts) * 0.5f, theme::col(primary ? ImVec4(1, 1, 1, 1) : t.text), label, end);
     return clicked;
 }
 
@@ -394,7 +406,10 @@ static std::string hexOf(const ImVec4& c) {
 
 static void rowBack(ImDrawList* dl, ImVec2 p, ImVec2 size, bool hov) {
     auto& t = theme::current();
-    dl->AddRectFilled(p, p + size, theme::col(t.surface, hov ? 0.85f : 0.6f), 6 * ui::scale());
+    static std::map<ImGuiID, float> hover;
+    float& h = hover[ImGui::GetID("rowback")];
+    h = draw::approach(h, hov ? 1.f : 0.f, 22.f * t.animSpeed);
+    dl->AddRectFilled(p, p + size, theme::col(theme::mix(t.surface, t.surfaceHover, 0.45f * h), 0.6f + 0.3f * h), 6 * ui::scale());
 }
 
 static void rowLabel(ImDrawList* dl, ImVec2 p, float h, const char* label, ImU32 col) {

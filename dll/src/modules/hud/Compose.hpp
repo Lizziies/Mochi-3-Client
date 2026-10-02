@@ -31,8 +31,10 @@ class StatsHud : public HudModule {
 public:
     StatsHud()
         : HudModule("Stats HUD", "One block with selectable lines: FPS, CPS, Ping, position, health, clock, RAM.",
-                    {"hud-self"}, {0.01f, 0.36f}) {
+                    {"hud-self"}, {0.26f, 0.05f}) {
         sub("Info displays");
+        health_.visible = hunger_.visible = [] { return need::have("PlayerStats"); };
+        combo_.visible = [] { return need::have("HurtEvents"); };
     }
 
     void onDisable() override {
@@ -67,10 +69,10 @@ protected:
         if (game::has(game::Domain::Player)) {
             auto& pl = st.player;
             if (coords_.b) rows.push_back({"XYZ", std::format("{:.0f} {:.0f} {:.0f}", pl.pos.x, pl.pos.y, pl.pos.z)});
-            if (health_.b) rows.push_back({"Health", std::format("{:.1f}", pl.health)});
-            if (hunger_.b) rows.push_back({"Hunger", std::format("{:.0f}", pl.hunger)});
+            if (health_.b && need::have("PlayerStats")) rows.push_back({"Health", std::format("{:.1f}", pl.health)});
+            if (hunger_.b && need::have("PlayerStats")) rows.push_back({"Hunger", std::format("{:.0f}", pl.hunger)});
         }
-        if (combo_.b && game::has(game::Domain::Combat)) rows.push_back({"Combo", i18n::fmt("{} (best {})", st.combat.combo, st.combat.bestCombo)});
+        if (combo_.b && need::have("HurtEvents") && game::has(game::Domain::Combat)) rows.push_back({"Combo", i18n::fmt("{} (best {})", st.combat.combo, st.combat.bestCombo)});
         if (reach_.b && game::has(game::Domain::Combat)) rows.push_back({"Reach", st.combat.reachCount ? text::num(st.combat.lastReach, 2) : "–"});
         if (clock_.b) {
             SYSTEMTIME t;
@@ -250,10 +252,17 @@ public:
             left.push_back(i18n::fmt("Speed: {:.2f} b/s  ·  velocity {:.2f} {:.2f} {:.2f}", std::sqrt(pl.vel.x * pl.vel.x + pl.vel.z * pl.vel.z), pl.vel.x, pl.vel.y, pl.vel.z));
         }
         if (game::has(game::Domain::Player) && player_.b) {
-            gap(left);
-            head(left, "Player");
-            left.push_back(i18n::fmt("Health {:.1f}  Hunger {:.0f}  Level {}", pl.health, pl.hunger, pl.level));
-            if (st.combat.hits || st.combat.kills) left.push_back(i18n::fmt("Hits {}  Kills {}  Deaths {}", st.combat.hits, st.combat.kills, st.combat.deaths));
+            std::vector<std::string> rows;
+            if (need::have("PlayerStats")) rows.push_back(i18n::fmt("Health {:.1f}  Hunger {:.0f}  Level {}", pl.health, pl.hunger, pl.level));
+            if (st.combat.hits || st.combat.kills) {
+                if (need::have("HurtEvents")) rows.push_back(i18n::fmt("Hits {}  Kills {}  Deaths {}", st.combat.hits, st.combat.kills, st.combat.deaths));
+                else rows.push_back(i18n::fmt("Hits {}", st.combat.hits));
+            }
+            if (!rows.empty()) {
+                gap(left);
+                head(left, "Player");
+                left.insert(left.end(), rows.begin(), rows.end());
+            }
         }
         if (game::has(game::Domain::World) && world_.b) {
             auto& w = st.world;
@@ -271,11 +280,12 @@ public:
                 gap(left);
                 head(left, "Target");
                 if (t.kind == game::Target::Kind::Block) {
-                    left.push_back(i18n::fmt("Block: {}", t.name));
+                    if (!t.name.empty()) left.push_back(i18n::fmt("Block: {}", t.name));
                     left.push_back(std::format("{} {} {}", t.blockX, t.blockY, t.blockZ));
                     if (t.breakProgress > 0.f) left.push_back(i18n::fmt("Breaking: {:.0f}%", t.breakProgress * 100.f));
                 } else {
-                    left.push_back(i18n::fmt("Entity: {}  ·  {:.1f} m", t.name, t.distance));
+                    if (t.name.empty()) left.push_back(i18n::fmt("Entity  ·  {:.1f} m", t.distance));
+                    else left.push_back(i18n::fmt("Entity: {}  ·  {:.1f} m", t.name, t.distance));
                     if (t.health > 0.f) left.push_back(i18n::fmt("Health {:.1f} / {:.0f}", t.health, t.maxHealth));
                 }
             }

@@ -17,7 +17,7 @@ class LatencyHud : public HudModule {
 public:
     LatencyHud()
         : HudModule("Latency Meter", "Measures frame time and the time from click to the next frame. Use it to compare settings.",
-                    {"hud-self"}, {0.70f, 0.02f}) {
+                    {"hud-self"}, {0.66f, 0.02f}) {
         sub("Network");
         LARGE_INTEGER f;
         QueryPerformanceFrequency(&f);

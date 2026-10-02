@@ -17,7 +17,7 @@ class Subtitles : public GameList {
 public:
     Subtitles()
         : GameList("Subtitles", "Shows what you hear as text with a direction arrow, for example footsteps behind you or an explosion to the left.", need::player,
-                   need::sigs({"LocalPlayer", "SoundEvents"}), {"hud-self"}, {0.70f, 0.78f}) {
+                   need::sigs({"LocalPlayer", "SoundEvents"}), {"hud-self"}, {0.405f, 0.78f}) {
         sub("HUD parts");
         distance_.visible = [this] { return arrows_.b; };
         fadeIn_.visible = [this] { return fade_.b; };

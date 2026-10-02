@@ -4,6 +4,7 @@
 #include "core/Log.hpp"
 #include "gui/Notify.hpp"
 #include "hook/Dx.hpp"
+#include "modules/common/Needs.hpp"
 #include "modules/common/Text.hpp"
 #include "render/Fonts.hpp"
 #include "render/Ui.hpp"
@@ -160,7 +161,7 @@ int apiFps(lua_State* L) {
 int apiPlayer(lua_State* L) {
     auto& p = game::state().player;
     lua_createtable(L, 0, 20);
-    field(L, "name", p.name);
+    if (!p.name.empty()) field(L, "name", p.name);
     field(L, "x", p.pos.x);
     field(L, "y", p.pos.y);
     field(L, "z", p.pos.z);
@@ -169,17 +170,23 @@ int apiPlayer(lua_State* L) {
     field(L, "vz", p.vel.z);
     field(L, "yaw", p.yaw);
     field(L, "pitch", p.pitch);
-    field(L, "health", p.health);
-    field(L, "maxHealth", p.maxHealth);
-    field(L, "hunger", p.hunger);
-    field(L, "level", double(p.level));
-    field(L, "dimension", double(p.dimension));
-    field(L, "slot", double(p.slot + 1));
-    field(L, "onGround", p.onGround);
-    field(L, "sprinting", p.sprinting);
-    field(L, "sneaking", p.sneaking);
-    field(L, "swimming", p.swimming);
-    field(L, "held", p.held().empty() ? std::string() : p.held().name);
+    if (need::have("PlayerStats")) {
+        field(L, "health", p.health);
+        field(L, "maxHealth", p.maxHealth);
+        field(L, "hunger", p.hunger);
+        field(L, "level", double(p.level));
+    }
+    if (need::have("Dimension")) field(L, "dimension", double(p.dimension));
+    if (need::have("Inventory")) {
+        field(L, "slot", double(p.slot + 1));
+        field(L, "held", p.held().empty() ? std::string() : p.held().name);
+    }
+    if (need::have("MoveState")) {
+        field(L, "onGround", p.onGround);
+        field(L, "sprinting", p.sprinting);
+        field(L, "sneaking", p.sneaking);
+        field(L, "swimming", p.swimming);
+    }
     return 1;
 }
 
@@ -191,38 +198,46 @@ int apiTarget(lua_State* L) {
     }
     lua_createtable(L, 0, 8);
     field(L, "kind", std::string(t.kind == game::Target::Kind::Block ? "block" : "entity"));
-    field(L, "name", t.name);
     field(L, "distance", t.distance);
-    field(L, "isPlayer", t.isPlayer);
-    field(L, "health", t.health);
-    field(L, "breakProgress", t.breakProgress);
+    if (need::have("TargetInfo")) {
+        field(L, "name", t.name);
+        field(L, "isPlayer", t.isPlayer);
+        field(L, "health", t.health);
+        field(L, "breakProgress", t.breakProgress);
+    }
     return 1;
 }
 
 int apiWorld(lua_State* L) {
     auto& w = game::state().world;
     lua_createtable(L, 0, 8);
-    field(L, "time", double(w.time));
-    field(L, "day", double(w.day));
-    field(L, "raining", w.raining);
-    field(L, "biome", w.biome);
-    field(L, "ping", double(w.ping));
-    field(L, "players", double(w.players));
-    field(L, "entities", double(w.entities));
+    if (need::have("WorldTime")) {
+        field(L, "time", double(w.time));
+        field(L, "day", double(w.day));
+        field(L, "raining", w.raining);
+    }
+    if (need::have("Biome")) field(L, "biome", w.biome);
+    if (game::has(game::Domain::World)) {
+        field(L, "ping", double(w.ping));
+        field(L, "players", double(w.players));
+        field(L, "entities", double(w.entities));
+    }
     return 1;
 }
 
 int apiCombat(lua_State* L) {
     auto& c = game::state().combat;
     lua_createtable(L, 0, 12);
-    field(L, "combo", double(c.combo));
-    field(L, "bestCombo", double(c.bestCombo));
     field(L, "hits", double(c.hits));
     field(L, "swings", double(c.swings));
-    field(L, "kills", double(c.kills));
-    field(L, "deaths", double(c.deaths));
-    field(L, "streak", double(c.streak));
     field(L, "lastReach", c.lastReach);
+    if (need::have("HurtEvents")) {
+        field(L, "combo", double(c.combo));
+        field(L, "bestCombo", double(c.bestCombo));
+        field(L, "kills", double(c.kills));
+        field(L, "deaths", double(c.deaths));
+        field(L, "streak", double(c.streak));
+    }
     return 1;
 }
 

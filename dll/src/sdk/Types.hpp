@@ -64,7 +64,7 @@ enum class View { First, Back, Front };
 enum class Mode { Survival, Creative, Adventure, Spectator };
 
 struct Player {
-    std::string name = "Player";
+    std::string name;
     int team = 0;
     Vec3 pos;
     Vec3 vel;

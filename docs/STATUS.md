@@ -280,3 +280,31 @@ Graue Module durchgesehen, ehrlich geblieben. Ohne Spieldaten läuft sonst keins
 - Session Stats braucht Treffer, Kills und Chat-Ereignisse, die es ohne Spiel nicht gibt. Day Counter braucht die Weltzeit (Systemzeit wäre falsch). Hotbar-Module, Inventar, Effekte, Ziel, Chat, Scoreboard und Tab-Liste haben keine Quelle außerhalb des Spiels.
 
 Achtung, Live-Leser (nicht angefasst, gehört der anderen Sitzung): `supports()` meldet `Player` schon mit Position und Blick. Gesundheit, Hunger, Erfahrung, Luft, Dimension und Boden-Flag fallen auf Standardwerte zurück, solange ihre Offsets fehlen. Health Display, Low Health Indicator, Better Hunger Bar und Experience Info zeigen dann falsche Zahlen (immer 20/20) statt grau zu sein. Entweder die Domain feiner aufteilen oder diese Module an eigene Offsets koppeln. Waypoints rechnen mit `player.dimension`, ohne Offset immer Overworld.
+
+## 2026-10-02 spät, Branch claude/ui-polish-2
+
+Ohne Spiel gebaut (DLL und Launcher ohne Fehler), noch nicht angesehen.
+
+Ehrlichkeits-Prüfung der freigeschalteten Module. Das Live-Lesen liefert Position, Geschwindigkeit, Blickwinkel, FOV, Ansicht, Ziel (Art, Position, Abstand, Block-XYZ) und Hit-Ereignisse mit Reichweite. Alles andere steht im Spielzustand auf Standardwerten. Dafür gibt es Pseudo-Signaturen: ein Modul mit so einer Signatur bleibt grau, bis die Signatur aufgelöst wird; Teilfunktionen werden mit `need::have("Name")` ausgeblendet. Die Namen stehen in `modules/common/Needs.hpp`.
+
+| Pseudo-Signatur | Felder | Graue Module | Ausgeblendete Teile |
+|---|---|---|---|
+| `PlayerStats` | Leben, Hunger, Erfahrung, Luft | Health Display, Experience Info, Low Health Indicator, Fall Predictor | Stats HUD (Leben, Hunger), Debug Menu (Spielerblock), Lua `player.health/hunger/level` |
+| `MoveState` | Schleichen, Sprinten, Boden, Schwimmen, Gleiten, Fliegen | Java Dynamic FOV, Auto Perspective, Fall Predictor, Hit Info | FOV Changer (Sprint-Bonus), Sens Multiplier (Schleichen, Sprinten), Crit-Optionen bei Hit Counter, Hit Marker, Hit Effects, Hit Sound, Lua `onGround/sprinting/sneaking/swimming` |
+| `UseState` | Item benutzen, Blocken, Bogen | Bow Sensitivity, Bow Charge (schon vorher) | Sens Multiplier (Bogen, Blocken) |
+| `HurtEvents` | Treffer erhalten, Kill, Tod, Schaden | Combo Counter, Death Logger, Hit Info | Wegpunkt "Tod", Stats HUD (Combo), Debug Menu (Kills, Tode), Lua `combat.combo/kills/deaths/streak` |
+| `WorldTime` | Weltzeit, Tag, Regen | Day Counter (Level-Signatur) | Clock (Spielzeit, Tag), Lua `world.time/day/raining` |
+| `Dimension` | Dimension | | Coordinates (Dimension, Nether-Umrechnung, {D}), Waypoints (Hinweis, zeigt in jeder Dimension), Lua `player.dimension` |
+| `Biome` | Biom | | Coordinates (Biom), Lua `world.biome` |
+| `Inventory` | Hotbar, Slot, Rüstung | alle Inventar-Module (schon vorher) | Hide Hand ("nur mit leerer Hand"), Lua `player.slot/held` |
+| `TargetInfo` | Name, Spieler, Leben, Abbaufortschritt | Target HUD, Waila, Break Progress (schon vorher) | Crosshair ("nur Spieler"), Debug Menu (Namen), Lua `target.name/isPlayer/health/breakProgress` |
+| `PlayerName` | eigener Name | | Mumble Link (Identität leer) |
+
+- `player.name` steht jetzt standardmäßig leer. Vorher war es "Player": Mochi Online hätte sich auf dem Server so angemeldet, und Nick hätte das Wort "Player" im Chat ersetzt. Demo-Daten setzen den Namen weiter selbst.
+- Hit-Ereignisse: `crit` hängt an Boden und Sprinten und stimmt deshalb erst mit `MoveState`. Ein "Hit" ist ein Klick auf das anvisierte Entity, keine bestätigte Wirkung.
+
+HUD-Positionen: Standardwerte aller HUD-Module auf Spalten verteilt (links Infozeilen, daneben Kampf und Inventar, dahinter Stats HUD, Pomodoro, Death Logger, Pack Display, Keystrokes; rechts Potion HUD, Scoreboard, Item Tracker, Paperdoll, Pet; Netzwerk-Kästen mittig rechts). Dazu schiebt ein nie platziertes HUD-Modul sich jetzt jedes Bild unter die Module, die vor ihm gezeichnet wurden, statt nach 30 Bildern einzufrieren. Die Verschiebung wird nicht gespeichert, das Modul bleibt auf seinem Standardplatz, sobald dort wieder Platz ist. Wer ein Modul im HUD-Editor zieht, hat es platziert, dann bewegt es sich nie mehr. Die Höhen der Kästen sind geschätzt.
+
+Menü: Öffnen langsamer und weicher als Schließen (zeitbasiert, mit leichtem Überschwingen der Panels, Abdunklung mit Verlauf), Schalter mit zusammengedrücktem Knopf und Schein, Buttons mit Hover-Rand und Druck-Effekt, Zeilen mit weichem Hover und Druck, Listeneinträge rücken beim Hover leicht ein.
+
+Launcher: gebaut ohne Fehler (nur die `sscanf`-Warnung in `Game.cpp`). Farben wie das Slate-Theme des Clients, Karten und Seitenleiste mit Rand und Rundung wie die Menüpanels, Schalter und Buttons wie im Client, Fortschrittsbalken mit Verlauf und weichem Nachziehen.

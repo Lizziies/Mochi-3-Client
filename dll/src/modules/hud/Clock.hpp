@@ -1,6 +1,7 @@
 #pragma once
 
 #include "modules/HudModule.hpp"
+#include "modules/common/Needs.hpp"
 #include "sdk/Game.hpp"
 
 #include <windows.h>
@@ -9,18 +10,20 @@
 
 class Clock : public TextHud {
 public:
-    Clock() : TextHud("Clock", "Shows the real time, the game time or both, with date options.", {"hud-self"}, {0.01f, 0.10f}) {
+    Clock() : TextHud("Clock", "Shows the real time, the game time or both, with date options.", {"hud-self"}, {0.005f, 0.114f}) {
         sub("Info displays");
         dateFormat_.visible = [this] { return date_.b; };
         weekday_.visible = [this] { return date_.b; };
-        gameDay_.visible = [this] { return mode_.i != 0; };
+        mode_.visible = [] { return need::have("WorldTime"); };
+        gameDay_.visible = [this] { return need::have("WorldTime") && mode_.i != 0; };
     }
 
 protected:
     std::string value() override {
         std::string out;
-        if (mode_.i != 1) out = real();
-        if (mode_.i != 0) {
+        int mode = need::have("WorldTime") ? mode_.i : 0;
+        if (mode != 1) out = real();
+        if (mode != 0) {
             std::string game = gameTime();
             out += out.empty() ? game : "  ·  " + game;
         }

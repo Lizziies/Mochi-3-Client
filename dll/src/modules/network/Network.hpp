@@ -16,7 +16,7 @@ public:
     Network()
         : HudModule("Network Monitor",
                     "Ping, jitter and packet loss to the server, plus Wi-Fi data and tips.",
-                    {"hud-self"}, {0.01f, 0.34f}) {
+                    {"hud-self"}, {0.6f, 0.1f}) {
         sub("Network");
         interval_.visible = [this] { return advanced_.b; };
         window_.visible = [this] { return advanced_.b; };

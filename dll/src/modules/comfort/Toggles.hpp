@@ -83,7 +83,7 @@ protected:
 
 class ToggleSprint : public StickyKey {
 public:
-    ToggleSprint() : StickyKey("Toggle Sprint", "Sprinting stays on until you press the key again.", VK_LCONTROL, {0.01f, 0.90f}, "[Sprint: on]", "[Sprint: off]") {}
+    ToggleSprint() : StickyKey("Toggle Sprint", "Sprinting stays on until you press the key again.", VK_LCONTROL, {0.005f, 0.925f}, "[Sprint: on]", "[Sprint: off]") {}
 
 protected:
     int mode() const override { return mode_.i; }
@@ -106,7 +106,7 @@ private:
 
 class ToggleSneak : public StickyKey {
 public:
-    ToggleSneak() : StickyKey("Toggle Sneak", "Sneaking stays on until you press the sneak key again.", VK_LSHIFT, {0.01f, 0.94f}, "[Sneak: on]", "[Sneak: off]") {}
+    ToggleSneak() : StickyKey("Toggle Sneak", "Sneaking stays on until you press the sneak key again.", VK_LSHIFT, {0.005f, 0.96f}, "[Sneak: on]", "[Sneak: off]") {}
 
 protected:
     int mode() const override { return 0; }

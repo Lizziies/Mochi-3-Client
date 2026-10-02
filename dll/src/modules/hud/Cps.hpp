@@ -9,7 +9,7 @@ class Cps : public TextHud {
 public:
     bool defaultEnabled() const override { return true; }
 
-    Cps() : TextHud("CPS", "Counts your clicks per second. Format placeholders: {lmb} {rmb} {value}.", {"hud-self"}, {0.01f, 0.06f}) {
+    Cps() : TextHud("CPS", "Counts your clicks per second. Format placeholders: {lmb} {rmb} {value}.", {"hud-self"}, {0.005f, 0.082f}) {
         sub("Info displays");
     }
 

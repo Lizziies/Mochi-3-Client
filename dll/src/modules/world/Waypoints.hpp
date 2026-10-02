@@ -27,6 +27,7 @@ public:
         require(need::player | game::Domain::Camera, need::sigs({"LocalPlayer"}));
         data_.hidden = true;
         beamHeight_.visible = [this] { return beam_.b; };
+        deathPoint_.visible = [] { return need::have("HurtEvents"); };
     }
 
     void onKey(KeyEvent& ev) override {
@@ -96,6 +97,11 @@ public:
     void drawSettings() override {
         sync();
         ImGui::Spacing();
+        if (!need::have("Dimension")) {
+            ImGui::PushStyleColor(ImGuiCol_Text, theme::current().textDim);
+            ImGui::TextWrapped("%s", i18n::tr("The dimension is not detected yet, so waypoints show in every dimension."));
+            ImGui::PopStyleColor();
+        }
         ImGui::SetNextItemWidth(180);
         ImGui::InputText("##wpname", name_, sizeof(name_));
         ImGui::SameLine();

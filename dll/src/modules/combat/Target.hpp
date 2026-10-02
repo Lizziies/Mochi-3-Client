@@ -191,7 +191,7 @@ class CooldownIndicator : public GameList {
 public:
     CooldownIndicator()
         : GameList("Cooldown Indicator", "Shows cooldowns, for example for ender pearls. You choose which items count.",
-                   need::combat, need::sigs({"LocalPlayer", "ItemUseEvents"}), {"hud-self"}, {0.01f, 0.72f}) {
+                   need::combat, need::sigs({"LocalPlayer", "ItemUseEvents"}), {"hud-self"}, {0.135f, 0.306f}) {
         sub("Combat displays");
     }
 

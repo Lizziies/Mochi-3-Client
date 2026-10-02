@@ -5,8 +5,10 @@
 #include "modules/common/Context.hpp"
 #include "modules/post/PostFx.hpp"
 #include "render/Fonts.hpp"
+#include "render/Ui.hpp"
 
 #include <algorithm>
+#include <cmath>
 #include <cstring>
 
 HudModule::HudModule(std::string name, std::string description, std::vector<std::string> tags, ImVec2 defaultPos)
@@ -64,6 +66,7 @@ ImVec2 HudModule::position() const {
     auto ds = ImGui::GetIO().DisplaySize;
     ImVec2 pv = pivot();
     ImVec2 p{x_.f * ds.x - pv.x * lastSize_.x, y_.f * ds.y - pv.y * lastSize_.y};
+    if (!placed_.b) p = p + shift_;
     p.x = std::clamp(p.x, 0.f, std::max(0.f, ds.x - lastSize_.x));
     p.y = std::clamp(p.y, 0.f, std::max(0.f, ds.y - lastSize_.y));
     return p;
@@ -114,44 +117,45 @@ bool overlaps(ImVec2 a0, ImVec2 a1, ImVec2 b0, ImVec2 b1) { return a0.x < b1.x &
 
 }
 
-// A module that sits on its default spot and was never placed keeps clear of what is already on screen: it moves
-// below whatever it would cover, and into the next column when it reaches the bottom. Placed modules never move.
+// A module that sits on its default spot and was never placed keeps clear of the modules drawn before it: every
+// frame it moves below whatever it would cover, and into the next column when it reaches the bottom. The shift
+// is not saved, so it follows the sizes of the others. Placed modules never move.
 void HudModule::makeRoom() {
-    if (placed_.b || !autoPlace() || gui::editingHud() || lastSize_.x < 1.f || lastSize_.y < 1.f) return;
+    if (placed_.b || !autoPlace() || lastSize_.x < 1.f || lastSize_.y < 1.f) return;
     if (x_.f != defaultPos_.x || y_.f != defaultPos_.y) {
         placed_.b = true;
+        shift_ = {0.f, 0.f};
         return;
     }
+    if (gui::editingHud()) return;
     std::vector<Spot> others = drawn;
     for (auto& sp : previous)
         if (sp.fixed && sp.m != this) others.push_back(sp);
 
     auto ds = ImGui::GetIO().DisplaySize;
     float gap = 4.f * hud::globalScale();
+    ImVec2 eased = shift_;
+    shift_ = {0.f, 0.f};
     ImVec2 start = position(), p = start;
     float column = 0.f;
-    bool moved = false;
+    bool fits = true;
     for (int tries = 0; tries < 200; tries++) {
         auto hit = std::find_if(others.begin(), others.end(), [&](const Spot& o) { return o.m != this && overlaps(p, p + lastSize_, o.min, o.max); });
         if (hit == others.end()) break;
-        moved = true;
         column = std::max(column, hit->max.x - p.x);
         p.y = hit->max.y + gap;
         if (p.y + lastSize_.y <= ds.y) continue;
         p = {p.x + column + gap, start.y};
         column = 0.f;
         if (p.x + lastSize_.x > ds.x) {
-            placed_.b = true;
-            return;
+            fits = false;
+            break;
         }
     }
-    if (moved) {
-        setPosition(p);
-        return;
-    }
-    if (++settled_ < 30) return;
-    placed_.b = true;
-    config::markDirty();
+    ImVec2 want = fits ? p - start : ImVec2(0.f, 0.f);
+    float k = 1.f - std::exp(-24.f * ui::dt());
+    shift_ = {eased.x + (want.x - eased.x) * k, eased.y + (want.y - eased.y) * k};
+    if (std::fabs(shift_.x - want.x) < 0.5f && std::fabs(shift_.y - want.y) < 0.5f) shift_ = want;
 }
 
 namespace hud {

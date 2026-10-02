@@ -24,7 +24,7 @@ class ArmorHud : public GameList {
 public:
     ArmorHud()
         : GameList("Armor HUD", "Shows your armor and the item in your hand with durability as a number, percent or bar.", need::inventory,
-                   need::sigs({"LocalPlayer", "Inventory"}), {"hud-self"}, {0.01f, 0.66f}) {
+                   need::sigs({"LocalPlayer", "Inventory"}), {"hud-self"}, {0.135f, 0.7f}) {
         sub("Inventory info");
         flash_.visible = [this] { return warn_.f > 0.f; };
     }
@@ -105,7 +105,7 @@ class PotionHud : public GameList {
 public:
     PotionHud()
         : GameList("Potion HUD", "Shows your active effects with time left, sorted and colored. Turns red when an effect is about to run out.", need::effects,
-                   need::sigs({"LocalPlayer", "Effects"}), {"hud-self"}, {0.85f, 0.10f}) {
+                   need::sigs({"LocalPlayer", "Effects"}), {"hud-self"}, {0.845f, 0.045f}) {
         sub("Inventory info");
         flash_.visible = [this] { return lowAt_.f > 0.f; };
         low_.visible = [this] { return lowAt_.f > 0.f; };
@@ -234,7 +234,7 @@ private:
 
 class PotCounter : public CountHud {
 public:
-    PotCounter() : CountHud("Pot Counter", "Counts the splash potions in your inventory.", "splash_potion", -1, {0.01f, 0.70f}) {}
+    PotCounter() : CountHud("Pot Counter", "Counts the splash potions in your inventory.", "splash_potion", -1, {0.135f, 0.338f}) {}
 
 protected:
     bool countOffhand() const override { return false; }
@@ -249,7 +249,7 @@ private:
 
 class ArrowCounter : public CountHud {
 public:
-    ArrowCounter() : CountHud("Arrow Counter", "Counts your arrows. Can show only while you hold a bow or crossbow.", "arrow", -1, {0.01f, 0.74f}) {}
+    ArrowCounter() : CountHud("Arrow Counter", "Counts your arrows. Can show only while you hold a bow or crossbow.", "arrow", -1, {0.135f, 0.37f}) {}
 
 protected:
     bool handRule() const override { return true; }
@@ -265,7 +265,7 @@ protected:
 
 class TotemCounter : public CountHud {
 public:
-    TotemCounter() : CountHud("Totem Counter", "Counts your totems of undying. Can show only while you hold one.", "totem_of_undying", -1, {0.01f, 0.78f}) {}
+    TotemCounter() : CountHud("Totem Counter", "Counts your totems of undying. Can show only while you hold one.", "totem_of_undying", -1, {0.135f, 0.402f}) {}
 
 protected:
     bool handRule() const override { return true; }
@@ -282,7 +282,7 @@ class ItemCounter : public GameList {
 public:
     ItemCounter()
         : GameList("Item Counter", "Counts any items you choose. Several items at once, sorting, format, hide at 0 or 1 and colored icons.", need::inventory,
-                   need::sigs({"LocalPlayer", "Inventory"}), {"hud-self"}, {0.01f, 0.82f}) {
+                   need::sigs({"LocalPlayer", "Inventory"}), {"hud-self"}, {0.135f, 0.57f}) {
         sub("Inventory info");
         lowColor_.visible = [this] { return lowAt_.i > 0; };
     }
@@ -448,7 +448,7 @@ class BetterHunger : public GameList {
 public:
     BetterHunger()
         : GameList("Better Hunger Bar", "Shows hunger and saturation as a bar and previews what the food in your hand gives.", need::player | game::Domain::Inventory,
-                   need::sigs({"LocalPlayer", "Inventory"}), {"hud-self"}, {0.01f, 0.86f}) {
+                   need::sigs({"LocalPlayer", "Inventory"}), {"hud-self"}, {0.135f, 0.93f}) {
         sub("Info displays");
     }
 

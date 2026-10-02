@@ -12,7 +12,7 @@
 
 class MouseStrokes : public HudModule {
 public:
-    MouseStrokes() : HudModule("Mouse Strokes", "Shows your mouse movement as a dot with a trail.", {"hud-self"}, {0.12f, 0.62f}) {
+    MouseStrokes() : HudModule("Mouse Strokes", "Shows your mouse movement as a dot with a trail.", {"hud-self"}, {0.26f, 0.88f}) {
         sub("Info displays");
     }
 
