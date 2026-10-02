@@ -6,6 +6,7 @@
 #include "modules/common/Colors.hpp"
 #include "modules/common/GameHud.hpp"
 #include "modules/common/Needs.hpp"
+#include "modules/common/PackList.hpp"
 #include "modules/common/Text.hpp"
 #include "modules/Manager.hpp"
 #include "modules/world/Waypoints.hpp"
@@ -465,14 +466,14 @@ private:
 class PackDisplay : public GameList {
 public:
     PackDisplay()
-        : GameList("Pack Display", "Shows which resource packs are active.", need::world, need::sigs({"Level", "PackList"}), {"hud-self"},
+        : GameList("Pack Display", "Shows your active global resource packs. Packs a server forces on top are not listed.", 0, {}, {"hud-self"},
                    {0.01f, 0.58f}) {
         sub("Info displays");
     }
 
 protected:
     ImVec2 content(ImDrawList* dl, ImVec2 o, float s) override {
-        auto& packs = game::state().world.packs;
+        const auto& packs = game::demo() ? game::state().world.packs : packlist::active();
         float y = 0.f, w = 0.f;
         int shown = 0;
         for (auto& p : packs) {

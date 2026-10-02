@@ -31,6 +31,12 @@ float easeOutCubic(float t) {
     return 1.f - t * t * t;
 }
 
+float easeInOutCubic(float t) {
+    if (t < 0.5f) return 4.f * t * t * t;
+    t = -2.f * t + 2.f;
+    return 1.f - t * t * t * 0.5f;
+}
+
 void heart(ImDrawList* dl, ImVec2 c, float size, ImU32 color) {
     float r = size * 0.27f;
     ImVec2 l{c.x - r * 0.95f, c.y - size * 0.12f};

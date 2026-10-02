@@ -190,6 +190,7 @@ static void drawMenu() {
     auto& t = theme::current();
     float s = ui::scale();
     openAnim = draw::approach(openAnim, isOpen ? 1.f : 0.f, 12.f * t.animSpeed);
+    if (!isOpen) widgets::closePopups();
     if (openAnim < 0.01f) return;
 
     auto ds = ImGui::GetIO().DisplaySize;
@@ -229,7 +230,7 @@ static void drawMenu() {
     endPanel();
 
     bool typing = ImGui::GetIO().WantTextInput;
-    if (isOpen && ImGui::IsKeyPressed(ImGuiKey_Escape, false) && !widgets::capturingKey() && !typing) setOpen(false);
+    if (isOpen && ImGui::IsKeyPressed(ImGuiKey_Escape, false) && !widgets::capturingKey() && !typing && !widgets::dropdownEscaped()) setOpen(false);
 }
 
 void draw() {

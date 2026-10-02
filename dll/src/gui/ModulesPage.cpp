@@ -28,6 +28,7 @@ static bool scrollPart = false;
 static std::map<const void*, bool> partOpen;
 static std::map<const void*, float> partT;
 static std::map<const void*, float> partH;
+static std::map<const void*, float> partShown;
 static double shownAt = 0.0;
 static bool wasOpen = false;
 
@@ -390,26 +391,33 @@ static void settingList(Module& m) {
 }
 
 // The body under a part slides open: the child's height follows the animation and the full height is the
-// content measured in the previous frame.
+// content measured in the previous frame. The measured height is eased too, so settings that appear or
+// disappear inside an open part do not make the list jump. The content fades in over the second half of
+// the motion and out over the first half of closing, so it is never squeezed visibly.
 template <class F>
 static void expander(const void* id, float a, F&& body) {
     if (a < 0.002f) return;
     float s = ui::scale();
-    float h = std::max(1.f, partH[id] * draw::easeOutCubic(a));
+    auto it = partH.try_emplace(id, 0.f).first;
+    auto shown = partShown.try_emplace(id, 0.f).first;
+    if (shown->second <= 0.f || it->second <= 0.f) shown->second = it->second;
+    else shown->second = draw::approach(shown->second, it->second, 20.f * theme::current().animSpeed);
+    float h = std::max(1.f, shown->second * draw::easeInOutCubic(a));
     ImGui::PushID(id);
     ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2(10 * s, 0));
     ImGui::BeginChild("body", {ImGui::GetContentRegionAvail().x, h}, 0,
                       ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
     float base = theme::fade();
-    float k = std::min(1.f, a * 1.4f);
+    float k = draw::easeOutCubic(std::clamp((a - 0.3f) / 0.6f, 0.f, 1.f));
     theme::setFade(base * k);
     ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * k);
+    ImGui::SetCursorPosY(ImGui::GetCursorPosY() + (1.f - k) * -6 * s);
     ImGui::Dummy({0, 1 * s});
     body();
     ImGui::Dummy({0, 6 * s});
     ImGui::PopStyleVar();
     theme::setFade(base);
-    partH[id] = ImGui::GetCursorPosY();
+    it->second = ImGui::GetCursorPosY() + (1.f - k) * 6 * s;
     ImGui::EndChild();
     ImGui::PopID();
 }
@@ -418,9 +426,10 @@ static void part(Module& m) {
     auto& t = theme::current();
     bool& isOpen = partOpen[&m];
     float& a = partT[&m];
-    a = draw::motion() ? draw::approach(a, isOpen ? 1.f : 0.f, 15.f * t.animSpeed) : (isOpen ? 1.f : 0.f);
+    float dir = isOpen ? 1.f : -1.f;
+    a = draw::motion() ? std::clamp(a + dir * ui::dt() * t.animSpeed / (isOpen ? 0.30f : 0.22f), 0.f, 1.f) : (isOpen ? 1.f : 0.f);
     Row row = moduleRow(m);
-    row.fold = draw::easeOutCubic(a);
+    row.fold = draw::easeInOutCubic(a);
     row.fav = &m;
     row.scrollHere = scrollPart && focusPart == &m;
     if (row.scrollHere) scrollPart = false;

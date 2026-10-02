@@ -138,17 +138,20 @@ private:
         float top = std::max(40.f, std::min(snap.max * 1.25f, 400.f));
         size_t n = snap.history.size();
         if (n < 2) return;
-        float step = size.x / float(std::max<size_t>(n - 1, 1));
-        for (size_t i = 0; i < n; i++) {
-            float v = snap.history[i];
-            float x = p.x + step * i;
+        float slot = std::clamp(size.x / float(n), 1.5f, 5.f * s);
+        size_t shown = std::min(n, size_t(size.x / slot));
+        float bar = slot > 3.f ? slot - std::max(1.f, 0.5f * s) : slot;
+        float x0 = p.x + size.x - slot * float(shown);
+        for (size_t k = 0; k < shown; k++) {
+            float v = snap.history[n - shown + k];
+            float x = x0 + slot * float(k);
             if (v < 0.f) {
-                dl->AddLine({x, p.y + 2 * s}, {x, p.y + size.y - 2 * s}, ImGui::GetColorU32(withAlpha(poor_.color, 0.6f)), 1.5f * s);
+                dl->AddRectFilled({x, p.y + 2 * s}, {x + bar, p.y + size.y - 2 * s}, ImGui::GetColorU32(withAlpha(poor_.color, 0.6f)));
                 continue;
             }
-            float h = size.y * std::min(v / top, 1.f);
+            float h = std::max(size.y * std::min(v / top, 1.f), 1.f);
             ImVec4 c = rampColor(v, limits().pingFair, limits().pingPoor, good_.color, fair_.color, poor_.color);
-            dl->AddLine({x, p.y + size.y}, {x, p.y + size.y - std::max(h, 1.f)}, ImGui::GetColorU32(c), std::max(step, 1.f));
+            dl->AddRectFilled({x, p.y + size.y - h}, {x + bar, p.y + size.y}, ImGui::GetColorU32(c));
         }
     }
 
