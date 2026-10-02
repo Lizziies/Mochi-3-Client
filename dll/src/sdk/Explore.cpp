@@ -367,6 +367,23 @@ int lCall(lua_State* L) {
     return 1;
 }
 
+// same as call, but returns xmm0 as a float (getters that return float)
+int lCallF(lua_State* L) {
+    using Fn = float(__fastcall*)(uintptr_t, uintptr_t, uintptr_t, uintptr_t);
+    uintptr_t target = arg(L, 1);
+    if (!inCode(target)) return luaL_error(L, "not a game function");
+    auto fn = reinterpret_cast<Fn>(target);
+    float result = 0.f;
+    __try {
+        result = fn(static_cast<uintptr_t>(luaL_optinteger(L, 2, 0)), static_cast<uintptr_t>(luaL_optinteger(L, 3, 0)),
+                    static_cast<uintptr_t>(luaL_optinteger(L, 4, 0)), static_cast<uintptr_t>(luaL_optinteger(L, 5, 0)));
+    } __except (EXCEPTION_EXECUTE_HANDLER) {
+        return luaL_error(L, "exception %08x", static_cast<unsigned>(GetExceptionCode()));
+    }
+    lua_pushnumber(L, result);
+    return 1;
+}
+
 csh capstone() {
     static csh handle = 0;
     if (!handle) {
@@ -513,7 +530,7 @@ void work(std::string name) {
         {"i32", readValue<int32_t>},  {"f32", readValue<float>},    {"f64", readValue<double>},
         {"cstr", lCstr},       {"find", lFind},         {"findd", lFindData},  {"bytes", lBytes},
         {"xrefs", lXrefs},     {"callers", lCallers},   {"func", lFunc},       {"vtable", lVtable},
-        {"heap", lHeap},       {"heapf", lHeapFloats},  {"call", lCall},        {"disasm", lDisasm},   {"disfunc", lDisFunc},
+        {"heap", lHeap},       {"heapf", lHeapFloats},  {"call", lCall}, {"callf", lCallF},       {"disasm", lDisasm},   {"disfunc", lDisFunc},
         {"sleep", lSleep},     {"log", lLog},           {"out", lOut},         {"run", lRun},
         {nullptr, nullptr}};
     luaL_newlib(L, api);
