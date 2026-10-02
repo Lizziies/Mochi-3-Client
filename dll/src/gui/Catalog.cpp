@@ -150,7 +150,8 @@ std::vector<Entry> build() {
 bool locked(const Module& m) { return !m.available() || m.rule() == RuleLevel::Block; }
 
 bool Entry::on() const {
-    return std::any_of(members.begin(), members.end(), [](Module* m) { return (m->userEnabled() && !locked(*m)) || m->alwaysOn(); });
+    // tools that are always on (Config Sharing) have no switch and do not keep a group on
+    return std::any_of(members.begin(), members.end(), [](Module* m) { return m->userEnabled() && !locked(*m) && !m->alwaysOn(); });
 }
 
 // a group switch parks the parts that were on and brings exactly those back

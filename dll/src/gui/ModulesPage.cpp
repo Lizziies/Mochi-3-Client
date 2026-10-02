@@ -192,6 +192,7 @@ static Row moduleRow(Module& m) {
     row.lockText = m.rule() == RuleLevel::Block ? "blocked" : "no data";
     row.warn = m.risky() || m.rule() == RuleLevel::Warn;
     row.canToggle = !lock && !m.alwaysOn();
+    row.hasSwitch = !m.alwaysOn();
     return row;
 }
 
@@ -510,7 +511,7 @@ void drawDetails(ImVec2 origin, ImVec2 size) {
 
     auto* dl = ImGui::GetWindowDrawList();
     float right = o.x + w;
-    if (group || single) {
+    if (group || (single && !single->alwaysOn())) {
         bool on = single ? (single->userEnabled() && !locked(*single)) || single->alwaysOn() : group->on();
         bool lock = single ? locked(*single) : group->usable() == 0;
         bool canToggle = !lock && !(single && single->alwaysOn());
