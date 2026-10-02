@@ -15,7 +15,7 @@ git checkout -B claude/pc-test origin/claude/onix-ui-input-fixes
 
 Wenn Felix zustimmt, `main` danach vorspulen: `git push origin claude/onix-ui-input-fixes:main` (reiner Fast-Forward, nichts geht verloren).
 
-Das Release `handoff-2026-10-02` auf GitHub enthält denselben Stand als ZIP, dazu die MinGW-Testbauten und die Screenshots. Für die Arbeit trotzdem das Git-Repo nehmen, nicht das ZIP.
+Der Branch `handoff/2026-10-02` auf GitHub enthält denselben Stand als ZIP (`Mochi-Handoff-2026-10-02.zip`), dazu die MinGW-Testbauten und die Screenshots. Für die Arbeit trotzdem das Git-Repo nehmen, nicht das ZIP. Releases auf GitHub kann nur Felix bzw. Claude Code zuhause anlegen, die Cloud-Sitzung darf das nicht.
 
 ## 1. Bauen und Selbsttest
 
