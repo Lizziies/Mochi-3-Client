@@ -116,6 +116,7 @@ float4 ps(VOut i) : SV_Target
 {
     float2 uv = i.uv;
     if (b.w > 0.5) uv.y = 1.0 - uv.y;
+    if (c.y > 1.0) uv = 0.5 + (uv - 0.5) / c.y;
     float2 texel = e.xy;
     float aspect = texel.y / texel.x;
 
@@ -513,7 +514,7 @@ static void basicPass(ID3D11DeviceContext* ctx, ID3D11Texture2D* back, const D3D
         Constants k{};
         float a[4] = {p.saturation, p.hue * 0.0174533f, p.brightness, p.contrast};
         float b[4] = {p.gamma, p.sharpen, p.fry, p.flip};
-        float c[4] = {(float)p.tintMode, 0.f, p.vignette, (float)p.colorMode};
+        float c[4] = {(float)p.tintMode, p.zoom, p.vignette, (float)p.colorMode};
         float d[4] = {p.dof, p.dir[0], p.dir[1], gpu.lastValid ? p.blend : 0.f};
         float e[4] = {1.f / bd.Width, 1.f / bd.Height, clock, (float)p.dirSamples};
         std::memcpy(k.a, a, sizeof(a));
@@ -651,7 +652,7 @@ bool Params::active() const { return basic() || shader >= 0; }
 bool Params::basic() const {
     return saturation != 1.f || hue != 0.f || brightness != 0.f || contrast != 1.f || gamma != 1.f || sharpen > 0.f ||
            fry > 0.f || flip > 0.5f || tint[3] > 0.f || night[3] > 0.f || vignette > 0.f || colorMode != 0 ||
-           dof > 0.f || blur > 0.5f || (dirSamples > 1 && (dir[0] != 0.f || dir[1] != 0.f)) || blend > 0.f;
+           dof > 0.f || blur > 0.5f || (dirSamples > 1 && (dir[0] != 0.f || dir[1] != 0.f)) || blend > 0.f || zoom > 1.001f;
 }
 
 Params& params() { return frameParams; }

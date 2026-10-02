@@ -1,6 +1,8 @@
 #pragma once
 
 #include "gui/Gui.hpp"
+#include "gui/Widgets.hpp"
+#include "hook/GameInput.hpp"
 #include "hook/Input.hpp"
 #include "modules/Manager.hpp"
 #include "modules/Module.hpp"
@@ -8,6 +10,7 @@
 #include "modules/common/Context.hpp"
 #include "modules/common/Keys.hpp"
 #include "modules/common/Needs.hpp"
+#include "modules/post/PostFx.hpp"
 #include "render/Draw.hpp"
 #include "render/Ui.hpp"
 #include "sdk/Effects.hpp"
@@ -93,7 +96,6 @@ public:
     Zoom()
         : Module("Zoom", "Zoom on a key with smooth animation, scroll wheel steps and adjusted sensitivity.", Category::Visual, {"camera"}) {
         sub("Camera");
-        require(0, {fx::sig(fx::Id::Fov)});
         step_.visible = [this] { return scroll_.b; };
         hideHand_.visible = [] { return fx::available(fx::Id::HideHand); };
     }
@@ -121,13 +123,27 @@ public:
         ctx::zooming = current_ > 1.02f;
         ctx::zoomLevel = current_;
         ctx::hideModules = ctx::zooming && hideModules_.b;
+        if (active_ && scroll_.b) gameinput::holdWheel();
         if (current_ <= 1.001f) return;
         if (hideHand_.b) fx::skip(fx::Id::HideHand);
-        float base = ctx::fovBase > 0.f ? ctx::fovBase : base_.f;
-        float fov = 2.f * std::atan(std::tan(base * 0.0174533f * 0.5f) / current_) * 57.2958f;
-        fx::set(fx::Id::Fov, fov);
-        fx::set(fx::Id::FovEffects, 1.f);
-        if (sens_.b) fx::scale(fx::Id::Sensitivity, 1.f / std::pow(current_, 0.85f));
+        if (fx::available(fx::Id::Fov)) {
+            float base = ctx::fovBase > 0.f ? ctx::fovBase : base_.f;
+            float fov = 2.f * std::atan(std::tan(base * 0.0174533f * 0.5f) / current_) * 57.2958f;
+            fx::set(fx::Id::Fov, fov);
+            fx::set(fx::Id::FovEffects, 1.f);
+        } else {
+            post::params().zoom = std::max(post::params().zoom, current_);
+        }
+        if (!sens_.b) return;
+        float k = 1.f / std::pow(current_, 0.85f);
+        if (fx::available(fx::Id::Sensitivity)) fx::scale(fx::Id::Sensitivity, k);
+        else gameinput::scaleMouse(k);
+    }
+
+    void drawSettings() override {
+        if (fx::available(fx::Id::Fov)) return;
+        ImGui::Spacing();
+        widgets::hint("Zooms the picture for now. With game data for your version it changes the real field of view, which looks sharper.");
     }
 
     void onRender(ImDrawList* dl) override {

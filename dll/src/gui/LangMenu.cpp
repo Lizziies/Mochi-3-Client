@@ -79,6 +79,11 @@ const i18n::Entry entries[] = {
 
     {"Shorter frame queue, optional tearing instead of VSync, a higher priority render thread and a precise FPS limiter. Shows the time from click to frame so you can compare.",
      "Kürzere Bild-Warteschlange, optional Tearing statt VSync, ein Render-Thread mit höherer Priorität und ein präziser FPS-Limiter. Zeigt die Zeit vom Klick bis zum Bild, damit du vergleichen kannst."},
+    {"Zooms the picture for now. With game data for your version it changes the real field of view, which looks sharper.",
+     "Vergrößert vorerst das Bild. Mit Spieldaten für deine Version ändert Zoom das echte Sichtfeld, das sieht schärfer aus."},
+    {"Works on the mouse movement the game reads. Bow, block, sneak and sprint values need game data.",
+     "Wirkt auf die Mausbewegung, die das Spiel liest. Die Werte für Bogen, Blocken, Schleichen und Sprinten brauchen Spieldaten."},
+    {"Needs game data or the game's own input on this version.", "Braucht auf dieser Version Spieldaten oder die Eingabe des Spiels."},
 };
 
 i18n::Table table(entries);

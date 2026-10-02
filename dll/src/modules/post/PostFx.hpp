@@ -28,6 +28,7 @@ struct Params {
     float blur = 0.f;
     int shader = -1;
     float shaderMix = 1.f;
+    float zoom = 1.f;
 
     bool active() const;
     bool basic() const;
