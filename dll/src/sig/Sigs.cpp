@@ -1,4 +1,5 @@
 #include "Sigs.hpp"
+#include "Image.hpp"
 #include "Scanner.hpp"
 #include "core/Bg.hpp"
 #include "core/Http.hpp"
@@ -9,6 +10,7 @@
 #include <json.hpp>
 
 #include <atomic>
+#include <format>
 #include <fstream>
 #include <map>
 #include <mutex>
@@ -135,6 +137,18 @@ struct Entry {
     int ripOffset = 0;
     int ripLength = 0;
     int add = 0;
+    // a string the game contains, the function using it, or the vtable holding that function at slot
+    std::string anchor;
+    int occurrence = 0;
+    int slot = 0;
+    // a function read from a vtable found by another entry
+    std::string vtable;
+    int index = 0;
+
+    std::string key() const {
+        if (!anchor.empty()) return std::format("anchor:{}|{}|{}|{}", anchor, rel, slot, occurrence);
+        return patterns.empty() ? "" : patterns.front();
+    }
 };
 
 static void merge(const json& db, std::map<std::string, Entry>& sigsOut, std::map<std::string, int>& offsOut) {
@@ -155,6 +169,12 @@ static void merge(const json& db, std::map<std::string, Entry>& sigsOut, std::ma
                 e.ripOffset = v.value("ripOffset", 0);
                 e.ripLength = v.value("ripLength", 0);
                 e.add = v.value("add", 0);
+                e.anchor = v.value("anchor", "");
+                e.occurrence = v.value("occurrence", 0);
+                e.slot = v.value("slot", 0);
+                e.vtable = v.value("vtable", "");
+                e.index = v.value("index", 0);
+                if (!e.anchor.empty() && !v.contains("rel")) e.rel = "func";
             }
             sigsOut[name] = e;
         }
@@ -215,11 +235,25 @@ static void load() {
     json newCache = json::object();
 
     std::map<std::string, uintptr_t> found;
+    image::Image img(base);
     for (auto& [name, e] : entries) {
-        std::string key = e.patterns.empty() ? "" : e.patterns.front();
+        if (!e.vtable.empty()) continue;
+        std::string key = e.key();
         if (cache.contains(name) && cache[name].value("pattern", "") == key) {
             found[name] = base + cache[name].value("rva", (uint64_t)0);
             newCache[name] = cache[name];
+            continue;
+        }
+        if (!e.anchor.empty()) {
+            auto hits = e.rel == "vtable" ? image::anchorVtables(img, e.anchor, e.slot) : image::anchorFuncs(img, e.anchor);
+            if (hits.empty() || size_t(e.occurrence) >= hits.size()) {
+                logger::warn("sig {}: anchor found {} places", name, hits.size());
+                continue;
+            }
+            if (hits.size() > 1 && e.occurrence == 0) logger::warn("sig {}: anchor is not unique ({} places), using the first", name, hits.size());
+            uintptr_t addr = hits[size_t(e.occurrence)] + e.add;
+            found[name] = addr;
+            newCache[name] = {{"pattern", key}, {"rva", (uint64_t)(addr - base)}};
             continue;
         }
         for (auto& text : e.patterns) {
@@ -237,6 +271,20 @@ static void load() {
             }
             logger::warn("sig {}: {} hits", name, hits.size());
         }
+    }
+    for (auto& [name, e] : entries) {
+        if (e.vtable.empty()) continue;
+        auto from = found.find(e.vtable);
+        if (from == found.end() || e.index < 0) {
+            logger::warn("sig {}: vtable {} not found", name, e.vtable);
+            continue;
+        }
+        uintptr_t fn = *reinterpret_cast<const uintptr_t*>(from->second + uintptr_t(e.index) * 8);
+        if (!img.inCode(fn)) {
+            logger::warn("sig {}: slot {} of {} is not code", name, e.index, e.vtable);
+            continue;
+        }
+        found[name] = fn + e.add;
     }
     writeFile(cachePath, newCache.dump());
 

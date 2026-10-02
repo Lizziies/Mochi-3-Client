@@ -4,6 +4,7 @@
 #include "core/Client.hpp"
 #include "core/Log.hpp"
 #include "sdk/Game.hpp"
+#include "sig/Image.hpp"
 
 #include <windows.h>
 
@@ -137,6 +138,12 @@ void tick() {
                 if (st.id == "demo") st.b = true;
         game::setDemo(true);
         modules::refreshSigs();
+        std::string why;
+        if (image::selfCheck(why)) logger::info("selftest: image resolver ok");
+        else {
+            failed.push_back("image resolver");
+            logger::error("selftest: image resolver failed: {}", why);
+        }
         logger::info("selftest start: {} modules", list.size());
         return;
     }

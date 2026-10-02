@@ -199,3 +199,8 @@ Das hier ist der Anfang, nicht das Ende. Die Basis steht, der große Rest (Modul
 - Der Client baut mit MSVC, lädt im echten Minecraft 1.26.52.3 und zeichnet über DX12 (Hub, Blur, HUD). Phase 0 ist begonnen, Gate noch nicht erreicht: Strg+L, Fenstergröße, Vollbild, Alt-Tab, 30-Minuten-Lauf und Versionswahl sind ungeprüft.
 - 179 Module registriert, 107 gesperrt (`locked:`), `sigs: 0/0`. Das Ziel "locked leer" hängt an den Signaturen (Phase 2).
 - Fehler aus dem ersten Spieltest (HUD in Menüs, Eingabe bei offenem Menü, Toast-Seite) sind im Code behoben, Prüfung im Spiel steht aus, siehe `docs/TESTLOG.md`.
+
+## Session A (Cloud), Block: PC-Stand übernommen, Anker-Signaturen
+
+- `claude/pc-test` (Stand 2026-10-02) geholt: baut mit MinGW, Selbsttest 177 Module, 0 Fehler, 0 Aussetzer, 0 unübersetzte Texte.
+- Neu: Signaturen über Anker (`dll/src/sig/Image.*`). Eine Zeichenkette der Exe führt per `lea` zur Funktion, über die Slot-Nummer zur vtable, und ein Eintrag kann eine Funktion aus einer vtable lesen. Das entspricht dem Weg, den der Dev-Explorer am PC gefunden hat (ClientInstance, getLocalPlayer). Format in `docs/VERSIONING.md`. Unter Wine geprüft: `selftest: image resolver ok`, und die Ladestrecke mit einer Test-Signaturdatei (`sigs: 3/4`, der falsche Anker wird gemeldet). An der echten Minecraft-Exe ungeprüft.
