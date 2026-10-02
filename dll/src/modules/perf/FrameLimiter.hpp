@@ -53,7 +53,18 @@ private:
         return !w || GetForegroundWindow() == w;
     }
 
+    // asking the driver every frame costs up to milliseconds, the rate rarely changes
     static int refresh() {
+        static int cached = 60;
+        static ULONGLONG at = 0;
+        ULONGLONG now = GetTickCount64();
+        if (at && now - at < 2000) return cached;
+        at = now;
+        cached = query();
+        return cached;
+    }
+
+    static int query() {
         HWND w = dx::window();
         MONITORINFOEXW mi{};
         mi.cbSize = sizeof(mi);

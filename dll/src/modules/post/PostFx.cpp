@@ -1,4 +1,5 @@
 #include "PostFx.hpp"
+#include "core/Bg.hpp"
 #include "core/Guard.hpp"
 #include "core/Log.hpp"
 #include "ShaderPresets.hpp"
@@ -9,6 +10,7 @@
 #include <d3dcompiler.h>
 #include <imgui_impl_dx11.h>
 
+#include <atomic>
 #include <cmath>
 #include <cstring>
 #include <deque>
@@ -289,27 +291,37 @@ static void dropAll() {
     gpu.failed = false;
 }
 
-static bool buildShaders(ID3D11Device* dev) {
-    ID3DBlob *vsBlob = nullptr, *psBlob = nullptr, *blurBlob = nullptr, *err = nullptr;
-    UINT flags = D3DCOMPILE_OPTIMIZATION_LEVEL3;
-    HRESULT hr = D3DCompile(shaderSource, strlen(shaderSource), "postfx", nullptr, nullptr, "vs", "vs_5_0", flags, 0, &vsBlob, &err);
-    if (SUCCEEDED(hr)) hr = D3DCompile(shaderSource, strlen(shaderSource), "postfx", nullptr, nullptr, "ps", "ps_5_0", flags, 0, &psBlob, &err);
-    if (SUCCEEDED(hr)) hr = D3DCompile(shaderSource, strlen(shaderSource), "postfx", nullptr, nullptr, "psBlur", "ps_5_0", flags, 0, &blurBlob, &err);
-    if (FAILED(hr)) {
-        logger::error("postfx shader: {}", err ? (const char*)err->GetBufferPointer() : "compile failed");
-        release(err);
-        release(vsBlob);
-        release(psBlob);
-        release(blurBlob);
-        return false;
-    }
+// Compiling the big shader takes a noticeable moment, so it happens on a background thread right after
+// loading instead of on the render thread the first time the menu (blur) or an effect needs it.
+enum class Compile { Idle, Running, Ready, Failed };
+static std::atomic<Compile> compileState{Compile::Idle};
+static ID3DBlob* blobs[3] = {};
 
-    bool ok = SUCCEEDED(dev->CreateVertexShader(vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), nullptr, &gpu.vs)) &&
-              SUCCEEDED(dev->CreatePixelShader(psBlob->GetBufferPointer(), psBlob->GetBufferSize(), nullptr, &gpu.ps)) &&
-              SUCCEEDED(dev->CreatePixelShader(blurBlob->GetBufferPointer(), blurBlob->GetBufferSize(), nullptr, &gpu.psBlur));
-    release(vsBlob);
-    release(psBlob);
-    release(blurBlob);
+static void compileShaders() {
+    Compile expected = Compile::Idle;
+    if (!compileState.compare_exchange_strong(expected, Compile::Running)) return;
+    bg::run([] {
+        static const char* entries[3][2] = {{"vs", "vs_5_0"}, {"ps", "ps_5_0"}, {"psBlur", "ps_5_0"}};
+        for (int i = 0; i < 3; i++) {
+            ID3DBlob* err = nullptr;
+            HRESULT hr = D3DCompile(shaderSource, strlen(shaderSource), "postfx", nullptr, nullptr, entries[i][0], entries[i][1],
+                                    D3DCOMPILE_OPTIMIZATION_LEVEL3, 0, &blobs[i], &err);
+            if (FAILED(hr)) {
+                logger::error("postfx shader: {}", err ? (const char*)err->GetBufferPointer() : "compile failed");
+                release(err);
+                compileState = Compile::Failed;
+                return;
+            }
+            release(err);
+        }
+        compileState = Compile::Ready;
+    });
+}
+
+static bool buildShaders(ID3D11Device* dev) {
+    bool ok = SUCCEEDED(dev->CreateVertexShader(blobs[0]->GetBufferPointer(), blobs[0]->GetBufferSize(), nullptr, &gpu.vs)) &&
+              SUCCEEDED(dev->CreatePixelShader(blobs[1]->GetBufferPointer(), blobs[1]->GetBufferSize(), nullptr, &gpu.ps)) &&
+              SUCCEEDED(dev->CreatePixelShader(blobs[2]->GetBufferPointer(), blobs[2]->GetBufferSize(), nullptr, &gpu.psBlur));
     if (!ok) return false;
 
     D3D11_BUFFER_DESC bd{};
@@ -385,6 +397,9 @@ static bool makeTexture(ID3D11Device* dev, const D3D11_TEXTURE2D_DESC& from, ID3
 }
 
 static bool ensure(ID3D11Device* dev, const D3D11_TEXTURE2D_DESC& back, bool wantLast) {
+    compileShaders();
+    if (compileState == Compile::Running) return false;
+    if (compileState == Compile::Failed) return false;
     if (gpu.dev != dev) {
         dropAll();
         gpu.dev = dev;
@@ -665,6 +680,7 @@ void blur(ImDrawList* dl, ImVec2 min, ImVec2 max, float rounding, float radius, 
 }
 
 void begin() {
+    compileShaders();
     frameParams = Params{};
     blurJobs.clear();
     gpu.blurCopied = false;
@@ -681,6 +697,11 @@ void submit(ImDrawList* dl) {
     dl->AddCallback(ImGui::GetPlatformIO().DrawCallback_ResetRenderState, nullptr);
 }
 
-void shutdown() { dropAll(); }
+void shutdown() {
+    dropAll();
+    if (compileState == Compile::Running) return;
+    for (auto*& b : blobs) release(b);
+    compileState = Compile::Idle;
+}
 
 }

@@ -13,6 +13,7 @@
 #include "sdk/Effects.hpp"
 #include "sdk/Game.hpp"
 #include "sdk/Inject.hpp"
+#include "sdk/Memory.hpp"
 #include "Tiers.hpp"
 #include "sig/Sigs.hpp"
 
@@ -375,6 +376,7 @@ void frame(ImDrawList* hud) {
     LARGE_INTEGER t0, t1, qpf;
     QueryPerformanceCounter(&t0);
     perf::begin();
+    mem::nextFrame();
     post::begin();
     fx::begin();
     gameinput::tick();

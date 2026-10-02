@@ -47,13 +47,11 @@ private:
         if (!thread_) return;
         base_ = GetThreadPriority(thread_);
         SetThreadPriority(thread_, std::max(base_, (int)THREAD_PRIORITY_ABOVE_NORMAL));
-        SetThreadPriorityBoost(thread_, TRUE);
     }
 
     void restore() {
         if (!thread_) return;
         SetThreadPriority(thread_, base_);
-        SetThreadPriorityBoost(thread_, FALSE);
         CloseHandle(thread_);
         thread_ = nullptr;
     }
