@@ -49,8 +49,8 @@ public:
     }
 
     bool configure(Mode mode) override {
-        if (!ready_) return false;
         if (mode == Mode::Off && !owned_) return true;
+        if (!ready_) return false;
         NV_SET_SLEEP_MODE_PARAMS settings{};
         settings.version = NV_SET_SLEEP_MODE_PARAMS_VER;
         settings.bLowLatencyMode = mode != Mode::Off;
