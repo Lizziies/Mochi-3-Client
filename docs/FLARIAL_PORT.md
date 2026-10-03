@@ -81,3 +81,17 @@ Aufbau:
 5. Reihenfolge: zuerst Kern + Brücken bauen, dann die 26 entfernten Module, dann gemeinsame Module abgleichen,
    dann Flarial-only-Module, dann Mochi-Extras wieder darauf setzen. Jede Spielanbindung zählt erst nach
    bestätigter Signatur und sichtbarer Wirkung im Spiel (Regel 7).
+
+## Stand 2026-10-03 abends
+
+- `flarial_core` baut den ganzen Flarial-Client (alle Module, SDK, Hooks, Events, GUI-Engine, ClickGUI) als
+  statische Bibliothek, Schalter `-DMOCHI_FLARIAL=ON`. Mit Mochis ImGui 1.93 und MinHook, ohne Lua, Discord-
+  Bibliothek, rift und curl (curl-Aufrufe laufen über eine kleine WinHTTP-Schicht in `dll/src/flarial/shim`).
+- Angepasste Dateien liegen in `dll/src/flarial` (gleiche Pfade wie upstream, jede mit SPDX-Zeile und Grund).
+  CMake baut einen zusammengesetzten Baum im Build-Ordner: upstream, darüber die angepassten Dateien.
+- Noch nicht verbunden: Mochi startet den Kern noch nicht. Nächster Schritt ist ein eigener Start statt
+  `Client::initialize` (das schickt Telemetrie an Flarial, legt Flarial-Ordner an und lädt Flarials Konfig),
+  Flarials DX-Hooks aus der Hook-Liste nehmen und `RenderEvent`/`SetupAndRenderEvent` aus Mochis Present
+  speisen, dann die Einstellungs- und Zeichenbrücke.
+- Wichtig für Tests: Mochi mit Flarial-Kern darf nicht zusammen mit der installierten Flarial-DLL laufen,
+  beide würden dieselben Spielfunktionen hooken.
