@@ -366,6 +366,60 @@ int lHeapFloats(lua_State* L) {
     return pushList(L, hits);
 }
 
+// Narrowing scan over all private writable memory: scanstart(kind, lo, hi) keeps every address whose value is
+// inside [lo, hi]; scannext(lo, hi) keeps the ones still inside. kind: 1 = u8, 4 = i32, 5 = f32.
+int scanKind = 0;
+std::vector<uintptr_t> scanHits;
+
+bool scanMatch(const uint8_t* p, double lo, double hi) {
+    double v = 0;
+    if (scanKind == 1) v = *p;
+    else if (scanKind == 4) { int32_t x; std::memcpy(&x, p, 4); v = x; }
+    else { float x; std::memcpy(&x, p, 4); if (!std::isfinite(x)) return false; v = x; }
+    return v >= lo && v <= hi;
+}
+
+int lScanStart(lua_State* L) {
+    scanKind = static_cast<int>(luaL_checkinteger(L, 1));
+    double lo = luaL_checknumber(L, 2), hi = luaL_checknumber(L, 3);
+    size_t step = scanKind == 1 ? 1 : 4, size = scanKind == 1 ? 1 : 4;
+    scanHits.clear();
+    MEMORY_BASIC_INFORMATION mbi{};
+    uintptr_t at = 0x10000;
+    while (scanHits.size() < 50'000'000 && VirtualQuery(reinterpret_cast<void*>(at), &mbi, sizeof(mbi))) {
+        uintptr_t next = reinterpret_cast<uintptr_t>(mbi.BaseAddress) + mbi.RegionSize;
+        bool ok = mbi.State == MEM_COMMIT && mbi.Type == MEM_PRIVATE && !(mbi.Protect & (PAGE_GUARD | PAGE_NOACCESS)) &&
+                  (mbi.Protect & (PAGE_READWRITE | PAGE_WRITECOPY));
+        if (ok) {
+            walk(reinterpret_cast<uintptr_t>(mbi.BaseAddress), mbi.RegionSize, size, [&](uintptr_t base, const uint8_t* data, size_t count, size_t span) {
+                for (size_t i = 0; i + size <= count && i < span; i += step)
+                    if (scanMatch(data + i, lo, hi)) scanHits.push_back(base + i);
+                return false;
+            });
+        }
+        if (next <= at) break;
+        at = next;
+    }
+    lua_pushinteger(L, static_cast<lua_Integer>(scanHits.size()));
+    return 1;
+}
+
+int lScanNext(lua_State* L) {
+    double lo = luaL_checknumber(L, 1), hi = luaL_checknumber(L, 2);
+    std::vector<uintptr_t> keep;
+    uint8_t buf[4];
+    for (uintptr_t a : scanHits)
+        if (readMem(a, buf, scanKind == 1 ? 1 : 4) && scanMatch(buf, lo, hi)) keep.push_back(a);
+    scanHits.swap(keep);
+    lua_pushinteger(L, static_cast<lua_Integer>(scanHits.size()));
+    return 1;
+}
+
+int lScanList(lua_State* L) {
+    size_t n = std::min<size_t>(scanHits.size(), static_cast<size_t>(luaL_optinteger(L, 1, 64)));
+    return pushList(L, std::vector<uintptr_t>(scanHits.begin(), scanHits.begin() + n));
+}
+
 // 8-byte values in [lo, hi), in private writable memory: everything that points into an object
 int lHeapRange(lua_State* L) {
     uint64_t lo = static_cast<uint64_t>(luaL_checkinteger(L, 1)), hi = static_cast<uint64_t>(luaL_checkinteger(L, 2));
@@ -781,7 +835,7 @@ void work(std::string name) {
         {"i32", readValue<int32_t>},  {"f32", readValue<float>},    {"f64", readValue<double>}, {"wf32", lWriteF32}, {"raw", lRaw},
         {"cstr", lCstr},       {"find", lFind},         {"findd", lFindData},  {"bytes", lBytes},
         {"xrefs", lXrefs},     {"callers", lCallers},   {"func", lFunc},       {"vtable", lVtable},
-        {"heap", lHeap},       {"heapf", lHeapFloats}, {"heapi", lHeapInts}, {"heapr", lHeapRange},  {"call", lCall}, {"callf", lCallF}, {"scanf", lScanFloats}, {"floatsin", lFloatsIn},{"pointers", lPointers},      {"disasm", lDisasm},   {"disfunc", lDisFunc},
+        {"heap", lHeap},       {"heapf", lHeapFloats}, {"heapi", lHeapInts}, {"heapr", lHeapRange}, {"scanstart", lScanStart}, {"scannext", lScanNext}, {"scanlist", lScanList},  {"call", lCall}, {"callf", lCallF}, {"scanf", lScanFloats}, {"floatsin", lFloatsIn},{"pointers", lPointers},      {"disasm", lDisasm},   {"disfunc", lDisFunc},
         {"sleep", lSleep},     {"watch", lWatch},     {"log", lLog},           {"out", lOut},         {"run", lRun},
         {nullptr, nullptr}};
     luaL_newlib(L, api);

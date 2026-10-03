@@ -313,7 +313,7 @@ uintptr_t optionObject(int id) {
 void restoreOverride(size_t i) {
     auto& ov = overrides[i];
     if (!ov || !ov->at) return;
-    mem::write(ov->at, ov->old);
+    if (mem::get<uintptr_t>(ov->at) == reinterpret_cast<uintptr_t>(ov->option.data())) mem::write(ov->at, ov->old);
     ov->at = 0;
 }
 
@@ -528,6 +528,13 @@ void apply() {
         }
 
         Kind kind = kindOf(i);
+        // while a world loads or unloads the game tears down and rebuilds the objects around the options; an
+        // option still pointing at our copy then was the last thing touched before a crash on server join
+        if (kind == Kind::Option && !game::state().inWorld) {
+            sl.mode = None;
+            restoreOverride(i);
+            continue;
+        }
         if (kind == Kind::Option) {
             sl.mode = r.mode;
             sl.v[0] = r.v[0];
