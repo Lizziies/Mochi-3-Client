@@ -1,0 +1,13 @@
+{
+  "repository": "https://github.com/flarialmc/dll-oss",
+  "license": "AGPL-3.0",
+  "integration": "source baseline; hooks must be adapted and verified before enabling",
+  "directories": [
+    "src\\Client\\Module\\Modules",
+    "src\\Client\\Events",
+    "src\\Client\\Hook",
+    "src\\SDK",
+    "src\\Utils\\Memory\\Game"
+  ],
+  "commit": "40ad1870efd021138241192894cfbfacef1aefa5"
+}
