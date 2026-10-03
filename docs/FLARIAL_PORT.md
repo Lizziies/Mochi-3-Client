@@ -57,3 +57,27 @@ markiert sind. Quellcode kopiert bedeutet nicht, dass jeder Hook auf dieser Vers
 Mochi wurde aus dem Spiel entladen. Die abschließende Modulliste enthielt nur Flarial.
 Seit der Untersagung wurde kein neuer Mochi-Build injiziert. Weitere Sichttests werden erst
 in einer später ausdrücklich freigegebenen Mochi-Testsession durchgeführt.
+
+
+## Entscheidung 2026-10-03: Flarial als Standard, Mochi obendrauf
+
+Alle 117 Flarial-Module werden Mochis Grundbestand. Mochi legt seine Extras darauf: mehr Einstellungen,
+eigene UI, HUD-Editor, Animationen und die eigenen Zusatzmodule (Mini-Spiele, Mochi Online, Bildfilter,
+Hive-/Zeqa-Werkzeuge usw.). Wo es ein Modul bei beiden gibt, gewinnt die Spielanbindung, die im Spiel
+nachweislich wirkt; die Mochi-Einstellungen kommen dazu.
+
+Aufbau:
+
+1. `flarial_core`: statische Bibliothek aus Flarials Spiel-Teil (SDK, Hooks, Events, Utils/Memory, Module-Logik)
+   mit den nötigen Abhängigkeiten (EnTT, libhat, safetyhook, fmt, magic_enum, NES-Eventsystem, glm).
+   Nicht übernommen: Flarials Menü, Konfig-Speicher, Discord-Anbindung (das Upstream-Repo existiert nicht mehr),
+   Lua-Skripting, eigene DX-/D2D-Overlay-Schicht. Das alles hat Mochi bereits.
+2. Einstellungs-Brücke: Flarials `setDef`/`getOps` und `addSlider`/`addToggle`/`addColorPicker`/`addDropdown`/
+   `addKeybind`/`addTextBox` werden so nachgebaut, dass sie Mochi-Einstellungen anlegen. Jedes Flarial-Modul
+   erscheint so in Mochis Menü, gespeichert in Mochis Konfig, und kann um eigene Einstellungen erweitert werden.
+3. Zeichen-Brücke: Flarials HUD-Zeichenaufrufe (`FlarialGUI::…`) laufen über Mochis ImGui-Zeichenliste und
+   Schriften; Rendering im Spiel (SetupAndRender, MinecraftUIRenderContext, Actor-/Level-Render) bleibt Flarials Hook.
+4. Ein Overlay-System: Mochis DX-Hook bleibt der einzige. Flarials eigener kiero/D2D-Pfad wird nicht gebaut.
+5. Reihenfolge: zuerst Kern + Brücken bauen, dann die 26 entfernten Module, dann gemeinsame Module abgleichen,
+   dann Flarial-only-Module, dann Mochi-Extras wieder darauf setzen. Jede Spielanbindung zählt erst nach
+   bestätigter Signatur und sichtbarer Wirkung im Spiel (Regel 7).
