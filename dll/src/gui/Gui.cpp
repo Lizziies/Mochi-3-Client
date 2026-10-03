@@ -15,6 +15,7 @@
 #include "server/Rules.hpp"
 
 #include <imgui.h>
+#include <imgui_internal.h>
 
 #include <algorithm>
 #include <atomic>
@@ -53,6 +54,9 @@ void beginFrame() {
 
 bool open() { return isOpen; }
 
+// setOpen can run on the window thread; the active field is let go on the render thread
+static std::atomic<bool> dropFocus{false};
+
 void setOpen(bool on) {
     if (on && !isOpen) {
         input::releaseHeld();
@@ -63,6 +67,7 @@ void setOpen(bool on) {
         hudEdit = false;
     } else {
         config::saveLater();
+        dropFocus = true;
     }
 }
 
@@ -96,7 +101,8 @@ void setEditingHud(bool on) {
 
 bool wantsInput() { return isOpen || hudEdit || keyboardClaim; }
 bool wantsCursor() { return isOpen || hudEdit; }
-bool capturesKeyboard() { return isOpen || widgets::capturingKey() || keyboardClaim || ImGui::GetIO().WantTextInput; }
+// a text field left active when the menu closed must not keep eating the game's keys
+bool capturesKeyboard() { return isOpen || widgets::capturingKey() || keyboardClaim || (hudEdit && ImGui::GetIO().WantTextInput); }
 void claimKeyboard() { keyboardClaimNext = true; }
 
 // Every panel floats on its own: blurred game behind it, a translucent fill and a thin outline.
@@ -239,6 +245,7 @@ static void drawMenu() {
 }
 
 void draw() {
+    if (dropFocus.exchange(false)) ImGui::ClearActiveID();
     pollDevCommands();
     if (hudEdit) {
         hudeditor::draw();

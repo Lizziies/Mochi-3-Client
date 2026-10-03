@@ -140,6 +140,7 @@ public:
         if ((m & unsigned(Domain::Player)) && off("hit.via0") >= 0) m |= unsigned(Domain::Target) | unsigned(Domain::Combat);
         if ((m & unsigned(Domain::Player)) && sigs::address("AttackEntity")) m |= unsigned(Domain::Combat);
         if ((m & unsigned(Domain::Player)) && off("hand.vtable") >= 0) m |= unsigned(Domain::Inventory);
+        if ((m & unsigned(Domain::Player)) && off("chat.via0") >= 0) m |= unsigned(Domain::Chat);
         return m;
     }
 
@@ -168,6 +169,8 @@ public:
             readInventory(s);
         }
         if (have & unsigned(Domain::World)) readWorld(s);
+        if (playerPtr_ && (have & unsigned(Domain::Chat))) readChat(ev);
+        else chatPrimed_ = false;
         bool playing = input::gameplay();
         // menu screens keep sending (LAN discovery, Xbox Live, server list pings), so traffic only counts
         // as "in a world" when it carried on from a moment the player was actually playing
@@ -369,6 +372,44 @@ private:
         return it;
     }
 
+    // The HUD keeps the received chat lines in a std::vector of GuiMessage (1.26.52: 0x110 bytes, finished line
+    // with sender as a std::string at +0x90). New lines are the ones after the last line seen; the vector is
+    // trimmed from the front, so the last seen line is searched from the end.
+    void readChat(std::vector<Event>& ev) {
+        uintptr_t vec = follow(playerPtr_, "chat") + off("chat.lines");
+        uintptr_t begin = mem::pointer(vec), end = mem::pointer(vec + 8);
+        int size = off("chat.size");
+        if (!begin || end < begin || (end - begin) % size || (end - begin) / size > 1000) return;
+        size_t count = (end - begin) / size;
+        auto line = [&](size_t k) { return text(begin + k * size + off("chat.text")); };
+        if (!chatPrimed_) {
+            chatPrimed_ = true;
+            chatLast_ = count ? line(count - 1) : std::string();
+            chatCount_ = count;
+            return;
+        }
+        if (count == 0) {
+            chatLast_.clear();
+            chatCount_ = 0;
+            return;
+        }
+        if (count == chatCount_ && line(count - 1) == chatLast_) return;
+        size_t from = 0;
+        if (!chatLast_.empty())
+            for (size_t k = count; k-- > 0;)
+                if (line(k) == chatLast_) {
+                    from = k + 1;
+                    break;
+                }
+        for (size_t k = from; k < count; k++) {
+            Event e{EventKind::Chat};
+            e.text = line(k);
+            if (!e.text.empty()) ev.push_back(std::move(e));
+        }
+        chatLast_ = line(count - 1);
+        chatCount_ = count;
+    }
+
     void readStats(State& s) {
         uintptr_t array = attrArray;
         if (!validAttrs(array)) return;
@@ -490,6 +531,9 @@ private:
     bool wasPressed_ = false;
     uint64_t inventoryAt_ = 0;
     uint64_t sweptAt_ = 0;
+    std::string chatLast_;
+    size_t chatCount_ = 0;
+    bool chatPrimed_ = false;
     float fallSpeed_ = 0.f;
     bool onGround_ = true;
     bool sprinting_ = false;
