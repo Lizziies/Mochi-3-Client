@@ -10,6 +10,7 @@ bool motion();
 float easeOutBack(float t);
 float easeOutCubic(float t);
 float easeInOutCubic(float t);
+float easeInOutSine(float t);
 
 void heart(ImDrawList* dl, ImVec2 center, float size, ImU32 color);
 void sparkle(ImDrawList* dl, ImVec2 center, float size, ImU32 color);

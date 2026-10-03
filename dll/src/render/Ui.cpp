@@ -4,6 +4,7 @@
 #include "core/Log.hpp"
 #include "gui/Gui.hpp"
 #include "gui/Notify.hpp"
+#include "gui/Profile.hpp"
 #include "gui/Theme.hpp"
 #include "hook/Input.hpp"
 #include "modules/Manager.hpp"
@@ -95,6 +96,7 @@ void drain() {
 void frame() {
     if (!ready) return;
     input::Ours ours;
+    double began = gui::profile::stamp();
     drain();
     ImGui_ImplDX11_NewFrame();
     ImGui_ImplWin32_NewFrame();
@@ -114,6 +116,8 @@ void frame() {
 
     ImGui::Render();
     ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+    gui::profile::frame(float(gui::profile::since(began)));
+    gui::profile::finish(ImGui::GetIO().DeltaTime);
 }
 
 void shutdown() {

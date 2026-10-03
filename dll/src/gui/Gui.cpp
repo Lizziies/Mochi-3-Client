@@ -3,6 +3,7 @@
 #include "I18n.hpp"
 #include "HudEditor.hpp"
 #include "Theme.hpp"
+#include "Profile.hpp"
 #include "Widgets.hpp"
 #include "core/Config.hpp"
 #include "hook/Input.hpp"
@@ -224,14 +225,18 @@ static void drawMenu() {
     float foot = 26 * s;
     ImVec2 lp{x, top + 38 * s + lift(a)}, ls{listW, bottom - top - 38 * s};
     beginPanel("##mochi", lp, ls, draw::easeOutCubic(a));
+    double t0 = profile::stamp();
     drawModulesPage(lp + ImVec2(8 * s, 8 * s), {ls.x - 10 * s, ls.y - 8 * s - foot});
+    double listUs = profile::since(t0);
     footer({lp.x + 12 * s, lp.y + ls.y - foot}, ls.x - 24 * s);
     endPanel();
 
     a = stage(2);
     ImVec2 dp{dx, top + lift(a)}, dsz{detailsW, bottom - top};
     beginPanel("##mochi_details", dp, dsz, draw::easeOutCubic(a));
+    t0 = profile::stamp();
     drawDetails(dp, dsz);
+    profile::menu(float(listUs), float(profile::since(t0)));
     endPanel();
 
     bool typing = ImGui::GetIO().WantTextInput;
@@ -240,6 +245,7 @@ static void drawMenu() {
 
 void draw() {
     pollDevCommands();
+    profileDrive();
     if (hudEdit) {
         hudeditor::draw();
         if (ImGui::IsKeyPressed(ImGuiKey_Escape, false)) {

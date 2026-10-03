@@ -2,6 +2,7 @@
 #include "GuiInternal.hpp"
 #include "Gui.hpp"
 #include "I18n.hpp"
+#include "Profile.hpp"
 #include "Theme.hpp"
 #include "Widgets.hpp"
 #include "modules/HudModule.hpp"
@@ -24,6 +25,11 @@ static const Entry* pickedEntry = nullptr;
 static Module* pickedModule = nullptr;
 static Module* focusPart = nullptr;
 static bool scrollList = false;
+static float profileScroll = -1.f;
+static bool foldingInView = false;
+static bool anyFolding = false;
+static Module* lastHeaderInView = nullptr;
+static size_t probeAt = 4;
 static bool scrollPart = false;
 static std::map<const void*, bool> partOpen;
 static std::map<const void*, float> partT;
@@ -88,6 +94,7 @@ enum class Hit { None, Row, Switch };
 static Hit listRow(const void* id, const Row& row, float appear = 1.f) {
     auto& t = theme::current();
     float s = ui::scale();
+    profile::row();
     ImGui::PushID(id);
     ImVec2 p = ImGui::GetCursorScreenPos();
     float w = ImGui::GetContentRegionAvail().x;
@@ -391,10 +398,12 @@ static void settingList(Module& m) {
     if (widgets::button("Edit HUD", {0, 0}, true)) setEditingHud(true);
 }
 
-// The body under a part slides open: the child's height follows the animation and the full height is the
-// content measured in the previous frame. The measured height is eased too, so settings that appear or
-// disappear inside an open part do not make the list jump. The content fades in over the second half of
-// the motion and out over the first half of closing, so it is never squeezed visibly.
+// The body under a part slides open. Nothing is rebuilt and no child window is involved: the body is laid out
+// at its natural size in the list itself, a clip rect cuts it at the animated height, and the cursor moves on by
+// that height. Child windows snap to whole pixels and rebuild their layout; this keeps every row at its exact
+// float position. The measured height is eased too, so settings that appear or disappear inside an open part do
+// not make the list jump. The content fades in over the second half of the motion and out over the first half
+// of closing, so it is never squeezed visibly.
 template <class F>
 static void expander(const void* id, float a, F&& body) {
     if (a < 0.002f) return;
@@ -403,24 +412,36 @@ static void expander(const void* id, float a, F&& body) {
     auto shown = partShown.try_emplace(id, 0.f).first;
     if (shown->second <= 0.f || it->second <= 0.f) shown->second = it->second;
     else shown->second = draw::approach(shown->second, it->second, 20.f * theme::current().animSpeed);
-    float h = std::max(1.f, shown->second * draw::easeInOutCubic(a));
-    ImGui::PushID(id);
-    ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2(10 * s, 0));
-    ImGui::BeginChild("body", {ImGui::GetContentRegionAvail().x, h}, 0,
-                      ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+    float h = std::max(1.f, shown->second * draw::easeInOutSine(a));
+    if (profile::recording() && a > 0.f && a < 1.f) profile::height(h);
+
+    ImGuiWindow* win = ImGui::GetCurrentWindow();
+    ImVec2 start = ImGui::GetCursorScreenPos();
+    ImVec2 reach = win->DC.CursorMaxPos;
+    float width = ImGui::GetContentRegionAvail().x;
     float base = theme::fade();
     float k = draw::easeOutCubic(std::clamp((a - 0.3f) / 0.6f, 0.f, 1.f));
+    float lift = (1.f - k) * 6 * s;
+
+    ImGui::PushID(id);
+    ImGui::PushClipRect(start, start + ImVec2(width, h), true);
     theme::setFade(base * k);
     ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * k);
-    ImGui::SetCursorPosY(ImGui::GetCursorPosY() + (1.f - k) * -6 * s);
+    ImGui::SetCursorScreenPos(start + ImVec2(10 * s, -lift));
+    ImGui::Indent(10 * s);
     ImGui::Dummy({0, 1 * s});
     body();
     ImGui::Dummy({0, 6 * s});
+    ImGui::Unindent(10 * s);
     ImGui::PopStyleVar();
     theme::setFade(base);
-    it->second = ImGui::GetCursorPosY() + (1.f - k) * 6 * s;
-    ImGui::EndChild();
+    it->second = ImGui::GetCursorScreenPos().y - start.y + lift;
+    ImGui::PopClipRect();
     ImGui::PopID();
+
+    win->DC.CursorMaxPos = reach;
+    ImGui::SetCursorScreenPos(start + ImVec2(0, h));
+    ImGui::Dummy({0, 0});
 }
 
 static void part(Module& m) {
@@ -428,9 +449,22 @@ static void part(Module& m) {
     bool& isOpen = partOpen[&m];
     float& a = partT[&m];
     float dir = isOpen ? 1.f : -1.f;
-    a = draw::motion() ? std::clamp(a + dir * ui::dt() * t.animSpeed / (isOpen ? 0.30f : 0.22f), 0.f, 1.f) : (isOpen ? 1.f : 0.f);
+    // a tall body gets more time, so no frame moves the list by more than a few dozen pixels
+    float full = partShown.count(&m) ? partShown[&m] : 0.f;
+    float duration = std::clamp(0.2f + full * 0.0004f, 0.2f, 0.8f) * (isOpen ? 1.f : 0.8f);
+    a = draw::motion() ? std::clamp(a + dir * ui::dt() * t.animSpeed / duration, 0.f, 1.f) : (isOpen ? 1.f : 0.f);
+    {
+        auto* win = ImGui::GetCurrentWindow();
+        float y = ImGui::GetCursorScreenPos().y;
+        bool inView = y > win->InnerClipRect.Min.y && y < win->InnerClipRect.Max.y;
+        if (!isOpen && a > 0.f) {
+            foldingInView |= inView;
+            anyFolding = true;
+        }
+        if (inView && profile::recording()) lastHeaderInView = &m;
+    }
     Row row = moduleRow(m);
-    row.fold = draw::easeInOutCubic(a);
+    row.fold = draw::easeInOutSine(a);
     row.fav = &m;
     row.scrollHere = scrollPart && focusPart == &m;
     if (row.scrollHere) scrollPart = false;
@@ -556,16 +590,107 @@ void drawDetails(ImVec2 origin, ImVec2 size) {
     } else {
         ImGui::SetCursorScreenPos(body);
         beginScroll("detail", area, fresh && !scrollPart);
-        if (group)
-            for (auto* m : group->members) part(*m);
-        else
+        if (group) {
+            // While a part folds in with its header on screen, the list keeps its height and gives the room back
+            // slowly afterwards, so the header the user clicked stays where it is. The scroll position is clamped
+            // to the content, so without this the rows would be dragged along as the content gets shorter.
+            static float lastEnd = 0.f, slack = 0.f;
+            static const Entry* slackFor = nullptr;
+            if (slackFor != group || fresh) {
+                slackFor = group;
+                lastEnd = slack = 0.f;
+            }
+            if (profileScroll >= 0.f) {
+                ImGui::SetScrollY(profileScroll);
+                profileScroll = -1.f;
+            }
+            float top = ImGui::GetCursorPosY();
+            size_t at = 0;
+            for (auto* m : group->members) {
+                if (at++ == probeAt && profile::recording()) profile::probe(ImGui::GetCursorScreenPos().y, ImGui::GetScrollY());
+                part(*m);
+            }
+            float end = ImGui::GetCursorPosY() - top;
+            slack = std::max(slack, 0.f) + (foldingInView ? std::max(0.f, lastEnd - end) : 0.f);
+            foldingInView = false;
+            if (end > lastEnd) slack = std::max(0.f, slack - (end - lastEnd));
+            lastEnd = end;
+            if (!anyFolding) slack = draw::approach(slack, 0.f, 4.f * theme::current().animSpeed);
+            anyFolding = false;
+            if (slack > 0.5f) ImGui::Dummy({0, slack});
+        } else {
             settingList(*single);
+        }
         ImGui::Dummy({0, 8 * s});
         endScroll("detail");
     }
 
     ImGui::PopStyleVar(2);
     theme::setFade(base);
+}
+
+// MOCHI_PROFILE: opens the menu, picks a group and opens and closes its parts one after the other, so frame
+// times can be compared run to run without clicking.
+void profileDrive() {
+    if (!profile::recording()) return;
+    static double start = -1.0;
+    static int step = 0;
+    static const Entry* group = nullptr;
+    if (start < 0.0) start = ui::time();
+    double t = ui::time() - start;
+    if (t < 1.0) return;
+    if (step == 0) {
+        setOpen(true);
+        profile::phase("open");
+        step = 1;
+    }
+    if (t < 2.5) return;
+    if (!group) {
+        for (auto& e : catalog())
+            if (e.group && e.members.size() >= 5) {
+                group = &e;
+                break;
+            }
+        if (group) pickEntry(*group);
+        profile::phase("group");
+        return;
+    }
+    int k = int((t - 4.0) / 1.4);
+    if (t >= 4.0 && k >= step - 1 && k < 14) {
+        step = k + 2;
+        Module* m = group->members[size_t(k / 2) % group->members.size()];
+        partOpen[m] = k % 2 == 0;
+        profile::phase(k % 2 == 0 ? "expand" : "collapse");
+    }
+    if (t >= 24.0 && step < 90) {
+        step = 90;
+        for (auto* m : group->members) partOpen[m] = true;
+        probeAt = 2;
+        profile::phase("all-open");
+    }
+    if (t >= 27.0 && step < 91) {
+        step = 91;
+        profileScroll = 1e6f;
+        profile::phase("scrolled");
+    }
+    if (t >= 29.0 && step < 92) {
+        step = 92;
+        for (size_t i = 0; i < group->members.size(); i++)
+            if (group->members[i] == lastHeaderInView) {
+                partOpen[lastHeaderInView] = false;
+                probeAt = i;
+            }
+        profile::phase("collapse-bottom");
+    }
+    if (t >= 33.0 && step < 100) {
+        step = 100;
+        for (auto& e : catalog())
+            if (!e.group && !locked(*e.members.front())) {
+                pickEntry(e);
+                profile::phase("single");
+                break;
+            }
+    }
 }
 
 }

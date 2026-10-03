@@ -1,7 +1,9 @@
 #include <windows.h>
+#include <mmsystem.h>
 #include <d3d11.h>
 #include <dxgi.h>
 
+#include <algorithm>
 #include <cmath>
 #include <cstdlib>
 #include <cstdio>
@@ -94,6 +96,12 @@ int wmain(int argc, wchar_t** argv) {
         return 1;
     }
     int seconds = argc > 2 ? _wtoi(argv[2]) : 26;
+    int targetFps = std::getenv("TESTHOST_FPS") ? std::atoi(std::getenv("TESTHOST_FPS")) : 0;
+    timeBeginPeriod(1);
+    LARGE_INTEGER qf, qlast, qnow;
+    QueryPerformanceFrequency(&qf);
+    QueryPerformanceCounter(&qlast);
+    std::vector<double> intervals;
 
     WNDCLASSEXW wc{sizeof(wc)};
     wc.lpfnWndProc = proc;
@@ -249,7 +257,28 @@ int wmain(int argc, wchar_t** argv) {
             lastFrames = frames;
         }
         if (t > seconds) break;
-        Sleep(4);
+        if (targetFps > 0) {
+            double want = 1.0 / targetFps;
+            for (;;) {
+                QueryPerformanceCounter(&qnow);
+                double spent = double(qnow.QuadPart - qlast.QuadPart) / double(qf.QuadPart);
+                if (spent >= want) break;
+                if (want - spent > 0.002) Sleep(1);
+            }
+        } else {
+            Sleep(4);
+        }
+        QueryPerformanceCounter(&qnow);
+        intervals.push_back(double(qnow.QuadPart - qlast.QuadPart) * 1000.0 / double(qf.QuadPart));
+        qlast = qnow;
+    }
+    if (!intervals.empty()) {
+        std::vector<double> sorted = intervals;
+        std::sort(sorted.begin(), sorted.end());
+        double sum = 0;
+        for (double v : sorted) sum += v;
+        std::printf("host frame ms: mean %.2f median %.2f p99 %.2f max %.2f\n", sum / sorted.size(), sorted[sorted.size() / 2],
+                    sorted[size_t(sorted.size() * 0.99)], sorted.back());
     }
     std::printf("frames=%d still_loaded=%d\n", frames, GetModuleHandleW(L"Mochi.dll") != nullptr);
     return 0;
