@@ -2,6 +2,7 @@
 
 #include "core/Build.hpp"
 #include "gui/Gui.hpp"
+#include "gui/Profile.hpp"
 #include "gui/Theme.hpp"
 #include "hook/Dx.hpp"
 #include "hook/Input.hpp"
@@ -328,6 +329,10 @@ public:
             right.push_back(std::format("Minecraft {}", stats.gameVersion));
             right.push_back(i18n::fmt("Signatures: {}/{} ({})", stats.found, stats.total, stats.source));
             if (game::demo()) right.push_back(i18n::tr("Demo data on"));
+            if (auto& m = gui::profile::stats(); ui::time() - m.seen < 1.0) {
+                right.push_back(i18n::fmt("Menu: list {:.0f} us, details {:.0f} us, frame {:.0f} us", m.listUs, m.detailsUs, m.frameUs));
+                right.push_back(i18n::fmt("Menu: {} rows, {} draw calls, {} vertices", m.rows, m.cmds, m.vertices));
+            }
             if (channels_.b) {
                 right.push_back(i18n::tr("Effect channels:"));
                 for (int i = 0; i < int(fx::Id::Count); i++) {

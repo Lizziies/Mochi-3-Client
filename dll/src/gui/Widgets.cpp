@@ -151,7 +151,7 @@ bool dropdown(const char* id, ImVec2 amin, ImVec2 amax, const std::vector<std::s
         d.swallow = false;
     }
 
-    float step = draw::motion() ? ui::dt() / (isOpen ? 0.16f : 0.11f) : 1.f;
+    float step = draw::motion() ? ui::dt() / (isOpen ? 0.12f + d.viewH * 0.0003f / s : 0.09f + d.viewH * 0.0002f / s) : 1.f;
     d.open = std::clamp(d.open + (isOpen ? step : -step), 0.f, 1.f);
     if (!isOpen && d.open <= 0.f) return false;
 

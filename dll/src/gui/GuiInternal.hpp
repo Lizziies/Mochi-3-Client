@@ -25,6 +25,7 @@ Module*& selectedModule();
 char* searchText();
 bool& favoritesOnly();
 
+void profileDrive();
 void drawModulesPage(ImVec2 origin, ImVec2 size);
 void drawDetails(ImVec2 origin, ImVec2 size);
 float detailsWidth();

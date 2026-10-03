@@ -37,6 +37,8 @@ float easeInOutCubic(float t) {
     return 1.f - t * t * t * 0.5f;
 }
 
+float easeInOutSine(float t) { return 0.5f - 0.5f * std::cos(std::clamp(t, 0.f, 1.f) * 3.14159265f); }
+
 void heart(ImDrawList* dl, ImVec2 c, float size, ImU32 color) {
     float r = size * 0.27f;
     ImVec2 l{c.x - r * 0.95f, c.y - size * 0.12f};

@@ -308,3 +308,41 @@ HUD-Positionen: Standardwerte aller HUD-Module auf Spalten verteilt (links Infoz
 Menü: Öffnen langsamer und weicher als Schließen (zeitbasiert, mit leichtem Überschwingen der Panels, Abdunklung mit Verlauf), Schalter mit zusammengedrücktem Knopf und Schein, Buttons mit Hover-Rand und Druck-Effekt, Zeilen mit weichem Hover und Druck, Listeneinträge rücken beim Hover leicht ein.
 
 Launcher: gebaut ohne Fehler (nur die `sscanf`-Warnung in `Game.cpp`). Farben wie das Slate-Theme des Clients, Karten und Seitenleiste mit Rand und Rundung wie die Menüpanels, Schalter und Buttons wie im Client, Fortschrittsbalken mit Verlauf und weichem Nachziehen.
+
+## 2026-10-03, Branch claude/ui-smooth: Aufklappen ohne Ruckeln
+
+Gemessen mit dem Testhost auf der echten GPU (D3D11, Fenster außerhalb des Bildschirms, 1920x1080, 170 Hz), ohne Minecraft. Jede Messung spielt dasselbe Skript: Menü auf, Gruppe mit mindestens 5 Teilen wählen, Teile nacheinander auf- und zuklappen, danach alle öffnen, ans Ende scrollen und ein Teil mit sichtbarem Kopf zuklappen.
+
+Ablauf zum Nachmessen (kein Spiel, kein eigenes Config-Verzeichnis berührt, `Mochi.root` neben der DLL leitet die Daten um):
+
+```
+Mochi.dll und Mochi.root (eine Zeile: Datenordner) in einen Ordner legen
+TESTHOST_OFFSCREEN=1 TESTHOST_MANUAL=1 MOCHI_PROFILE=1 TESTHOST_FPS=170 TESTHOST_SIZE=1920x1080 testhost.exe Mochi.dll 37
+```
+
+`MOCHI_PROFILE` schreibt `logs/profile.csv` (pro Bild: dt, CPU-Zeit des UI-Frames, Zeit für Liste und Details, Zeilen, Draw-Calls, Vertices, Höhe des aufklappenden Teils, Position einer Folgezeile, Scroll) und fährt das Skript selbst (`profileDrive` in `ModulesPage.cpp`). Im Debug-Menü steht die Menüzeit im Mochi-Block. Der Testhost hat jetzt `TESTHOST_FPS` (festes Tempo, `timeBeginPeriod(1)`) und gibt Mittel, Median, p99 und Maximum der Bildabstände aus.
+
+Ursache, gemessen statt geraten:
+
+- Nicht die CPU: ein UI-Frame kostet im Mittel 0,2 ms (Liste 0,09, Details 0,04), 13 Draw-Calls, etwa 9000 Vertices, 5 Fenster. dt ist stabil (5,9 ms, p99 6,3). Die Blur-Pässe der Panels sind ein Backbuffer-Copy und drei Scissor-Pässe, auch das ist nicht das Problem.
+- Das Ruckeln war die Bewegung selbst. Ein offener Teil ist bei 1080p rund 1100 px hoch, die Animation lief aber fest 0,3 s (zu 0,22 s beim Zuklappen) mit Ease-in-out. Die Zeilen darunter sprangen dadurch in der Mitte bis zu 67 px (auf) und 90 px (zu) pro Bild. Dazu kommt, dass ImGui Fensterpositionen und den Cursor auf ganze Pixel rundet, der Auslauf also in unregelmäßigen 0/1-Pixel-Schritten lief.
+- Kein Layout-Feedback gefunden: die Höhe wird mit dem Inhalt gemessen, aber der Inhalt hängt nicht von der Höhe ab.
+
+Fix:
+
+- Dauer wächst mit der Höhe des Körpers (`0,2 s + Höhe * 0,0004`, höchstens 0,8 s, Zuklappen 0,8x), Kurve ease-in-out über einen Sinus (Spitze nur 1,57x des Mittels statt 3x).
+- Der Körper ist kein Kindfenster mehr. Er wird in der Liste in natürlicher Größe gelegt, ein Clip-Rect schneidet ihn bei der animierten Höhe ab, der Cursor rückt um diese Höhe weiter. Nichts wird pro Bild neu erzeugt, und die Höhe des Inhalts steht fest, nur der Ausschnitt wächst.
+- Klappt ein Teil mit sichtbarem Kopf zu, hält die Liste ihre Höhe und gibt den Platz danach langsam zurück. So bleibt der geklickte Kopf stehen, statt vom Scroll-Clamp mitgezogen zu werden. Klappt ein Teil außerhalb des Bildes zu, bleibt es bei der alten Mitnahme (die sichtbaren Zeilen stehen still).
+- Dropdowns: Dauer nach Höhe der Liste (0,12 s + 0,0003 s/px beim Öffnen).
+
+Zahlen, 170 Hz, maximaler Sprung einer Zeile pro Bild (Median der vier Teile):
+
+| | vorher | nachher |
+|---|---|---|
+| aufklappen | 63 px | 17 px |
+| zuklappen | 87 px | 20 px |
+| aufklappen bei 60 Hz | | 72 px (Strecke 1100 px in 0,45 s) |
+| Kopf beim Zuklappen am Listenende | wandert 439 px in 0,35 s mit 14 px/Bild | bleibt stehen, danach 1 s Gleiten |
+| CPU pro UI-Frame (Mittel) | 0,18 ms | 0,22 bis 0,30 ms (Szenario jetzt mit allen Teilen offen) |
+
+Offen: bei 60 Hz bleiben es etwa 60 px pro Bild, das ist die Strecke von 1100 px, nicht das Ruckeln. Wer das ruhiger will, kann die Dauer weiter strecken oder sehr hohe Teile ohne Höhenanimation einblenden. Die Teile im Spiel selbst sind nicht gemessen, nur im Testhost.
