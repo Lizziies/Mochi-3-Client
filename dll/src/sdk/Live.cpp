@@ -193,6 +193,7 @@ public:
         if (playerPtr_ && (have & unsigned(Domain::Inventory))) {
             readStats(s);
             readInventory(s, ev);
+            readUse(s, ev);
         }
         if (have & unsigned(Domain::World)) readWorld(s);
         if (playerPtr_ && (have & unsigned(Domain::Chat))) readChat(ev);
@@ -456,6 +457,40 @@ private:
         pl.xp = value("experience", pl.xp);
     }
 
+    // Using an item is the use button held while the hand holds something usable: a bow draws for one second to
+    // full power, a thrown pearl or potion shows as the held stack shrinking right after a press.
+    void readUse(State& s, std::vector<Event>& ev) {
+        auto& pl = s.player;
+        const Item& held = pl.held();
+        bool press = input::down(VK_RBUTTON) && input::grabbed() && !ui::wantsCursor();
+        double now = ui::time();
+        bool drawable = held.name == "bow" || held.name == "crossbow" || held.name == "trident";
+        bool usable = drawable || held.name == "shield" || held.name.find("potion") != std::string::npos ||
+                      held.name.starts_with("cooked_") || held.name.find("apple") != std::string::npos || held.name == "bread";
+        if (press && !usePressed_) {
+            useStart_ = now;
+            pressItem_ = held.name;
+            pressCount_ = held.count;
+            pressSlot_ = pl.slot;
+        }
+        if (!press && usePressed_ && pressItem_ == "bow" && now - useStart_ > 0.1) {
+            Event e{EventKind::BowRelease};
+            e.value = float(std::min(1.0, (now - useStart_) / 1.0));
+            e.item = "bow";
+            ev.push_back(std::move(e));
+        }
+        usePressed_ = press;
+        pl.usingItem = press && usable && held.name == pressItem_;
+        pl.useProgress = pl.usingItem ? float(std::min(1.0, (now - useStart_) / (drawable ? 1.0 : 1.6))) : 0.f;
+        // a press that made the held stack shrink used one up
+        if (!pressItem_.empty() && now - useStart_ < 0.6 && pl.slot == pressSlot_ && held.name == pressItem_ && held.count < pressCount_) {
+            Event e{EventKind::ItemUse};
+            e.item = pressItem_;
+            ev.push_back(std::move(e));
+            pressCount_ = held.count;
+        }
+    }
+
     // a totem used up shows as one fewer totem in the hands while health is low
     void countTotems(const Player& pl, std::vector<Event>& ev) {
         int n = 0;
@@ -569,6 +604,11 @@ private:
     uint64_t inventoryAt_ = 0;
     uint64_t sweptAt_ = 0;
     int totems_ = -1;
+    bool usePressed_ = false;
+    double useStart_ = 0.0;
+    std::string pressItem_;
+    int pressCount_ = 0;
+    int pressSlot_ = 0;
     std::string chatLast_;
     size_t chatCount_ = 0;
     bool chatPrimed_ = false;

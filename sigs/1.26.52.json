@@ -27,6 +27,8 @@
     "has.ChatEvents": 1,
     "has.HurtEvents": 1,
     "has.TotemEvents": 1,
+    "has.UseState": 1,
+    "has.ItemUseEvents": 1,
     "chat.via0": 1912,
     "chat.via1": 176,
     "chat.via2": 1616,
