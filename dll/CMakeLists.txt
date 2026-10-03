@@ -11,6 +11,8 @@ endif()
 set(MOCHI_VERSION "0.1.0" CACHE STRING "Client version")
 
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS src/*.cpp)
+# adapted Flarial files are compiled inside flarial_core, see cmake/FlarialCore.cmake
+list(FILTER SOURCES EXCLUDE REGEX "/src/flarial/")
 list(APPEND SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/../common/I18n.cpp)
 file(GLOB MINHOOK_SOURCES lib/minhook/src/*.c lib/minhook/src/hde/hde64.c)
 
