@@ -42,7 +42,7 @@ uintptr_t follow(uintptr_t p, const char* name) {
 // The inventory objects hang off the player through an entity registry whose layout changes from session to
 // session, so no fixed pointer path reaches them. They are found once per world instead: a heap sweep for
 // their vtables ("<name>.vtable", relative to the image), checked by a vector of item stacks at a known spot.
-std::atomic<uintptr_t> handObj{0}, armorObj{0};
+std::atomic<uintptr_t> handObj{0}, armorObj{0}, attrArray{0};
 std::atomic<bool> sweeping{false};
 
 uintptr_t imageBase() { return reinterpret_cast<uintptr_t>(GetModuleHandleW(nullptr)); }
@@ -61,6 +61,25 @@ bool validArmor(uintptr_t o) {
     return o && mem::pointer(o) == imageBase() + uintptr_t(off("armor.vtable")) && stackVector(o + off("armor.items"), size_t(off("armor.count")));
 }
 
+// Attribute instances (0x88 bytes: vtable, Attribute definition, ..., max at +0x78, value at +0x7c) sit in one
+// array per entity. Only players carry the player.* attributes, and only the local one is sent them by a server.
+uintptr_t attrDef(const char* name) { return imageBase() + uintptr_t(sigs::offset(std::string("attr.") + name, 0)); }
+
+uintptr_t attrIn(uintptr_t array, const char* name) {
+    uintptr_t vt = imageBase() + uintptr_t(off("attr.vtable")), def = attrDef(name);
+    int size = off("attr.size");
+    for (int k = 0; k < 32; k++) {
+        uintptr_t e = array + uintptr_t(k) * size;
+        if (mem::pointer(e) != vt) return 0;
+        if (mem::pointer(e + 8) == def) return e;
+    }
+    return 0;
+}
+
+bool validAttrs(uintptr_t array) {
+    return array && attrIn(array, "hunger") && attrIn(array, "health");
+}
+
 void sweep() {
     uintptr_t handVt = imageBase() + uintptr_t(off("hand.vtable")), armorVt = imageBase() + uintptr_t(off("armor.vtable"));
     int handTag = off("hand.tag");
@@ -74,6 +93,7 @@ void sweep() {
         return n;
     };
     int handBest = -1, armorBest = -1;
+    uintptr_t attrVt = imageBase() + uintptr_t(off("attr.vtable")), hungerDef = attrDef("hunger"), attrs = 0;
     for (uintptr_t at = 0x10000; VirtualQuery(reinterpret_cast<void*>(at), &mbi, sizeof(mbi));) {
         uintptr_t start = reinterpret_cast<uintptr_t>(mbi.BaseAddress), next = start + mbi.RegionSize;
         bool ok = mbi.State == MEM_COMMIT && mbi.Type == MEM_PRIVATE && (mbi.Protect & PAGE_READWRITE) && !(mbi.Protect & PAGE_GUARD);
@@ -87,6 +107,11 @@ void sweep() {
                     uintptr_t o = chunk + i - handTag;
                     int f = filled(mem::pointer(o + off("hand.items")), 36) + (mem::get<uint8_t>(o + off("hand.offhand") + off("stack.count")) != 0);
                     if (f > handBest) handBest = f, hand = o;
+                } else if (!attrs && v == hungerDef && i >= 8 && mem::pointer(chunk + i - 8) == attrVt) {
+                    // walk back to the first instance of the array
+                    uintptr_t e = chunk + i - 8;
+                    while (mem::pointer(e - off("attr.size")) == attrVt) e -= off("attr.size");
+                    if (validAttrs(e)) attrs = e;
                 } else if (v == armorVt && validArmor(chunk + i)) {
                     int f = filled(mem::pointer(chunk + i + off("armor.items")), size_t(off("armor.count")));
                     if (f > armorBest) armorBest = f, armor = chunk + i;
@@ -98,7 +123,8 @@ void sweep() {
     }
     handObj = hand;
     armorObj = armor;
-    logger::info("live: inventory {}, armor {}", hand ? "found" : "missing", armor ? "found" : "missing");
+    attrArray = attrs;
+    logger::info("live: inventory {}, armor {}, stats {}", hand ? "found" : "missing", armor ? "found" : "missing", attrs ? "found" : "missing");
     sweeping = false;
 }
 
@@ -137,7 +163,10 @@ public:
         playerPtr_ = 0;
         if (have & unsigned(Domain::Player)) readPlayer(s);
         if (playerPtr_ && (have & unsigned(Domain::Target))) readTarget(s, ev);
-        if (playerPtr_ && (have & unsigned(Domain::Inventory))) readInventory(s);
+        if (playerPtr_ && (have & unsigned(Domain::Inventory))) {
+            readStats(s);
+            readInventory(s);
+        }
         if (have & unsigned(Domain::World)) readWorld(s);
         bool playing = input::gameplay();
         // menu screens keep sending (LAN discovery, Xbox Live, server list pings), so traffic only counts
@@ -332,6 +361,25 @@ private:
         return it;
     }
 
+    void readStats(State& s) {
+        uintptr_t array = attrArray;
+        if (!validAttrs(array)) return;
+        auto& pl = s.player;
+        auto value = [&](const char* name, float fallback) {
+            uintptr_t e = attrIn(array, name);
+            return e ? mem::get<float>(e + off("attr.value"), fallback) : fallback;
+        };
+        if (uintptr_t h = attrIn(array, "health")) {
+            pl.health = mem::get<float>(h + off("attr.value"), pl.health);
+            pl.maxHealth = mem::get<float>(h + off("attr.max"), pl.maxHealth);
+        }
+        pl.absorption = value("absorption", pl.absorption);
+        pl.hunger = value("hunger", pl.hunger);
+        pl.saturation = value("saturation", pl.saturation);
+        pl.level = int(value("level", float(pl.level)));
+        pl.xp = value("experience", pl.xp);
+    }
+
     void readInventory(State& s) {
         // ten times a second is plenty for counters and armor, and keeps the reads off every frame
         uint64_t now = GetTickCount64();
@@ -340,7 +388,7 @@ private:
         auto& pl = s.player;
         int size = off("stack.size");
         uintptr_t hand = handObj, armor = armorObj;
-        bool lost = !validHand(hand) || !validArmor(armor);
+        bool lost = !validHand(hand) || !validArmor(armor) || !validAttrs(attrArray);
         if (lost && !sweeping && now - sweptAt_ > 3000) {
             sweptAt_ = now;
             sweeping = true;
