@@ -94,6 +94,10 @@ static void deriveFromPlayer() {
         push({EventKind::Swing});
     }
 
+    if (!cur.player.statsKnown) {
+        lastHealth = -1.f;
+        return;
+    }
     float hp = cur.player.health;
     if (lastHealth >= 0.f) {
         if (hp < lastHealth - 0.01f && hp > 0.f) {

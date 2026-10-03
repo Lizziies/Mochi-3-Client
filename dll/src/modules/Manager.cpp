@@ -497,12 +497,15 @@ void dispatchServer(const ServerEvent& ev) {
 
 void refreshSigs() {
     int open = 0;
+    std::string locked;
     for (auto& m : list) {
         m->checkSigs();
         m->setEnabled(m->userEnabled());
         open += m->available();
+        if (!m->available()) locked += m->name() + "; ";
     }
     logger::info("modules: {} usable, {} locked", open, int(list.size()) - open);
+    if (open < int(list.size())) logger::info("still locked: {}", locked);
 }
 
 }

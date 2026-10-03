@@ -80,20 +80,10 @@ bool validAttrs(uintptr_t array) {
     return array && attrIn(array, "hunger") && attrIn(array, "health");
 }
 
-void sweep() {
-    uintptr_t handVt = imageBase() + uintptr_t(off("hand.vtable")), armorVt = imageBase() + uintptr_t(off("armor.vtable"));
-    int handTag = off("hand.tag");
-    uintptr_t hand = 0, armor = 0;
+template <class Fn>
+void eachPrivateWord(Fn&& fn) {
     std::vector<uint8_t> buf(1 << 20);
     MEMORY_BASIC_INFORMATION mbi{};
-    // other players (the local server's copy, previews) carry the same objects; the one with items wins
-    auto filled = [](uintptr_t items, size_t count) {
-        int n = 0;
-        for (size_t k = 0; k < count; k++) n += mem::get<uint8_t>(items + k * size_t(off("stack.size")) + off("stack.count")) != 0;
-        return n;
-    };
-    int handBest = -1, armorBest = -1;
-    uintptr_t attrVt = imageBase() + uintptr_t(off("attr.vtable")), hungerDef = attrDef("hunger"), attrs = 0;
     for (uintptr_t at = 0x10000; VirtualQuery(reinterpret_cast<void*>(at), &mbi, sizeof(mbi));) {
         uintptr_t start = reinterpret_cast<uintptr_t>(mbi.BaseAddress), next = start + mbi.RegionSize;
         bool ok = mbi.State == MEM_COMMIT && mbi.Type == MEM_PRIVATE && (mbi.Protect & PAGE_READWRITE) && !(mbi.Protect & PAGE_GUARD);
@@ -103,31 +93,62 @@ void sweep() {
             for (size_t i = 0; i + 8 <= n; i += 8) {
                 uintptr_t v;
                 std::memcpy(&v, buf.data() + i, 8);
-                if (v == handVt && validHand(chunk + i - handTag)) {
-                    uintptr_t o = chunk + i - handTag;
-                    int f = filled(mem::pointer(o + off("hand.items")), 36) + (mem::get<uint8_t>(o + off("hand.offhand") + off("stack.count")) != 0);
-                    if (f > handBest) handBest = f, hand = o;
-                } else if (!attrs && v == hungerDef && i >= 8 && mem::pointer(chunk + i - 8) == attrVt) {
-                    // walk back to the first instance of the array
-                    uintptr_t e = chunk + i - 8;
-                    while (mem::pointer(e - off("attr.size")) == attrVt) e -= off("attr.size");
-                    if (validAttrs(e)) attrs = e;
-                } else if (v == armorVt && validArmor(chunk + i)) {
-                    int f = filled(mem::pointer(chunk + i + off("armor.items")), size_t(off("armor.count")));
-                    if (f > armorBest) armorBest = f, armor = chunk + i;
-                }
+                fn(chunk + i, v);
             }
         }
         if (next <= at) break;
         at = next;
     }
-    handObj = hand;
-    armorObj = armor;
-    attrArray = attrs;
-    logger::info("live: inventory {}, armor {}, stats {}", hand ? "found" : "missing", armor ? "found" : "missing", attrs ? "found" : "missing");
-    sweeping = false;
 }
 
+// Objects of entities from a world left earlier stay in freed memory with the same look, so every candidate is
+// kept and the one live structures still point at wins (stale copies have no references left).
+uintptr_t mostReferenced(std::vector<uintptr_t>& cands, std::vector<int>& refs) {
+    uintptr_t best = 0;
+    int bestRefs = -1;
+    for (size_t k = 0; k < cands.size(); k++)
+        if (refs[k] > bestRefs) bestRefs = refs[k], best = cands[k];
+    return best;
+}
+
+void sweep() {
+    uintptr_t handVt = imageBase() + uintptr_t(off("hand.vtable")), armorVt = imageBase() + uintptr_t(off("armor.vtable"));
+    uintptr_t attrVt = imageBase() + uintptr_t(off("attr.vtable")), hungerDef = attrDef("hunger");
+    int handTag = off("hand.tag"), attrSize = off("attr.size");
+    std::vector<uintptr_t> hands, armors, attrs;
+    eachPrivateWord([&](uintptr_t at, uintptr_t v) {
+        if (v == handVt && validHand(at - handTag)) hands.push_back(at - handTag);
+        else if (v == armorVt && validArmor(at)) armors.push_back(at);
+        else if (v == hungerDef && mem::pointer(at - 8) == attrVt) {
+            uintptr_t e = at - 8;
+            while (mem::pointer(e - attrSize) == attrVt) e -= attrSize;
+            if (validAttrs(e) && std::find(attrs.begin(), attrs.end(), e) == attrs.end()) attrs.push_back(e);
+        }
+    });
+    // one more pass counts pointers to (or just into) each candidate
+    std::vector<uintptr_t> all;
+    for (auto* v : {&hands, &armors, &attrs}) all.insert(all.end(), v->begin(), v->end());
+    std::sort(all.begin(), all.end());
+    std::vector<int> count(all.size());
+    if (!all.empty())
+        eachPrivateWord([&](uintptr_t, uintptr_t v) {
+            auto it = std::upper_bound(all.begin(), all.end(), v);
+            if (it == all.begin()) return;
+            --it;
+            if (v - *it < 0x40) count[size_t(it - all.begin())]++;
+        });
+    auto pick = [&](std::vector<uintptr_t>& cands) {
+        std::vector<int> refs;
+        for (uintptr_t c : cands) refs.push_back(count[size_t(std::lower_bound(all.begin(), all.end(), c) - all.begin())]);
+        return mostReferenced(cands, refs);
+    };
+    handObj = pick(hands);
+    armorObj = pick(armors);
+    attrArray = pick(attrs);
+    logger::info("live: inventory {} of {}, armor {} of {}, stats {} of {}", handObj ? "found" : "missing", hands.size(), armorObj ? "found" : "missing",
+                 armors.size(), attrArray ? "found" : "missing", attrs.size());
+    sweeping = false;
+}
 class Live : public Provider {
 public:
     Live() { self = this; }
@@ -166,7 +187,7 @@ public:
         if (playerPtr_ && (have & unsigned(Domain::Target))) readTarget(s, ev);
         if (playerPtr_ && (have & unsigned(Domain::Inventory))) {
             readStats(s);
-            readInventory(s);
+            readInventory(s, ev);
         }
         if (have & unsigned(Domain::World)) readWorld(s);
         if (playerPtr_ && (have & unsigned(Domain::Chat))) readChat(ev);
@@ -412,8 +433,9 @@ private:
 
     void readStats(State& s) {
         uintptr_t array = attrArray;
-        if (!validAttrs(array)) return;
         auto& pl = s.player;
+        pl.statsKnown = validAttrs(array);
+        if (!pl.statsKnown) return;
         auto value = [&](const char* name, float fallback) {
             uintptr_t e = attrIn(array, name);
             return e ? mem::get<float>(e + off("attr.value"), fallback) : fallback;
@@ -429,7 +451,16 @@ private:
         pl.xp = value("experience", pl.xp);
     }
 
-    void readInventory(State& s) {
+    // a totem used up shows as one fewer totem in the hands while health is low
+    void countTotems(const Player& pl, std::vector<Event>& ev) {
+        int n = 0;
+        for (const Item* it : {&pl.offhand, &pl.held()})
+            if (it->name == "totem_of_undying") n += it->count;
+        if (totems_ >= 0 && n < totems_ && pl.health <= 8.f) ev.push_back(Event{EventKind::TotemPop});
+        totems_ = n;
+    }
+
+    void readInventory(State& s, std::vector<Event>& ev) {
         // ten times a second is plenty for counters and armor, and keeps the reads off every frame
         uint64_t now = GetTickCount64();
         if (now - inventoryAt_ < 100) return;
@@ -449,6 +480,7 @@ private:
             pl.main.resize(27);
             for (int k = 0; k < 27; k++) pl.main[size_t(k)] = item(items + uintptr_t(k + 9) * size);
             pl.offhand = item(hand + off("hand.offhand"));
+            countTotems(pl, ev);
             // right after the offhand sits a copy of the selected stack; the slot is the hotbar stack it copies
             uintptr_t held = hand + off("hand.held");
             uintptr_t heldItem = mem::pointer(held + off("stack.item"));
@@ -531,6 +563,7 @@ private:
     bool wasPressed_ = false;
     uint64_t inventoryAt_ = 0;
     uint64_t sweptAt_ = 0;
+    int totems_ = -1;
     std::string chatLast_;
     size_t chatCount_ = 0;
     bool chatPrimed_ = false;

@@ -97,6 +97,8 @@ struct Player {
     bool usingItem = false;
     bool blocking = false;
     float useProgress = 0.f;
+    // false while health and hunger are still defaults (live data not found yet)
+    bool statsKnown = true;
     std::array<Item, 9> hotbar;
     std::array<Item, 4> armor;
     Item offhand;
