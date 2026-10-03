@@ -2,11 +2,13 @@
 
 #include "gui/Gui.hpp"
 #include "gui/Theme.hpp"
+#include "hook/OwnNametag.hpp"
 #include "modules/Module.hpp"
 #include "modules/common/Colors.hpp"
 #include "modules/common/Needs.hpp"
 #include "modules/common/Text.hpp"
 #include "render/Fonts.hpp"
+#include "render/GameText.hpp"
 #include "render/Ui.hpp"
 #include "sdk/Effects.hpp"
 #include "sdk/Game.hpp"
@@ -20,10 +22,19 @@ public:
     ThirdPersonNametag()
         : Module("Third Person Nametag", "Shows your own name tag above your head when you play in third person.", Category::Visual, {"cosmetic"}) {
         sub("World");
-        require(need::player | need::camera, need::sigs({"LocalPlayer", "TargetBox"}));
+        require(need::player | need::camera, need::sigs({"LocalPlayer", "OwnNametagGate"}));
+        always_.visible = [this] { return custom_.b; };
     }
 
+    void onFrame() override {
+        auto& s = game::state();
+        ownNametag::show(s.inWorld && !custom_.b && s.player.view != game::View::First);
+    }
+
+    void onDisable() override { ownNametag::show(false); }
+
     void onRender(ImDrawList* dl) override {
+        if (!custom_.b) return;
         auto& me = game::state().player;
         if (!game::state().inWorld || me.name.empty() || !me.hasBox) return;
         if (me.view == game::View::First && !always_.b) return;
@@ -32,16 +43,17 @@ public:
         if (!at) return;
         float dist = std::max(1.f, game::distance(game::state().camera.pos, top));
         float size = std::clamp(100.f / dist, 10.f, 32.f) * ui::scale();
-        std::string name = text::strip(me.name);
+        const std::string& name = me.name;
         ImFont* f = fonts::regular();
-        ImVec2 ts = f->CalcTextSizeA(size, FLT_MAX, 0.f, name.c_str());
+        ImVec2 ts = gameText::size(f, size, name);
         ImVec2 p = *at - ImVec2(ts.x * 0.5f, ts.y);
         float pad = size * 0.2f;
         dl->AddRectFilled(p - ImVec2(pad, pad * 0.5f), p + ts + ImVec2(pad, pad * 0.5f), IM_COL32(0, 0, 0, 64));
-        dl->AddText(f, size, p, IM_COL32(255, 255, 255, 255), name.c_str());
+        gameText::draw(dl, f, size, p, IM_COL32(255, 255, 255, 255), name);
     }
 
 private:
+    Setting& custom_ = toggleSetting("customStyle", "Custom nametag overlay", false);
     Setting& always_ = toggleSetting("always", "Also in first person", false);
 };
 

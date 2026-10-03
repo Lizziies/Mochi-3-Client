@@ -3,6 +3,7 @@
 namespace {
 
 const i18n::Entry entries[] = {
+    {"Custom nametag overlay", "Eigenes Nametag-Overlay"},
     {"Makes end crystals easier to see and hit: no spin and bobbing, no base, optionally hidden the moment you hit them. Client side only, sends nothing extra.", "Macht End-Crystals leichter sichtbar und treffbar: kein Drehen und Wippen, kein Sockel, auf Wunsch sofort weg, wenn du sie triffst. Nur clientseitig, sendet nichts Zusätzliches."},
     {"No spin and bobbing", "Kein Drehen und Wippen"},
     {"Hide the bedrock base", "Bedrock-Sockel ausblenden"},

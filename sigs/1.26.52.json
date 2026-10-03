@@ -1,6 +1,10 @@
 {
   "version": "1.26.52",
   "sigs": {
+    "CameraUpdatePlayer": "48 89 5C 24 08 57 48 83 EC 70 0F 29 74 24 60 49",
+    "CameraYaw": "F3 0F 11 00 F3 0F 11 70 04",
+    "CameraHeadYaw": "F3 44 0F 11 08 F3 0F 11 40 ? EB",
+    "OwnNametagGate": "0F 84 ? ? ? ? 49 8B 45 ? 49 8B CD 48 8B 80 ? ? ? ? FF 15 ? ? ? ? 84 C0 0F 85",
     "LocalPlayer": {
       "pattern": "ba 79 32 09 48 89 05 ? ? ? ? 48 81 c4 e8 00 00 00 5b",
       "rel": "rip",

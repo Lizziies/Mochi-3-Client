@@ -213,7 +213,7 @@ public:
     Freelook()
         : Module("Freelook", "Turn the camera freely around you while your body and walking direction stay. Banned on some servers.", Category::Visual, {"camera"}) {
         sub("Camera");
-        require(need::player, need::sigs({"LocalPlayer", "FreeCamera"}));
+        require(need::player, need::sigs({"LocalPlayer", "CameraUpdatePlayer", "CameraYaw", "CameraHeadYaw"}));
     }
 
     void onKey(KeyEvent& ev) override {
@@ -226,8 +226,10 @@ public:
     }
 
     void onFrame() override {
+        if (!input::grabbed() || gui::wantsInput() || !game::state().inWorld) active_ = false;
+        else if (mode_.i == 0) active_ = key_.i && input::down(key_.i);
         ctx::freelook = active_ && game::freeCamera(true);
-        if (!active_) {
+        if (!ctx::freelook) {
             game::freeCamera(false);
             return;
         }
