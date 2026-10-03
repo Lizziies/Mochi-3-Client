@@ -3,6 +3,9 @@
 // config store is not part of Monchi (it has its own script list and config sharing), only the call the menu makes.
 #pragma once
 
+// the original header brought the client in, and the config command relies on that
+#include <Client/Client.hpp>
+
 class ScriptMarketplace {
 public:
     static void reloadAllConfigs() {}
