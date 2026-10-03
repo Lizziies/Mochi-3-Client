@@ -2,6 +2,8 @@
 
 #include <windows.h>
 
+struct IDXGISwapChain;
+
 #include <cstdint>
 
 namespace dx {
@@ -28,6 +30,7 @@ void uninstall();
 
 Api api();
 HWND window();
+IDXGISwapChain* swapchain();
 Tuning& tuning();
 const FrameInfo& frame();
 

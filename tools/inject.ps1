@@ -1,5 +1,7 @@
 param(
     [string]$Dll = (Join-Path $PSScriptRoot '..\build\Release\Monchi.dll'),
+    # built with cmake -S dll -B C:\mfb -DMONCHI_FLARIAL=ON (a short path: Flarial's object paths are deep)
+    [string]$Core = 'C:\mfb\Release\MonchiFlarial.dll',
     [int]$WaitSeconds = 120,
     [int]$ProcessId = 0,
     [switch]$Launch,
@@ -74,6 +76,8 @@ $bin = Join-Path $devDir 'bin'
 New-Item -ItemType Directory -Force $bin, (Join-Path $devDir 'data') | Out-Null
 $target = Join-Path $bin ("Monchi-{0:yyMMdd-HHmmss}.dll" -f (Get-Date))
 Copy-Item $dll $target -Force
+# the Flarial core is loaded by the client from its own folder when it is there
+if (Test-Path $Core) { Copy-Item $Core (Join-Path $bin 'MonchiFlarial.dll') -Force -ErrorAction SilentlyContinue }
 $sigs = Join-Path $PSScriptRoot '..\sigs'
 if (Test-Path $sigs) {
     New-Item -ItemType Directory -Force (Join-Path $bin 'sigs') | Out-Null

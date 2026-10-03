@@ -578,6 +578,7 @@ void uninstall() {
 
 Api api() { return current; }
 HWND window() { return hwnd; }
+IDXGISwapChain* swapchain() { return chain; }
 Tuning& tuning() { return tune; }
 const FrameInfo& frame() { return info; }
 

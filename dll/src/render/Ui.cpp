@@ -8,6 +8,9 @@
 #include "gui/Theme.hpp"
 #include "hook/Input.hpp"
 #include "modules/Manager.hpp"
+#include "core/Client.hpp"
+#include "core/FlarialLink.hpp"
+#include "hook/Dx.hpp"
 
 #include <imgui.h>
 #include <imgui_impl_dx11.h>
@@ -29,7 +32,12 @@ static std::atomic<bool> cursor{false};
 static float uiScale = 1.f;
 static float appliedScale = 0.f;
 
+static ID3D11Device* device11 = nullptr;
+static ID3D11DeviceContext* context11 = nullptr;
+
 bool init(HWND window, ID3D11Device* device, ID3D11DeviceContext* context) {
+    device11 = device;
+    context11 = context;
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     auto& io = ImGui::GetIO();
@@ -105,6 +113,8 @@ void frame() {
 
     gui::beginFrame();
     modules::frame(ImGui::GetBackgroundDrawList());
+    flarialLink::frame(device11, context11, dx::swapchain());
+    if (flarialLink::ejectRequested()) client::requestUnload();
     gui::draw();
     notify::draw();
     config::tick();
@@ -121,6 +131,7 @@ void frame() {
 }
 
 void shutdown() {
+    flarialLink::stop();
     if (!ready) return;
     ready = false;
     ImGui_ImplDX11_Shutdown();
