@@ -74,11 +74,25 @@ public:
     ThirdPersonNametag()
         : Module("Third Person Nametag", "Shows your own name tag above your head when you play in third person.", Category::Visual, {"cosmetic"}) {
         sub("World");
-        require(need::player, {fx::sig(fx::Id::SelfNametag), "LocalPlayer"});
+        require(need::player | need::camera, need::sigs({"LocalPlayer", "TargetBox"}));
     }
 
-    void onFrame() override {
-        if (always_.b || game::state().player.view != game::View::First) fx::force(fx::Id::SelfNametag, true);
+    void onRender(ImDrawList* dl) override {
+        auto& me = game::state().player;
+        if (!game::state().inWorld || me.name.empty() || !me.hasBox) return;
+        if (me.view == game::View::First && !always_.b) return;
+        game::Vec3 top{(me.boxMin.x + me.boxMax.x) * 0.5f, me.boxMax.y + 0.5f, (me.boxMin.z + me.boxMax.z) * 0.5f};
+        auto at = game::project(top);
+        if (!at) return;
+        float dist = std::max(1.f, game::distance(game::state().camera.pos, top));
+        float size = std::clamp(100.f / dist, 10.f, 32.f) * ui::scale();
+        std::string name = text::strip(me.name);
+        ImFont* f = fonts::regular();
+        ImVec2 ts = f->CalcTextSizeA(size, FLT_MAX, 0.f, name.c_str());
+        ImVec2 p = *at - ImVec2(ts.x * 0.5f, ts.y);
+        float pad = size * 0.2f;
+        dl->AddRectFilled(p - ImVec2(pad, pad * 0.5f), p + ts + ImVec2(pad, pad * 0.5f), IM_COL32(0, 0, 0, 64));
+        dl->AddText(f, size, p, IM_COL32(255, 255, 255, 255), name.c_str());
     }
 
 private:

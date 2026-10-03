@@ -71,22 +71,14 @@ private:
 class Hitbox : public Module {
 public:
     Hitbox()
-        : Module("Hitbox", "Shows hitboxes with the game's own drawing path, so never through walls. Box style, thickness, opacity, eye and look lines, range, your own box and Java size.",
+        : Module("Hitbox", "Shows the hitbox of what you aim at, and your own in third person. Only what you can see, never through walls. Box or flat style, thickness, opacity, eye and look lines, Java size.",
                  Category::Pvp, {"info-others"}) {
         sub("Hit visuals");
-        require(0, {fx::sig(fx::Id::Hitbox)});
+        require(need::target | need::camera, need::sigs({"Target", "TargetBox"}));
         color_.visible = [this] { return !rainbow_.b; };
-        style_.visible = [] { return fx::available(fx::Id::Hitbox2D); };
-        width_.visible = [] { return fx::available(fx::Id::HitboxWidth); };
-        range_.visible = [] { return fx::available(fx::Id::HitboxRange); };
-        self_.visible = [] { return fx::available(fx::Id::HitboxSelf); };
-        eye_.visible = [] { return fx::available(fx::Id::HitboxEye); };
-        eyeColor_.visible = [this] { return eye_.b && fx::available(fx::Id::HitboxEyeColor); };
-        look_.visible = [] { return fx::available(fx::Id::HitboxLook); };
-        lookLength_.visible = [this] { return look_.b && fx::available(fx::Id::HitboxLookLength); };
-        lookColor_.visible = [this] { return look_.b && fx::available(fx::Id::HitboxLookColor); };
-        java_.visible = [] { return fx::available(fx::Id::HitboxJava); };
-        javaKey_.visible = [] { return fx::available(fx::Id::HitboxJava); };
+        eyeColor_.visible = [this] { return eye_.b; };
+        lookLength_.visible = [this] { return look_.b; };
+        lookColor_.visible = [this] { return look_.b; };
     }
 
     void onKey(KeyEvent& ev) override {
@@ -95,36 +87,73 @@ public:
         config::markDirty();
     }
 
-    void onFrame() override {
-        fx::force(fx::Id::Hitbox, true);
+    void onRender(ImDrawList* dl) override {
+        auto& st = game::state();
+        if (!st.inWorld) return;
         ImVec4 c = color_.color;
         if (rainbow_.b) {
             float r, g, b;
             ImGui::ColorConvertHSVtoRGB(std::fmod(float(ui::time()) * 0.3f, 1.f), 0.7f, 1.f, r, g, b);
             c = {r, g, b, 1.f};
         }
-        fx::out(fx::Id::HitboxColor, {c.x, c.y, c.z, c.w * opacity_.f});
-        if (style_.i == 1) fx::force(fx::Id::Hitbox2D, true);
-        fx::set(fx::Id::HitboxWidth, width_.f);
-        fx::set(fx::Id::HitboxRange, range_.f);
-        if (self_.b) fx::force(fx::Id::HitboxSelf, true);
-        if (java_.b) fx::force(fx::Id::HitboxJava, true);
-        if (eye_.b) {
-            fx::force(fx::Id::HitboxEye, true);
-            fx::out(fx::Id::HitboxEyeColor, {eyeColor_.color.x, eyeColor_.color.y, eyeColor_.color.z, eyeColor_.color.w * opacity_.f});
-        }
-        if (look_.b) {
-            fx::force(fx::Id::HitboxLook, true);
-            fx::set(fx::Id::HitboxLookLength, lookLength_.f);
-            fx::out(fx::Id::HitboxLookColor, {lookColor_.color.x, lookColor_.color.y, lookColor_.color.z, lookColor_.color.w * opacity_.f});
-        }
+        c.w *= opacity_.f;
+        auto& t = st.target;
+        // the pick ray stops at the first thing in the way, so the targeted entity is always in plain sight
+        if (t.kind == game::Target::Kind::Entity && t.hasBox) drawBox(dl, t.boxMin, t.boxMax, c, t.lookYaw, t.lookPitch, true);
+        auto& me = st.player;
+        if (self_.b && me.hasBox && me.view != game::View::First) drawBox(dl, me.boxMin, me.boxMax, c, me.yaw, me.pitch, false);
     }
 
 private:
+    void drawBox(ImDrawList* dl, game::Vec3 lo, game::Vec3 hi, ImVec4 c, float yaw, float pitch, bool other) {
+        float grow = java_.b ? 0.1f : 0.f;
+        lo = {lo.x - grow, lo.y - grow, lo.z - grow};
+        hi = {hi.x + grow, hi.y + grow, hi.z + grow};
+        float w = width_.f * ui::scale();
+        ImU32 col = ImGui::GetColorU32(c);
+        game::Vec3 p[8] = {{lo.x, lo.y, lo.z}, {hi.x, lo.y, lo.z}, {hi.x, lo.y, hi.z}, {lo.x, lo.y, hi.z},
+                           {lo.x, hi.y, lo.z}, {hi.x, hi.y, lo.z}, {hi.x, hi.y, hi.z}, {lo.x, hi.y, hi.z}};
+        if (style_.i == 1) {
+            ImVec2 a{FLT_MAX, FLT_MAX}, b{-FLT_MAX, -FLT_MAX};
+            int seen = 0;
+            for (auto& v : p)
+                if (auto s = game::project(v)) {
+                    a = {std::min(a.x, s->x), std::min(a.y, s->y)};
+                    b = {std::max(b.x, s->x), std::max(b.y, s->y)};
+                    seen++;
+                }
+            if (seen == 8) dl->AddRect(a, b, col, 0.f, 0, w);
+        } else {
+            static const int edges[12][2] = {{0, 1}, {1, 2}, {2, 3}, {3, 0}, {4, 5}, {5, 6}, {6, 7}, {7, 4}, {0, 4}, {1, 5}, {2, 6}, {3, 7}};
+            for (auto& e : edges) {
+                ImVec2 s0, s1;
+                if (game::projectLine(p[e[0]], p[e[1]], s0, s1)) dl->AddLine(s0, s1, col, w);
+            }
+        }
+        float cx = (lo.x + hi.x) * 0.5f, cz = (lo.z + hi.z) * 0.5f;
+        // players see from 1.62 above their feet; other mobs from about 85 % of their height
+        float eyeY = lo.y + grow + (other ? std::min(1.62f, (hi.y - lo.y - 2 * grow) * 0.85f) : 1.62f);
+        if (eye_.b) {
+            ImVec4 ec = eyeColor_.color;
+            ec.w *= opacity_.f;
+            ImVec2 s0, s1;
+            if (game::projectLine({lo.x, eyeY, cz}, {hi.x, eyeY, cz}, s0, s1)) dl->AddLine(s0, s1, ImGui::GetColorU32(ec), w);
+            if (game::projectLine({cx, eyeY, lo.z}, {cx, eyeY, hi.z}, s0, s1)) dl->AddLine(s0, s1, ImGui::GetColorU32(ec), w);
+        }
+        if (look_.b) {
+            ImVec4 lc = lookColor_.color;
+            lc.w *= opacity_.f;
+            float ry = yaw * 0.0174533f, rp = pitch * 0.0174533f, len = lookLength_.f;
+            game::Vec3 from{cx, eyeY, cz};
+            game::Vec3 to{cx - std::sin(ry) * std::cos(rp) * len, eyeY - std::sin(rp) * len, cz + std::cos(ry) * std::cos(rp) * len};
+            ImVec2 s0, s1;
+            if (game::projectLine(from, to, s0, s1)) dl->AddLine(s0, s1, ImGui::GetColorU32(lc), w);
+        }
+    }
+
     Setting& style_ = choice("style", "Box style", {"3D box", "Flat (2D)"});
     Setting& opacity_ = slider("opacity", "Opacity", 1.f, 0.1f, 1.f, "%.2f");
     Setting& width_ = slider("width", "Line thickness", 2.f, 0.5f, 8.f, "%.1f");
-    Setting& range_ = slider("range", "Range (blocks)", 30.f, 5.f, 30.f, "%.0f");
     Setting& self_ = toggleSetting("self", "Show your own hitbox", false);
     Setting& rainbow_ = toggleSetting("rainbow", "Rainbow", false);
     Setting& eye_ = toggleSetting("eye", "Eye line", false);

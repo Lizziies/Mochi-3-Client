@@ -203,6 +203,9 @@ public:
             readUse(s, ev);
         }
         if (playerPtr_ && (have & unsigned(Domain::Others))) readEntities(s);
+        s.camera.live = playerPtr_ && readCamera(s.camera);
+        // a camera away from the eyes is a third person view, also while freelook or a forced perspective is on
+        if (s.camera.live && s.player.view == View::First && distance(s.camera.pos, eye_) > 1.f) s.player.view = View::Back;
         if (playerPtr_ && (have & unsigned(Domain::Effects))) readEffects(s);
         if (playerPtr_ && (have & unsigned(Domain::Scoreboard))) readScoreboard(s);
         if (playerPtr_) applyHidden();
@@ -425,6 +428,12 @@ private:
         // primed TNT burns for 80 ticks from the moment it appears
         auto seen = firstSeen_.find(id);
         t.fuse = t.name == "tnt" && seen != firstSeen_.end() ? std::max(0.f, 4.f - float(GetTickCount64() - seen->second) / 1000.f) : 0.f;
+        t.hasBox = box(reg, id, t.boxMin, t.boxMax);
+        // ActorRotationComponent: pitch, yaw in degrees, then the previous tick's
+        if (uintptr_t r = component(pool(reg, "pool.rotation"), id, off("rotation.size"))) {
+            t.lookPitch = mem::get<float>(r);
+            t.lookYaw = mem::get<float>(r + 4);
+        }
         uintptr_t attrs = component(pool(reg, "pool.attributes"), id, off("attributes.size"));
         uintptr_t first = attrs ? mem::pointer(attrs + off("attributes.list")) : 0;
         if (uintptr_t hp = first ? attrIn(first, "health") : 0) {
@@ -462,6 +471,45 @@ private:
         return std::isfinite(p) ? std::clamp(p, 0.f, 1.f) : 0.f;
     }
 
+    // AABBShapeComponent holds the box as min and max corner, then width and height. It moves in ticks, so it is
+    // shifted by how far the interpolated render position has moved past the tick position.
+    bool box(uintptr_t reg, uint32_t id, Vec3& lo, Vec3& hi) {
+        uintptr_t b = component(pool(reg, "pool.aabb"), id, off("aabb.size"));
+        if (!b) return false;
+        float v[6];
+        if (!mem::read(b, v)) return false;
+        Vec3 shift;
+        uintptr_t st = component(pool(reg, "pool.state"), id, off("state.size"));
+        uintptr_t r = component(pool(reg, "pool.render"), id, off("render.size"));
+        if (st && r) shift = {mem::get<float>(r) - mem::get<float>(st), mem::get<float>(r + 4) - mem::get<float>(st + 4), mem::get<float>(r + 8) - mem::get<float>(st + 8)};
+        lo = {v[0] + shift.x, v[1] + shift.y, v[2] + shift.z};
+        hi = {v[3] + shift.x, v[4] + shift.y, v[5] + shift.z};
+        return hi.x > lo.x && hi.y > lo.y && hi.z > lo.z;
+    }
+
+    // The camera the frame is drawn from is the entity with a GameCameraComponent. Its CameraComponent (0x120
+    // bytes) holds the orientation as a quaternion at +0x30 (forward is -z), the position at +0x40 and the vertical
+    // field of view in radians at +0x50, so third person, freelook and zoom project right.
+    bool readCamera(Camera& cam) {
+        uintptr_t reg = mem::pointer(playerPtr_ + off("player.registry"));
+        uintptr_t game = pool(reg, "pool.gameCamera");
+        uintptr_t packed = game ? mem::pointer(game + 0x20) : 0;
+        if (!packed || mem::pointer(game + 0x28) <= packed) return false;
+        uintptr_t c = component(pool(reg, "pool.camera"), mem::get<uint32_t>(packed), off("camera.size"));
+        float v[9];
+        if (!c || !mem::read(c + off("camera.orientation"), v)) return false;
+        float x = v[0], y = v[1], z = v[2], w = v[3];
+        float norm = x * x + y * y + z * z + w * w;
+        if (!std::isfinite(norm) || std::fabs(norm - 1.f) > 0.01f || !std::isfinite(v[4] + v[5] + v[6])) return false;
+        Vec3 fwd{-2.f * (x * z + w * y), -2.f * (y * z - w * x), -(1.f - 2.f * (x * x + y * y))};
+        cam.pos = {v[4], v[5], v[6]};
+        cam.pitch = std::asin(std::clamp(-fwd.y, -1.f, 1.f)) * 57.29578f;
+        cam.yaw = std::atan2(-fwd.x, fwd.z) * 57.29578f;
+        float fov = mem::get<float>(c + off("camera.fov"));
+        if (fov > 0.1f && fov < 3.f) cam.fov = fov * 57.29578f;
+        return true;
+    }
+
     // only the local player has a LocalPlayerComponent, an empty tag, so that pool's single entity is us
     uint32_t selfId(uintptr_t reg) {
         uintptr_t p = pool(reg, "pool.localPlayer");
@@ -484,6 +532,7 @@ private:
         uintptr_t reg = mem::pointer(playerPtr_ + off("player.registry"));
         uint32_t self = selfId(reg);
         if (std::string me = playerName(reg, self); !me.empty()) s.player.name = me;
+        s.player.hasBox = box(reg, self, s.player.boxMin, s.player.boxMax);
         s.others.clear();
         s.shots.clear();
         s.tab.clear();

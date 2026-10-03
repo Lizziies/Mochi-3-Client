@@ -99,6 +99,9 @@ struct Player {
     float useProgress = 0.f;
     // false while health and hunger are still defaults (live data not found yet)
     bool statsKnown = true;
+    bool hasBox = false;
+    Vec3 boxMin;
+    Vec3 boxMax;
     std::array<Item, 9> hotbar;
     std::array<Item, 4> armor;
     Item offhand;
@@ -125,6 +128,11 @@ struct Target {
     float maxHealth = 20.f;
     float breakProgress = 0.f;
     float fuse = 0.f;
+    bool hasBox = false;
+    Vec3 boxMin;
+    Vec3 boxMax;
+    float lookYaw = 0.f;
+    float lookPitch = 0.f;
     int skinSize = 0;
     std::vector<uint32_t> skin;
 };
@@ -227,6 +235,7 @@ struct Camera {
     float pitch = 0.f;
     float fov = 70.f;
     float aspect = 16.f / 9.f;
+    bool live = false;
 };
 
 enum class EventKind { Hit, Hurt, Kill, Death, TotemPop, Swing, BowRelease, ItemUse, Chat, Respawn, Confirm, Sound };

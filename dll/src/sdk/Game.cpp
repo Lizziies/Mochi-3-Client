@@ -183,10 +183,12 @@ void update() {
     }
 
     cur.server = demoOn && !demoName.empty() ? demoName : rules::status().server;
-    cur.camera.pos = cur.player.eye();
-    cur.camera.yaw = cur.player.yaw;
-    cur.camera.pitch = cur.player.pitch;
-    cur.camera.fov = cur.player.fov;
+    if (!cur.camera.live) {
+        cur.camera.pos = cur.player.eye();
+        cur.camera.yaw = cur.player.yaw;
+        cur.camera.pitch = cur.player.pitch;
+        cur.camera.fov = cur.player.fov;
+    }
     auto ds = ImGui::GetIO().DisplaySize;
     if (ds.y > 0.f) cur.camera.aspect = ds.x / ds.y;
 }
