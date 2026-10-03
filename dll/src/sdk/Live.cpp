@@ -1,6 +1,7 @@
 #include "Providers.hpp"
 #include "Memory.hpp"
 #include "core/Bg.hpp"
+#include "core/Client.hpp"
 #include "core/Log.hpp"
 #include "hook/Hook.hpp"
 #include "hook/Input.hpp"
@@ -84,10 +85,10 @@ template <class Fn>
 void eachPrivateWord(Fn&& fn) {
     std::vector<uint8_t> buf(1 << 20);
     MEMORY_BASIC_INFORMATION mbi{};
-    for (uintptr_t at = 0x10000; VirtualQuery(reinterpret_cast<void*>(at), &mbi, sizeof(mbi));) {
+    for (uintptr_t at = 0x10000; !client::unloading() && VirtualQuery(reinterpret_cast<void*>(at), &mbi, sizeof(mbi));) {
         uintptr_t start = reinterpret_cast<uintptr_t>(mbi.BaseAddress), next = start + mbi.RegionSize;
         bool ok = mbi.State == MEM_COMMIT && mbi.Type == MEM_PRIVATE && (mbi.Protect & PAGE_READWRITE) && !(mbi.Protect & PAGE_GUARD);
-        for (uintptr_t chunk = start; ok && chunk < next; chunk += buf.size()) {
+        for (uintptr_t chunk = start; ok && chunk < next && !client::unloading(); chunk += buf.size()) {
             size_t n = std::min<size_t>(buf.size(), next - chunk);
             if (!mem::readBytes(chunk, buf.data(), n)) continue;
             for (size_t i = 0; i + 8 <= n; i += 8) {
@@ -129,6 +130,10 @@ void sweep() {
     std::vector<uintptr_t> all;
     for (auto* v : {&hands, &armors, &attrs}) all.insert(all.end(), v->begin(), v->end());
     std::sort(all.begin(), all.end());
+    if (client::unloading()) {
+        sweeping = false;
+        return;
+    }
     std::vector<int> count(all.size());
     if (!all.empty())
         eachPrivateWord([&](uintptr_t, uintptr_t v) {
