@@ -88,7 +88,10 @@ private:
 
 class Amd : public Driver {
 public:
-    explicit Amd(IUnknown* device) { device->QueryInterface(IID_PPV_ARGS(&device_)); }
+    explicit Amd(IUnknown* device) {
+        error_ = device->QueryInterface(IID_PPV_ARGS(&device_));
+        if (error_ == S_OK) error_ = AMD::AntiLag2DX12::Initialize(&context_, device_.Get());
+    }
     ~Amd() override { AMD::AntiLag2DX12::DeInitialize(&context_); }
 
     bool configure(Mode mode) override {

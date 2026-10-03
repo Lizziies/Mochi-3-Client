@@ -1,5 +1,10 @@
 # Recherche und Wünsche
 
+AMD Anti-Lag 2: Nachprüfung auf der integrierten Radeon liefert S_OK beim Initialisieren
+des SDK auf einem separat erzeugten DX12-Gerät. Der Adaptername allein ist weiterhin kein
+Unterstützungsnachweis; der Client prüft jetzt tatsächlich die AMD-Treiberschnittstelle.
+Aktivierung bleibt an den bestätigten Frame-Start-Hook gebunden.
+
 ## GPU-Latenz 2026-10-03, separater Codex-Branch
 
 Direkte NVAPI- und AMD-Anti-Lag-2-SDK-Aufrufe benötigen kein RTSS. DX12 allein stellt aber

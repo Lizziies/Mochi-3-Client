@@ -35,6 +35,17 @@ int main(int argc, char** argv) {
         const auto status = gpuLatency::status();
         std::cerr << "vendor " << std::hex << detected.vendorId << std::dec
                   << ", backend stage " << int(status.stage) << ", probe error " << status.error << "\n";
+        if (detected.vendor == gpuLatency::Vendor::Amd) {
+            if (status.stage == gpuLatency::Stage::Unsupported)
+                std::cerr << "AMD Anti-Lag 2 extension is unavailable on this adapter/driver\n";
+            else
+                std::cerr << "AMD Anti-Lag 2 initialization succeeded; pacing remains disabled\n";
+            if (gpuLatency::set(gpuLatency::Mode::On)) {
+                std::cerr << "AMD pacing incorrectly enabled without a verified input boundary\n";
+                gpuLatency::shutdown();
+                return 7;
+            }
+        }
         if (exercise && detected.vendor == gpuLatency::Vendor::Nvidia) {
             if (!gpuLatency::set(gpuLatency::Mode::On)) {
                 std::cerr << "NVIDIA enable failed: " << gpuLatency::status().error << "\n";

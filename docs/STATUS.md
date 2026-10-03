@@ -10,6 +10,10 @@ Der geprüfte Bedrock-Hook vor der Eingabe fehlt weiterhin: NVIDIA meldet nur de
 AMD bleibt bis dahin gesperrt. Vollständiges Reflex/Anti-Lag 2 ist nicht fertig.
 Details und Integration für Claude: `docs/GPU_LATENCY.md`.
 
+AMD-Unterstützungsprüfung ergänzt: Anti-Lag-2-Initialize auf dem separaten Gerät der
+integrierten Radeon erfolgreich (S_OK). Keine Aktivierung ohne geprüften Eingabe-Hook,
+keine Bestätigung der Spielwirkung. Native AMD-API-Verfügbarkeit ist damit geprüft.
+
 ## Arbeitsstand 2026-10-03: Flarial-Modulbasis
 
 Alle 117 Flarial-Modulordner sowie SDK, Events, Hooks und Signaturdefinitionen sind als

@@ -1,5 +1,12 @@
 # Testlog
 
+## 2026-10-03 — AMD Anti-Lag 2 Unterstützungsprüfung
+
+- Separates DX12-Gerät der AMD Radeon(TM) Graphics: SDK Initialize erfolgreich (S_OK).
+- Enable-Anfrage ohne bestätigten Frame-Start-Hook abgelehnt; Pacing blieb deaktiviert.
+- Probe Exit 0; lokaler CTest weiterhin 1/1 bestanden.
+- Keine Minecraft-Injection oder Spielwirkung getestet.
+
 ## 2026-10-03 — GPU-Latenz, getrennter Codex-Worktree
 
 - MSVC Release-DLL gebaut, MOCHI_FLARIAL=OFF.
