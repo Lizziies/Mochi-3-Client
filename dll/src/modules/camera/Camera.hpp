@@ -213,7 +213,7 @@ public:
     Freelook()
         : Module("Freelook", "Turn the camera freely around you while your body and walking direction stay. Banned on some servers.", Category::Visual, {"camera"}) {
         sub("Camera");
-        require(need::player, need::sigs({"LocalPlayer", "CameraUpdatePlayer", "CameraYaw", "CameraHeadYaw"}));
+        require(need::player, need::sigs({"LocalPlayer", "FreeCamera"}));
     }
 
     void onKey(KeyEvent& ev) override {

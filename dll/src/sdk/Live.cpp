@@ -690,8 +690,13 @@ private:
         std::stable_sort(board.lines.begin(), board.lines.end(), [&](auto& a, auto& b) { return ascending ? a.second < b.second : a.second > b.second; });
     }
 
-    // Restore DirectLook yaw/pitch before resuming the native player-update function,
-    // otherwise the player snaps to the freely rotated camera on release.
+    // Freelook stops the system that turns the player to match the camera. The native way skips the camera's
+    // player-update function (Flarial's hook). Without its signatures the camera entities are unlinked instead:
+    // the system finds cameras through an entt view, which compares the version bits of the
+    // UpdatePlayerFromCameraComponent pool's sparse entry with the entity, so flipping one version bit makes the
+    // view skip the camera while plain lookups (position bits only) still work. Either way the cameras get their
+    // old angles back (CameraDirectLookComponent: yaw, pitch in radians) before the link returns, otherwise the
+    // player would snap to where the camera looked.
 public:
     bool detach(bool on) {
         uintptr_t reg = playerPtr_ ? mem::pointer(playerPtr_ + off("player.registry")) : 0;
@@ -702,6 +707,7 @@ public:
         if (!on) {
             if (!detached_.reg) return freecam::set(false);
             for (auto& [at, angles] : detached_.angles) mem::write(at, angles);
+            for (auto& [at, entry] : detached_.entries) mem::write(at, entry);
             freecam::set(false);
             detached_ = {};
             return false;
@@ -715,9 +721,28 @@ public:
             if (detached_.angles.empty()) return false;
             detached_.reg = reg;
         }
-        return freecam::set(true);
+        if (detached_.entries.empty() && freecam::set(true)) return true;
+        return unlinkCameras(reg);
     }
 
+private:
+    bool unlinkCameras(uintptr_t reg) {
+        uintptr_t link = pool(reg, "pool.cameraLink");
+        if (!link) return false;
+        eachEntity(link, [&](uint32_t id) {
+            uintptr_t at = sparseEntry(link, id);
+            if (!at) return;
+            uint32_t entry = mem::get<uint32_t>(at);
+            auto known = std::find_if(detached_.entries.begin(), detached_.entries.end(), [&](auto& e) { return e.first == at; });
+            if (known == detached_.entries.end()) detached_.entries.push_back({at, entry});
+            else if (entry == (known->second ^ (1u << 18))) return;
+            else known->second = entry;
+            mem::write(at, entry ^ (1u << 18));
+        });
+        return !detached_.entries.empty();
+    }
+
+public:
     // Hiding an entity sets its invisible status flag (ActorDataFlagComponent, a bitset; bit 5 is INVISIBLE) on
     // this client only, every frame until the time is up, then puts the old bit back.
     void hide(uint32_t id, uint64_t ms) {
@@ -758,6 +783,7 @@ private:
 
     struct Detached {
         uintptr_t reg = 0;
+        std::vector<std::pair<uintptr_t, uint32_t>> entries;
         std::vector<std::pair<uintptr_t, uint64_t>> angles;
     };
     Detached detached_;

@@ -16,7 +16,7 @@ an Mochis Schnittstellen angeschlossen werden. Ein vorhandener Menüschalter bew
 | Freelook | Versionsbit in der entt-Registry verändert; Wirkung unbestätigt | Flarials nativer Kamera-/Spieler-Update-Hook mit drei Argumenten und Body-/Head-Yaw-Patches, über Mochis Einstellungen gesteuert; Kamera-Winkel vor Rückgabe wiederhergestellt | Lokale Hook-/Patch-Lifecycle-Tests bestanden; Signaturen und sichtbare Wirkung im Spiel noch offen |
 | Third Person Nametag | Eigenes Poppins-Overlay, Formatierung entfernt | Flarials native Self-Tag-Sperre; keine Text-/Farbersetzung. Original-Overlay bleibt optional | Lokale Patch-Lifecycle-Tests bestanden; Signatur und sichtbare Wirkung im Spiel noch offen |
 
-Die beiden Module benötigen echte Signaturen (`CameraUpdatePlayer`, `CameraYaw`, `CameraHeadYaw`, `OwnNametagGate`).
+Freelook nimmt den nativen Hook, wenn `CameraUpdatePlayer`, `CameraYaw` und `CameraHeadYaw` gefunden werden, sonst den eigenen Weg über das Versionsbit im UpdatePlayerFromCameraComponent-Pool. Dieser Rückfall wurde am 3. Oktober im Spiel geprüft (Kamera dreht, Spieler bleibt, Sicht nach dem Loslassen pixelgleich). Der native Pfad ist ungeprüft. Der eigene Nametag braucht `OwnNametagGate`.
 Die alten Pseudo-Freigaben ersetzen diese Anbindung nicht. Fehlende Signaturen sperren das Modul.
 Die eingefügten Muster stammen aus Flarials Signaturdefinitionen; sie sind noch keine bestätigten
 Mochi-Signaturen für 1.26.52.3.
