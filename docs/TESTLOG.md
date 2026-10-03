@@ -101,3 +101,18 @@ Alles im echten Spiel geprüft, jeweils Log-Zeile plus Screenshot vorher/nachher
 - Gefundener Fehler, behoben: Der Entwickler-Befehl `disable` fehlte, frühere Tests mit `disable` liefen ins Leere.
 - Perspektive, View Bobbing, Wolken: Hooks gesetzt (`hook fx.clouds` im Log), sichtbare Wirkung noch nicht geprüft (die Wolken in der Testwelt kommen vom Himmel des Ressourcenpakets). No Hurt Cam (`gfx_damagebobbing`) braucht Schaden, also Überlebensmodus mit Cheats, offen.
 - Felix' Helligkeit war durch einen Test auf 56 % gespeichert, wieder auf 50 % gestellt (options.txt `gfx_gamma:0.5`).
+
+## 2026-10-03 Nacht, PC, Testwelt "Mochi Test" (flach, Cheats)
+
+- Absturz beim Server-Beitritt behoben: Options-Umleitung (FOV) wird außerhalb einer Welt zurückgenommen und nur zurückgeschrieben, wenn dort noch unser Zeiger steht. Welt verlassen und neu betreten mit FOV Changer und Zoom an: kein Absturz.
+- Position und Blickwinkel weltfest (HitResult bei player+0x1e8, Winkel aus dem Pick-Strahl). Geprüft: Pitch ±89,9, Yaw Süden 0.
+- PvP über das HitResult: Reach 1,71 / Combo 2 / Hits 2/5 am Rüstungsständer.
+- Inventar, Rüstung, Offhand, gewählter Slot: Container werden einmal pro Welt im Speicher gesucht (Vtable plus Prüfung). Geprüft: Pfeile 22, Totem 1, Diamant-Brustpanzer, Slot-Wechsel zeigt den richtigen Gegenstand.
+- Leben, Absorption, Hunger, Sättigung, Level, XP aus dem Attribut-Array des Spielers (Hunger steht 5 Einträge vor Leben, nur der Spieler hat das). Geprüft: 11/20 nach /damage, gleich der Herzanzeige.
+- Tempo (4,31 b/s Gehen, Vanilla 4,317), Sprinten/Boden aus der Bewegung, Schleichen aus der Taste.
+- Weltzeit über player+0x90 (Level, +0x340). Geprüft: Tick 13000 = Tag 1 19:00.
+- Chat aus der HUD-Nachrichtenliste (ClientInstance+0x650, Vektor +0x150, Zeile +0x90). Geprüft: Message Logger schreibt `<vlisya> abc vierter`.
+- Getroffen/Tod/Respawn aus dem Leben, Totem verbraucht aus der Totem-Zahl in den Händen. Gebaut, im Spiel noch nicht bestätigt.
+- Suche nimmt jetzt die Kopie mit den meisten Verweisen (eine verwaiste Kopie aus einer vorherigen Welt hatte 20/20 statt 11/20 gezeigt). Gebaut, im Spiel noch nicht bestätigt.
+- Bekannt, offen: Nach Strg+L stürzt das erneute Injizieren manchmal ab (3x heute, Absturz in freiem Speicher kurz nach `server rules from GitHub`). Ursache noch nicht gefunden.
+- Stand: 124 von 179 Modulen frei, 55 grau.
