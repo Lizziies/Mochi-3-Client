@@ -45,3 +45,7 @@ tools/cross.sh shots
 ## Docs
 
 Start with `docs/MASTER.md`. The module list is in `docs/MODULES.md`, how signatures and updates work is in `docs/VERSIONING.md` and `docs/UPDATES.md`, and `docs/PARITY.md` is an honest look at where we stand next to Flarial and Onix.
+
+## License
+
+AGPL-3.0, see `LICENSE`. Parts are adapted from [Flarial](https://github.com/flarialmc/dll-oss), also AGPL-3.0; the upstream copy and its commit are in `vendor/flarial`. If you share a build, share its source too.
