@@ -22,7 +22,7 @@ public:
     HotbarArmor()
         : Module("Hotbar Armor", "Shows your four armor pieces with durability right next to the hotbar.", Category::Hud, {"hud-self"}) {
         sub("Inventory info");
-        require(need::inventory, need::sigs({"LocalPlayer", "Inventory"}));
+        require(need::inventory, need::sigs({"LocalPlayer"}));
         warnColor_.visible = [this] { return warn_.f > 0.f; };
     }
 
@@ -146,7 +146,7 @@ class InventoryView : public GameList {
 public:
     InventoryView()
         : GameList("Inventory Viewer", "Shows the contents of your inventory as a grid on the screen, with counts and durability.", need::inventory,
-                   need::sigs({"LocalPlayer", "Inventory"}), {"hud-self"}, {0.4f, 0.3f}) {
+                   need::sigs({"LocalPlayer"}), {"hud-self"}, {0.4f, 0.3f}) {
         sub("Inventory info");
     }
 

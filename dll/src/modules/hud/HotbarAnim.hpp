@@ -16,7 +16,7 @@ public:
     HotbarAnimation()
         : Module("Hotbar Animation", "A smooth selection frame that glides between hotbar slots, with a small pop when you switch.", Category::Visual, {"cosmetic"}) {
         sub("HUD parts");
-        require(need::player | need::inventory, need::sigs({"LocalPlayer", "Inventory"}));
+        require(need::player | need::inventory, need::sigs({"LocalPlayer"}));
         glowSize_.visible = [this] { return glow_.b; };
         glowColor_.visible = [this] { return glow_.b; };
     }

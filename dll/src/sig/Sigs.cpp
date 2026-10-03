@@ -322,7 +322,11 @@ bool takeChanged() { return changed.exchange(false); }
 uintptr_t address(const std::string& name) {
     std::scoped_lock g(lock);
     auto it = addresses.find(name);
-    return it == addresses.end() ? 0 : it->second;
+    if (it != addresses.end()) return it->second;
+    // data that is read from memory rather than called ("PlayerStats", "MoveState", ...) is announced by the
+    // signature file with "has.<Name>": 1 among the offsets
+    auto has = offsets.find("has." + name);
+    return has != offsets.end() && has->second > 0 ? 1 : 0;
 }
 
 int offset(const std::string& name, int fallback) {

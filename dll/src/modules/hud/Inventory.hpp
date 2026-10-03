@@ -24,7 +24,7 @@ class ArmorHud : public GameList {
 public:
     ArmorHud()
         : GameList("Armor HUD", "Shows your armor and the item in your hand with durability as a number, percent or bar.", need::inventory,
-                   need::sigs({"LocalPlayer", "Inventory"}), {"hud-self"}, {0.135f, 0.7f}) {
+                   need::sigs({"LocalPlayer"}), {"hud-self"}, {0.135f, 0.7f}) {
         sub("Inventory info");
         flash_.visible = [this] { return warn_.f > 0.f; };
     }
@@ -188,7 +188,7 @@ private:
 class CountHud : public GameText {
 public:
     CountHud(std::string name, std::string desc, std::string item, int aux, ImVec2 pos)
-        : GameText(std::move(name), std::move(desc), need::inventory, need::sigs({"LocalPlayer", "Inventory"}), {"hud-self"}, pos), item_(std::move(item)),
+        : GameText(std::move(name), std::move(desc), need::inventory, need::sigs({"LocalPlayer"}), {"hud-self"}, pos), item_(std::move(item)),
           aux_(aux) {
         sub("Inventory info");
         inHand_.visible = [this] { return handRule(); };
@@ -282,7 +282,7 @@ class ItemCounter : public GameList {
 public:
     ItemCounter()
         : GameList("Item Counter", "Counts any items you choose. Several items at once, sorting, format, hide at 0 or 1 and colored icons.", need::inventory,
-                   need::sigs({"LocalPlayer", "Inventory"}), {"hud-self"}, {0.135f, 0.57f}) {
+                   need::sigs({"LocalPlayer"}), {"hud-self"}, {0.135f, 0.57f}) {
         sub("Inventory info");
         lowColor_.visible = [this] { return lowAt_.i > 0; };
     }
@@ -355,7 +355,7 @@ public:
         : Module("Durability Warning", "Warns in the middle of the screen when armor or tools are almost broken, with an optional sound.", Category::Hud,
                  {"hud-self"}) {
         sub("Inventory info");
-        require(need::inventory, need::sigs({"LocalPlayer", "Inventory"}));
+        require(need::inventory, need::sigs({"LocalPlayer"}));
     }
 
     void onFrame() override {
@@ -448,7 +448,7 @@ class BetterHunger : public GameList {
 public:
     BetterHunger()
         : GameList("Better Hunger Bar", "Shows hunger and saturation as a bar and previews what the food in your hand gives.", need::player | game::Domain::Inventory,
-                   need::sigs({"LocalPlayer", "Inventory"}), {"hud-self"}, {0.135f, 0.93f}) {
+                   need::sigs({"LocalPlayer"}), {"hud-self"}, {0.135f, 0.93f}) {
         sub("Info displays");
     }
 

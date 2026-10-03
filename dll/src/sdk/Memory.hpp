@@ -40,6 +40,12 @@ bool read(uintptr_t address, T& out) {
     return ReadProcessMemory(GetCurrentProcess(), reinterpret_cast<const void*>(address), &out, sizeof(T), &got) && got == sizeof(T);
 }
 
+inline bool readBytes(uintptr_t address, void* out, size_t size) {
+    if (address < 0x10000) return false;
+    SIZE_T got = 0;
+    return ReadProcessMemory(GetCurrentProcess(), reinterpret_cast<const void*>(address), out, size, &got) && got == size;
+}
+
 template <class T>
 T get(uintptr_t address, T fallback = T{}) {
     T v{};

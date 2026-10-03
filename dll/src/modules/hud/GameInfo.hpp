@@ -498,7 +498,7 @@ private:
 class HeldItem : public GameList {
 public:
     HeldItem()
-        : GameList("Held Item", "Shows the item in your hand with count and durability.", need::inventory, need::sigs({"LocalPlayer", "Inventory"}),
+        : GameList("Held Item", "Shows the item in your hand with count and durability.", need::inventory, need::sigs({"LocalPlayer"}),
                    {"hud-self"}, {0.135f, 0.5f}) {
         sub("Info displays");
     }

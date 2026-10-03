@@ -1,5 +1,6 @@
 #include "Providers.hpp"
 #include "Memory.hpp"
+#include "core/Bg.hpp"
 #include "core/Log.hpp"
 #include "hook/Hook.hpp"
 #include "hook/Input.hpp"
@@ -8,8 +9,11 @@
 #include "sig/Sigs.hpp"
 
 #include <algorithm>
+#include <atomic>
 #include <cmath>
+#include <cstring>
 #include <mutex>
+#include <vector>
 
 namespace game {
 
@@ -35,6 +39,69 @@ uintptr_t follow(uintptr_t p, const char* name) {
     return p;
 }
 
+// The inventory objects hang off the player through an entity registry whose layout changes from session to
+// session, so no fixed pointer path reaches them. They are found once per world instead: a heap sweep for
+// their vtables ("<name>.vtable", relative to the image), checked by a vector of item stacks at a known spot.
+std::atomic<uintptr_t> handObj{0}, armorObj{0};
+std::atomic<bool> sweeping{false};
+
+uintptr_t imageBase() { return reinterpret_cast<uintptr_t>(GetModuleHandleW(nullptr)); }
+
+bool stackVector(uintptr_t holder, size_t count) {
+    uintptr_t begin = mem::pointer(holder), end = mem::pointer(holder + 8);
+    uintptr_t stackVt = imageBase() + uintptr_t(off("stack.vtable"));
+    return begin && end - begin == count * size_t(off("stack.size")) && mem::pointer(begin) == stackVt;
+}
+
+bool validHand(uintptr_t o) {
+    return o && mem::pointer(o + off("hand.tag")) == imageBase() + uintptr_t(off("hand.vtable")) && stackVector(o + off("hand.items"), 36);
+}
+
+bool validArmor(uintptr_t o) {
+    return o && mem::pointer(o) == imageBase() + uintptr_t(off("armor.vtable")) && stackVector(o + off("armor.items"), size_t(off("armor.count")));
+}
+
+void sweep() {
+    uintptr_t handVt = imageBase() + uintptr_t(off("hand.vtable")), armorVt = imageBase() + uintptr_t(off("armor.vtable"));
+    int handTag = off("hand.tag");
+    uintptr_t hand = 0, armor = 0;
+    std::vector<uint8_t> buf(1 << 20);
+    MEMORY_BASIC_INFORMATION mbi{};
+    // other players (the local server's copy, previews) carry the same objects; the one with items wins
+    auto filled = [](uintptr_t items, size_t count) {
+        int n = 0;
+        for (size_t k = 0; k < count; k++) n += mem::get<uint8_t>(items + k * size_t(off("stack.size")) + off("stack.count")) != 0;
+        return n;
+    };
+    int handBest = -1, armorBest = -1;
+    for (uintptr_t at = 0x10000; VirtualQuery(reinterpret_cast<void*>(at), &mbi, sizeof(mbi));) {
+        uintptr_t start = reinterpret_cast<uintptr_t>(mbi.BaseAddress), next = start + mbi.RegionSize;
+        bool ok = mbi.State == MEM_COMMIT && mbi.Type == MEM_PRIVATE && (mbi.Protect & PAGE_READWRITE) && !(mbi.Protect & PAGE_GUARD);
+        for (uintptr_t chunk = start; ok && chunk < next; chunk += buf.size()) {
+            size_t n = std::min<size_t>(buf.size(), next - chunk);
+            if (!mem::readBytes(chunk, buf.data(), n)) continue;
+            for (size_t i = 0; i + 8 <= n; i += 8) {
+                uintptr_t v;
+                std::memcpy(&v, buf.data() + i, 8);
+                if (v == handVt && validHand(chunk + i - handTag)) {
+                    uintptr_t o = chunk + i - handTag;
+                    int f = filled(mem::pointer(o + off("hand.items")), 36) + (mem::get<uint8_t>(o + off("hand.offhand") + off("stack.count")) != 0);
+                    if (f > handBest) handBest = f, hand = o;
+                } else if (v == armorVt && validArmor(chunk + i)) {
+                    int f = filled(mem::pointer(chunk + i + off("armor.items")), size_t(off("armor.count")));
+                    if (f > armorBest) armorBest = f, armor = chunk + i;
+                }
+            }
+        }
+        if (next <= at) break;
+        at = next;
+    }
+    handObj = hand;
+    armorObj = armor;
+    logger::info("live: inventory {}, armor {}", hand ? "found" : "missing", armor ? "found" : "missing");
+    sweeping = false;
+}
+
 class Live : public Provider {
 public:
     Live() { self = this; }
@@ -46,6 +113,7 @@ public:
         if (sigs::address("Level") && off("level.time") >= 0) m |= unsigned(Domain::World);
         if ((m & unsigned(Domain::Player)) && off("hit.via0") >= 0) m |= unsigned(Domain::Target) | unsigned(Domain::Combat);
         if ((m & unsigned(Domain::Player)) && sigs::address("AttackEntity")) m |= unsigned(Domain::Combat);
+        if ((m & unsigned(Domain::Player)) && off("hand.vtable") >= 0) m |= unsigned(Domain::Inventory);
         return m;
     }
 
@@ -69,6 +137,7 @@ public:
         playerPtr_ = 0;
         if (have & unsigned(Domain::Player)) readPlayer(s);
         if (playerPtr_ && (have & unsigned(Domain::Target))) readTarget(s, ev);
+        if (playerPtr_ && (have & unsigned(Domain::Inventory))) readInventory(s);
         if (have & unsigned(Domain::World)) readWorld(s);
         bool playing = input::gameplay();
         // menu screens keep sending (LAN discovery, Xbox Live, server list pings), so traffic only counts
@@ -216,6 +285,91 @@ private:
         ev.push_back(std::move(e));
     }
 
+    // ItemStack (1.26.52, 0x98 bytes): +0x8 weak pointer to the Item, +0x10 CompoundTag user data, +0x20 aux,
+    // +0x22 count. Item: +0x128 full name ("minecraft:arrow"), +0x150 max damage.
+    static std::string text(uintptr_t at) {
+        size_t len = mem::get<size_t>(at + 16), cap = mem::get<size_t>(at + 24);
+        if (len == 0 || len > 128) return {};
+        uintptr_t p = cap > 15 ? mem::pointer(at) : at;
+        std::string out(len, '\0');
+        return p && mem::readBytes(p, out.data(), len) ? out : std::string{};
+    }
+
+    // user data is a CompoundTag: a std::map<std::string, tag> (node: left, parent, right, color, isnil, key at
+    // +0x20, tag at +0x40 with its payload 8 bytes in)
+    static uintptr_t findTag(uintptr_t tag, const char* key) {
+        uintptr_t head = mem::pointer(tag + 8);
+        if (!head) return 0;
+        uintptr_t stack[32];
+        int n = 0, seen = 0;
+        if (uintptr_t root = mem::pointer(head + 8); root && root != head) stack[n++] = root;
+        while (n > 0 && seen++ < 64) {
+            uintptr_t node = stack[--n];
+            if (mem::get<uint8_t>(node + 0x19, 1)) continue;
+            if (text(node + 0x20) == key) return node + 0x40;
+            for (int side : {0, 16}) {
+                uintptr_t c = mem::pointer(node + side);
+                if (c && c != head && n < 32) stack[n++] = c;
+            }
+        }
+        return 0;
+    }
+
+    static Item item(uintptr_t stack) {
+        Item it;
+        int count = mem::get<uint8_t>(stack + off("stack.count"));
+        uintptr_t def = mem::pointer(mem::pointer(stack + off("stack.item")));
+        if (!count || !def) return it;
+        it.name = text(def + off("item.name"));
+        if (it.name.starts_with("minecraft:")) it.name.erase(0, 10);
+        it.count = count;
+        it.aux = mem::get<int16_t>(stack + off("stack.aux"));
+        it.maxDamage = mem::get<int16_t>(def + off("item.maxDamage"));
+        if (uintptr_t tag = mem::pointer(stack + off("stack.tag"))) {
+            if (uintptr_t d = findTag(tag, "Damage")) it.damage = mem::get<int>(d + 8);
+            it.enchanted = findTag(tag, "ench") != 0;
+        }
+        return it;
+    }
+
+    void readInventory(State& s) {
+        // ten times a second is plenty for counters and armor, and keeps the reads off every frame
+        uint64_t now = GetTickCount64();
+        if (now - inventoryAt_ < 100) return;
+        inventoryAt_ = now;
+        auto& pl = s.player;
+        int size = off("stack.size");
+        uintptr_t hand = handObj, armor = armorObj;
+        bool lost = !validHand(hand) || !validArmor(armor);
+        if (lost && !sweeping && now - sweptAt_ > 3000) {
+            sweptAt_ = now;
+            sweeping = true;
+            bg::run(sweep);
+        }
+        if (validHand(hand)) {
+            uintptr_t items = mem::pointer(hand + off("hand.items"));
+            for (int k = 0; k < 9; k++) pl.hotbar[size_t(k)] = item(items + uintptr_t(k) * size);
+            pl.main.resize(27);
+            for (int k = 0; k < 27; k++) pl.main[size_t(k)] = item(items + uintptr_t(k + 9) * size);
+            pl.offhand = item(hand + off("hand.offhand"));
+            // right after the offhand sits a copy of the selected stack; the slot is the hotbar stack it copies
+            uintptr_t held = hand + off("hand.held");
+            uintptr_t heldItem = mem::pointer(held + off("stack.item"));
+            int heldCount = mem::get<uint8_t>(held + off("stack.count"));
+            for (int k = 0; k < 9; k++) {
+                uintptr_t st = items + uintptr_t(k) * size;
+                if (mem::pointer(st + off("stack.item")) == heldItem && mem::get<uint8_t>(st + off("stack.count")) == heldCount) {
+                    pl.slot = k;
+                    break;
+                }
+            }
+        }
+        if (validArmor(armor)) {
+            uintptr_t items = mem::pointer(armor + off("armor.items"));
+            for (int k = 0; k < 4; k++) pl.armor[size_t(k)] = item(items + uintptr_t(k) * size);
+        }
+    }
+
     void readWorld(State& s) {
         uintptr_t lv = mem::pointer(sigs::address("Level"));
         if (!lv) return;
@@ -277,6 +431,8 @@ private:
     Vec3 vel_;
     int64_t lastPosQpc_ = 0;
     bool wasPressed_ = false;
+    uint64_t inventoryAt_ = 0;
+    uint64_t sweptAt_ = 0;
     float fallSpeed_ = 0.f;
     bool onGround_ = true;
     bool sprinting_ = false;

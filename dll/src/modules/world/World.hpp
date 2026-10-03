@@ -286,12 +286,12 @@ public:
         : Module("Hide Hand", "Hides hand and item in first person, for a clear view or screenshots.", Category::Visual, {"cosmetic"}) {
         sub("Model");
         require(0, {fx::sig(fx::Id::HideHand)});
-        onlyEmpty_.visible = [] { return need::have("Inventory"); };
+        onlyEmpty_.visible = [] { return game::has(game::Domain::Inventory); };
     }
 
     void onFrame() override {
         auto& p = game::state().player;
-        if (onlyEmpty_.b && need::have("Inventory") && !p.held().empty()) return;
+        if (onlyEmpty_.b && game::has(game::Domain::Inventory) && !p.held().empty()) return;
         if (main_.b) fx::skip(fx::Id::HideHand);
         if (offhand_.b) fx::skip(fx::Id::HideOffhand);
     }

@@ -21,7 +21,7 @@ public:
         : Module("Inventory Lock", "Keeps tools and other valuables from being dropped by accident: dropping needs a quick double press of the drop key.",
                  Category::Comfort, {"input"}) {
         sub("Inventory");
-        require(need::inventory, need::sigs({"Inventory"}));
+        require(need::inventory, need::sigs({"LocalPlayer"}));
     }
 
     void onKey(KeyEvent& ev) override {
