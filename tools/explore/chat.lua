@@ -1,5 +1,5 @@
 rt.run("lib")
--- "mochipro" little endian
+-- "monchipro" little endian
 local hits = rt.heap(0x6f72706968636f6d, 200)
 local out = {}
 for _, a in ipairs(hits) do
