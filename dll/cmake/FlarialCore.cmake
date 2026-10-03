@@ -1,6 +1,9 @@
-# Flarial's game side (SDK, hooks, events, module logic) as a static library inside Monchi.
-# Its menu, config storage, overlay, discord and scripting are not built; Monchi provides those.
+# Flarial's game side (SDK, hooks, events, module logic) as its own dll, MonchiFlarial.dll, which Monchi loads.
+# A separate image because both projects define classes with the same global names (Module, Zoom, KeyEvent, ...);
+# linked into one dll the linker would silently merge them. Its menu, config storage, overlay, discord and
+# scripting are not built; Monchi provides those. ImGui runs on Monchi's context.
 include(FetchContent)
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 set(FLARIAL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../vendor/flarial")
 
@@ -33,9 +36,15 @@ foreach(f IN LISTS adapted_files)
 endforeach()
 
 file(GLOB_RECURSE FLARIAL_SOURCES "${FLARIAL_TREE}/*.cpp")
-list(FILTER FLARIAL_SOURCES EXCLUDE REGEX "/flarial/src/Scripting/|/flarial/src/Client/Command/|/Modules/Doom/|/Modules/Lewis/|/Modules/Misc/ScriptMarketplace/|/flarial/src/PCH\.cpp$")
+list(FILTER FLARIAL_SOURCES EXCLUDE REGEX "/flarial/src/Scripting/|/Commands/SpotifyCommand/|/Commands/LuaCommand\.cpp$|/Commands/IRCChat\.cpp$|/Modules/Doom/|/Modules/Lewis/|/Modules/Misc/ScriptMarketplace/|/flarial/src/PCH\.cpp$")
 
-add_library(flarial_core STATIC ${FLARIAL_SOURCES})
+list(TRANSFORM IMGUI_SOURCES PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/" OUTPUT_VARIABLE FLARIAL_IMGUI)
+list(APPEND FLARIAL_IMGUI "${CMAKE_CURRENT_SOURCE_DIR}/lib/imgui/backends/imgui_impl_dx12.cpp")
+add_library(flarial_core SHARED ${FLARIAL_SOURCES} ${FLARIAL_IMGUI} ${MINHOOK_SOURCES} "${FLARIAL_TREE}/Assets/Assets.rc")
+set_target_properties(flarial_core PROPERTIES OUTPUT_NAME "MonchiFlarial" PREFIX "")
+set(FLARIAL_EXTRA "${FLARIAL_DIR}/lib/kiero/kiero.cpp" "${FLARIAL_DIR}/lib/miniz/miniz.c" "${CMAKE_CURRENT_SOURCE_DIR}/../common/DataDir.cpp")
+target_sources(flarial_core PRIVATE ${FLARIAL_EXTRA})
+set_source_files_properties(${MINHOOK_SOURCES} ${FLARIAL_EXTRA} PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
 set_target_properties(flarial_core PROPERTIES CXX_STANDARD 23 MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 target_compile_options(flarial_core PRIVATE /utf-8 /bigobj /permissive- /EHa /W0)
 target_compile_definitions(flarial_core PRIVATE FLARIAL_VERSION="monchi" FLARIAL_BUILD_TYPE="Release" FLARIAL_BUILD_DATE="" COMMIT_HASH="40ad187" NOMINMAX)
@@ -66,4 +75,6 @@ target_include_directories(flarial_core PUBLIC
     "${FLARIAL_TREE}/Client/Module"
     "${FLARIAL_TREE}/shim"
     "${FLARIAL_DIR}/lib")
-target_link_libraries(flarial_core PUBLIC libhat fmt::fmt EnTT::EnTT NES magic_enum safetyhook jsoncpp)
+target_include_directories(flarial_core PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../common")
+target_link_libraries(flarial_core PUBLIC libhat fmt::fmt EnTT::EnTT NES magic_enum safetyhook jsoncpp
+    d2d1 dwrite d3d11 d3d12 dxgi windowscodecs urlmon wininet ws2_32 crypt32 version setupapi runtimeobject winhttp)
