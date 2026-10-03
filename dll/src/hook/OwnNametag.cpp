@@ -16,12 +16,12 @@ constexpr std::array<uint8_t, 6> visibleBytes{0x90, 0x90, 0x90, 0x90, 0x90, 0x90
 
 }
 
+using codePatch::Result;
+
 bool show(bool visible) {
     if (!visible) {
-        if (patched) {
-            codePatch::replace(patched, visibleBytes, original);
-            patched = 0;
-        }
+        // a restore that fails stays ours and is retried; bytes someone else changed are left to them
+        if (patched && codePatch::replace(patched, visibleBytes, original) != Result::Failed) patched = 0;
         return false;
     }
     if (patched) {
@@ -35,7 +35,7 @@ bool show(bool visible) {
     // The upstream signature starts at the six-byte conditional jump that skips self tags.
     // Refuse a different instruction or a gate already modified by another client.
     if (!at || !mem::read(at, bytes) || bytes[0] != 0x0f || bytes[1] != 0x84) return false;
-    if (!codePatch::replace(at, bytes, visibleBytes)) return false;
+    if (codePatch::replace(at, bytes, visibleBytes) != Result::Applied) return false;
     original = bytes;
     patched = at;
     return true;

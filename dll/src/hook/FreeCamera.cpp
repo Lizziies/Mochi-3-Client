@@ -4,6 +4,7 @@
 #include "CodePatch.hpp"
 #include "Hook.hpp"
 #include "core/Guard.hpp"
+#include "core/Log.hpp"
 #include "sig/Sigs.hpp"
 
 #include <atomic>
@@ -27,11 +28,25 @@ void update(void* a, void* b, void* c) {
 }
 }
 
+using codePatch::Result;
+
+// true once none of our patches is left; a failed restore stays ours and is tried again on the next call
+bool restore() {
+    if (yaw && codePatch::replace(yaw, yawNops, yawStore) != Result::Failed) yaw = 0;
+    if (headYaw && codePatch::replace(headYaw, headNops, headStore) != Result::Failed) headYaw = 0;
+    return !yaw && !headYaw;
+}
+
 bool set(bool active) {
+    static bool warned = false;
     if (!active) {
-        if (yaw) codePatch::replace(yaw, yawNops, yawStore);
-        if (headYaw) codePatch::replace(headYaw, headNops, headStore);
-        yaw = headYaw = 0;
+        // the player update stays off while an angle store is still disabled, it would only half work
+        if (!restore()) {
+            if (!warned) logger::warn("freelook: the camera angle stores could not be restored yet, retrying");
+            warned = true;
+            return false;
+        }
+        warned = false;
         detached.store(false, std::memory_order_release);
         return false;
     }
@@ -49,16 +64,15 @@ bool set(bool active) {
     // Bedrock 1.26's head-angle store includes a REX prefix and is five bytes,
     // whereas the body-angle store is four. Never split either instruction.
     detached.store(true, std::memory_order_release);
-    if (!codePatch::replace(yawAt, yawStore, yawNops)) {
-        detached.store(false, std::memory_order_release);
-        return false;
-    }
-    if (!codePatch::replace(headAt, headStore, headNops)) {
-        codePatch::replace(yawAt, yawNops, yawStore);
+    if (codePatch::replace(yawAt, yawStore, yawNops) != Result::Applied) {
         detached.store(false, std::memory_order_release);
         return false;
     }
     yaw = yawAt;
+    if (codePatch::replace(headAt, headStore, headNops) != Result::Applied) {
+        if (restore()) detached.store(false, std::memory_order_release);
+        return false;
+    }
     headYaw = headAt;
     return true;
 }

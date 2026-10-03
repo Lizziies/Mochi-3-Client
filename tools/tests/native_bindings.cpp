@@ -44,6 +44,9 @@ bool create(const char*, void*, void* callback, void** previous) {
 }
 bool enableAll() { return enableSucceeds; }
 }
+namespace logger {
+void write(std::string_view, std::string_view) {}
+}
 namespace guard {
 bool run(const char*, void (*fn)(void*), void* context) { fn(context); return true; }
 void report(const char*, const char*) { std::abort(); }
@@ -115,6 +118,21 @@ int main() {
     ownNametag::show(false);
     mem::read(gate, current);
     check(current == changed, "disable must not overwrite another owner's change");
+
+    mem::nextFrame();
+    mem::write(gate, branch);
+    check(ownNametag::show(true), "gate opens again after the other owner left");
+    VirtualProtect(reinterpret_cast<void*>(gate), 4096, PAGE_NOACCESS, &previous);
+    mem::nextFrame();
+    ownNametag::show(false);
+    VirtualProtect(reinterpret_cast<void*>(gate), 4096, PAGE_EXECUTE_READ, &previous);
+    mem::nextFrame();
+    mem::read(gate, current);
+    check(current == nops, "a restore that could not run leaves the patch in place");
+    ownNametag::show(false);
+    mem::nextFrame();
+    mem::read(gate, current);
+    check(current == branch, "a failed restore must stay owned and succeed on the next try");
     VirtualFree(reinterpret_cast<void*>(gate), 0, MEM_RELEASE);
     std::cout << "native binding lifecycle checks passed\n";
 }
