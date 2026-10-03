@@ -22,6 +22,28 @@ Stand: 2026-10-02 abends. Wird nach jedem Arbeitsschritt aktualisiert. Die Arbei
 
 Alles Weitere geht nur am PC mit dem echten Spiel und steht in `docs/HOME_TODO.md`: bauen mit MSVC, Mochi Online veröffentlichen und Owner setzen, Test im Spiel, Signaturen bis kein Modul mehr grau ist, GUI-Scale-Hook, Latenz messen gegen Flarial, Cosmetics im Spiel, zum Schluss die Exe.
 
+## Signaturen und freigeschaltete Module (1.26.52, Stand 2026-10-03)
+
+Ohne Spieldaten: 75 Module. Pro Datenquelle dazugekommen:
+
+| Quelle | Weg | Module frei | Summe |
+|---|---|---|---|
+| LocalPlayer + HitResult (Position, Blick, Ziel-Typ, Treffer) | Signatur + player+0x1e8 | +28 | 103 |
+| Spieloptionen (Gamma, FOV, Perspektive, Bobbing, Hand, Wolken, Fadenkreuz) | Getter-Muster + Options-Umleitung | (in den 103 enthalten) | |
+| Inventory (Hotbar, Rüstung, Offhand, Slot) | Speichersuche pro Welt | +6 | 109 |
+| PlayerStats (Leben, Hunger, XP) | Attribut-Array | +3 | 112 |
+| MoveState (Tempo, Sprinten, Boden, Schleichen) | aus Bewegung abgeleitet | +3 | 115 |
+| WorldTime | player+0x90, +0x340 | +1 | 116 |
+| ChatEvents | ClientInstance+0x650, Vektor +0x150 | +4 | 120 |
+| HurtEvents, TotemEvents | aus Leben und Totem-Zahl abgeleitet | +4 | 124 |
+| UseState, ItemUseEvents (Bogen, Werfen) | Rechtsklick + gehaltenes Item | +3 | 127 |
+| Session Stats ohne AttackEntity | Treffer aus dem HitResult | +1 | 128 |
+
+AttackEntity: nicht gesucht, die Treffer kommen schon aus dem HitResult; ein Hook bringt nur den Schadenswert, den das Spiel dort ohnehin nicht kennt.
+Noch grau (51): Target-Infos (Name/Leben des Ziels: Target HUD, Waila, Break Progress, TNT Timer, Skin Stealer, Damage Indicator, Kill Effects), Tabliste/Scoreboard (Tab List, Player Notifier, Scoreboard, Hive Utils, Hive Stats), Effekte (Potion HUD), Entity-Liste (Opponent Reach, Entity Counter, Health Above Head, Arrow Trail, Hit Ping), Render-Hooks (Freelook, Cinematic, Bobbing-Stärke, Smooth Sneak, Block Outline, Time/Weather/Environment, Fog/Water Color, Animations, Hitbox, Hurt/Glint Color, Low Fire, Particles, Snap Look, Block Hit, Crystal Optimizer, Kill Cleanup, Item Use Delay, Faster Inventory, Insta Hurt, GUI Scale, Item Physics, Nametags, Light Overlay, Subtitles, Movable Hotbar/Title/Bossbar, Left Hand).
+
+Werkzeuge: `tools/reload.ps1` baut, entlädt mit Strg+L und injiziert neu, ohne das Spiel neu zu starten. Der Probe-Befehl ist der Dev-Explorer (`explore <skript>`, Lua in `tools/explore/`).
+
 ## 2026-10-02 nachmittags, PC, Branch claude/pc-test
 
 - Erste echte Signatur: `LocalPlayer` (globaler Zeiger, Muster in `sigs/1.26.52.json`). Position, Pitch und Yaw liegen zusammen bei player>0x138>0x990 (+0x0 Position auf Augenhöhe, +0xc Pitch, +0x10 Yaw). Die Kopie über den ClientInstance-Pfad (player>0x28>0x258>0x5e0) wird nur alle paar Sekunden aktualisiert, nicht nehmen.

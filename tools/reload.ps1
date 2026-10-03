@@ -33,4 +33,4 @@ if (& $loaded) {
 
 $inj = @('-NoProfile', '-File', (Join-Path $PSScriptRoot 'inject.ps1'), '-ProcessId', $mc.Id)
 if ($Dev) { $inj += '-Dev' }
-& powershell @args
+& powershell @inj

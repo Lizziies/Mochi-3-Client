@@ -288,7 +288,7 @@ class SessionStats : public GameText {
 public:
     SessionStats()
         : GameText("Session Stats", "Kills, deaths, K/D and kill streak of this session.", need::combat,
-                   need::sigs({"LocalPlayer", "AttackEntity", "ChatEvents"}), {"hud-self"}, {0.135f, 0.21f}) {
+                   need::sigs({"LocalPlayer", "ChatEvents"}), {"hud-self"}, {0.135f, 0.21f}) {
         sub("Combat displays");
     }
 
