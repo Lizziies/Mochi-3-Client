@@ -22,6 +22,7 @@
     "hit.via0": 488,
     "has.Inventory": 1,
     "has.PlayerStats": 1,
+    "has.MoveState": 1,
     "attr.vtable": 242712896,
     "attr.size": 136,
     "attr.max": 120,

@@ -249,6 +249,14 @@ private:
         } else {
             deriveVelocity(pl);
         }
+        // without state flags the movement itself tells: walking tops out at 4.3 blocks/s, sprinting at 5.6,
+        // and standing on something keeps the vertical speed at zero
+        if (off("has.MoveState") > 0 && off("player.sprinting") < 0) {
+            float flat = std::hypot(pl.vel.x, pl.vel.z);
+            pl.onGround = std::fabs(pl.vel.y) < 0.05f;
+            pl.sprinting = flat > 4.9f;
+            pl.sneaking = input::grabbed() && (input::down(VK_LSHIFT) || input::down(VK_RSHIFT));
+        }
         // the pick ray right behind the eye position points where the player looks, scaled to the pick range
         if (off("player.ray") > 0) {
             float dx = mem::get<float>(pb + px + 12), dy = mem::get<float>(pb + px + 16), dz = mem::get<float>(pb + px + 20);
