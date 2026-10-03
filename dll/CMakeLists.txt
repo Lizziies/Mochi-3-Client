@@ -41,6 +41,11 @@ set(IMGUI_SOURCES
     lib/imgui/backends/imgui_impl_win32.cpp
 )
 
+option(MOCHI_FLARIAL "build Flarial's game side into the client" OFF)
+if(MOCHI_FLARIAL)
+    include(cmake/FlarialCore.cmake)
+endif()
+
 add_library(Mochi SHARED ${SOURCES} ${MINHOOK_SOURCES} ${LUA_SOURCES} ${IMGUI_SOURCES} res/resources.rc)
 
 file(GLOB SIG_FILES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../sigs/*.json")
