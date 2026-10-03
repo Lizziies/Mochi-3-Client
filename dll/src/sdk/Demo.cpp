@@ -328,6 +328,8 @@ private:
             Other o;
             o.id = uintptr_t(team) + 100;
             o.name = name;
+            o.kind = "player";
+            o.isPlayer = true;
             o.health = health;
             o.team = team;
             o.pos = {p.pos.x + fwd.x * ahead - fwd.z * side, p.pos.y, p.pos.z + fwd.z * ahead + fwd.x * side};
@@ -348,6 +350,7 @@ private:
             Event e{EventKind::Confirm};
             e.value = acks_[i].ms;
             e.reach = acks_[i].reach;
+            e.damage = 2.f + float(i % 5);
             e.text = "Opponent";
             ev.push_back(e);
             acks_.erase(acks_.begin() + long(i));

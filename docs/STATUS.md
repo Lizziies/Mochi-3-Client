@@ -38,9 +38,15 @@ Ohne Spieldaten: 75 Module. Pro Datenquelle dazugekommen:
 | HurtEvents, TotemEvents | aus Leben und Totem-Zahl abgeleitet | +4 | 124 |
 | UseState, ItemUseEvents (Bogen, Werfen) | Rechtsklick + gehaltenes Item | +3 | 127 |
 | Session Stats ohne AttackEntity | Treffer aus dem HitResult | +1 | 128 |
+| Entity-Registry (entt): Name und Leben des Ziels, Treffer-Bestätigung, Kills | Pool-Schlüssel = FNV-1a des Komponenten-Namens | +7 (Target HUD, Waila, Damage Indicator, Kill Effects, Hit Info, Hit Ping, Hit Effects) | 135 |
+| Entity-Liste aus dem Identifier-Pool (Position, Hitbox, Leben, Projektile, TNT) | StateVector/RenderPosition/AABBShape/Attributes | +5 (Opponent Reach, Entity Counter, Health Above Head, Arrow Trail, TNT Timer) | 140 |
+| MobEffectsComponent (Trank-Effekte) | Vektor nach Effekt-ID, 0x90 Byte | +1 (Potion HUD) | 141 |
+| GameMode (Abbaufortschritt) | Actor (ActorOwnerComponent) +0xaa0, Block +0x10, Fortschritt +0x24 | +1 (Break Progress) | 142 |
 
 AttackEntity: nicht gesucht, die Treffer kommen schon aus dem HitResult; ein Hook bringt nur den Schadenswert, den das Spiel dort ohnehin nicht kennt.
-Noch grau (51): Target-Infos (Name/Leben des Ziels: Target HUD, Waila, Break Progress, TNT Timer, Skin Stealer, Damage Indicator, Kill Effects), Tabliste/Scoreboard (Tab List, Player Notifier, Scoreboard, Hive Utils, Hive Stats), Effekte (Potion HUD), Entity-Liste (Opponent Reach, Entity Counter, Health Above Head, Arrow Trail, Hit Ping), Render-Hooks (Freelook, Cinematic, Bobbing-Stärke, Smooth Sneak, Block Outline, Time/Weather/Environment, Fog/Water Color, Animations, Hitbox, Hurt/Glint Color, Low Fire, Particles, Snap Look, Block Hit, Crystal Optimizer, Kill Cleanup, Item Use Delay, Faster Inventory, Insta Hurt, GUI Scale, Item Physics, Nametags, Light Overlay, Subtitles, Movable Hotbar/Title/Bossbar, Left Hand).
+Komponenten-Pools: Der Schlüssel jedes Pools ist der FNV-1a-32-Hash des nackten Typnamens (`ActorDefinitionIdentifierComponent` = 0xdeb6534f). Damit lässt sich jede Komponente direkt finden, ohne Suche: StateVectorComponent (0x24 Byte: Position, vorige Position, Bewegung), RenderPositionComponent (12), AABBShapeComponent (0x20), ActorRotationComponent (0x10), MobEffectsComponent, SynchedActorDataComponent (Namensschild = Datenelement 4), ActorOwnerComponent (Actor-Zeiger), LocalPlayerComponent (nur wir). Spielerleben kommt jetzt auch aus dem Registry (vorher konnte die Heap-Suche eine veraltete Kopie mit 20 Leben erwischen).
+
+Noch grau: Skin Stealer, Tabliste/Scoreboard (Tab List, Player Notifier, Scoreboard, Hive Utils, Hive Stats), Render-Hooks (Freelook, Cinematic, Bobbing-Stärke, Smooth Sneak, Time/Weather/Environment, Fog/Water Color, Animations, Hitbox, Hurt/Glint Color, Low Fire, Particles, Snap Look, Block Hit, Crystal Optimizer, Kill Cleanup, Item Use Delay, Faster Inventory, Insta Hurt, GUI Scale, Item Physics, Nametags, Light Overlay, Subtitles, Movable Hotbar/Title/Bossbar, Left Hand).
 
 Werkzeuge: `tools/reload.ps1` baut, entlädt mit Strg+L und injiziert neu, ohne das Spiel neu zu starten. Der Probe-Befehl ist der Dev-Explorer (`explore <skript>`, Lua in `tools/explore/`).
 

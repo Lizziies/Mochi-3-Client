@@ -347,7 +347,7 @@ private:
 class EntityCounter : public GameText {
 public:
     EntityCounter()
-        : GameText("Entity Counter", "Counts entities and players around you.", need::world, need::sigs({"Level", "EntityList"}),
+        : GameText("Entity Counter", "Counts entities and players around you.", need::world, need::sigs({"EntityList"}),
                    {"info-others"}, {0.135f, 0.274f}) {
         sub("Combat displays");
     }

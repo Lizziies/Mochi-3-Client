@@ -168,6 +168,8 @@ public:
         if ((m & unsigned(Domain::Player)) && sigs::address("AttackEntity")) m |= unsigned(Domain::Combat);
         if ((m & unsigned(Domain::Player)) && off("hand.vtable") >= 0) m |= unsigned(Domain::Inventory);
         if ((m & unsigned(Domain::Player)) && off("chat.via0") >= 0) m |= unsigned(Domain::Chat);
+        if ((m & unsigned(Domain::Player)) && off("player.registry") >= 0) m |= unsigned(Domain::Others);
+        if ((m & unsigned(Domain::Player)) && off("pool.effects") != -1) m |= unsigned(Domain::Effects);
         return m;
     }
 
@@ -196,6 +198,8 @@ public:
             readInventory(s, ev);
             readUse(s, ev);
         }
+        if (playerPtr_ && (have & unsigned(Domain::Others))) readEntities(s);
+        if (playerPtr_ && (have & unsigned(Domain::Effects))) readEffects(s);
         if (have & unsigned(Domain::World)) readWorld(s);
         if (playerPtr_ && (have & unsigned(Domain::Chat))) readChat(ev);
         else chatPrimed_ = false;
@@ -334,10 +338,12 @@ private:
         t.kind = type == 0 ? Target::Kind::Block : type == 1 ? Target::Kind::Entity : Target::Kind::None;
         t.pos = at;
         t.distance = t.kind == Target::Kind::None ? 0.f : distance(from, at);
+        t.breakProgress = 0.f;
         if (t.kind == Target::Kind::Block) {
             t.blockX = mem::get<int>(h + 0x20);
             t.blockY = mem::get<int>(h + 0x24);
             t.blockZ = mem::get<int>(h + 0x28);
+            t.breakProgress = breakProgress(t);
         }
 
         uint32_t rawId = mem::get<uint32_t>(h + 0x48);
@@ -353,6 +359,7 @@ private:
         hitAt_ = GetTickCount64();
         hitHealth_ = t.health;
         hitName_ = t.name;
+        hitReach_ = t.distance;
         Event e{EventKind::Hit};
         e.reach = t.distance;
         e.crit = !onGround_ && fallSpeed_ < 0.f && !sprinting_;
@@ -364,8 +371,9 @@ private:
 
     // Entities live in an entt registry (1.26.52: the pick result's weak reference points at it). Its pool map is a
     // dense_map whose packed nodes sit at "registry.pools" (32 bytes: next, component type hash, shared_ptr to the
-    // pool). A pool keeps sparse pages of (version | position) at +0x08, the packed entity list at +0x20, the entity
-    // mask at +0x48 and payload pages at +0x50 (1024 components per page).
+    // pool). A pool keeps sparse pages of (version | position) at +0x08, the packed entity list at +0x20 and payload
+    // pages at +0x50 (1024 components per page). Ids are 18 bits of entity and 14 of version; a free slot in the
+    // packed list carries the version 0x3fff.
     uintptr_t pool(uintptr_t reg, const char* name) {
         uint32_t key = uint32_t(off(name));
         auto& cache = pools_[name];
@@ -382,7 +390,8 @@ private:
 
     static uintptr_t component(uintptr_t p, uint32_t id, int size) {
         if (!p) return 0;
-        uint32_t mask = mem::get<uint32_t>(p + 0x48, 0x3ffff), idx = id & mask;
+        constexpr uint32_t mask = 0x3ffff;
+        uint32_t idx = id & mask;
         uintptr_t sparse = mem::pointer(p + 8), sparseEnd = mem::pointer(p + 0x10);
         if (!sparse || (idx / 4096) * 8 >= sparseEnd - sparse) return 0;
         uintptr_t page = mem::pointer(sparse + (idx / 4096) * 8);
@@ -402,6 +411,13 @@ private:
             t.name = text(def + off("identifier.name"));
             t.isPlayer = t.name == "player";
         }
+        if (t.isPlayer) {
+            std::string shown = playerName(reg, id);
+            if (!shown.empty()) t.name = shown;
+        }
+        // primed TNT burns for 80 ticks from the moment it appears
+        auto seen = firstSeen_.find(id);
+        t.fuse = t.name == "tnt" && seen != firstSeen_.end() ? std::max(0.f, 4.f - float(GetTickCount64() - seen->second) / 1000.f) : 0.f;
         uintptr_t attrs = component(pool(reg, "pool.attributes"), id, off("attributes.size"));
         uintptr_t first = attrs ? mem::pointer(attrs + off("attributes.list")) : 0;
         if (uintptr_t hp = first ? attrIn(first, "health") : 0) {
@@ -412,6 +428,161 @@ private:
             t.maxHealth = 0.f;
         }
     }
+
+    // SynchedActorData keeps a vector of data items (vtable, type byte at +8, id at +0xa, value at +0x10); item 4
+    // is the name tag, a string (type 4)
+    std::string playerName(uintptr_t reg, uint32_t id) {
+        uintptr_t data = component(pool(reg, "pool.synched"), id, off("synched.size"));
+        if (!data) return {};
+        uintptr_t begin = mem::pointer(data), end = mem::pointer(data + 8);
+        int slot = off("synched.name");
+        if (!begin || end <= begin + uintptr_t(slot) * 8) return {};
+        uintptr_t item = mem::pointer(begin + uintptr_t(slot) * 8);
+        if (!item || mem::get<uint8_t>(item + 8) != 4) return {};
+        return text(item + 0x10);
+    }
+
+    // The game mode (1.26.52: actor+0xaa0) keeps the block being broken at +0x10 and its progress (0..1) at +0x24.
+    // The actor object is the one the registry's ActorOwnerComponent holds, not the LocalPlayer global.
+    float breakProgress(const Target& t) {
+        uintptr_t reg = mem::pointer(playerPtr_ + off("player.registry"));
+        uintptr_t owner = component(pool(reg, "pool.owner"), selfId(reg), 8);
+        uintptr_t gm = owner ? mem::pointer(mem::pointer(owner) + off("actor.gameMode")) : 0;
+        if (!gm) return 0.f;
+        int at = off("gameMode.block");
+        if (mem::get<int>(gm + at) != t.blockX || mem::get<int>(gm + at + 4) != t.blockY || mem::get<int>(gm + at + 8) != t.blockZ) return 0.f;
+        float p = mem::get<float>(gm + off("gameMode.progress"));
+        return std::isfinite(p) ? std::clamp(p, 0.f, 1.f) : 0.f;
+    }
+
+    // only the local player has a LocalPlayerComponent, an empty tag, so that pool's single entity is us
+    uint32_t selfId(uintptr_t reg) {
+        uintptr_t p = pool(reg, "pool.localPlayer");
+        uintptr_t packed = p ? mem::pointer(p + 0x20) : 0;
+        return packed && mem::pointer(p + 0x28) > packed ? mem::get<uint32_t>(packed, 0xffffffff) : 0xffffffff;
+    }
+
+    static float health(uintptr_t attrs, float* max) {
+        uintptr_t first = attrs ? mem::pointer(attrs + off("attributes.list")) : 0;
+        uintptr_t hp = first ? attrIn(first, "health") : 0;
+        if (!hp) return 0.f;
+        if (max) *max = mem::get<float>(hp + off("attr.max"));
+        return mem::get<float>(hp + off("attr.value"));
+    }
+
+    // Every actor carries an identifier component, so its pool's packed list is the list of loaded entities.
+    // Positions come from the render position (interpolated between ticks); the state vector holds the tick
+    // position, the one before and the motion, and the box bottom tells how far the position sits above the feet.
+    void readEntities(State& s) {
+        uintptr_t reg = mem::pointer(playerPtr_ + off("player.registry"));
+        uint32_t self = selfId(reg);
+        if (std::string me = playerName(reg, self); !me.empty()) s.player.name = me;
+        s.others.clear();
+        s.shots.clear();
+        s.world.entities = 0;
+        s.world.players = 0;
+        uintptr_t ids = pool(reg, "pool.identifier");
+        if (!ids) return;
+        uintptr_t packed = mem::pointer(ids + 0x20), packedEnd = mem::pointer(ids + 0x28);
+        if (!packed || packedEnd <= packed || packedEnd - packed > 4 * 20000) return;
+        std::vector<uint32_t> list((packedEnd - packed) / 4);
+        if (!mem::readBytes(packed, list.data(), list.size() * 4)) return;
+        uintptr_t states = pool(reg, "pool.state"), boxes = pool(reg, "pool.aabb"), render = pool(reg, "pool.render");
+        uintptr_t attrPool = pool(reg, "pool.attributes");
+        uint64_t now = GetTickCount64();
+        std::map<uint32_t, uint64_t> seen;
+        for (uint32_t id : list) {
+            if ((id >> 18) == 0x3fff) continue;
+            uintptr_t def = component(ids, id, off("identifier.size"));
+            uintptr_t st = component(states, id, off("state.size"));
+            if (!def || !st) continue;
+            auto first = firstSeen_.find(id);
+            bool fresh = first == firstSeen_.end();
+            seen[id] = fresh ? now : first->second;
+            if (id == self) continue;
+            std::string kind = text(def + off("identifier.name"));
+            Vec3 tick{mem::get<float>(st), mem::get<float>(st + 4), mem::get<float>(st + 8)};
+            Vec3 motion{mem::get<float>(st + 24), mem::get<float>(st + 28), mem::get<float>(st + 32)};
+            Vec3 pos = tick;
+            if (uintptr_t r = component(render, id, off("render.size"))) pos = {mem::get<float>(r), mem::get<float>(r + 4), mem::get<float>(r + 8)};
+            if (uintptr_t box = component(boxes, id, off("aabb.size"))) pos.y -= tick.y - mem::get<float>(box + 4);
+            s.world.entities++;
+            bool arrow = kind == "arrow", pearl = kind == "ender_pearl", trident = kind == "thrown_trident";
+            if (arrow || pearl || trident) {
+                Projectile pr;
+                pr.id = id;
+                pr.kind = arrow ? 0 : pearl ? 1 : 2;
+                pr.pos = pos;
+                pr.vel = {motion.x * 20.f, motion.y * 20.f, motion.z * 20.f};
+                // the shooter is not linked here; a projectile that shows up right at the eyes was ours
+                bool& mine = mine_[id];
+                if (fresh) mine = distance(pos, eye_) < 2.5f;
+                pr.mine = mine;
+                s.shots.push_back(pr);
+                continue;
+            }
+            float max = 0.f, hp = health(component(attrPool, id, off("attributes.size")), &max);
+            if (max <= 0.f) continue;
+            Other o;
+            o.id = id;
+            o.kind = kind;
+            o.isPlayer = kind == "player";
+            o.name = o.isPlayer ? playerName(reg, id) : kind;
+            o.pos = pos;
+            o.health = hp;
+            o.maxHealth = max;
+            if (o.isPlayer) s.world.players++;
+            s.others.push_back(std::move(o));
+        }
+        firstSeen_ = std::move(seen);
+        std::erase_if(mine_, [&](auto& kv) { return !firstSeen_.count(kv.first); });
+        s.world.players++;
+    }
+
+    // MobEffectsComponent is a vector of effect instances indexed by effect id (0x90 bytes each: id, duration in
+    // ticks at +4, amplifier at +0x20); unused slots stay zero
+    void readEffects(State& s) {
+        static const char* names[] = {"", "speed", "slowness", "haste", "mining_fatigue", "strength", "instant_health", "instant_damage",
+                                      "jump_boost", "nausea", "regeneration", "resistance", "fire_resistance", "water_breathing",
+                                      "invisibility", "blindness", "night_vision", "hunger", "weakness", "poison", "wither",
+                                      "health_boost", "absorption", "saturation", "levitation", "fatal_poison", "conduit_power",
+                                      "slow_falling", "bad_omen", "village_hero", "darkness", "trial_omen", "wind_charged",
+                                      "weaving", "oozing", "infested", "raid_omen"};
+        static const uint32_t colors[] = {0, 0x7CAFC6, 0x5A6C81, 0xD9C043, 0x4A4217, 0x932423, 0xF82423, 0x430A09, 0x22FF4C, 0x551D4A,
+                                          0xCD5CAB, 0x99453A, 0xE49A3A, 0x2E5299, 0x7F8392, 0x1F1F23, 0x1F1FA1, 0x587653, 0x484D48,
+                                          0x4E9331, 0x352A27, 0xF87D23, 0x2552A5, 0xF82423, 0xCEFFFF, 0x4E9331, 0x1DC2D1, 0xFFEFD1,
+                                          0x0B6138, 0x44FF44, 0x292721, 0x1BBDB5, 0xBDC9FF, 0x78695A, 0x99FFA3, 0x8C9B8C, 0xDE4058};
+        static const bool bad[] = {false, false, true, false, true, false, false, true, false, true, false, false, false, false,
+                                   false, true, false, true, true, true, true, false, false, false, true, true, false, false,
+                                   true, false, true, true, true, true, true, true, true};
+        uintptr_t reg = mem::pointer(playerPtr_ + off("player.registry"));
+        uint32_t self = selfId(reg);
+        auto& list = s.player.effects;
+        list.clear();
+        uintptr_t fx = component(pool(reg, "pool.effects"), self, off("effects.size"));
+        if (!fx) return;
+        uintptr_t begin = mem::pointer(fx), end = mem::pointer(fx + 8);
+        int size = off("effect.size");
+        if (!begin || end <= begin || (end - begin) / size > 64) return;
+        for (uintptr_t e = begin; e + size <= end; e += size) {
+            uint32_t id = mem::get<uint32_t>(e);
+            int ticks = mem::get<int>(e + off("effect.duration"));
+            if (id == 0 || id >= std::size(names) || ticks <= 0) continue;
+            Effect fxe;
+            fxe.id = names[id];
+            fxe.amplifier = mem::get<int>(e + off("effect.amplifier"));
+            fxe.seconds = float(ticks) / 20.f;
+            // the total is not kept, so the longest time seen since the effect started stands in for it
+            float& longest = effectTotal_[id];
+            if (fxe.seconds > longest) longest = fxe.seconds;
+            fxe.total = longest;
+            fxe.good = !bad[id];
+            fxe.color = colors[id];
+            list.push_back(std::move(fxe));
+        }
+        std::erase_if(effectTotal_, [&](auto& kv) { return std::none_of(list.begin(), list.end(), [&](auto& e) { return e.id == names[kv.first]; }); });
+    }
+
 
     // a hit counts as landed when the struck entity loses health shortly after; down to zero is a kill
     void followHits(uintptr_t reg, std::vector<Event>& ev) {
@@ -426,7 +597,9 @@ private:
         float now = hp ? mem::get<float>(hp + off("attr.value")) : 0.f;
         if (!hp || now >= hitHealth_ - 0.01f) return;
         Event c{EventKind::Confirm};
-        c.value = hitHealth_ - now;
+        c.value = float(GetTickCount64() - hitAt_);
+        c.damage = hitHealth_ - now;
+        c.reach = hitReach_;
         c.actor = hitId_;
         c.text = hitName_;
         ev.push_back(c);
@@ -526,6 +699,11 @@ private:
 
     void readStats(State& s) {
         uintptr_t array = attrArray;
+        if (off("player.registry") >= 0) {
+            uintptr_t reg = mem::pointer(playerPtr_ + off("player.registry"));
+            uintptr_t attrs = component(pool(reg, "pool.attributes"), selfId(reg), off("attributes.size"));
+            if (uintptr_t first = attrs ? mem::pointer(attrs + off("attributes.list")) : 0; validAttrs(first)) array = first;
+        }
         auto& pl = s.player;
         pl.statsKnown = validAttrs(array);
         if (!pl.statsKnown) return;
@@ -693,6 +871,10 @@ private:
     uint32_t hitId_ = 0;
     uint64_t hitAt_ = 0;
     float hitHealth_ = 0.f;
+    float hitReach_ = 0.f;
+    std::map<uint32_t, uint64_t> firstSeen_;
+    std::map<uint32_t, bool> mine_;
+    std::map<uint32_t, float> effectTotal_;
     std::string hitName_;
     uint64_t sweptAt_ = 0;
     int totems_ = -1;

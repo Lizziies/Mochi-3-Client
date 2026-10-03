@@ -193,6 +193,8 @@ struct Combat {
 struct Other {
     uintptr_t id = 0;
     std::string name;
+    std::string kind;
+    bool isPlayer = false;
     Vec3 pos;
     float health = 20.f;
     float maxHealth = 20.f;
@@ -234,6 +236,7 @@ struct Event {
     double time = 0.0;
     float value = 0.f;
     float reach = 0.f;
+    float damage = 0.f;
     bool crit = false;
     bool crystal = false;
     uintptr_t actor = 0;

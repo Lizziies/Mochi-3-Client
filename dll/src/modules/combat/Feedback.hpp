@@ -224,7 +224,7 @@ public:
         for (auto& e : game::events()) {
             if (e.kind != game::EventKind::Confirm) continue;
             std::uniform_real_distribution<float> j(-spread_.f, spread_.f);
-            numbers_.push_back({ui::time(), j(rng_), e.value, e.crit});
+            numbers_.push_back({ui::time(), j(rng_), e.damage, e.crit});
         }
         while (numbers_.size() > 12) numbers_.pop_front();
     }

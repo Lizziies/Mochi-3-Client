@@ -127,6 +127,7 @@ const i18n::Entry entries[] = {
     {"Range", "Reichweite"},
     {"Height above feet", "Höhe über den Füßen"},
     {"Also teammates", "Auch Teammitglieder"},
+    {"Also mobs", "Auch Mobs"},
     {"Points", "Punkte"},
     {"Bar and number", "Balken und Zahl"},
     {"Points of max", "Punkte von Maximum"},

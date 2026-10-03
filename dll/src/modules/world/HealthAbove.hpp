@@ -31,6 +31,7 @@ public:
         float s = ui::scale();
         std::unordered_map<uintptr_t, float> next;
         for (auto& o : st.others) {
+            if (!o.isPlayer && !mobs_.b) continue;
             if (!teammates_.b && o.team != 0 && o.team == me.team) continue;
             float dist = game::distance(me.pos, o.pos);
             if (dist > range_.f || o.maxHealth <= 0.f) continue;
@@ -83,6 +84,7 @@ private:
     Setting& scale_ = slider("scale", "Size", 1.f, 0.6f, 2.f, "%.2fx");
     Setting& width_ = slider("width", "Bar width", 56.f, 30.f, 110.f, "%.0f");
     Setting& teammates_ = toggleSetting("teammates", "Also teammates", false);
+    Setting& mobs_ = toggleSetting("mobs", "Also mobs", false);
     Setting& good_ = colorSetting("good", "Full", {0.55f, 0.91f, 0.69f, 1.f});
     Setting& mid_ = colorSetting("mid", "Half", {1.f, 0.82f, 0.49f, 1.f});
     Setting& low_ = colorSetting("low", "Low", {1.f, 0.35f, 0.4f, 1.f});

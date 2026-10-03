@@ -125,7 +125,7 @@ private:
             if (line.find(w) != std::string::npos) died = true;
         if (!died) return;
         for (auto& o : st.others) {
-            if (!o.id || o.name.empty() || o.name == st.player.name) continue;
+            if (!o.isPlayer || o.name.empty() || o.name == st.player.name) continue;
             if (line.find(text::lower(o.name)) == line.npos) continue;
             if (line.find(text::lower(o.name)) > line.size() / 2) continue;
             hide(o.id, o.name);
