@@ -1,13 +1,17 @@
 {
   "repository": "https://github.com/flarialmc/dll-oss",
   "license": "AGPL-3.0",
-  "integration": "source baseline; hooks must be adapted and verified before enabling",
+  "integration": "full upstream source; built as flarial_core inside Mochi without its menu, config, overlay, discord and scripting, see docs/FLARIAL_PORT.md",
   "directories": [
-    "src\\Client\\Module\\Modules",
-    "src\\Client\\Events",
-    "src\\Client\\Hook",
-    "src\\SDK",
-    "src\\Utils\\Memory\\Game"
+    "src",
+    "lib/glm",
+    "lib/json",
+    "lib/ImGui",
+    "lib/kiero",
+    "lib/miniz",
+    "lib/xorstr.hpp",
+    "lib/stb_image_write.h",
+    "CMakeLists.upstream.txt"
   ],
   "commit": "40ad1870efd021138241192894cfbfacef1aefa5"
 }
