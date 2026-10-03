@@ -131,7 +131,10 @@ void frame() {
 }
 
 void shutdown() {
-    flarialLink::stop();
+    if (!flarialLink::stop()) {
+        logger::warn("ui stays up for the flarial core");
+        return;
+    }
     if (!ready) return;
     ready = false;
     ImGui_ImplDX11_Shutdown();

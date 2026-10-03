@@ -9,7 +9,8 @@ struct IDXGISwapChain;
 namespace flarialLink {
 
 void frame(ID3D11Device* device, ID3D11DeviceContext* context, IDXGISwapChain* swapchain);
-void stop();
+// true once the core is gone; false keeps it loaded (and with it ImGui, which it still uses)
+bool stop();
 bool ejectRequested();
 
 }

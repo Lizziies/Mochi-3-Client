@@ -45,6 +45,8 @@ void start() {
     }
     logger::warn("flarial core did not start");
     drawCore = nullptr;
+    // a start that failed half way may already have hooks in the game; they are taken out before anything else
+    stop();
 }
 
 }
@@ -54,14 +56,19 @@ void frame(ID3D11Device* device, ID3D11DeviceContext* context, IDXGISwapChain* s
     if (drawCore) guard::call("flarial frame", [&] { drawCore(device, context, swapchain); });
 }
 
-void stop() {
-    if (!core) return;
-    bool idle = true;
-    if (stopCore) guard::call("flarial stop", [&] { idle = stopCore(); });
+bool stop() {
+    if (!core) return true;
     drawCore = nullptr;
-    if (idle) FreeLibrary(core);
-    else logger::warn("flarial core still busy, it stays loaded");
+    bool clean = false;
+    if (stopCore) guard::call("flarial stop", [&] { clean = stopCore(); });
+    // only a confirmed clean stop may free the code; otherwise the handle is kept and stop() can be tried again
+    if (!clean) {
+        logger::warn("flarial core did not stop cleanly, it stays loaded");
+        return false;
+    }
+    FreeLibrary(core);
     core = nullptr;
+    return true;
 }
 
 bool ejectRequested() { return drawCore && ejectCore && ejectCore(); }

@@ -112,12 +112,34 @@ bool ensureContext(ID3D11Device* device) {
 
 HMODULE self = nullptr;
 
+// What start() got through, so stop() undoes exactly that, also after a start that failed half way.
+struct Stages {
+    bool imgui = false;
+    bool minhook = false;
+    bool hooks = false;
+    bool modules = false;
+    bool commands = false;
+};
+Stages done;
+
+void createFolders() {
+    std::filesystem::path root = Utils::getClientPath();
+    for (auto* sub : {"assets", "logs", "Config", "Crosshairs", "MessageLogger"}) {
+        std::error_code ec;
+        std::filesystem::create_directories(root / sub, ec);
+        if (ec) Logger::warn("flarial core: could not create {}: {}", (root / sub).string(), ec.message());
+    }
+}
+
 // Flarial's own start (Client::initialize) also pings Flarial's servers, migrates Flarial's folders, shows its
 // menu hint and installs its DirectX hooks; Monchi does none of that, only what the game side needs.
 bool start(const MonchiFlarialImGui* imgui) {
     ImGui::SetAllocatorFunctions(imgui->alloc, imgui->free, imgui->user);
     ImGui::SetCurrentContext(imgui->context);
+    done.imgui = true;
     if (MH_Initialize() != MH_OK) return false;
+    done.minhook = true;
+
     auto& window = WindowManager::instance();
     window.findGameWindow();
     Client::window = window.getWindow();
@@ -134,25 +156,23 @@ bool start(const MonchiFlarialImGui* imgui) {
     InitializationManager::instance().setVersion(Client::version);
     if (!VersionUtils::isSupported(Client::version)) {
         Logger::warn("flarial core: game version {} is not supported", Client::version);
-        Client::disable = true;
         return false;
     }
     VersionUtils::addData();
-
-    for (auto* sub : {"", "\assets", "\logs", "\Config", "\Crosshairs", "\MessageLogger"}) {
-        std::error_code ec;
-        std::filesystem::create_directories(Utils::getClientPath() + sub, ec);
-    }
+    createFolders();
     loadSettings();
 
     FlarialGUI::LoadFont(IDR_FONT_TTF);
     FlarialGUI::LoadFont(IDR_FONT_BOLD_TTF);
     FlarialGUI::LoadFont(IDR_MINECRAFTIA_TTF);
 
+    done.hooks = true;
     HookManager::initialize();
     MH_ApplyQueued();
     ExpressionFormat::initialize();
+    done.modules = true;
     ModuleManager::initialize();
+    done.commands = true;
     CommandManager::initialize();
     Client::init = true;
     InitializationManager::instance().setInitialized(true);
@@ -177,6 +197,31 @@ void adopt(ID3D11Device* device, ID3D11DeviceContext* context, IDXGISwapChain* s
     SwapchainHook::init = true;
 }
 
+// Ends the Direct2D pass whatever a module does in between, so a failing module never keeps the swapchain buffer
+// bound (that breaks the next resize). A lost target drops the context, the next frame builds a new one.
+struct DrawPass {
+    bool open = false;
+
+    void begin(ID2D1Bitmap1* bitmap) {
+        SwapchainHook::D2D1Bitmap.copy_from(bitmap);
+        D2D::context->SetTarget(bitmap);
+        D2D::context->BeginDraw();
+        open = true;
+    }
+
+    ~DrawPass() {
+        if (!open) return;
+        HRESULT hr = D2D::context->EndDraw();
+        D2D::context->SetTarget(nullptr);
+        SwapchainHook::D2D1Bitmap = nullptr;
+        if (hr == D2DERR_RECREATE_TARGET) {
+            D2D::context = nullptr;
+            d2dDevice = nullptr;
+            d2dFor = nullptr;
+        }
+    }
+};
+
 void frame(ID3D11Device* device, ID3D11DeviceContext* context, IDXGISwapChain* swapchain) {
     if (!live) return;
     adopt(device, context, swapchain);
@@ -196,24 +241,28 @@ void frame(ID3D11Device* device, ID3D11DeviceContext* context, IDXGISwapChain* s
     winrt::com_ptr<ID2D1Bitmap1> bitmap;
     if (FAILED(D2D::context->CreateBitmapFromDxgiSurface(surface.get(), props, bitmap.put()))) return;
 
-    SwapchainHook::D2D1Bitmap = bitmap;
-    D2D::context->SetTarget(bitmap.get());
+    DrawPass pass;
+    pass.begin(bitmap.get());
     MC::windowSize = Vec2(D2D::context->GetSize().width, D2D::context->GetSize().height);
-    D2D::context->BeginDraw();
     ModuleManager::processPendingToggles();
     auto event = nes::make_holder<RenderEvent>();
     event->RTV = rtv;
     eventMgr.trigger(event);
-    D2D::context->EndDraw();
-    D2D::context->SetTarget(nullptr);
-    SwapchainHook::D2D1Bitmap = nullptr;
 }
 
+// MinHook only keeps new calls out of disabled hooks; a thread already inside a Flarial detour finishes on its
+// own. The pause gives those calls time to leave before the hook objects and modules go away.
+constexpr DWORD hookDrainMs = 250;
+
 bool stop() {
-    if (!live.exchange(false)) return true;
-    MH_DisableHook(MH_ALL_HOOKS);
-    ModuleManager::terminate();
-    HookManager::terminate();
+    live = false;
+    if (done.minhook) {
+        MH_DisableHook(MH_ALL_HOOKS);
+        Sleep(hookDrainMs);
+    }
+    if (done.commands) CommandManager::terminate();
+    if (done.modules) ModuleManager::terminate();
+    if (done.hooks) HookManager::terminate();
     D2D::context = nullptr;
     d2dDevice = nullptr;
     d2dFor = nullptr;
@@ -221,8 +270,9 @@ bool stop() {
     SwapchainHook::swapchain = nullptr;
     SwapchainHook::context = nullptr;
     SwapchainHook::d3d11Device = nullptr;
-    MH_Uninitialize();
-    ImGui::SetCurrentContext(nullptr);
+    if (done.minhook && MH_Uninitialize() != MH_OK) return false;
+    if (done.imgui) ImGui::SetCurrentContext(nullptr);
+    done = {};
     return true;
 }
 
