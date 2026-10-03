@@ -247,7 +247,7 @@ class HitPing : public GameText {
 public:
     HitPing()
         : GameText("Hit Ping", "Time from your attack until the server confirms the hit.", need::combat,
-                   need::sigs({"LocalPlayer", "AttackEntity", "ActorEvent"}), {"info-others"}, {0.135f, 0.178f}) {
+                   need::sigs({"LocalPlayer", "HitConfirm"}), {"info-others"}, {0.135f, 0.178f}) {
         sub("Combat displays");
     }
 

@@ -217,12 +217,12 @@ public:
         : Module("Damage Indicator", "Damage numbers rise from the crosshair when you hit.",
                  Category::Pvp, {"info-others"}) {
         sub("Combat displays");
-        require(need::combat, need::sigs({"LocalPlayer", "AttackEntity"}));
+        require(need::combat, need::sigs({"LocalPlayer", "HitConfirm"}));
     }
 
     void onFrame() override {
         for (auto& e : game::events()) {
-            if (e.kind != game::EventKind::Hit) continue;
+            if (e.kind != game::EventKind::Confirm) continue;
             std::uniform_real_distribution<float> j(-spread_.f, spread_.f);
             numbers_.push_back({ui::time(), j(rng_), e.value, e.crit});
         }

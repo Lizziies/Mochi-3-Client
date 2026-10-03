@@ -13,6 +13,7 @@
 #include <atomic>
 #include <cmath>
 #include <cstring>
+#include <map>
 #include <mutex>
 #include <vector>
 
@@ -339,10 +340,19 @@ private:
             t.blockZ = mem::get<int>(h + 0x28);
         }
 
+        uint32_t rawId = mem::get<uint32_t>(h + 0x48);
+        uintptr_t reg = mem::pointer(h + off("hit.registry"));
+        if (t.kind == Target::Kind::Entity && reg) describe(t, reg, rawId);
+        followHits(reg, ev);
+
         bool press = input::down(VK_LBUTTON) && input::grabbed() && !ui::wantsCursor();
         bool edge = press && !wasPressed_;
         wasPressed_ = press;
         if (!edge || t.kind != Target::Kind::Entity) return;
+        hitId_ = rawId;
+        hitAt_ = GetTickCount64();
+        hitHealth_ = t.health;
+        hitName_ = t.name;
         Event e{EventKind::Hit};
         e.reach = t.distance;
         e.crit = !onGround_ && fallSpeed_ < 0.f && !sprinting_;
@@ -350,6 +360,83 @@ private:
         e.hasPos = true;
         e.pos = at;
         ev.push_back(std::move(e));
+    }
+
+    // Entities live in an entt registry (1.26.52: the pick result's weak reference points at it). Its pool map is a
+    // dense_map whose packed nodes sit at "registry.pools" (32 bytes: next, component type hash, shared_ptr to the
+    // pool). A pool keeps sparse pages of (version | position) at +0x08, the packed entity list at +0x20, the entity
+    // mask at +0x48 and payload pages at +0x50 (1024 components per page).
+    uintptr_t pool(uintptr_t reg, const char* name) {
+        uint32_t key = uint32_t(off(name));
+        auto& cache = pools_[name];
+        if (cache.first == reg && cache.second) return cache.second;
+        uintptr_t begin = mem::pointer(reg + off("registry.pools")), end = mem::pointer(reg + off("registry.pools") + 8);
+        cache = {reg, 0};
+        for (uintptr_t n = begin; n && n < end && n < begin + 0x10000 * 32; n += 32)
+            if (mem::get<uint32_t>(n + 8) == key) {
+                cache.second = mem::pointer(n + 0x10);
+                break;
+            }
+        return cache.second;
+    }
+
+    static uintptr_t component(uintptr_t p, uint32_t id, int size) {
+        if (!p) return 0;
+        uint32_t mask = mem::get<uint32_t>(p + 0x48, 0x3ffff), idx = id & mask;
+        uintptr_t sparse = mem::pointer(p + 8), sparseEnd = mem::pointer(p + 0x10);
+        if (!sparse || (idx / 4096) * 8 >= sparseEnd - sparse) return 0;
+        uintptr_t page = mem::pointer(sparse + (idx / 4096) * 8);
+        uint32_t entry = page ? mem::get<uint32_t>(page + (idx % 4096) * 4, 0xffffffff) : 0xffffffff;
+        if (entry == 0xffffffff) return 0;
+        uint32_t pos = entry & mask;
+        uintptr_t packed = mem::pointer(p + 0x20);
+        if (mem::get<uint32_t>(packed + uintptr_t(pos) * 4) != id) return 0;
+        uintptr_t payload = mem::pointer(mem::pointer(p + 0x50) + (pos / 1024) * 8);
+        return payload ? payload + uintptr_t(pos % 1024) * size : 0;
+    }
+
+    void describe(Target& t, uintptr_t reg, uint32_t id) {
+        t.name.clear();
+        t.isPlayer = false;
+        if (uintptr_t def = component(pool(reg, "pool.identifier"), id, off("identifier.size"))) {
+            t.name = text(def + off("identifier.name"));
+            t.isPlayer = t.name == "player";
+        }
+        uintptr_t attrs = component(pool(reg, "pool.attributes"), id, off("attributes.size"));
+        uintptr_t first = attrs ? mem::pointer(attrs + off("attributes.list")) : 0;
+        if (uintptr_t hp = first ? attrIn(first, "health") : 0) {
+            t.health = mem::get<float>(hp + off("attr.value"));
+            t.maxHealth = mem::get<float>(hp + off("attr.max"));
+        } else {
+            t.health = 0.f;
+            t.maxHealth = 0.f;
+        }
+    }
+
+    // a hit counts as landed when the struck entity loses health shortly after; down to zero is a kill
+    void followHits(uintptr_t reg, std::vector<Event>& ev) {
+        if (!hitId_ || !reg) return;
+        if (GetTickCount64() - hitAt_ > 1500) {
+            hitId_ = 0;
+            return;
+        }
+        uintptr_t attrs = component(pool(reg, "pool.attributes"), hitId_, off("attributes.size"));
+        uintptr_t first = attrs ? mem::pointer(attrs + off("attributes.list")) : 0;
+        uintptr_t hp = first ? attrIn(first, "health") : 0;
+        float now = hp ? mem::get<float>(hp + off("attr.value")) : 0.f;
+        if (!hp || now >= hitHealth_ - 0.01f) return;
+        Event c{EventKind::Confirm};
+        c.value = hitHealth_ - now;
+        c.actor = hitId_;
+        c.text = hitName_;
+        ev.push_back(c);
+        if (now <= 0.f) {
+            Event k{EventKind::Kill};
+            k.actor = hitId_;
+            k.text = hitName_;
+            ev.push_back(std::move(k));
+        }
+        hitId_ = 0;
     }
 
     // ItemStack (1.26.52, 0x98 bytes): +0x8 weak pointer to the Item, +0x10 CompoundTag user data, +0x20 aux,
@@ -602,6 +689,11 @@ private:
     int64_t lastPosQpc_ = 0;
     bool wasPressed_ = false;
     uint64_t inventoryAt_ = 0;
+    std::map<std::string, std::pair<uintptr_t, uintptr_t>> pools_;
+    uint32_t hitId_ = 0;
+    uint64_t hitAt_ = 0;
+    float hitHealth_ = 0.f;
+    std::string hitName_;
     uint64_t sweptAt_ = 0;
     int totems_ = -1;
     bool usePressed_ = false;
