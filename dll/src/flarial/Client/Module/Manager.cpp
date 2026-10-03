@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Adapted from Flarial src/Client/Module/Manager.cpp: without the Lua script marketplace (Mochi has its own script list) and the Lewis easter egg.
+// Adapted from Flarial src/Client/Module/Manager.cpp: without the Lua script marketplace (Monchi has its own script list) and the Lewis easter egg.
 #include "Manager.hpp"
 
 #include "Modules/Misc/Input/GUIKeyListener.hpp"

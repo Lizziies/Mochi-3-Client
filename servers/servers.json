@@ -82,7 +82,7 @@
         "timing",
         "chat"
       ],
-      "notice": "Mochi ist auf Lifeboat noch nicht offiziell freigegeben.",
+      "notice": "Monchi ist auf Lifeboat noch nicht offiziell freigegeben.",
       "warn": [
         "Crystal Optimizer"
       ]
@@ -121,7 +121,7 @@
         "Faster Inventory",
         "Item Use Delay Fix"
       ],
-      "notice": "Mochi has not checked the NetherGames mod list in detail. Reports say Toggle Sprint and bow indicators are blocked there."
+      "notice": "Monchi has not checked the NetherGames mod list in detail. Reports say Toggle Sprint and bow indicators are blocked there."
     },
     {
       "name": "Mineville",

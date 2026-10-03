@@ -1,6 +1,6 @@
 # Bedrock-Clients im Vergleich
 
-Stand: Oktober 2026. Das ist die Wettbewerbs-Referenz für Mochi: was die anderen Clients können, wo sie schwach sind, was wir anders machen. Der Ausbauplan dazu steht in `docs/FEATURES.md`.
+Stand: Oktober 2026. Das ist die Wettbewerbs-Referenz für Monchi: was die anderen Clients können, wo sie schwach sind, was wir anders machen. Der Ausbauplan dazu steht in `docs/FEATURES.md`.
 
 ## So sicher sind die Angaben
 
@@ -14,7 +14,7 @@ Von dieser Session aus waren flarial.xyz, onixclient.com, latite.net und docs.on
 
 ## Überblick
 
-| | Flarial | Onix | Latite | Mochi (Ziel) |
+| | Flarial | Onix | Latite | Monchi (Ziel) |
 |---|---|---|---|---|
 | Preis | gratis | Patreon, ab ca. 4 $ (Scripting nur bezahlt) | gratis | gratis |
 | Lizenz | AGPL-3.0, Code offen (`dll-oss`) | closed source | Open Source | Open Source, eigene Lizenz |
@@ -35,13 +35,13 @@ Weitere Clients, die man kennt:
 | Project Lumen, Wiser | angekündigt | ~ |
 | Astral | Resource-Pack-Optimierung | kein DLL-Client |
 | Lunar / Badlion | Java | gibt es nicht für Bedrock |
-| Horion, Nuke, Sunset und ähnliche | Cheat-Clients | werden bei Mochi nicht berücksichtigt, siehe Hard Rules in CLAUDE.md |
+| Horion, Nuke, Sunset und ähnliche | Cheat-Clients | werden bei Monchi nicht berücksichtigt, siehe Hard Rules in CLAUDE.md |
 
 Lokaler Stand der Vergleichsliste: `Nyraxis/MCBE_Clients` auf GitHub führt nur ältere Versionen, die Szene ist schnelllebig.
 
 ## Flarial
 
-Kostenlos, AGPL-3.0, aktiv entwickelt, Windows und Android. Stärkster Gegner bei Modulanzahl. Code ist öffentlich, wird aber bei Mochi nur gelesen, nie kopiert.
+Kostenlos, AGPL-3.0, aktiv entwickelt, Windows und Android. Stärkster Gegner bei Modulanzahl. Code ist öffentlich, wird aber bei Monchi nur gelesen, nie kopiert.
 
 ### Module laut Repo (✔, alphabetisch bis "Sprint")
 
@@ -58,7 +58,7 @@ Dahinter folgen nach Wissen/Erwartung (~, vor Einbau prüfen): Snaplook/Timer-ar
 - Raw Input Buffer ist laut früherer Recherche im öffentlichen Code nur ein Stub (Platzhalter), kein echter Eingabepuffer.
 - Changelogs mit HUD-Updates (Juni 2026), Fokus auf Stabilität nach MC-Updates.
 
-### Schwächen (Angriffspunkte für Mochi)
+### Schwächen (Angriffspunkte für Monchi)
 
 - Nach jedem Minecraft-Update bricht der Client oft, bis eine neue DLL gebaut wurde.
 - Kein Modul-Ausgrauen bei fehlenden Offsets, bei Fehlern kann das Spiel abstürzen (~).
@@ -104,7 +104,7 @@ Armor HUD, Auto GG, Behind You (Snaplook), Block Game, Block Overlay, Bow Indica
 
 ## Was die anderen noch nicht (gut) haben
 
-Das sind die Lücken, die Mochi füllt. Details und Umsetzung in `docs/FEATURES.md`.
+Das sind die Lücken, die Monchi füllt. Details und Umsetzung in `docs/FEATURES.md`.
 
 1. Signaturen als Datei auf GitHub: Fixes ohne neues Release.
 2. Fehlende Signatur = Modul grau, kein Absturz. Crash-Guard pro Hook.

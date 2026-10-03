@@ -69,18 +69,18 @@ Ab jetzt gilt `docs/PLAN_B.md` (Phasen 0 bis 7, mit Hive Utils, Zeqa Utils, Hive
 ## Session B → Session A (Build)
 
 - `dll/CMakeLists.txt` holt jetzt Lua 5.4.8 per `FetchContent` von `github.com/lua/lua` (für das Modul "Lua Scripts", siehe `docs/SCRIPTING.md`). Der erste CMake-Lauf braucht also Netz und `git`. Falls der Launcher oder die CI offline bauen, bitte die Quellen vorher zwischenspeichern oder `FETCHCONTENT_SOURCE_DIR_LUA` setzen.
-- Für Discord Rich Presence braucht Mochi eine eigene Discord-Anwendung (discord.com/developers). Die Anwendungs-ID gehört in die Einstellung "Discord application ID" des Moduls; die Bilder `mochi` (groß) und `heart` (klein) müssen in der Anwendung unter Rich Presence Assets hochgeladen werden. Falls ihr eine feste ID in `core/Build.hpp` wollt, kann `modules/platform/Presence.hpp` sie als Standardwert nehmen.
+- Für Discord Rich Presence braucht Monchi eine eigene Discord-Anwendung (discord.com/developers). Die Anwendungs-ID gehört in die Einstellung "Discord application ID" des Moduls; die Bilder `monchi` (groß) und `heart` (klein) müssen in der Anwendung unter Rich Presence Assets hochgeladen werden. Falls ihr eine feste ID in `core/Build.hpp` wollt, kann `modules/platform/Presence.hpp` sie als Standardwert nehmen.
 
-## Session B → Session C (Mochi Online in der Oberfläche)
+## Session B → Session C (Monchi Online in der Oberfläche)
 
-- `online::count()`, `online::users()` und `online::find(name, user)` (`modules/online/Online.hpp`) liefern, wer von den Spielern in der Tab-Liste Mochi benutzt, samt Stil (Modus, Farben, Tag, Herz). Für die Pille "♥ 4 Mochi users on this server" und die Spielerliste aus `l_players.png` reicht das. `online::heartIcon(dl, mitte, größe, farbe)` zeichnet das Herz, `online::paint(...)` malt einen Namen mit Verlauf, Regenbogen oder Puls.
-- Das Modul "Mochi Online" hat ein eigenes Einstellungsfeld (`drawSettings`) mit Status, Nutzerliste und dem Knopf zum Löschen der Daten. Wer das lieber im Einstellungs-Tab haben will, kann `online::state()` und `online::forget()` benutzen.
+- `online::count()`, `online::users()` und `online::find(name, user)` (`modules/online/Online.hpp`) liefern, wer von den Spielern in der Tab-Liste Monchi benutzt, samt Stil (Modus, Farben, Tag, Herz). Für die Pille "♥ 4 Monchi users on this server" und die Spielerliste aus `l_players.png` reicht das. `online::heartIcon(dl, mitte, größe, farbe)` zeichnet das Herz, `online::paint(...)` malt einen Namen mit Verlauf, Regenbogen oder Puls.
+- Das Modul "Monchi Online" hat ein eigenes Einstellungsfeld (`drawSettings`) mit Status, Nutzerliste und dem Knopf zum Löschen der Daten. Wer das lieber im Einstellungs-Tab haben will, kann `online::state()` und `online::forget()` benutzen.
 - Der Dienst ist in `server/` (Cloudflare Worker), Anleitung in `server/README.md`.
 
 ## Session B → Session A (Eingabe, Build)
 
 - `hook/Input.cpp`: Strg+L entlädt den Client jetzt nur noch bei echtem Strg. Toggle Sprint hält per `SendInput` Strg gedrückt, vorher entlud ein versehentliches L dann den Client. Dafür merkt sich `realCtrl` nur Tasten, die nicht von `inject::` stammen.
-- `dll/CMakeLists.txt` linkt jetzt `bcrypt` (Zufallsschlüssel für Mochi Online).
+- `dll/CMakeLists.txt` linkt jetzt `bcrypt` (Zufallsschlüssel für Monchi Online).
 
 ## Session B → Session A (Cosmetics-Format, Erweiterungen)
 
@@ -93,4 +93,4 @@ Das Cosmetics-Modul und meine Vorschau sind gelöscht, die Seite im Menü und de
 - `"anim": {"type": "sparkle"}`: Alpha flackert pro Würfel.
 - `"physics"` (Bone) als Objekt statt Text: `{"type": "spring" | "cloth", "stiffness", "damping", "inertia", "wind", "drive": {"air": [x,y,z], "sprint": [...], "sneak": [...], "speed": [...]}}`. Federn bekommen eine gedämpfte Feder pro Achse mit Nachschwingen, die Zielwinkel der Animation, Offsets je nach Zustand (Luft, Sprint, Schleichen, Tempo) und Anstöße durch Beschleunigung und Drehung. `cloth` ist eine Pendelkette über die Würfel von oben nach unten (Schwerkraft, Wind nach hinten durch Tempo und Fallen, Kopplung zwischen den Streifen, Kollision mit dem Körper). Eingabe ist ein `Motion` (Tempo vorwärts, seitlich, hoch, Drehrate, sprinten, schleichen, in der Luft), das Menü kann es aus `game::state().player` oder aus einer Demo-Bewegung füllen.
 
-Außerdem: Die Namens-Regeln aus `docs/ONLINE.md` sind umgesetzt (kein freier Text, Herz hinter dem Namen, nur Farbe). Mochi Online liest die ausgerüsteten Cosmetics aus `ClientSettings::equipped()` und sendet sie als `worn` an den Dienst.
+Außerdem: Die Namens-Regeln aus `docs/ONLINE.md` sind umgesetzt (kein freier Text, Herz hinter dem Namen, nur Farbe). Monchi Online liest die ausgerüsteten Cosmetics aus `ClientSettings::equipped()` und sendet sie als `worn` an den Dienst.

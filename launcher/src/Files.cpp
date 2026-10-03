@@ -1,4 +1,5 @@
 #include "Files.hpp"
+#include "DataDir.hpp"
 
 #include <windows.h>
 #include <shlobj.h>
@@ -15,21 +16,15 @@ static fs::path ensure(const fs::path& p) {
 
 fs::path root() {
     static fs::path cached = [] {
-        PWSTR local = nullptr;
-        fs::path p;
-        if (SUCCEEDED(SHGetKnownFolderPath(FOLDERID_LocalAppData, 0, nullptr, &local))) {
-            p = fs::path(local) / L"Mochi";
-            CoTaskMemFree(local);
-        } else {
-            p = fs::current_path() / L"MochiData";
-        }
+        fs::path p = dataDir();
+        if (p.empty()) p = fs::current_path() / L"MonchiData";
         return ensure(p);
     }();
     return cached;
 }
 
 fs::path bin() { return ensure(root() / L"bin"); }
-fs::path dll() { return bin() / L"Mochi.dll"; }
+fs::path dll() { return bin() / L"Monchi.dll"; }
 fs::path installedTag() { return bin() / L"version.txt"; }
 fs::path settings() { return root() / L"launcher.json"; }
 fs::path log() { return root() / L"logs" / L"latest.log"; }

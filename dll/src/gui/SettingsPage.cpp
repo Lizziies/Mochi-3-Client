@@ -175,7 +175,7 @@ static void drawProfiles() {
 static void drawAbout() {
     auto& t = theme::current();
     beginTab("info");
-    widgets::sectionTitle("Mochi");
+    widgets::sectionTitle("Monchi");
     ImGui::Text(i18n::tr("Version %s"), build::version);
     ImGui::Text(i18n::tr("Renderer: %s"), dx::api() == dx::Api::Dx12 ? "DirectX 12" : dx::api() == dx::Api::Dx11 ? "DirectX 11" : "–");
 

@@ -1,6 +1,6 @@
 # Updates, neue Minecraft-Versionen und Downgrade
 
-Wie Mochi aktuell bleibt, was bei einem Minecraft-Update passiert und wie Versionswechsel gedacht sind. Ehrlich getrennt in "gebaut", "geplant" und "noch zu klären".
+Wie Monchi aktuell bleibt, was bei einem Minecraft-Update passiert und wie Versionswechsel gedacht sind. Ehrlich getrennt in "gebaut", "geplant" und "noch zu klären".
 
 ## Wer baut was
 
@@ -22,21 +22,21 @@ Es gibt vier getrennte Dinge, die sich aktualisieren, mit unterschiedlichem Aufw
 | Ebene | Was | Wie | Braucht neues Release? |
 |---|---|---|---|
 | 1. Signaturen und Server-Regeln | Daten (`sigs/<version>.json`, `servers/servers.json`) | DLL lädt sie beim Start von `raw.githubusercontent.com`, mit Cache und eingebauter Kopie | nein, ein Commit reicht |
-| 2. Client (`Mochi.dll`) | Programmcode | steckt in `MochiLauncher.exe` (eingebettet), der Launcher legt ihn beim Start nach `%LOCALAPPDATA%\Mochi\bin` | ja, mit dem Launcher |
-| 3. Launcher (`MochiLauncher.exe`) | Programmcode | Launcher lädt die neue exe, benennt die laufende um, startet die neue, löscht die alte | ja |
+| 2. Client (`Monchi.dll`) | Programmcode | steckt in `MonchiLauncher.exe` (eingebettet), der Launcher legt ihn beim Start nach `%LOCALAPPDATA%\Monchi\bin` | ja, mit dem Launcher |
+| 3. Launcher (`MonchiLauncher.exe`) | Programmcode | Launcher lädt die neue exe, benennt die laufende um, startet die neue, löscht die alte | ja |
 | 4. Minecraft selbst | Spiel | Microsoft Store / Xbox-App | nicht unsere Sache |
 
 ## Ablauf beim Klick auf "Spielen"
 
 1. Launcher fragt `api.github.com/repos/<owner>/<repo>/releases/latest` (bei Beta-Kanal die Liste der Releases).
-2. Der Client steckt als Ressource in der Exe. Beim Start schreibt der Launcher ihn und die Cosmetics aus der Exe nach `%LOCALAPPDATA%\Mochi` (nur wenn sich der Inhalt geändert hat). Ist der Tag im Release neuer, bietet der Launcher das Update an: er lädt die neue `MochiLauncher.exe`, prüft die Prüfsumme, ersetzt sich und startet neu. Stimmt die Prüfsumme nicht, wird nichts installiert.
+2. Der Client steckt als Ressource in der Exe. Beim Start schreibt der Launcher ihn und die Cosmetics aus der Exe nach `%LOCALAPPDATA%\Monchi` (nur wenn sich der Inhalt geändert hat). Ist der Tag im Release neuer, bietet der Launcher das Update an: er lädt die neue `MonchiLauncher.exe`, prüft die Prüfsumme, ersetzt sich und startet neu. Stimmt die Prüfsumme nicht, wird nichts installiert.
 3. Läuft Minecraft schon, wird der Prozess verwendet, sonst gestartet (Aktivierung über die App-ID, Rückfall auf `minecraft:`).
 4. Launcher wartet auf Fenster und DirectX-Module, wartet 2 Sekunden und injiziert per `LoadLibraryW`.
 5. Die DLL liest ihre Minecraft-Version, lädt die passende `sigs/<version>.json` (GitHub → Cache → eingebaut) und schaltet Module ohne gefundene Signatur grau.
 
-"Selbst-Update": Button "Aktualisieren" auf der Startseite. Er lädt zusätzlich `MochiLauncher.exe`, ersetzt sich selbst und startet neu.
+"Selbst-Update": Button "Aktualisieren" auf der Startseite. Er lädt zusätzlich `MonchiLauncher.exe`, ersetzt sich selbst und startet neu.
 
-Voraussetzung: Ein Release mit den zwei Dateien `MochiLauncher.exe` (eine einzige Exe mit Client und Cosmetics) und `checksums.txt`. Die Action erzeugt sie, wenn du einen Tag `v0.1.0` pushst. Auf GitHub muss außerdem ein Standardbranch (`main`) existieren, weil Signaturen von dort geladen werden.
+Voraussetzung: Ein Release mit den zwei Dateien `MonchiLauncher.exe` (eine einzige Exe mit Client und Cosmetics) und `checksums.txt`. Die Action erzeugt sie, wenn du einen Tag `v0.1.0` pushst. Auf GitHub muss außerdem ein Standardbranch (`main`) existieren, weil Signaturen von dort geladen werden.
 
 ## Was passiert, wenn Minecraft sich aktualisiert
 
@@ -59,15 +59,15 @@ Hier muss man ehrlich sein, weil es das schwierigste Stück ist.
 - LeviLauncher (Open Source, GPL-3.0-only, von LiteLDev, geschrieben in Go/Wails) kann mehrere Release- und Preview-Versionen nebeneinander installieren, jede mit eigenem Ordner und eigenen Welten. Man braucht dafür eine eigene gültige Minecraft-Lizenz.
 - Wie genau LeviLauncher die Spieldateien bezieht, haben wir noch nicht im Detail geprüft (Webseite war gesperrt). Das muss vor dem Bau nachgesehen werden.
 
-**Was Mochi tut, in Stufen:**
+**Was Monchi tut, in Stufen:**
 
 | Stufe | Inhalt | Wann |
 |---|---|---|
-| 1 (gebaut) | Im Launcher unter "Versions" gibt es die Versionsverwaltung: ein Klick lädt die offizielle `LeviLauncher.exe` vom GitHub-Release von LiteLDev nach `%LOCALAPPDATA%\Mochi\tools` und startet sie. LeviLauncher installiert und wechselt Versionen (auch alte, mit eigener Lizenz). Mochi läuft als getrenntes Programm daneben (kein GPL-Code in Mochi) und verbindet sich automatisch mit der Version, die LeviLauncher startet. Mochi arbeitet mit **jeder** Minecraft-Version, die gerade läuft. Der Auto-Inject-Wächter im Launcher injiziert auch, wenn das Spiel von einem anderen Launcher gestartet wurde. Wer eine alte Version will, installiert sie mit LeviLauncher, Mochi hängt sich dran. Für Versionen mit `sigs/<version>.json` laufen die Spiel-Module. | Release 1 |
-| 2 | Versionen-Seite zeigt die installierten Versionen (auch die von LeviLauncher, wenn erkennbar), mit Badge "Mochi compatible". Start einer ausgewählten Version aus dem Launcher heraus. | nach Release 1 |
-| 3 | Eigener Download neuer und alter Versionen, nur über die Microsoft-Berechtigung des Nutzers. Wird nur gebaut, wenn das technisch und rechtlich sauber geht. Wir hosten keine Spieldateien und übernehmen keinen GPL-Code in Mochi. | offen |
+| 1 (gebaut) | Im Launcher unter "Versions" gibt es die Versionsverwaltung: ein Klick lädt die offizielle `LeviLauncher.exe` vom GitHub-Release von LiteLDev nach `%LOCALAPPDATA%\Monchi\tools` und startet sie. LeviLauncher installiert und wechselt Versionen (auch alte, mit eigener Lizenz). Monchi läuft als getrenntes Programm daneben (kein GPL-Code in Monchi) und verbindet sich automatisch mit der Version, die LeviLauncher startet. Monchi arbeitet mit **jeder** Minecraft-Version, die gerade läuft. Der Auto-Inject-Wächter im Launcher injiziert auch, wenn das Spiel von einem anderen Launcher gestartet wurde. Wer eine alte Version will, installiert sie mit LeviLauncher, Monchi hängt sich dran. Für Versionen mit `sigs/<version>.json` laufen die Spiel-Module. | Release 1 |
+| 2 | Versionen-Seite zeigt die installierten Versionen (auch die von LeviLauncher, wenn erkennbar), mit Badge "Monchi compatible". Start einer ausgewählten Version aus dem Launcher heraus. | nach Release 1 |
+| 3 | Eigener Download neuer und alter Versionen, nur über die Microsoft-Berechtigung des Nutzers. Wird nur gebaut, wenn das technisch und rechtlich sauber geht. Wir hosten keine Spieldateien und übernehmen keinen GPL-Code in Monchi. | offen |
 
-"Die neueste Version laden": Die neueste Minecraft-Version kommt über den Microsoft Store bzw. die Xbox-App. Der Launcher zeigt, wenn eine neuere Version installiert ist, als die von Mochi geprüfte, und bietet einen Link zum Store an. Mochi selbst lädt kein Minecraft.
+"Die neueste Version laden": Die neueste Minecraft-Version kommt über den Microsoft Store bzw. die Xbox-App. Der Launcher zeigt, wenn eine neuere Version installiert ist, als die von Monchi geprüfte, und bietet einen Link zum Store an. Monchi selbst lädt kein Minecraft.
 
 Auto-Update von Minecraft für eine gepinnte Version zu verhindern, ist Teil von Stufe 2 oder 3 und noch nicht untersucht.
 

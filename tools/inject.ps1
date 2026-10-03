@@ -1,12 +1,12 @@
 param(
-    [string]$Dll = (Join-Path $PSScriptRoot '..\build\Release\Mochi.dll'),
+    [string]$Dll = (Join-Path $PSScriptRoot '..\build\Release\Monchi.dll'),
     [int]$WaitSeconds = 120,
     [int]$ProcessId = 0,
     [switch]$Launch,
     [switch]$Dev
 )
 
-if ($Dev) { $Dll = Join-Path $PSScriptRoot '..\build-dev\Release\Mochi.dll' }
+if ($Dev) { $Dll = Join-Path $PSScriptRoot '..\build-dev\Release\Monchi.dll' }
 
 Add-Type -TypeDefinition @'
 using System;
@@ -72,18 +72,18 @@ $dll = (Resolve-Path $Dll).Path
 $devDir = Join-Path (Resolve-Path (Join-Path $PSScriptRoot '..')).Path 'dev-data'
 $bin = Join-Path $devDir 'bin'
 New-Item -ItemType Directory -Force $bin, (Join-Path $devDir 'data') | Out-Null
-$target = Join-Path $bin ("Mochi-{0:yyMMdd-HHmmss}.dll" -f (Get-Date))
+$target = Join-Path $bin ("Monchi-{0:yyMMdd-HHmmss}.dll" -f (Get-Date))
 Copy-Item $dll $target -Force
 $sigs = Join-Path $PSScriptRoot '..\sigs'
 if (Test-Path $sigs) {
     New-Item -ItemType Directory -Force (Join-Path $bin 'sigs') | Out-Null
     Copy-Item (Join-Path $sigs '*.json') (Join-Path $bin 'sigs') -Force
 }
-[IO.File]::WriteAllText((Join-Path $bin 'Mochi.root'), (Join-Path $devDir 'data'))
-$marker = Join-Path $bin 'Mochi.explore'
+[IO.File]::WriteAllText((Join-Path $bin 'Monchi.root'), (Join-Path $devDir 'data'))
+$marker = Join-Path $bin 'Monchi.explore'
 if ($Dev) { [IO.File]::WriteAllText($marker, (Resolve-Path (Join-Path $PSScriptRoot 'explore')).Path) }
 elseif (Test-Path $marker) { Remove-Item $marker }
-Get-ChildItem $bin -Filter 'Mochi-*.dll' | Where-Object FullName -ne $target | ForEach-Object { Remove-Item $_.FullName -ErrorAction SilentlyContinue }
+Get-ChildItem $bin -Filter 'Monchi-*.dll' | Where-Object FullName -ne $target | ForEach-Object { Remove-Item $_.FullName -ErrorAction SilentlyContinue }
 icacls $target /grant '*S-1-15-2-1:(RX)' | Out-Null
 
 if ($ProcessId) {
@@ -111,7 +111,7 @@ while ((Get-Date) -lt $deadline) {
     Start-Sleep -Milliseconds 500
 }
 if (-not $mc) { Write-Host 'Minecraft did not start'; exit 1 }
-if ($mc.Modules | Where-Object { $_.ModuleName -like 'Mochi*.dll' }) { Write-Host 'already injected'; exit 0 }
+if ($mc.Modules | Where-Object { $_.ModuleName -like 'Monchi*.dll' }) { Write-Host 'already injected'; exit 0 }
 
 Start-Sleep -Seconds 2
 $r = [Inj]::Load($mc.Id, $target)

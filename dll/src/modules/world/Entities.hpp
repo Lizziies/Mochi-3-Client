@@ -51,7 +51,7 @@ public:
     void drawSettings() override {
         if (!fallback_) return;
         ImGui::Spacing();
-        widgets::hint("The game's own name tag is not available on this version, so Mochi draws it. Server colors still show, the pack font does not.");
+        widgets::hint("The game's own name tag is not available on this version, so Monchi draws it. Server colors still show, the pack font does not.");
     }
 
     void onRender(ImDrawList* dl) override {

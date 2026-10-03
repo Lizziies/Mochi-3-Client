@@ -129,9 +129,9 @@ int WINAPI wWinMain(HINSTANCE inst, HINSTANCE, PWSTR args, int) {
         std::string error;
         return embedded::install(error) ? 0 : 1;
     }
-    HANDLE once = CreateMutexW(nullptr, TRUE, L"Mochi.Launcher");
+    HANDLE once = CreateMutexW(nullptr, TRUE, L"Monchi.Launcher");
     if (GetLastError() == ERROR_ALREADY_EXISTS) {
-        if (HWND other = FindWindowW(L"MochiLauncher", nullptr)) {
+        if (HWND other = FindWindowW(L"MonchiLauncher", nullptr)) {
             ShowWindow(other, SW_RESTORE);
             SetForegroundWindow(other);
         }
@@ -145,7 +145,7 @@ int WINAPI wWinMain(HINSTANCE inst, HINSTANCE, PWSTR args, int) {
     wc.hInstance = inst;
     wc.hCursor = LoadCursorW(nullptr, IDC_ARROW);
     wc.hIcon = LoadIconW(inst, MAKEINTRESOURCEW(IDI_APP));
-    wc.lpszClassName = L"MochiLauncher";
+    wc.lpszClassName = L"MonchiLauncher";
     RegisterClassExW(&wc);
 
     UINT dpi = 96;
@@ -157,10 +157,10 @@ int WINAPI wWinMain(HINSTANCE inst, HINSTANCE, PWSTR args, int) {
     int w = int(ui::width * scale), h = int(ui::height * scale);
     int x = (GetSystemMetrics(SM_CXSCREEN) - w) / 2, y = (GetSystemMetrics(SM_CYSCREEN) - h) / 2;
 
-    window = CreateWindowExW(WS_EX_APPWINDOW, wc.lpszClassName, L"Mochi", WS_POPUP | WS_MINIMIZEBOX | WS_SYSMENU, x, y, w,
+    window = CreateWindowExW(WS_EX_APPWINDOW, wc.lpszClassName, L"Monchi", WS_POPUP | WS_MINIMIZEBOX | WS_SYSMENU, x, y, w,
                              h, nullptr, nullptr, inst, nullptr);
     if (!window || !createDevice()) {
-        MessageBoxW(nullptr, L"Could not start DirectX 11.", L"Mochi", MB_ICONERROR);
+        MessageBoxW(nullptr, L"Could not start DirectX 11.", L"Monchi", MB_ICONERROR);
         return 1;
     }
     roundCorners();

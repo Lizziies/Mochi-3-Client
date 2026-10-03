@@ -118,8 +118,8 @@ int main(int argc, char** argv) {
     if (argc > 5) {
         std::string ph = argv[5];
         if (ph == "starting") { state.phase = ui::Phase::Starting; state.status = "Minecraft wird gestartet"; state.progress = 0.f; }
-        if (ph == "updating") { state.phase = ui::Phase::Updating; state.status = "Lade Mochi 0.2.0 herunter"; state.progress = 0.62f; }
-        if (ph == "done") { state.phase = ui::Phase::Done; state.status = "Mochi ist verbunden. Viel Spaß!"; }
+        if (ph == "updating") { state.phase = ui::Phase::Updating; state.status = "Lade Monchi 0.2.0 herunter"; state.progress = 0.62f; }
+        if (ph == "done") { state.phase = ui::Phase::Done; state.status = "Monchi ist verbunden. Viel Spaß!"; }
     }
 
     float mx = -1, my = -1;

@@ -53,8 +53,8 @@ public:
         std::memcpy(mem_->camPos, cam, sizeof(cam));
         std::memcpy(mem_->camFront, front, sizeof(front));
         std::memcpy(mem_->camTop, top, sizeof(top));
-        wcsncpy(mem_->name, L"Mochi", 255);
-        wcsncpy(mem_->description, L"Mochi Client, Minecraft Bedrock", 2047);
+        wcsncpy(mem_->name, L"Monchi", 255);
+        wcsncpy(mem_->description, L"Monchi Client, Minecraft Bedrock", 2047);
         std::wstring who(p.name.begin(), p.name.end());
         wcsncpy(mem_->identity, who.c_str(), 255);
         std::string ctx = "Minecraft:" + (context_.i == 0 ? game::state().server : std::string("global"));

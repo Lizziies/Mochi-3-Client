@@ -22,7 +22,7 @@ namespace {
 
 constexpr int framesPerModule = 120;
 
-bool on = std::getenv("MOCHI_SELFTEST") != nullptr;
+bool on = std::getenv("MONCHI_SELFTEST") != nullptr;
 std::mt19937 rng{12345};
 size_t index = 0;
 int frame = 0;
@@ -158,7 +158,7 @@ void tick() {
     }
 
     Module& m = *list[index];
-    const char* only = std::getenv("MOCHI_SELFTEST_ONLY");
+    const char* only = std::getenv("MONCHI_SELFTEST_ONLY");
     if (only && (std::string(",") + only + ",").find("," + m.name() + ",") == std::string::npos) {
         index++;
         return;

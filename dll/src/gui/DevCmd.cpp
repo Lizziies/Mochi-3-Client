@@ -36,7 +36,7 @@ void pollShot() {
 // development only: a file named dev.cmd in the data folder drives the menu, one command per line
 void pollDevCommands() {
     static const bool dev = [] {
-        bool on = std::filesystem::exists(paths::dllDir() / L"Mochi.root");
+        bool on = std::filesystem::exists(paths::dllDir() / L"Monchi.root");
         logger::info("dev channel {} ({})", on ? "on" : "off", logger::narrow(paths::dllDir().wstring()));
         return on;
     }();

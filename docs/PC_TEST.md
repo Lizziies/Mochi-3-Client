@@ -4,8 +4,8 @@ Alles, was in der Cloud geht, ist erledigt: gebaut, unter Wine getestet, Release
 
 ## Schritte
 
-1. Von GitHub (Releases) `MochiLauncher.exe` herunterladen. Das ist eine einzige Datei, Client und Cosmetics stecken darin. Windows-Defender warnt eventuell, das ist bei Injektoren normal. Für den Test eine Ausnahme für den Ordner anlegen.
-2. `MochiLauncher.exe` starten und auf "Play" klicken. Der Launcher startet Minecraft, wartet und verbindet den Client.
+1. Von GitHub (Releases) `MonchiLauncher.exe` herunterladen. Das ist eine einzige Datei, Client und Cosmetics stecken darin. Windows-Defender warnt eventuell, das ist bei Injektoren normal. Für den Test eine Ausnahme für den Ordner anlegen.
+2. `MonchiLauncher.exe` starten und auf "Play" klicken. Der Launcher startet Minecraft, wartet und verbindet den Client.
 3. Im Spiel Rechts-Shift drücken. Das Menü sollte erscheinen. FPS, CPS und Keystrokes sollten oben links stehen.
 4. Ein paar Module an- und ausschalten, das HUD verschieben (Edit HUD), die Sprache umstellen (Settings).
 5. Strg+L drücken. Der Client entlädt sich, das Spiel läuft normal weiter.
@@ -13,14 +13,14 @@ Alles, was in der Cloud geht, ist erledigt: gebaut, unter Wine getestet, Release
 ## Versionswechsel testen
 
 1. Launcher, Seite Versions: LeviLauncher installieren (Knopf), dort eine ältere Minecraft-Version laden.
-2. Zurück im Mochi-Launcher auf "Rescan". Die neue Version sollte in der Liste stehen. Steht sie nicht da, mit "Add folder" den Ordner wählen, in dem LeviLauncher die Version abgelegt hat.
-3. "Use this one" wählen und auf Play klicken. Mochi startet genau diese Version (die Exe direkt) und verbindet sich.
+2. Zurück im Monchi-Launcher auf "Rescan". Die neue Version sollte in der Liste stehen. Steht sie nicht da, mit "Add folder" den Ordner wählen, in dem LeviLauncher die Version abgelegt hat.
+3. "Use this one" wählen und auf Play klicken. Monchi startet genau diese Version (die Exe direkt) und verbindet sich.
 4. Launcher schließen und neu öffnen: die gewählte Version steht weiter auf "In use".
 5. Wenn die Version sofort wieder schließt: die Meldung im Launcher und `latest.log` schicken. Direkter Start einer Exe außerhalb des Stores ist am PC noch nicht geprüft.
 
 ## Was du mir schickst
 
-- Die Datei `%LOCALAPPDATA%\Mochi\logs\latest.log` (Launcher: Settings → Open logs).
+- Die Datei `%LOCALAPPDATA%\Monchi\logs\latest.log` (Launcher: Settings → Open logs).
 - Einen Screenshot vom Menü und, wenn etwas schiefging, vom Fehler.
 - Kurz: Version von Minecraft (Einstellungen im Spiel) und ob DX12 oder DX11.
 
@@ -68,4 +68,4 @@ Jede Einstellung muss sofort im Spiel wirken, ohne das Modul aus- und anzuschalt
 5. Minecraft-Einstellungen öffnen und wieder schließen, Alt-Tab, Vollbild umschalten, Server wechseln: alle Module bleiben an, das HUD ist sofort wieder da, im Log steht kein neuer Start der Module.
 6. GUI Scale an, Knopf "2" drücken: die Minecraft-Oberfläche hat die Größe 2 wie bei Flarial. Geht erst, wenn der Hook gebaut ist (`HOME_TODO.md` Punkt 5); bis dahin ist das Modul grau.
 7. Item Tracker an, etwas aufheben und etwas wegwerfen: rechts erscheint kurz "+3 …" grün und "−1 …" rot.
-8. Owner (erst nach `HOME_TODO.md` Punkt 2): Mochi Online an, auf einen Server. In der Tab-Liste und im Chat steht `vlisya [Owner]`. Ein Freund mit Mochi sieht das genauso, bei sich selbst steht kein Abzeichen.
+8. Owner (erst nach `HOME_TODO.md` Punkt 2): Monchi Online an, auf einen Server. In der Tab-Liste und im Chat steht `vlisya [Owner]`. Ein Freund mit Monchi sieht das genauso, bei sich selbst steht kein Abzeichen.

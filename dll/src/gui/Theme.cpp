@@ -181,7 +181,7 @@ static const char* b64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz01
 
 std::string exportCode() {
     std::string in = save().dump();
-    std::string out = "mochi:";
+    std::string out = "monchi:";
     int val = 0, bits = -6;
     for (unsigned char c : in) {
         val = (val << 8) + c;
@@ -197,7 +197,7 @@ std::string exportCode() {
 
 bool importCode(const std::string& code) {
     std::string_view s = code;
-    if (s.rfind("mochi:", 0) != 0) return false;
+    if (s.rfind("monchi:", 0) != 0) return false;
     s.remove_prefix(6);
 
     std::string out;

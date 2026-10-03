@@ -7,12 +7,12 @@ Ideen von Felix und was davon geht. Ehrlich getrennt in "gebaut", "geht ohne Spi
 Modul **Shader Packs** (Visual). Es legt einen eigenen Pixel-Shader über das fertige Bild, wie ein Overlay. Das ist reine Anzeige auf deinem Bildschirm, deshalb funktioniert es auf jedem Server, braucht keinen Raytracing-Pfad und keine Signaturen.
 
 - Vier eingebaute Looks: Soft Glow, Vibrant, Cinematic, Crisp.
-- Eigene Shader: `.hlsl`-Dateien in `%LOCALAPPDATA%\Mochi\shaders\`. Eine Funktion `float4 main_image(float2 uv)`, mit `tex(uv)`, `iRes`, `iTime`. `README.txt` und `example.hlsl` legt das Modul beim ersten Start dort ab. Fehler beim Kompilieren stehen in den Einstellungen des Moduls.
+- Eigene Shader: `.hlsl`-Dateien in `%LOCALAPPDATA%\Monchi\shaders\`. Eine Funktion `float4 main_image(float2 uv)`, mit `tex(uv)`, `iRes`, `iTime`. `README.txt` und `example.hlsl` legt das Modul beim ersten Start dort ab. Fehler beim Kompilieren stehen in den Einstellungen des Moduls.
 - Kosten: ein Vollbild-Durchlauf, 4 bis 32 Texturzugriffe pro Pixel. Auf einer normalen Grafikkarte kaum messbar, auf schwachen Geräten die Stärke oder den Look wechseln.
 
 Grenze: Der Shader sieht nur das fertige Bild. Er kennt weder Tiefe noch Normalen noch Schatten. Echte Shader-Packs mit Schatten, Wasser-Reflexionen und Wolken, wie in Java, brauchen Zugriff auf die Render-Pipeline von RenderDragon (Materialien und Tiefenpuffer). Das ist Phase 2 und braucht Reverse Engineering am PC (siehe unten).
 
-Auch neu: **Blur** (Vollbild-Unschärfe, immer oder nur in Menüs) und die Hintergrund-Unschärfe des Mochi-Menüs (Einstellungen, General, "Menu background blur").
+Auch neu: **Blur** (Vollbild-Unschärfe, immer oder nur in Menüs) und die Hintergrund-Unschärfe des Monchi-Menüs (Einstellungen, General, "Menu background blur").
 
 ## Schnelleres Laden von Chunks (braucht PC)
 

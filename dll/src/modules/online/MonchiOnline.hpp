@@ -12,11 +12,11 @@
 #include <string>
 #include <vector>
 
-class MochiOnline : public Module {
+class MonchiOnline : public Module {
 public:
-    MochiOnline()
-        : Module("Mochi Online",
-                 "Shows other Mochi users with a heart and a colored name in the Tab List and chat, and lets them see yours. Sends only your gamertag, the server name, your style and your cosmetics to the Mochi service.",
+    MonchiOnline()
+        : Module("Monchi Online",
+                 "Shows other Monchi users with a heart and a colored name in the Tab List and chat, and lets them see yours. Sends only your gamertag, the server name, your style and your cosmetics to the Monchi service.",
                  Category::Client, {"cosmetic"}) {
         sub("Online");
         informed_.hidden = true;
@@ -29,7 +29,7 @@ public:
     void onEnable() override {
         if (informed_.b) return;
         informed_.b = true;
-        notify::push(i18n::tr("Mochi Online"), i18n::tr("Your gamertag, the server name and your style are now sent to the Mochi service. Turn this module off to stop."), notify::Kind::Info, 8.f);
+        notify::push(i18n::tr("Monchi Online"), i18n::tr("Your gamertag, the server name and your style are now sent to the Monchi service. Turn this module off to stop."), notify::Kind::Info, 8.f);
     }
 
     void onDisable() override { push(false); }
@@ -53,7 +53,7 @@ public:
         auto st = online::state();
         ImVec4 c = st == online::State::Online || st == online::State::Demo ? t.ok : st == online::State::Off ? t.textDim : t.warn;
         ImGui::TextColored(c, "%s", online::stateText().c_str());
-        if (st == online::State::Online || st == online::State::Demo) ImGui::TextDisabled("%s", i18n::fmt("{} Mochi users in this list", online::count()).c_str());
+        if (st == online::State::Online || st == online::State::Demo) ImGui::TextDisabled("%s", i18n::fmt("{} Monchi users in this list", online::count()).c_str());
         auto list = online::users();
         int shown = 0;
         for (auto& u : list) {
@@ -85,7 +85,7 @@ public:
         ImGui::Spacing();
         if (ImGui::Button(i18n::tr("Delete my data from the service"))) {
             online::forget();
-            notify::push(i18n::tr("Mochi Online"), i18n::tr("Your data will be deleted from the service."), notify::Kind::Ok);
+            notify::push(i18n::tr("Monchi Online"), i18n::tr("Your data will be deleted from the service."), notify::Kind::Ok);
         }
         ImGui::TextDisabled("%s", i18n::tr("The service stores your gamertag, style, cosmetics and the time you were last seen. Nothing from chat, no location, no worlds."));
     }
@@ -129,7 +129,7 @@ private:
         online::tick(cfg, names, game::state().player.name);
     }
 
-    Setting& visible_ = toggleSetting("visible", "Visible to other Mochi users", true);
+    Setting& visible_ = toggleSetting("visible", "Visible to other Monchi users", true);
     Setting& mode_ = choice("mode", "Name style", {"Solid", "Gradient", "Rainbow", "Pulse"});
     Setting& colorA_ = colorSetting("colorA", "Name color", {0.23f, 0.65f, 0.93f, 1.f});
     Setting& colorB_ = colorSetting("colorB", "Second color", {1.f, 1.f, 1.f, 1.f});

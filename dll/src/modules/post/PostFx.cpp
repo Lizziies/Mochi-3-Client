@@ -717,7 +717,7 @@ static void blurCallback(const ImDrawList*, const ImDrawCmd* cmd) {
     guard::call("blur", [&] { blurPass(state->Device, state->DeviceContext, job); });
 }
 
-// Capture before any Mochi HUD or menu geometry. All blur rectangles in this frame
+// Capture before any Monchi HUD or menu geometry. All blur rectangles in this frame
 // sample the same game image, regardless of draw order or which panel uses blur first.
 static void backdropCallback(const ImDrawList*, const ImDrawCmd*) {
     if (blurJobs.empty()) return;

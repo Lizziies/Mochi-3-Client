@@ -54,7 +54,7 @@ private:
     void setup(State& s) {
         init_ = true;
         auto& p = s.player;
-        p.name = "MochiPlayer";
+        p.name = "MonchiPlayer";
         p.pos = {128.5f, 64.f, -42.5f};
         p.hotbar[0] = item("diamond_sword", 1, 1561, 0, true);
         p.hotbar[1] = item("bow", 1, 384, 0, true);
@@ -80,15 +80,15 @@ private:
         p.main[6] = item("ender_pearl", 4);
         p.level = 17;
         p.fov = 70.f;
-        s.world.packs = {"Mochi Pack", "Vanilla"};
+        s.world.packs = {"Monchi Pack", "Vanilla"};
         s.world.players = 11;
         s.world.entities = 41;
         s.world.biome = "plains";
-        s.world.name = "Mochi Lobby";
+        s.world.name = "Monchi Lobby";
         s.world.time = 1000;
         s.world.day = 12;
         s.player.maxHealth = 20.f;
-        s.scoreboard.title = "Mochi Wars";
+        s.scoreboard.title = "Monchi Wars";
         for (int i = 0; i < 12; i++) {
             static const char* names[] = {"Teammate", "Opponent", "Bystander", "Luna", "Max", "Kiki", "Noah", "Mia", "Finn", "Lea", "Tim", "Emma"};
             TabEntry e;
@@ -99,7 +99,7 @@ private:
             face(e);
             s.tab.push_back(e);
         }
-        s.tab.push_back({"MochiPlayer", 32});
+        s.tab.push_back({"MonchiPlayer", 32});
         opponentHp_ = 20.f;
     }
 
@@ -474,7 +474,7 @@ private:
         }
         if (t_ < nextChat_) return;
         static const char* lines[] = {"<Luna> gg", "<Max> who has the pearl?", "§eThe game starts in 5 seconds", "<Kiki> nice kill",
-                                      "§6Round 3 of 5 is starting", "<Noah> lag?", "§aMochi Wars: You won!", "<MochiPlayer> good luck!"};
+                                      "§6Round 3 of 5 is starting", "<Noah> lag?", "§aMonchi Wars: You won!", "<MonchiPlayer> good luck!"};
         Event e{EventKind::Chat};
         e.text = lines[chatIdx_++ % 8];
         ev.push_back(e);
@@ -514,7 +514,7 @@ private:
 
     void scoreboard(State& s) {
         s.scoreboard.lines.clear();
-        s.scoreboard.title = "Mochi Wars";
+        s.scoreboard.title = "Monchi Wars";
         if (demoServer() == "The Hive") {
             s.scoreboard.title = "BED WARS";
             s.scoreboard.lines.push_back({"Mode: Solos", 0});
@@ -526,7 +526,7 @@ private:
         s.scoreboard.lines.push_back({"Deaths", s.combat.deaths});
         s.scoreboard.lines.push_back({"Players", s.world.players});
         s.scoreboard.lines.push_back({"Round", 3});
-        s.scoreboard.lines.push_back({"mochi.example", 0});
+        s.scoreboard.lines.push_back({"monchi.example", 0});
     }
 
     struct Ack {

@@ -6,7 +6,7 @@
 - Vor den neuen nativen Adaptern: Runtime-Audit in einer Welt, Demo aus: 153 verfügbare
   Module. Verfügbarkeit ist kein Nachweis der sichtbaren Spielwirkung.
 - Flarial-Quellbasis: 117 Modulordner, 814 importierte Dateien stimmen per SHA-256 mit
-  `40ad187` überein. Vergleich aller 153 registrierten Mochi-Klassen erzeugt.
+  `40ad187` überein. Vergleich aller 153 registrierten Monchi-Klassen erzeugt.
 - MSVC-Release-DLL gebaut. Bereits vorhandene Warnungen in Link/Auto/getenv bleiben.
 - Lokale `native_bindings`-Tests: 1/1 bestanden. Prüfen Titel-Farbe/Fett/Kursiv/Alpha,
   Bedrock-Materialfarben und Reset; bekannte/unbekannte Versionen; fehlende Kamera-Signaturen;
@@ -15,7 +15,7 @@
   Seitenschutzes; keine Übernahme oder Überschreibung einer fremden Patch-Änderung.
 - Testlauf: `cmake -S tools/tests -B build-native-tests`, Build Release, anschließend
   `ctest --test-dir build-native-tests -C Release --output-on-failure`.
-- Mochi sauber entladen, danach in Minecraft nur `Flarial.Client.Release.dll` geladen.
+- Monchi sauber entladen, danach in Minecraft nur `Flarial.Client.Release.dll` geladen.
   Die neue DLL wurde nicht injiziert. Neue native Signaturen, sichtbare Nametags/Freelook,
   CPS-Blur und Performance im Spiel sind noch nicht verifiziert.
 
@@ -34,29 +34,29 @@ Autostart-Ausgangslage vor der Arbeit (nicht von uns): OneDrive, LGHUB, RazerApp
 
 ## 2026-10-01, Minecraft 1.26.5203.0 (GDK), Phase 0
 
-- Build der DLL mit MSVC 19.44 (`cmake -S dll -B build -G "Visual Studio 17 2022" -A x64`, Release). Der Code war bisher nur mit MinGW gebaut. Drei Fehler behoben: `small` ist in `windows.h` ein Makro (Variable umbenannt), `<cwctype>` fehlte in `Music.cpp`, `/bigobj` für `Manager.cpp`. Ergebnis: `Mochi.dll`, 4,3 MB, 0 Fehler. Beleg: Commit `fix msvc build: small macro clash, towlower include, bigobj`.
+- Build der DLL mit MSVC 19.44 (`cmake -S dll -B build -G "Visual Studio 17 2022" -A x64`, Release). Der Code war bisher nur mit MinGW gebaut. Drei Fehler behoben: `small` ist in `windows.h` ein Makro (Variable umbenannt), `<cwctype>` fehlte in `Music.cpp`, `/bigobj` für `Manager.cpp`. Ergebnis: `Monchi.dll`, 4,3 MB, 0 Fehler. Beleg: Commit `fix msvc build: small macro clash, towlower include, bigobj`.
 
-- Start im echten Spiel: `LoadLibrary` in `Minecraft.Windows.exe` schlug zuerst mit Fehler 126 fehl. Der Fehler trat nur beim Laden aus `%LOCALAPPDATA%\Mochi\bin\Mochi.dll` auf, das ich aus meiner Test-Shell (mit Dateizugriffs-Einschränkung) kopiert hatte. Die Ursache ist nicht belegt (Verdacht: Dateirechte der dort angelegten Datei). Laden aus dem Repo-Ordner funktioniert. Lösung für den Test: `tools/inject.ps1` kopiert die DLL nach `dev-data\bin` im Repo (gitignored) und legt dort `Mochi.root` ab. Der Client nimmt dann `dev-data\data` als Datenordner (`core/Paths.cpp`), so lässt sich auch das Log lesen. Der Injektor meldet jetzt den echten Fehlercode von `LoadLibraryW`.
+- Start im echten Spiel: `LoadLibrary` in `Minecraft.Windows.exe` schlug zuerst mit Fehler 126 fehl. Der Fehler trat nur beim Laden aus `%LOCALAPPDATA%\Monchi\bin\Monchi.dll` auf, das ich aus meiner Test-Shell (mit Dateizugriffs-Einschränkung) kopiert hatte. Die Ursache ist nicht belegt (Verdacht: Dateirechte der dort angelegten Datei). Laden aus dem Repo-Ordner funktioniert. Lösung für den Test: `tools/inject.ps1` kopiert die DLL nach `dev-data\bin` im Repo (gitignored) und legt dort `Monchi.root` ab. Der Client nimmt dann `dev-data\data` als Datenordner (`core/Paths.cpp`), so lässt sich auch das Log lesen. Der Injektor meldet jetzt den echten Fehlercode von `LoadLibraryW`.
 - Ergebnis: Client lädt, `renderer: dx12 (11on12)`, `ui ready`, `ready`, Hooks auf Present, ResizeBuffers, Present1, ExecuteCommandLists, sendto, WSASendTo, getaddrinfo, ClipCursor, SetCursorPos. Version im Log: `minecraft 1.26.52.3`. 179 Module registriert, 107 gesperrt (`locked:`), `sigs: 0/0`. Screenshot: HUD (FPS, CPS, Keystrokes) und Hub-Menü mit Blur nach Rechts-Shift erscheinen im Spiel.
-- Beobachtung: RTSS (`RTSSHooks64.dll`) war nach dem Start ebenfalls im Prozess (Watcher), Mochi hat trotzdem sauber gehookt.
-- Launcher als einzelne Exe (`-DMOCHI_DLL`, `-DMOCHI_COSMETICS`, MSVC): `MochiLauncher.exe`, 5,9 MB, 0 Fehler. `MochiLauncher.exe --extract` aus einem leeren Ordner: Exit 0, danach liegen `%LOCALAPPDATA%\Mochi\bin\Mochi.dll` (4,3 MB) und der Ordner `cosmetics` mit `index.json` da. Play, Spielstart und Versionswahl noch nicht geprüft.
+- Beobachtung: RTSS (`RTSSHooks64.dll`) war nach dem Start ebenfalls im Prozess (Watcher), Monchi hat trotzdem sauber gehookt.
+- Launcher als einzelne Exe (`-DMONCHI_DLL`, `-DMONCHI_COSMETICS`, MSVC): `MonchiLauncher.exe`, 5,9 MB, 0 Fehler. `MonchiLauncher.exe --extract` aus einem leeren Ordner: Exit 0, danach liegen `%LOCALAPPDATA%\Monchi\bin\Monchi.dll` (4,3 MB) und der Ordner `cosmetics` mit `index.json` da. Play, Spielstart und Versionswahl noch nicht geprüft.
 
 ## 2026-10-01, Minecraft 1.26.52.3, Fehler aus dem ersten Spieltest (Felix)
 
 | Nr | Fehler | Stand |
 |---|---|---|
 | 1 | FPS, CPS und alle Module wurden auch in Menüs (Hauptmenü, Welten-Liste) gezeichnet, sie sollen nur im Spiel erscheinen | Code behoben (`Manager::frame` zeichnet nur bei `inWorld` oder im HUD-Editor, `inWorld` ohne Signatur aus Cursor-Zustand und Netzwerk-Rate), im Spiel noch nicht geprüft |
-| 2 | Bei offenem Mochi-Menü reagiert das Spiel dahinter auf Maus und Tasten | Code behoben (zusätzlich zu WndProc jetzt `GetCursorPos`, `GetAsyncKeyState`, `GetKeyState`, `GetRawInputData`, `GetRawInputBuffer`, `PeekMessageW`, `GetMessageW`), Log-Zeile `menu open, game polled: ...` zeigt, welchen Weg das Spiel nutzt, im Spiel noch nicht geprüft |
-| 3 | Der Toast "Mochi loaded" erscheint oben rechts, soll oben links | Code behoben, im Spiel noch nicht geprüft |
+| 2 | Bei offenem Monchi-Menü reagiert das Spiel dahinter auf Maus und Tasten | Code behoben (zusätzlich zu WndProc jetzt `GetCursorPos`, `GetAsyncKeyState`, `GetKeyState`, `GetRawInputData`, `GetRawInputBuffer`, `PeekMessageW`, `GetMessageW`), Log-Zeile `menu open, game polled: ...` zeigt, welchen Weg das Spiel nutzt, im Spiel noch nicht geprüft |
+| 3 | Der Toast "Monchi loaded" erscheint oben rechts, soll oben links | Code behoben, im Spiel noch nicht geprüft |
 
 Offen aus der Sicherheitsprüfung: Das Speicherabbild von `Minecraft.Windows.exe` (Phase 1, Ghidra) wurde vom Werkzeug-Schutz blockiert. Das Skript liegt nicht im Repo, bis klar ist, wie die Signatursuche laufen darf.
 
-Geprüft im Spiel nach dem Neustart (Build mit Eingabesperre): HUD (FPS, CPS, Keystrokes) ist im Hauptmenü weg, auch bei offenem Mochi-Menü (Screenshot). Strg+L entlädt sauber (`unloading`, `bye`, Modul weg, Spiel läuft weiter). Das Spiel fragt im Menü per `GetCursorPos` (hunderte Aufrufe pro Sekunde), `GetKeyState` und `PeekMessageW` ab, nicht über Raw Input (`RawData=0`, `RawBuffer=0`).
+Geprüft im Spiel nach dem Neustart (Build mit Eingabesperre): HUD (FPS, CPS, Keystrokes) ist im Hauptmenü weg, auch bei offenem Monchi-Menü (Screenshot). Strg+L entlädt sauber (`unloading`, `bye`, Modul weg, Spiel läuft weiter). Das Spiel fragt im Menü per `GetCursorPos` (hunderte Aufrufe pro Sekunde), `GetKeyState` und `PeekMessageW` ab, nicht über Raw Input (`RawData=0`, `RawBuffer=0`).
 
 | Nr | Fehler | Stand |
 |---|---|---|
-| 4 | Esc schließt das Mochi-Menü und öffnet gleichzeitig Minecrafts Dialog "Möchtest du Minecraft verlassen?" (das Loslassen der Taste gelangte ins Spiel) | Code behoben (jede verschluckte Taste und Maustaste wird samt Loslassen verschluckt), im Spiel noch nicht geprüft |
-| 5 | Im Hauptmenü ließ sich das Mochi-Menü mit Rechts-Shift öffnen, Module waren bedienbar | Code behoben (`Manager::dispatchKey` und `dispatchMouse` arbeiten nur im Spiel, bei offenem Menü oder im HUD-Editor), im Spiel noch nicht geprüft |
+| 4 | Esc schließt das Monchi-Menü und öffnet gleichzeitig Minecrafts Dialog "Möchtest du Minecraft verlassen?" (das Loslassen der Taste gelangte ins Spiel) | Code behoben (jede verschluckte Taste und Maustaste wird samt Loslassen verschluckt), im Spiel noch nicht geprüft |
+| 5 | Im Hauptmenü ließ sich das Monchi-Menü mit Rechts-Shift öffnen, Module waren bedienbar | Code behoben (`Manager::dispatchKey` und `dispatchMouse` arbeiten nur im Spiel, bei offenem Menü oder im HUD-Editor), im Spiel noch nicht geprüft |
 
 ## 2026-10-01 abends, Phase 1 begonnen (Signatur-Werkzeuge)
 
@@ -64,7 +64,7 @@ Geprüft im Spiel nach dem Neustart (Build mit Eingabesperre): HUD (FPS, CPS, Ke
 - Ein Lua-Explorer im Client (Funktionssuche, Disassembler, Aufruf von Spielfunktionen, gesteuert über `dev.cmd`) wurde von der Werkzeug-Sicherheitsprüfung als mögliche Angriffsfläche blockiert und wieder entfernt (Commit `9a84faa` enthält den Stand). Die Signatursuche ist damit offen, bis geklärt ist, wie sie laufen darf.
 - Weitere Fehler gefunden und behoben: DX12-Absturz beim Vollbild-Wechsel (F11) und beim Wechsel Vollbild/Fenster (`abort()` in Minecraft, weil 11on12 noch Referenzen auf Back-Buffer hielt, jetzt pro Frame gewrappt und freigegeben), Menü verschluckt `WM_POINTER*`, verschluckte Tasten werden samt Loslassen verschluckt (Esc öffnete Minecrafts Dialog), Server-Erkennung nur nach dauerhaftem Netzwerkverkehr, "im Spiel"-Erkennung berücksichtigt den Fokus, Menü schließt mit Rechts-Shift, Cosmetics-Leiste bricht um, "HUD bearbeiten" passt sich dem Text an.
 
-## 2026-10-01 abends, Signatursuche mit dem Dev-Explorer (nur Dev-Build `-DMOCHI_DEV=ON`, nie im Release)
+## 2026-10-01 abends, Signatursuche mit dem Dev-Explorer (nur Dev-Build `-DMONCHI_DEV=ON`, nie im Release)
 
 Belegt im echten Spiel (1.26.52.3), per Disassembly und Heap-Suche:
 
@@ -82,7 +82,7 @@ Offen und nicht geprüft: ob das Menü im Spiel jetzt mit der Maus bedienbar ist
 ## 2026-10-01 spät, ohne Minecraft (Marc spielt)
 
 - Menü öffnet sich jetzt mit sofortiger Eingabesperre: `ui::capturing()` liest den Zustand live (vorher erst im nächsten Frame), beim Öffnen werden gehaltene Tasten und Maustasten sofort losgelassen (`input::releaseHeld` in `gui::setOpen`). Das war der Rest der Spielbewegung beim Öffnen. Im Spiel noch nicht bestätigt, Marc testet.
-- Mochi Online: `GET /v1/health` des eigenen Cloudflare-Workers antwortet `{"ok":true,"online":0}`. Der Dienst ist da, die Anbindung im Spiel ist ungeprüft (braucht den Gamertag aus dem Spiel).
+- Monchi Online: `GET /v1/health` des eigenen Cloudflare-Workers antwortet `{"ok":true,"online":0}`. Der Dienst ist da, die Anbindung im Spiel ist ungeprüft (braucht den Gamertag aus dem Spiel).
 - Skin-Vorschau mit dem echten Skin: Es gibt keine Skin-Datei auf der Platte (`custom_skins` ist leer, der Skin kommt aus dem Xbox-Profil beziehungsweise dem Spiel). Die Vorschau muss das Skin-Bild zur Laufzeit aus dem Spiel lesen, hängt also an den Signaturen.
 - Testwerkzeug `tools/testhost` mit `TESTHOST_OFFSCREEN`: das Testfenster bekommt auf echtem Windows nur den ersten Frame durch den Present-Hook (danach ruft der Host den Hook nicht mehr auf, Ursache nicht gefunden, in Minecraft tritt es nicht auf). Deshalb keine Oberflächen-Screenshots ohne Minecraft.
 
@@ -93,7 +93,7 @@ Offen und nicht geprüft: ob das Menü im Spiel jetzt mit der Maus bedienbar ist
 - Konfiguration gehärtet: kaputte oder falsch typisierte Dateien brechen den Start nicht mehr ab, Profilnamen werden bereinigt (kein `..`).
 - `server/bundle.js` konnte bei Windows-Zeilenenden ein kaputtes Bundle erzeugen, behoben (Ergebnis identisch zum committeten `dist/worker.js`). Server-Tests: 17 von 17 grün auf Speicher, D1 und Turso-Attrappe.
 - Übersetzungen: `tools/i18n_check.py` prüft englische Texte gegen die deutschen Tabellen. 5 fehlende Einträge ergänzt, der Selbsttest meldet 0 unübersetzte Texte.
-- Selbsttest (`MOCHI_SELFTEST=1`, im Testfenster außerhalb des Bildschirms, ohne Minecraft): 177 Module mit Demo-Daten getestet, 0 Fehler, 0 Aussetzer, 0 zu langsam.
+- Selbsttest (`MONCHI_SELFTEST=1`, im Testfenster außerhalb des Bildschirms, ohne Minecraft): 177 Module mit Demo-Daten getestet, 0 Fehler, 0 Aussetzer, 0 zu langsam.
 - Testfenster `tools/testhost`: lief nur einen Frame, weil es das alte Swapchain-Modell nutzte, jetzt Flip-Modell wie Minecraft. Der Screenshot-Befehl `shot` (neue Stufe `Final`) ist eingebaut, aber nicht fertig geprüft: in einigen Läufen verarbeitet das Testfenster danach keine Befehle mehr, Ursache offen.
 - Lua-Sandbox geprüft (kein `io`, `debug`, kein `os.execute`), Eingaben des Clients sind nur Tastatur (kein Klick-Automat).
 
@@ -121,7 +121,7 @@ Alles im echten Spiel geprüft, jeweils Log-Zeile plus Screenshot vorher/nachher
 - Perspektive, View Bobbing, Wolken: Hooks gesetzt (`hook fx.clouds` im Log), sichtbare Wirkung noch nicht geprüft (die Wolken in der Testwelt kommen vom Himmel des Ressourcenpakets). No Hurt Cam (`gfx_damagebobbing`) braucht Schaden, also Überlebensmodus mit Cheats, offen.
 - Felix' Helligkeit war durch einen Test auf 56 % gespeichert, wieder auf 50 % gestellt (options.txt `gfx_gamma:0.5`).
 
-## 2026-10-03 Nacht, PC, Testwelt "Mochi Test" (flach, Cheats)
+## 2026-10-03 Nacht, PC, Testwelt "Monchi Test" (flach, Cheats)
 
 - Absturz beim Server-Beitritt behoben: Options-Umleitung (FOV) wird außerhalb einer Welt zurückgenommen und nur zurückgeschrieben, wenn dort noch unser Zeiger steht. Welt verlassen und neu betreten mit FOV Changer und Zoom an: kein Absturz.
 - Position und Blickwinkel weltfest (HitResult bei player+0x1e8, Winkel aus dem Pick-Strahl). Geprüft: Pitch ±89,9, Yaw Süden 0.

@@ -7,7 +7,7 @@
 namespace http {
 
 std::optional<std::string> get(const std::wstring& host, const std::wstring& path, int timeoutMs) {
-    HINTERNET session = WinHttpOpen(L"Mochi", WINHTTP_ACCESS_TYPE_AUTOMATIC_PROXY, WINHTTP_NO_PROXY_NAME,
+    HINTERNET session = WinHttpOpen(L"Monchi", WINHTTP_ACCESS_TYPE_AUTOMATIC_PROXY, WINHTTP_NO_PROXY_NAME,
                                     WINHTTP_NO_PROXY_BYPASS, 0);
     if (!session) return std::nullopt;
     WinHttpSetTimeouts(session, timeoutMs, timeoutMs, timeoutMs, timeoutMs);

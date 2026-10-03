@@ -130,7 +130,7 @@ std::filesystem::path clientDll() {
     if (!embedded::install(error)) fail(error);
     wchar_t self[MAX_PATH] = {};
     GetModuleFileNameW(nullptr, self, MAX_PATH);
-    auto beside = files::fs::path(self).parent_path() / L"Mochi.dll";
+    auto beside = files::fs::path(self).parent_path() / L"Monchi.dll";
     if (!files::fs::exists(files::dll()) && files::fs::exists(beside)) {
         std::error_code ec;
         files::fs::copy_file(beside, files::dll(), files::fs::copy_options::overwrite_existing, ec);
@@ -220,7 +220,7 @@ void play() {
     }
     if (!connect(*pid)) return;
 
-    set(ui::Phase::Done, tr("Mochi is connected. Have fun!"));
+    set(ui::Phase::Done, tr("Monchi is connected. Have fun!"));
     if (current.closeAfterInject) quit = true;
 }
 
@@ -255,7 +255,7 @@ void watch() {
         if (!pid || lastInjected == *pid || game::injected(*pid)) continue;
         busy = true;
         if (game::waitReady(*pid, 120000) && connect(*pid)) {
-            set(ui::Phase::Done, tr("Mochi is connected. Have fun!"));
+            set(ui::Phase::Done, tr("Monchi is connected. Have fun!"));
             if (current.closeAfterInject) quit = true;
         } else {
             set(ui::Phase::Idle, "");

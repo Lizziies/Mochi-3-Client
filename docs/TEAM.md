@@ -47,7 +47,7 @@ Zählstand: aktuell 20 Module registriert. Ziel 135.
 3. Dort Claude Code im Web starten, Repo `Lizziies/Mochi-3-Client`, neue Branch.
 4. Diesen Prompt einfügen:
 
-> Du bist Session B im Projekt Mochi, einem kostenlosen Minecraft-Bedrock-PvP-Client. Lege als Erstes mit `git checkout -b claude/modules-b` eine neue Branch an und pushe nie auf eine andere. Lies dann `docs/TEAM.md`, dann `docs/MASTER.md`, `CLAUDE.md`, `docs/FEATURES.md`, `docs/CLIENTS.md`, `docs/MODULES.md`, `docs/STATUS.md`. Arbeite nur in deinem Bereich (Module), auf deiner eigenen Branch `claude/modules-b`, und pushe nur dorthin. Baue die fehlenden Module in der Reihenfolge aus `docs/TEAM.md`. Texte immer Englisch plus deutscher Eintrag (siehe Abschnitt Languages in CLAUDE.md). Es gibt hier kein Windows, also schreibe sauberen Code im Stil der vorhandenen Module (`dll/src/modules/hud/Fps.hpp` als Vorlage). Nach jedem Block `docs/STATUS.md` und `docs/HISTORY.md` ergänzen und committen. Arbeite selbstständig weiter, bis du nicht mehr sinnvoll weiterkommst. Stelle nur Rückfragen, wenn wirklich nötig.
+> Du bist Session B im Projekt Monchi, einem kostenlosen Minecraft-Bedrock-PvP-Client. Lege als Erstes mit `git checkout -b claude/modules-b` eine neue Branch an und pushe nie auf eine andere. Lies dann `docs/TEAM.md`, dann `docs/MASTER.md`, `CLAUDE.md`, `docs/FEATURES.md`, `docs/CLIENTS.md`, `docs/MODULES.md`, `docs/STATUS.md`. Arbeite nur in deinem Bereich (Module), auf deiner eigenen Branch `claude/modules-b`, und pushe nur dorthin. Baue die fehlenden Module in der Reihenfolge aus `docs/TEAM.md`. Texte immer Englisch plus deutscher Eintrag (siehe Abschnitt Languages in CLAUDE.md). Es gibt hier kein Windows, also schreibe sauberen Code im Stil der vorhandenen Module (`dll/src/modules/hud/Fps.hpp` als Vorlage). Nach jedem Block `docs/STATUS.md` und `docs/HISTORY.md` ergänzen und committen. Arbeite selbstständig weiter, bis du nicht mehr sinnvoll weiterkommst. Stelle nur Rückfragen, wenn wirklich nötig.
 
 5. Danach nicht mehr stören: die Session arbeitet allein weiter und schreibt Fortschritt in `docs/STATUS.md`.
 
@@ -67,7 +67,7 @@ Hier anhängen, was man von einem anderen Bereich braucht (Datum, Session, Wunsc
 | Teil | Wer | Wo |
 |---|---|---|
 | Menü, Hub, Settings, Cosmetics-Seite, Cosmetics-Lader und 3D-Vorschau, Blur, Shader Packs, Maus und Musik | Hauptchat (Session A) | `dll/src/gui/`, `dll/src/cosmetics/`, `dll/src/system/`, Branch `claude/flarial-client-chat-access-h80yqs`, `main` |
-| Module, SDK, Mochi Online (Client, Dienst, Lua) | Session B | `dll/src/modules/`, `server/`, `scripts/`, Branch `claude/modules-b` |
+| Module, SDK, Monchi Online (Client, Dienst, Lua) | Session B | `dll/src/modules/`, `server/`, `scripts/`, Branch `claude/modules-b` |
 | Cosmetics-Modelle (nur Dateien: `item.json`, `tex.png`, `index.json`) | Cowork-Chat | `cosmetics/`, Branch `claude/cosmetics` |
 
 Regeln: Jede Session holt vor dem Arbeiten `main` (`git merge origin/main`), damit sie das aktuelle Menü benutzt. Cosmetics werden nicht als Modul im Modul-Raster gebaut, sondern erscheinen auf der Cosmetics-Seite des Menüs. Der Lader liest das Format aus `docs/COSMETICS.md`, ein eigener Lader oder Renderer in `modules/` wird nicht gebaut. Wer etwas im Bereich einer anderen Session braucht, trägt es unter "Wünsche an andere Sessions" ein.

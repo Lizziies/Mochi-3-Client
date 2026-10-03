@@ -1,6 +1,6 @@
 # Release in ein paar Tagen
 
-Ziel: Mochi als besten kostenlosen Bedrock-PvP-Client veröffentlichen. Diese Datei sagt, womit wir uns abheben, was zum Release wirklich laufen muss und was ehrlich noch offen ist.
+Ziel: Monchi als besten kostenlosen Bedrock-PvP-Client veröffentlichen. Diese Datei sagt, womit wir uns abheben, was zum Release wirklich laufen muss und was ehrlich noch offen ist.
 
 ## Womit wir uns abheben
 
@@ -28,8 +28,8 @@ Reihenfolge nach Risiko:
 2. **Launcher im echten System.** Spielstart (`ActivateApplication` mit der richtigen AUMID), Versionserkennung, Injection, Selbst-Update. Siehe offene Punkte unten.
 3. **Overlay-Module ohne Signaturen.** FPS, CPS, Keystrokes, Latenz, Netzwerk, Post-Effekte, Crosshair. Das ist der sichere Kern für Release 1.
 4. **Erste Spiel-Signaturen.** Zoom, Fullbright, No View Bobbing, No Hurt Cam, Toggle Sprint/Sneak, Coordinates, Armor HUD, Hitbox. Jedes Modul, dessen Signatur nicht sicher gefunden wurde, erscheint grau statt kaputt.
-5. **GitHub-Release-Pipeline.** Release mit `MochiLauncher.exe` (Client und Cosmetics eingebettet, eine einzige Exe wie bei Flarial) und `checksums.txt`, damit der Updater funktioniert. Dazu eine Action, die bei einem Tag baut.
-6. **README, Screenshots, Name.** Arbeitstitel "Mochi" vor dem Release prüfen und global ersetzen. Logo-Rechte klären.
+5. **GitHub-Release-Pipeline.** Release mit `MonchiLauncher.exe` (Client und Cosmetics eingebettet, eine einzige Exe wie bei Flarial) und `checksums.txt`, damit der Updater funktioniert. Dazu eine Action, die bei einem Tag baut.
+6. **README, Screenshots, Name.** Arbeitstitel "Monchi" vor dem Release prüfen und global ersetzen. Logo-Rechte klären.
 
 ## Ehrliche Risiken
 
@@ -38,7 +38,7 @@ Reihenfolge nach Risiko:
 - **Mojang/Microsoft und Server.** Der Client gibt keine Vorteile, aber auf manchen Servern sind Clients generell nicht erlaubt. Die Server-Regeln helfen, ersetzen aber keine Freigabe. CubeCraft und Lifeboat nach Release um Freigabe bitten.
 - **Version-Switcher.** Noch nicht gebaut. Für Release 1 nicht versprechen, nur "kommt".
 - **Namen und Marken.** Kein Onix/Flarial-Name, -Logo oder -Design. Kein Code aus Flarial (AGPL).
-- **Recht.** Mochi ist nicht mit Mojang oder Microsoft verbunden. Der Hinweis steht im Launcher.
+- **Recht.** Monchi ist nicht mit Mojang oder Microsoft verbunden. Der Hinweis steht im Launcher.
 
 ## Offene Prüfpunkte am PC (für Claude Code)
 

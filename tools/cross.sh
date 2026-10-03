@@ -4,7 +4,7 @@
 set -euo pipefail
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
-out="${MOCHI_BUILD:-/tmp/mochi-build}"
+out="${MONCHI_BUILD:-/tmp/monchi-build}"
 tc="$out/mingw.cmake"
 export PATH="$PATH:/usr/lib/wine"
 export WINEPREFIX="${WINEPREFIX:-/tmp/wineprefix}" WINEDEBUG=-all WINEARCH=win64
@@ -30,7 +30,7 @@ build() {
     cmake -S "$root/dll" -B "$out/dll" -DCMAKE_TOOLCHAIN_FILE="$tc" -DCMAKE_BUILD_TYPE=Release >/dev/null
     cmake --build "$out/dll" -j"$(nproc)"
     cmake -S "$root/launcher" -B "$out/launcher" -DCMAKE_TOOLCHAIN_FILE="$tc" -DCMAKE_BUILD_TYPE=Release \
-        -DMOCHI_DLL="$out/dll/Mochi.dll" -DMOCHI_COSMETICS="$root/cosmetics" >/dev/null
+        -DMONCHI_DLL="$out/dll/Monchi.dll" -DMONCHI_COSMETICS="$root/cosmetics" >/dev/null
     cmake --build "$out/launcher" -j"$(nproc)"
     x86_64-w64-mingw32-g++-posix -std=c++20 -O1 -municode -static -static-libgcc -static-libstdc++ \
         "$root/tools/testhost/main.cpp" -o "$out/testhost.exe" -ld3d11 -ldxgi -luser32
@@ -43,7 +43,7 @@ shots() {
     sleep 2
     export DISPLAY=:77
     cd "$out"
-    (wine64 testhost.exe dll/Mochi.dll 22 > "$dir/log.txt" 2>&1 &)
+    (wine64 testhost.exe dll/Monchi.dll 22 > "$dir/log.txt" 2>&1 &)
     for i in $(seq 1 14); do
         sleep 2
         import -window root "$dir/f$i.png"
@@ -59,9 +59,9 @@ tour() {
     export DISPLAY=:77
     cd "$out"
     local data
-    data="$(ls -d "$WINEPREFIX"/drive_c/users/*/AppData/Local/Mochi | head -1)"
+    data="$(ls -d "$WINEPREFIX"/drive_c/users/*/AppData/Local/Monchi | head -1)"
     rm -rf "$data/configs"
-    wine64 testhost.exe dll/Mochi.dll 3 >/dev/null 2>&1 || true
+    wine64 testhost.exe dll/Monchi.dll 3 >/dev/null 2>&1 || true
     python3 - "$data" <<'PY'
 import json, os, re, sys
 data = sys.argv[1]
@@ -72,7 +72,7 @@ mods = {n: {"enabled": n != "Lua Scripts", "settings": {}} for n in names}
 mods["Game Support"]["settings"]["demo"] = True
 json.dump({"modules": mods}, open(os.path.join(data, "configs", "default.json"), "w"))
 PY
-    (TESTHOST_MANUAL=1 wine64 testhost.exe dll/Mochi.dll 16 > "$dir/log.txt" 2>&1 &)
+    (TESTHOST_MANUAL=1 wine64 testhost.exe dll/Monchi.dll 16 > "$dir/log.txt" 2>&1 &)
     sleep 12
     import -window root "$dir/all.png"
     sleep 6

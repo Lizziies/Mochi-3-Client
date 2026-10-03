@@ -1,5 +1,5 @@
-# Flarial's game side (SDK, hooks, events, module logic) as a static library inside Mochi.
-# Its menu, config storage, overlay, discord and scripting are not built; Mochi provides those.
+# Flarial's game side (SDK, hooks, events, module logic) as a static library inside Monchi.
+# Its menu, config storage, overlay, discord and scripting are not built; Monchi provides those.
 include(FetchContent)
 
 set(FLARIAL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../vendor/flarial")
@@ -38,8 +38,8 @@ list(FILTER FLARIAL_SOURCES EXCLUDE REGEX "/flarial/src/Scripting/|/flarial/src/
 add_library(flarial_core STATIC ${FLARIAL_SOURCES})
 set_target_properties(flarial_core PROPERTIES CXX_STANDARD 23 MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 target_compile_options(flarial_core PRIVATE /utf-8 /bigobj /permissive- /EHa /W0)
-target_compile_definitions(flarial_core PRIVATE FLARIAL_VERSION="mochi" FLARIAL_BUILD_TYPE="Release" FLARIAL_BUILD_DATE="" COMMIT_HASH="40ad187" NOMINMAX)
-# Flarial uses Mochi's ImGui and MinHook, so one copy of each lives in the dll (two hook engines or two ImGui
+target_compile_definitions(flarial_core PRIVATE FLARIAL_VERSION="monchi" FLARIAL_BUILD_TYPE="Release" FLARIAL_BUILD_DATE="" COMMIT_HASH="40ad187" NOMINMAX)
+# Flarial uses Monchi's ImGui and MinHook, so one copy of each lives in the dll (two hook engines or two ImGui
 # versions would fight over the same functions and globals)
 set(FLARIAL_SHIM "${CMAKE_CURRENT_BINARY_DIR}/flarial-shim")
 file(WRITE "${FLARIAL_SHIM}/minhook/MinHook.h" "#pragma once

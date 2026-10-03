@@ -227,7 +227,7 @@ def build():
 
     out.append(
         cape(
-            "mochi_cape", "Mochi Cape", [("Main", "#ff7eb6"), ("Trim", "#ffffff")], mochi_art(w, h, t), 16, w, h,
+            "mochi_cape", "Monchi Cape", [("Main", "#ff7eb6"), ("Trim", "#ffffff")], mochi_art(w, h, t), 16, w, h,
             lambda i, n: ("Trim" if i in (0, n - 1) else "Main", None, 0.0), tags=["pink", "heart"],
         )
     )

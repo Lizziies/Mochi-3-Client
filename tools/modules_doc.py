@@ -2,7 +2,7 @@
 """Writes the implementation table of docs/MODULES.md from a module dump.
 
 usage:
-  MOCHI_DUMP_MODULES='Z:\\tmp\\modules.json' wine64 testhost.exe dll/Mochi.dll 4
+  MONCHI_DUMP_MODULES='Z:\\tmp\\modules.json' wine64 testhost.exe dll/Monchi.dll 4
   python3 tools/modules_doc.py /tmp/modules.json
 """
 import json

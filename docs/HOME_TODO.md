@@ -6,7 +6,7 @@ Zuerst lesen: `CLAUDE.md`, `docs/PLAN_HOME.md`, `docs/STATUS.md`, `docs/PC_TEST.
 
 ## 0. Code holen: mit diesem Stand weiterarbeiten, nicht mit dem alten
 
-**Wichtig:** Am 2. Oktober wurde in der Cloud viel mehr als nur die Oberfläche geändert. Das Menü ist komplett neu gebaut (Onix-Look, Akzentfarben), der Launcher auch. Dazu kommen Änderungen an Eingabe, Config, DX-Hooks, Live-Leser, HUD, rund 30 Modulen, Mochi Online (Rollen) und ein behobener Absturz. Ein Stand, den du am PC schon hast (zum Beispiel ein alter `claude/pc-test` oder `main` von vorher), ist veraltet. Weitergearbeitet wird nur auf dem Stand von `claude/onix-ui-input-fixes`. Er enthält `main`, `claude/modules-b` und den alten `claude/pc-test` vollständig.
+**Wichtig:** Am 2. Oktober wurde in der Cloud viel mehr als nur die Oberfläche geändert. Das Menü ist komplett neu gebaut (Onix-Look, Akzentfarben), der Launcher auch. Dazu kommen Änderungen an Eingabe, Config, DX-Hooks, Live-Leser, HUD, rund 30 Modulen, Monchi Online (Rollen) und ein behobener Absturz. Ein Stand, den du am PC schon hast (zum Beispiel ein alter `claude/pc-test` oder `main` von vorher), ist veraltet. Weitergearbeitet wird nur auf dem Stand von `claude/onix-ui-input-fixes`. Er enthält `main`, `claude/modules-b` und den alten `claude/pc-test` vollständig.
 
 Zuerst sichern, ob am PC noch eigene Arbeit liegt, die nicht auf GitHub ist:
 
@@ -27,22 +27,22 @@ Woran man den richtigen Stand erkennt: `docs/HOME_TODO.md` (diese Datei) existie
 
 Wenn Felix zustimmt, `main` danach vorspulen: `git push origin claude/onix-ui-input-fixes:main` (reiner Fast-Forward, nichts geht verloren).
 
-Der Branch `handoff/2026-10-02` auf GitHub enthält denselben Stand als ZIP (`Mochi-Handoff-2026-10-02.zip`), dazu die MinGW-Testbauten und die Screenshots. Für die Arbeit trotzdem das Git-Repo nehmen, nicht das ZIP. Releases auf GitHub kann nur Felix bzw. Claude Code zuhause anlegen, die Cloud-Sitzung darf das nicht.
+Der Branch `handoff/2026-10-02` auf GitHub enthält denselben Stand als ZIP (`Monchi-Handoff-2026-10-02.zip`), dazu die MinGW-Testbauten und die Screenshots. Für die Arbeit trotzdem das Git-Repo nehmen, nicht das ZIP. Releases auf GitHub kann nur Felix bzw. Claude Code zuhause anlegen, die Cloud-Sitzung darf das nicht.
 
 ## 1. Bauen und Selbsttest
 
 - [ ] DLL und Launcher mit MSVC bauen (Befehle in `CLAUDE.md`). Die Cloud baut nur mit MinGW; MSVC-Warnungen und -Fehler hier beheben.
-- [ ] `MOCHI_SELFTEST=1`: keine Fehler, keine fehlenden Übersetzungen.
+- [ ] `MONCHI_SELFTEST=1`: keine Fehler, keine fehlenden Übersetzungen.
 - [ ] Log-Zeilen `usable:` und `locked:` notieren (Ausgangszahl für `docs/STATUS.md`).
 
-## 2. Mochi Online aktualisieren (Owner-Abzeichen, Rollen)
+## 2. Monchi Online aktualisieren (Owner-Abzeichen, Rollen)
 
 Der Dienst unter `https://mochi-online.lisawer008.workers.dev` läuft noch mit dem alten Code ohne Rollen.
 
 - [ ] `cd server && npm test` (19 Tests, drei Speicher), dann `node bundle.js`.
 - [ ] Neuen Code veröffentlichen: entweder `npx wrangler deploy` oder im Cloudflare-Dashboard "Edit code" und `server/dist/worker.js` einfügen. Die Spalte `role` legt sich beim ersten Aufruf selbst an.
 - [ ] Prüfen, ob das Secret `ADMIN_KEY` gesetzt ist (Settings, Variables and secrets). Sonst setzen (`npx wrangler secret put ADMIN_KEY`) und Felix den Wert sagen, nicht committen.
-- [ ] Felix startet Minecraft einmal mit "Mochi Online" an, damit `vlisya` angemeldet ist. Dann:
+- [ ] Felix startet Minecraft einmal mit "Monchi Online" an, damit `vlisya` angemeldet ist. Dann:
   ```
   curl -X POST https://mochi-online.lisawer008.workers.dev/v1/admin/role -H "X-Admin-Key: <ADMIN_KEY>" -H "content-type: application/json" -d "{\"name\":\"vlisya\",\"role\":\"owner\"}"
   ```
@@ -70,7 +70,7 @@ Damit ein Fehler trotzdem schnell zu finden ist: nach jeder Welle nur einmal kur
 
 **C. Aufräumen bis kein einziger Fehler bleibt.** Spieler, die den Client ausprobieren, sollen keinen Grund finden, wieder zu gehen. Das heißt vor der Exe:
 - 2 Stunden echtes PvP (Hive, Zeqa, Einzelspieler) ohne Absturz, ohne Ruckler, ohne `[error]` oder `[warn]` im Log, die nicht erklärt sind.
-- `MOCHI_SELFTEST=1` ohne einen einzigen Fehler, keine fehlenden Übersetzungen, keine englischen Texte im deutschen Menü.
+- `MONCHI_SELFTEST=1` ohne einen einzigen Fehler, keine fehlenden Übersetzungen, keine englischen Texte im deutschen Menü.
 - Kein Modul tut nichts: jedes eingeschaltete Modul hat eine sichtbare Wirkung.
 - Keine Einstellung tut nichts, kein Text abgeschnitten oder überlappend, keine Animation ruckelt.
 - Ein- und Ausschalten jedes Moduls 20-mal schnell hintereinander geht ohne Absturz und ohne Speicherwachstum.
@@ -94,11 +94,11 @@ In der Cloud schon gemacht: Fensternachrichten werden auf dem Render-Thread abge
 - [ ] DX12: Frame-Latency-Waitable-Swapchain bzw. Fence, damit höchstens ein Bild in der Warteschlange liegt (`modules/perf/LowLatency`).
 - [ ] FPS-Limiter: auf welchem Thread er wartet, mit Thread-IDs messen (Render- vs. Spiel-Thread), dann den Platz festlegen.
 - [ ] Logging asynchron machen (Schreiben auf die Platte im Hintergrund-Thread), Raw-Input-Pfad ohne zusätzliche Systemaufrufe.
-- [ ] Messen wie in Phase 6 von `PLAN_HOME.md`: Klick bis Bild, Vanilla / Mochi / Flarial / Onix, gleiche Szene. Zahlen in `docs/PARITY.md`. Ziel: Mochi gleich oder besser als Flarial.
+- [ ] Messen wie in Phase 6 von `PLAN_HOME.md`: Klick bis Bild, Vanilla / Monchi / Flarial / Onix, gleiche Szene. Zahlen in `docs/PARITY.md`. Ziel: Monchi gleich oder besser als Flarial.
 
 ## 7. Cosmetics und Namen im Spiel
 
-Mochi Online schickt schon, wer was trägt (`worn`) und die Namensfarbe; in Tab-Liste und Chat wird beides gezeichnet. Für die Figur selbst:
+Monchi Online schickt schon, wer was trägt (`worn`) und die Namensfarbe; in Tab-Liste und Chat wird beides gezeichnet. Für die Figur selbst:
 
 - [ ] Phase 5 aus `PLAN_HOME.md`: Teile über die Skin-Geometrie oder den Render-Aufruf der Figur, nie als Overlay (Wände!).
 - [ ] Namensfarbe und Abzeichen auch über dem Kopf (Nametag-Hook, `fx.selfNametag` und der Weg für andere Spieler).
@@ -115,7 +115,7 @@ Mochi Online schickt schon, wer was trägt (`worn`) und die Namensfarbe; in Tab-
 
 Erst wenn 1 bis 8 sicher ohne Probleme laufen. Das steckt im Launcher (nicht in der DLL) und ist schon großteils gebaut, aber nie am PC geprüft. Details in `docs/UPDATES.md` und `docs/VERSIONING.md`.
 
-- [ ] **Downgrade / ältere Version:** Launcher → Versions. LeviLauncher wird von seinem offiziellen GitHub-Release geladen und installiert die Versionen (mit Felix' eigener Lizenz, Mochi liefert nie Minecraft-Dateien aus). "Rescan" findet die Installationen, "Use this one" merkt sich die Wahl, Play startet genau diese Version und verbindet den Client. Ungeprüft ist der direkte Start der Exe; wenn sie sofort schließt, herausfinden, wie LeviLauncher startet, und `launcher/src/Game.cpp` (`launchExe`) anpassen.
+- [ ] **Downgrade / ältere Version:** Launcher → Versions. LeviLauncher wird von seinem offiziellen GitHub-Release geladen und installiert die Versionen (mit Felix' eigener Lizenz, Monchi liefert nie Minecraft-Dateien aus). "Rescan" findet die Installationen, "Use this one" merkt sich die Wahl, Play startet genau diese Version und verbindet den Client. Ungeprüft ist der direkte Start der Exe; wenn sie sofort schließt, herausfinden, wie LeviLauncher startet, und `launcher/src/Game.cpp` (`launchExe`) anpassen.
 - [ ] **Neue Minecraft-Version:** Nach einem Spiel-Update erkennt der Client die Version, lädt `sigs/<version>.json` aus dem Cache, aus der mitgelieferten Liste oder von GitHub. Fehlt sie, werden die betroffenen Module grau, das Spiel stürzt nie ab. Prüfen mit mindestens drei Versionen (aktuell, vorherige, Preview), pro Version `sigs/<version>.json` mit `inherits`.
 - [ ] **Client- und Launcher-Updates:** Selbst-Update des Launchers und Update der DLL über GitHub-Releases (`launcher/src/Update.cpp`), Prüfsummen. Wird mit dem ersten und einem zweiten Pre-Release in Punkt 10 geprüft.
 
@@ -123,8 +123,8 @@ Erst wenn 1 bis 8 sicher ohne Probleme laufen. Das steckt im Launcher (nicht in 
 
 Erst wenn 1 bis 9 erledigt sind, Punkt 4 C ohne offenen Fehler ist und `locked:` im Log leer ist (Ausnahme: Sperren durch Server-Regeln).
 
-- [ ] Einzelne `MochiLauncher.exe` mit `-DMOCHI_DLL` und `-DMOCHI_COSMETICS` (Befehle in `CLAUDE.md`), allein in einem leeren Ordner testen.
+- [ ] Einzelne `MonchiLauncher.exe` mit `-DMONCHI_DLL` und `-DMONCHI_COSMETICS` (Befehle in `CLAUDE.md`), allein in einem leeren Ordner testen.
 - [ ] Tag `v0.1.0-alpha.1` pushen, `release.yml` baut dieselbe Exe. Herunterladen und wie ein Nutzer testen, Selbst-Update auf ein zweites Pre-Release prüfen.
-- [ ] Vor dem öffentlichen Release: Name "Mochi" ersetzen, README, Datenschutz-Seite.
+- [ ] Vor dem öffentlichen Release: Name "Monchi" ersetzen, README, Datenschutz-Seite.
 
 Nach jedem Schritt: Zeile in `docs/STATUS.md` und `docs/TESTLOG.md`, kleiner Commit.

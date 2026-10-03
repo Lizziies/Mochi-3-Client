@@ -4,7 +4,7 @@ $taskRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 Add-Type -TypeDefinition @'
 using System;
 using System.Runtime.InteropServices;
-public static class MochiUnload {
+public static class MonchiUnload {
     [DllImport("kernel32.dll")] static extern IntPtr GetCurrentProcess();
     [DllImport("dbghelp.dll", CharSet=CharSet.Unicode, SetLastError=true)] static extern bool SymInitializeW(IntPtr p, string path, bool invade);
     [DllImport("dbghelp.dll", CharSet=CharSet.Unicode, SetLastError=true)] static extern ulong SymLoadModuleExW(IntPtr p, IntPtr f, string image, string name, ulong b, uint size, IntPtr data, uint flags);
@@ -19,11 +19,11 @@ public static class MochiUnload {
         if (!SymInitializeW(local, symbols, false)) throw new Exception("Symbol initialization failed");
         IntPtr info = Marshal.AllocHGlobal(1112);
         try {
-            ulong loaded = SymLoadModuleExW(local, IntPtr.Zero, dll, "mochi", 0x10000000, 0, IntPtr.Zero, 0);
+            ulong loaded = SymLoadModuleExW(local, IntPtr.Zero, dll, "monchi", 0x10000000, 0, IntPtr.Zero, 0);
             if (loaded == 0) throw new Exception("Matching DLL symbols unavailable");
             Marshal.WriteInt32(info, 0, 88);
             Marshal.WriteInt32(info, 80, 1024);
-            if (!SymFromName(local, "mochi!client::requestUnload", info)) throw new Exception("requestUnload symbol unavailable");
+            if (!SymFromName(local, "monchi!client::requestUnload", info)) throw new Exception("requestUnload symbol unavailable");
             long address = Marshal.ReadInt64(info, 56);
             long offset = address - (long)loaded;
             if (offset <= 0 || offset > new System.IO.FileInfo(dll).Length) throw new Exception("Invalid unload symbol");
@@ -41,13 +41,13 @@ public static class MochiUnload {
 }
 '@
 $taskGame = Get-Process Minecraft.Windows | Select-Object -First 1
-$taskModules = @($taskGame.Modules | Where-Object ModuleName -like 'Mochi*.dll')
+$taskModules = @($taskGame.Modules | Where-Object ModuleName -like 'Monchi*.dll')
 foreach ($taskModule in $taskModules) {
-    [MochiUnload]::Request($taskGame.Id, $taskModule.FileName, (Join-Path $taskRoot 'build-dev\Release'), $taskModule.BaseAddress.ToInt64())
+    [MonchiUnload]::Request($taskGame.Id, $taskModule.FileName, (Join-Path $taskRoot 'build-dev\Release'), $taskModule.BaseAddress.ToInt64())
 }
 for ($taskAttempt = 0; $taskAttempt -lt 80; $taskAttempt++) {
     $taskGame.Refresh()
-    if (-not @($taskGame.Modules | Where-Object ModuleName -like 'Mochi*.dll').Count) { Write-Host 'Mochi unloaded; no injection'; exit 0 }
+    if (-not @($taskGame.Modules | Where-Object ModuleName -like 'Monchi*.dll').Count) { Write-Host 'Monchi unloaded; no injection'; exit 0 }
     Start-Sleep -Milliseconds 250
 }
-throw 'Mochi did not unload'
+throw 'Monchi did not unload'

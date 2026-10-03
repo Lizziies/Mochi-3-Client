@@ -92,7 +92,7 @@ static std::vector<Step> loadScript() {
 
 int wmain(int argc, wchar_t** argv) {
     if (argc < 2) {
-        std::printf("usage: testhost <Mochi.dll> [seconds]\n");
+        std::printf("usage: testhost <Monchi.dll> [seconds]\n");
         return 1;
     }
     int seconds = argc > 2 ? _wtoi(argv[2]) : 26;
@@ -174,8 +174,8 @@ int wmain(int argc, wchar_t** argv) {
     ID3D11Texture2D* tile = nullptr;
     dev->CreateTexture2D(&tileDesc, &tileData, &tile);
 
-    HMODULE mochi = LoadLibraryW(argv[1]);
-    std::printf("LoadLibrary -> %p (err %lu)\n", (void*)mochi, mochi ? 0 : GetLastError());
+    HMODULE monchi = LoadLibraryW(argv[1]);
+    std::printf("LoadLibrary -> %p (err %lu)\n", (void*)monchi, monchi ? 0 : GetLastError());
     std::fflush(stdout);
 
     auto script = loadScript();
@@ -280,6 +280,6 @@ int wmain(int argc, wchar_t** argv) {
         std::printf("host frame ms: mean %.2f median %.2f p99 %.2f max %.2f\n", sum / sorted.size(), sorted[sorted.size() / 2],
                     sorted[size_t(sorted.size() * 0.99)], sorted.back());
     }
-    std::printf("frames=%d still_loaded=%d\n", frames, GetModuleHandleW(L"Mochi.dll") != nullptr);
+    std::printf("frames=%d still_loaded=%d\n", frames, GetModuleHandleW(L"Monchi.dll") != nullptr);
     return 0;
 }

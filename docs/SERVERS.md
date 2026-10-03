@@ -41,13 +41,13 @@ Quelle: cubecraft.net "Allowed Mods and Clients", Stand 23.09.2026. Onix, Latite
 - Ausdrücklich verboten: FreeCam, Shoulder Surfing, Inventory Tweaks, Mouse Wheelie, Fastbreak, FastPlace, AutoWalk, Better Name Visibility, Skin-Blinker.
 - `block`: keins (wir haben keins der verbotenen Features)
 - `warn`: Faster Inventory, Java Inventory Hotkeys, Item Use Delay Fix, Null Movement, Insta Hurt Animation
-- Nach Release: Freigabe für Mochi im CubeCraft-Forum beantragen.
+- Nach Release: Freigabe für Monchi im CubeCraft-Forum beantragen.
 
 ### Lifeboat
 Quelle: lbsg.net/in-game-rules. Erlaubt sind offiziell nur Fullbright, Zoom/FOV, CPS- und Reach-Anzeige, Hitbox, Armor HUD und Mods aus Lunar, Onix und Astral.
 - `block`: Null Movement, Faster Inventory, Item Use Delay Fix, Insta Hurt Animation (ändern Timing/Eingabe, klar nicht erlaubt)
 - `warn`: alle Module mit Tag `info-others`, `input`, `timing`, `chat`
-- Hinweis-Banner: "Mochi ist auf Lifeboat noch nicht offiziell freigegeben."
+- Hinweis-Banner: "Monchi ist auf Lifeboat noch nicht offiziell freigegeben."
 
 ### Galaxite
 Quelle: galaxite.net/rules. Mods mit Vorteil = permanenter Bann, keine Liste.

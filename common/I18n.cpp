@@ -1,4 +1,5 @@
 #include "I18n.hpp"
+#include "DataDir.hpp"
 
 #include <cstdlib>
 #include <filesystem>
@@ -24,18 +25,11 @@ Lang pick = Lang::Auto;
 
 std::filesystem::path file() {
 #ifdef _WIN32
-    PWSTR local = nullptr;
-    std::filesystem::path p;
-    if (SUCCEEDED(SHGetKnownFolderPath(FOLDERID_LocalAppData, 0, nullptr, &local))) {
-        p = std::filesystem::path(local) / L"Mochi";
-        CoTaskMemFree(local);
-    }
-    return p / L"lang.txt";
+    return dataDir() / L"lang.txt";
 #else
-    return std::filesystem::path(std::getenv("HOME") ? std::getenv("HOME") : ".") / ".mochi-lang";
+    return std::filesystem::path(std::getenv("HOME") ? std::getenv("HOME") : ".") / ".monchi-lang";
 #endif
 }
-
 }
 
 void add(const Entry* entries, size_t count) {
@@ -47,7 +41,7 @@ Lang system() {
 #ifdef _WIN32
         return (GetUserDefaultUILanguage() & 0x3FF) == LANG_GERMAN ? Lang::German : Lang::English;
 #else
-        const char* env = std::getenv("MOCHI_LANG");
+        const char* env = std::getenv("MONCHI_LANG");
         return env && parse(env) == Lang::German ? Lang::German : Lang::English;
 #endif
     }();

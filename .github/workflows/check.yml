@@ -22,10 +22,10 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 40
     env:
-      MOCHI_CI_SELFTEST: ${{ inputs.selftest && '1' || '' }}
-      MOCHI_CI_SCRIPT: "6:k:161;8:c:380,343;9.5:c:700,126;12:c:380,275;14:c:380,122;17:c:380,100;18:c:721,124;20:t:107;20.3:t:101;20.6:t:121;23:k:27;24:w:380,400"
-      MOCHI_CI_SHOTS: "7 11 13 16 19 22 25"
-      MOCHI_CI_TOUR: "1"
+      MONCHI_CI_SELFTEST: ${{ inputs.selftest && '1' || '' }}
+      MONCHI_CI_SCRIPT: "6:k:161;8:c:380,343;9.5:c:700,126;12:c:380,275;14:c:380,122;17:c:380,100;18:c:721,124;20:t:107;20.3:t:101;20.6:t:121;23:k:27;24:w:380,400"
+      MONCHI_CI_SHOTS: "7 11 13 16 19 22 25"
+      MONCHI_CI_TOUR: "1"
     steps:
       - uses: actions/checkout@v4
 
@@ -46,8 +46,8 @@ jobs:
           cd "$RUNNER_TEMP/out"
           echo "$GITHUB_SHA" > commit.txt
           git init -q
-          git config user.name "mochi-ci"
-          git config user.email "mochi-ci@users.noreply.github.com"
+          git config user.name "monchi-ci"
+          git config user.email "monchi-ci@users.noreply.github.com"
           git checkout -q -b "$branch"
           git add -A
           git commit -qm "ci results for ${GITHUB_SHA::7}"

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(Mochi LANGUAGES C CXX RC)
+project(Monchi LANGUAGES C CXX RC)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -8,12 +8,12 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     set(CMAKE_BUILD_TYPE Release)
 endif()
 
-set(MOCHI_VERSION "0.1.0" CACHE STRING "Client version")
+set(MONCHI_VERSION "0.1.0" CACHE STRING "Client version")
 
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS src/*.cpp)
 # adapted Flarial files are compiled inside flarial_core, see cmake/FlarialCore.cmake
 list(FILTER SOURCES EXCLUDE REGEX "/src/flarial/")
-list(APPEND SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/../common/I18n.cpp)
+list(APPEND SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/../common/I18n.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../common/DataDir.cpp)
 file(GLOB MINHOOK_SOURCES lib/minhook/src/*.c lib/minhook/src/hde/hde64.c)
 
 include(FetchContent)
@@ -22,8 +22,8 @@ FetchContent_MakeAvailable(lua)
 file(GLOB LUA_SOURCES ${lua_SOURCE_DIR}/*.c)
 list(FILTER LUA_SOURCES EXCLUDE REGEX "/(lua|luac|onelua|ltests)\\.c$")
 
-option(MOCHI_DEV "Development build with the script explorer, never ship this" OFF)
-if(MOCHI_DEV)
+option(MONCHI_DEV "Development build with the script explorer, never ship this" OFF)
+if(MONCHI_DEV)
     set(CAPSTONE_BUILD_TESTS OFF CACHE BOOL "" FORCE)
     set(CAPSTONE_BUILD_CSTOOL OFF CACHE BOOL "" FORCE)
     set(CAPSTONE_BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
@@ -43,12 +43,12 @@ set(IMGUI_SOURCES
     lib/imgui/backends/imgui_impl_win32.cpp
 )
 
-option(MOCHI_FLARIAL "build Flarial's game side into the client" OFF)
-if(MOCHI_FLARIAL)
+option(MONCHI_FLARIAL "build Flarial's game side into the client" OFF)
+if(MONCHI_FLARIAL)
     include(cmake/FlarialCore.cmake)
 endif()
 
-add_library(Mochi SHARED ${SOURCES} ${MINHOOK_SOURCES} ${LUA_SOURCES} ${IMGUI_SOURCES} res/resources.rc)
+add_library(Monchi SHARED ${SOURCES} ${MINHOOK_SOURCES} ${LUA_SOURCES} ${IMGUI_SOURCES} res/resources.rc)
 
 file(GLOB SIG_FILES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../sigs/*.json")
 set(SIG_RESOURCES "")
@@ -57,9 +57,9 @@ foreach(SIG_FILE IN LISTS SIG_FILES)
     string(APPEND SIG_RESOURCES "\"${SIG_NAME}\" RCDATA \"${SIG_FILE}\"\n")
 endforeach()
 file(GENERATE OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/signatures.rc" CONTENT "${SIG_RESOURCES}")
-target_sources(Mochi PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/signatures.rc")
+target_sources(Monchi PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/signatures.rc")
 
-target_include_directories(Mochi PRIVATE
+target_include_directories(Monchi PRIVATE
     src
     ../common
     lib/minhook/include
@@ -70,8 +70,8 @@ target_include_directories(Mochi PRIVATE
     lib/stb
 )
 
-target_compile_definitions(Mochi PRIVATE
-    MOCHI_VERSION="${MOCHI_VERSION}"
+target_compile_definitions(Monchi PRIVATE
+    MONCHI_VERSION="${MONCHI_VERSION}"
     WIN32_LEAN_AND_MEAN
     NOMINMAX
     UNICODE
@@ -79,24 +79,24 @@ target_compile_definitions(Mochi PRIVATE
     IMGUI_DEFINE_MATH_OPERATORS
 )
 
-if(MOCHI_DEV)
-    target_compile_definitions(Mochi PRIVATE MOCHI_DEV)
-    target_include_directories(Mochi PRIVATE ${capstone_SOURCE_DIR}/include)
-    target_link_libraries(Mochi PRIVATE capstone)
+if(MONCHI_DEV)
+    target_compile_definitions(Monchi PRIVATE MONCHI_DEV)
+    target_include_directories(Monchi PRIVATE ${capstone_SOURCE_DIR}/include)
+    target_link_libraries(Monchi PRIVATE capstone)
 endif()
 
-target_link_libraries(Mochi PRIVATE d3d11 d3d12 dxgi d3dcompiler ws2_32 winhttp version psapi winmm dwmapi bcrypt ole32)
+target_link_libraries(Monchi PRIVATE d3d11 d3d12 dxgi d3dcompiler ws2_32 winhttp version psapi winmm dwmapi bcrypt ole32)
 
 if(MSVC)
-    set_property(TARGET Mochi PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-    target_compile_options(Mochi PRIVATE /utf-8 /W3 /permissive- /EHa /bigobj)
-    if(MOCHI_DEV)
-        target_compile_options(Mochi PRIVATE /Zi)
-        target_link_options(Mochi PRIVATE /DEBUG /OPT:REF /OPT:ICF)
+    set_property(TARGET Monchi PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+    target_compile_options(Monchi PRIVATE /utf-8 /W3 /permissive- /EHa /bigobj)
+    if(MONCHI_DEV)
+        target_compile_options(Monchi PRIVATE /Zi)
+        target_link_options(Monchi PRIVATE /DEBUG /OPT:REF /OPT:ICF)
     endif()
 else()
-    target_compile_options(Mochi PRIVATE -Wall -Wno-unknown-pragmas -Wno-missing-field-initializers)
-    target_link_options(Mochi PRIVATE -static -static-libgcc -static-libstdc++)
+    target_compile_options(Monchi PRIVATE -Wall -Wno-unknown-pragmas -Wno-missing-field-initializers)
+    target_link_options(Monchi PRIVATE -static -static-libgcc -static-libstdc++)
 endif()
 
-set_target_properties(Mochi PROPERTIES PREFIX "" OUTPUT_NAME "Mochi")
+set_target_properties(Monchi PROPERTIES PREFIX "" OUTPUT_NAME "Monchi")

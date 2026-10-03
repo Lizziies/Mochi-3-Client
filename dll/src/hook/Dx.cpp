@@ -496,7 +496,7 @@ bool install() {
     WNDCLASSEXW wc{sizeof(wc)};
     wc.lpfnWndProc = dummyProc;
     wc.hInstance = GetModuleHandleW(nullptr);
-    wc.lpszClassName = L"MochiDummy";
+    wc.lpszClassName = L"MonchiDummy";
     RegisterClassExW(&wc);
     HWND tmp = CreateWindowExW(0, wc.lpszClassName, L"", WS_OVERLAPPEDWINDOW, 0, 0, 64, 64, nullptr, nullptr,
                                wc.hInstance, nullptr);

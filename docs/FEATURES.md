@@ -1,4 +1,4 @@
-# Mochi: Feature-Spezifikation
+# Monchi: Feature-Spezifikation
 
 Der volle Ausbauplan. Alles, was Flarial, Onix, Latite und Lunar (das Java-Vorbild "Luna") können, plus das, was keiner hat. Die Wettbewerbsliste steht in `docs/CLIENTS.md`, die kurze Modulübersicht mit Tiers in `docs/MODULES.md`, die Latenz-Technik in `docs/INPUT.md`.
 
@@ -25,7 +25,7 @@ Zwischen Klick und sichtbarem Treffer liegen mehrere Stufen:
 5. Spiel → Netzwerkkarte → Router → Internet → Server (Ping). **Nur lokaler Teil beeinflussbar** (WLAN, Priorisierung, Hintergrundverkehr).
 6. Server-Tick (Bedrock-Server: 20 Tick/s = 50 ms Raster) und Antwort. **Nicht beeinflussbar.**
 
-**Ehrlich:** Der Ping zum Server und der Server-Tick sind kein Client-Thema. Ein Client kann sie nicht kleiner machen, und wer behauptet, einen "Server-Delay-Bypass" zu haben, verkauft entweder Cheats (Fake Lag, Paket-Manipulation, bannbar) oder Placebo. Mochi optimiert alles, was lokal wirklich Zeit kostet (Stufen 2 bis 5), und macht den Rest sichtbar: Ping, Jitter und Paketverlust werden gemessen und angezeigt, damit man weiß, wo das Problem liegt.
+**Ehrlich:** Der Ping zum Server und der Server-Tick sind kein Client-Thema. Ein Client kann sie nicht kleiner machen, und wer behauptet, einen "Server-Delay-Bypass" zu haben, verkauft entweder Cheats (Fake Lag, Paket-Manipulation, bannbar) oder Placebo. Monchi optimiert alles, was lokal wirklich Zeit kostet (Stufen 2 bis 5), und macht den Rest sichtbar: Ping, Jitter und Paketverlust werden gemessen und angezeigt, damit man weiß, wo das Problem liegt.
 
 ### 1.2 Latency Stack (Details in `INPUT.md`)
 
@@ -354,7 +354,7 @@ Doom, Snake, Flappy Bird, DVD Screen, Block Game, 20-20-20 Augenpause, Pet (klei
 
 Wir orientieren uns an dem, was Lunar auf Java bietet, soweit es auf Bedrock möglich ist.
 
-| Lunar-Feature | Mochi |
+| Lunar-Feature | Monchi |
 |---|---|
 | Mod-Profile je Server | Server-Profile (8) |
 | Cosmetics, Emotes | Lokale Cosmetics (nur für dich sichtbar) |
@@ -395,7 +395,7 @@ Wir orientieren uns an dem, was Lunar auf Java bietet, soweit es auf Bedrock mö
 | Auto-Update | GitHub Releases, DLL + Launcher, SHA256-Prüfung, Rename-Trick für Selbst-Update | 1 |
 | Sig-Updates | `sigs.json` beim Start nachladen | 1 |
 | Version-Switcher | Installieren/Umschalten verschiedener MC-Versionen, nur über die Microsoft-Berechtigung des Nutzers, Auto-Update des Spiels für gepinnte Versionen verhindern | 2 |
-| Kompatibilitäts-Badge | "Mochi-kompatibel" pro Version | 2 |
+| Kompatibilitäts-Badge | "Monchi-kompatibel" pro Version | 2 |
 | Update-Kanäle | Stable/Beta | 2 |
 | News/Changelog | Aus dem GitHub-Release | 2 |
 | Dev-Pfad | Eigene DLL-Pfade für Entwickler | 1 |

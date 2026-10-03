@@ -93,7 +93,7 @@ static std::optional<json> embedded(const std::wstring& file) {
 static std::optional<json> fetch(const std::string& file, std::string& source) {
     auto wfile = logger::widen(file);
     std::error_code ec;
-    if (std::filesystem::exists(paths::dllDir() / L"Mochi.root", ec)) {
+    if (std::filesystem::exists(paths::dllDir() / L"Monchi.root", ec)) {
         if (auto j = readJson(paths::dllDir() / L"sigs" / wfile)) {
             source = "bundled";
             return j;
@@ -286,7 +286,7 @@ static void load() {
         found[name] = fn + e.add;
     }
     writeFile(cachePath, newCache.dump());
-    if (std::getenv("MOCHI_SIGCHECK"))
+    if (std::getenv("MONCHI_SIGCHECK"))
         for (auto& [name, e] : entries) {
             auto hit = found.find(name);
             if (hit == found.end()) logger::warn("sigcheck {}: not found", name);

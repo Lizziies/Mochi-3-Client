@@ -12,7 +12,7 @@
 
 struct CurlHandle {
     std::wstring url;
-    std::wstring agent = L"Mochi";
+    std::wstring agent = L"Monchi";
     std::wstring method = L"GET";
     std::string body;
     std::vector<std::wstring> headers;

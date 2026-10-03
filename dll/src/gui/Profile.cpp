@@ -18,7 +18,7 @@ static float scrollY = 0.f;
 static std::string label;
 static FILE* out = nullptr;
 static int frames = 0;
-static bool wanted = std::getenv("MOCHI_PROFILE") != nullptr;
+static bool wanted = std::getenv("MONCHI_PROFILE") != nullptr;
 static double freq = [] {
     LARGE_INTEGER f;
     QueryPerformanceFrequency(&f);

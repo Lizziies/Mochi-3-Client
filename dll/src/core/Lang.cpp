@@ -207,7 +207,7 @@ const i18n::Entry entries[] = {
     {"Keys", "Tasten"},
     {"Ctrl+L: unload client · F1: hide HUD · ESC: back · right-click a key: clear", "Strg+L: Client entladen · F1: HUD ausblenden · ESC: zurück · Rechtsklick auf eine Taste: entfernen"},
     {"Drag = move  ·  Arrows = nudge  ·  Mouse wheel = size  ·  Double click = reset  ·  Right click = settings  ·  Shift = no snap  ·  ESC = done", "Ziehen = verschieben  ·  Pfeiltasten = fein  ·  Mausrad = Größe  ·  Doppelklick = zurücksetzen  ·  Rechtsklick = Einstellungen  ·  Shift = ohne Einrasten  ·  ESC = fertig"},
-    {"Mochi loaded", "Mochi geladen"},
+    {"Monchi loaded", "Monchi geladen"},
     {"Right Shift opens the menu.", "Rechts-Shift öffnet das Menü."},
     {"None", "keine"},
     {"Priority \"Above normal\"", "Priorität \"Höher als normal\""},

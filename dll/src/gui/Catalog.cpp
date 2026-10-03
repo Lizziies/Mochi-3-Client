@@ -80,7 +80,7 @@ const std::vector<Spec>& specs() {
         one("Screenshot+", S::Utility),
         {"Tools", "Pack changer, profile and gamemode hotkeys, config sharing, scripts", S::Utility,
          {"Pack Changer", "Profile Hotkeys", "Gamemode Hotkeys", "Config Sharing", "Lua Scripts"}},
-        {"Integrations", "Discord, music, Mumble and Mochi Online", S::Utility, {"Discord Rich Presence", "Music", "Mumble Link", "Mochi Online"}},
+        {"Integrations", "Discord, music, Mumble and Monchi Online", S::Utility, {"Discord Rich Presence", "Music", "Mumble Link", "Monchi Online"}},
 
         one("Performance Lock", S::Performance),
         one("Frame Limiter", S::Performance),

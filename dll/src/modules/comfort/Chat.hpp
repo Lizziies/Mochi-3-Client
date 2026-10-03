@@ -15,7 +15,7 @@
 #include "modules/common/GameHud.hpp"
 #include "modules/common/Needs.hpp"
 #include "modules/common/Text.hpp"
-#include "modules/online/MochiOnline.hpp"
+#include "modules/online/MonchiOnline.hpp"
 #include "modules/server/ServerChat.hpp"
 #include "render/Fonts.hpp"
 #include "render/Ui.hpp"
@@ -302,7 +302,7 @@ protected:
 
             dl->PushClipRect(o + ImVec2(0, y), o + ImVec2(w, y + lineH + 2), true);
             std::string shownText = nick::replaceIn(l->text);
-            if (auto* mo = modules::get<MochiOnline>(); mo && mo->enabled()) shownText = online::tagLine(shownText, mo->colors(), mo->hearts());
+            if (auto* mo = modules::get<MonchiOnline>(); mo && mo->enabled()) shownText = online::tagLine(shownText, mo->colors(), mo->hearts());
             if (colors_.b) {
                 auto* cs = modules::get<ClientSettings>();
                 for (auto& seg : text::colored(cs ? cs->tagged(shownText, true) : shownText, base)) {
@@ -487,7 +487,7 @@ protected:
         if (sort_.i == 0) std::sort(list.begin(), list.end(), [](auto& a, auto& b) { return text::lower(a.name) < text::lower(b.name); });
         else if (sort_.i == 1) std::sort(list.begin(), list.end(), [](auto& a, auto& b) { return a.ping < b.ping; });
         auto* cs = modules::get<ClientSettings>();
-        auto* mo = modules::get<MochiOnline>();
+        auto* mo = modules::get<MonchiOnline>();
         if (mo && !mo->enabled()) mo = nullptr;
         int per = columns_.i > 0 ? int((list.size() + size_t(columns_.i) - 1) / size_t(columns_.i)) : rows_.i;
         per = std::max(per, 1);
@@ -524,9 +524,9 @@ protected:
                 if (i >= list.size()) break;
                 std::string extra = list[i].name == st.player.name && cs ? cs->tabTag() : "";
                 online::User peer;
-                bool mochi = mo && online::find(list[i].name, peer);
-                if (mochi && mo->hearts() && peer.style.heart) extra += "    ";
-                if (mochi && !peer.role.empty()) extra += " " + online::badge(peer.role);
+                bool monchi = mo && online::find(list[i].name, peer);
+                if (monchi && mo->hearts() && peer.style.heart) extra += "    ";
+                if (monchi && !peer.role.empty()) extra += " " + online::badge(peer.role);
                 float w = textSize(s, list[i].name).x + (extra.empty() ? 0.f : textSize(s, extra).x + 6 * s) + (heads_.b ? rowH : 0.f) + (platform_.b ? rowH : 0.f) + (ping_.b ? 56.f * s : 8.f * s);
                 colW = std::max(colW, w);
             }
@@ -552,9 +552,9 @@ protected:
                 if (nick::mine(e.name)) nameColor = nick::colorOf(nick::color, nameColor);
                 std::string shownName = nick::show(e.name);
                 online::User peer;
-                bool mochi = mo && online::find(e.name, peer);
+                bool monchi = mo && online::find(e.name, peer);
                 ImVec2 namePos = row + ImVec2(cx, spacing_.f * s * 0.5f);
-                if (mochi && mo->colors() && !marked) online::paint(shownName, peer.style, ui::time(), [&](const std::string& piece, ImU32 col, float x) { return drawText(dl, namePos + ImVec2(x, 0), s, piece, col).x; });
+                if (monchi && mo->colors() && !marked) online::paint(shownName, peer.style, ui::time(), [&](const std::string& piece, ImU32 col, float x) { return drawText(dl, namePos + ImVec2(x, 0), s, piece, col).x; });
                 else drawText(dl, namePos, s, shownName, nameColor);
                 float after = namePos.x + textSize(s, shownName).x + 6 * s;
                 std::string tabTag = me && cs ? cs->tabTag() : "";
@@ -562,12 +562,12 @@ protected:
                     drawText(dl, {after, namePos.y}, s, tabTag, ImGui::GetColorU32(cs->tagColor()));
                     after += textSize(s, tabTag).x + 6 * s;
                 }
-                if (mochi && mo->hearts() && peer.style.heart) {
+                if (monchi && mo->hearts() && peer.style.heart) {
                     float hs = icon * 0.8f;
                     online::heartIcon(dl, {after + hs * 0.5f - 3 * s, row.y + rowH * 0.5f}, hs, online::rgb(peer.style.heartColor));
                     after += hs + 4 * s;
                 }
-                if (mochi && !peer.role.empty()) drawText(dl, {after, namePos.y}, s, online::badge(peer.role), online::rgb(0x3BA7EC));
+                if (monchi && !peer.role.empty()) drawText(dl, {after, namePos.y}, s, online::badge(peer.role), online::rgb(0x3BA7EC));
                 if (ping_.b) {
                     ImVec4 c4 = rampColor(float(e.ping), 40.f, 200.f, good_.color, mid_.color, bad_.color);
                     if (pingBars_.b) {

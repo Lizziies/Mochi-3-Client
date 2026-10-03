@@ -363,7 +363,7 @@ Alle 178 Module sind in `dll/src/modules/Manager.cpp` registriert, bauen mit Min
 |---|---|---|---|---|---|
 | ClickGUI | – | Weitere | 1 | nichts | – |
 | Client Settings | Client | Weitere | 12 | nichts | – |
-| Mochi Online | Online | Erwartet | 12 | nichts | – |
+| Monchi Online | Online | Erwartet | 12 | nichts | – |
 | Config Sharing | Platform | Erwartet | 2 | nichts | – |
 | Discord Rich Presence | Platform | Erwartet | 10 | nichts | – |
 | Lua Scripts | Platform | Erwartet | 3 | nichts | – |

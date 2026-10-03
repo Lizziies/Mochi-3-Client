@@ -1,7 +1,7 @@
 {
   "modules": [
     {
-      "mochi": "ArmorHud",
+      "monchi": "ArmorHud",
       "source": "dll/src/modules/hud/Inventory.hpp",
       "game_calls": [
         "state"
@@ -14,7 +14,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "ArrowCounter",
+      "monchi": "ArrowCounter",
       "source": "dll/src/modules/hud/Inventory.hpp",
       "game_calls": [
         "state"
@@ -34,7 +34,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "ArrowTrail",
+      "monchi": "ArrowTrail",
       "source": "dll/src/modules/visual/Trail.hpp",
       "game_calls": [
         "distance",
@@ -49,7 +49,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "AutoGG",
+      "monchi": "AutoGG",
       "source": "dll/src/modules/comfort/Chat.hpp",
       "game_calls": [
         "events",
@@ -72,7 +72,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "AutoPerspective",
+      "monchi": "AutoPerspective",
       "source": "dll/src/modules/camera/Camera.hpp",
       "game_calls": [
         "state"
@@ -94,7 +94,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "AutoProfile",
+      "monchi": "AutoProfile",
       "source": "dll/src/modules/perf/Auto.hpp",
       "game_calls": [],
       "effects": [],
@@ -103,7 +103,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "BackgroundLoad",
+      "monchi": "BackgroundLoad",
       "source": "dll/src/modules/perf/Auto.hpp",
       "game_calls": [],
       "effects": [],
@@ -112,7 +112,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "BetterHunger",
+      "monchi": "BetterHunger",
       "source": "dll/src/modules/hud/Inventory.hpp",
       "game_calls": [
         "state"
@@ -125,7 +125,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "BlackBars",
+      "monchi": "BlackBars",
       "source": "dll/src/modules/visual/Trail.hpp",
       "game_calls": [
         "state"
@@ -136,7 +136,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "BlockGame",
+      "monchi": "BlockGame",
       "source": "dll/src/modules/fun/BlockGame.hpp",
       "game_calls": [],
       "effects": [],
@@ -145,7 +145,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "BlockOutline",
+      "monchi": "BlockOutline",
       "source": "dll/src/modules/world/World.hpp",
       "game_calls": [
         "project",
@@ -171,7 +171,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "Blur",
+      "monchi": "Blur",
       "source": "dll/src/modules/post/Effects.hpp",
       "game_calls": [
         "state"
@@ -182,7 +182,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "BowCharge",
+      "monchi": "BowCharge",
       "source": "dll/src/modules/combat/Target.hpp",
       "game_calls": [
         "state"
@@ -195,7 +195,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "BowSensitivity",
+      "monchi": "BowSensitivity",
       "source": "dll/src/modules/combat/Tweaks.hpp",
       "game_calls": [
         "state"
@@ -220,7 +220,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "BreakProgress",
+      "monchi": "BreakProgress",
       "source": "dll/src/modules/hud/GameInfo.hpp",
       "game_calls": [
         "state"
@@ -240,7 +240,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "BrightnessContrast",
+      "monchi": "BrightnessContrast",
       "source": "dll/src/modules/post/Effects.hpp",
       "game_calls": [],
       "effects": [],
@@ -249,7 +249,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "ChatPlus",
+      "monchi": "ChatPlus",
       "source": "dll/src/modules/comfort/Chat.hpp",
       "game_calls": [
         "events",
@@ -265,7 +265,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "ChunkBorder",
+      "monchi": "ChunkBorder",
       "source": "dll/src/modules/world/World.hpp",
       "game_calls": [
         "projectLine",
@@ -289,7 +289,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "CinematicCamera",
+      "monchi": "CinematicCamera",
       "source": "dll/src/modules/camera/Camera.hpp",
       "game_calls": [],
       "effects": [],
@@ -309,7 +309,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "ClickGui",
+      "monchi": "ClickGui",
       "source": "dll/src/modules/client/ClickGui.hpp",
       "game_calls": [],
       "effects": [],
@@ -334,7 +334,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "ClientSettings",
+      "monchi": "ClientSettings",
       "source": "dll/src/modules/client/ClientSettings.hpp",
       "game_calls": [
         "state"
@@ -345,7 +345,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "Clock",
+      "monchi": "Clock",
       "source": "dll/src/modules/hud/Clock.hpp",
       "game_calls": [
         "state"
@@ -358,7 +358,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "ColorFilter",
+      "monchi": "ColorFilter",
       "source": "dll/src/modules/post/Effects.hpp",
       "game_calls": [],
       "effects": [],
@@ -367,7 +367,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "ComboCounter",
+      "monchi": "ComboCounter",
       "source": "dll/src/modules/combat/Counters.hpp",
       "game_calls": [
         "events",
@@ -391,7 +391,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "CommandHotkey",
+      "monchi": "CommandHotkey",
       "source": "dll/src/modules/comfort/Toggles.hpp",
       "game_calls": [],
       "effects": [],
@@ -409,7 +409,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "ConfigSharing",
+      "monchi": "ConfigSharing",
       "source": "dll/src/modules/platform/Share.hpp",
       "game_calls": [],
       "effects": [],
@@ -418,7 +418,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "CooldownIndicator",
+      "monchi": "CooldownIndicator",
       "source": "dll/src/modules/combat/Target.hpp",
       "game_calls": [
         "events"
@@ -431,7 +431,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "Coordinates",
+      "monchi": "Coordinates",
       "source": "dll/src/modules/hud/GameInfo.hpp",
       "game_calls": [
         "state"
@@ -458,7 +458,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "Cps",
+      "monchi": "Cps",
       "source": "dll/src/modules/hud/Cps.hpp",
       "game_calls": [],
       "effects": [],
@@ -476,7 +476,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "CpsLimiter",
+      "monchi": "CpsLimiter",
       "source": "dll/src/modules/input/CpsLimiter.hpp",
       "game_calls": [],
       "effects": [],
@@ -492,7 +492,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "Crosshair",
+      "monchi": "Crosshair",
       "source": "dll/src/modules/visual/Crosshair.hpp",
       "game_calls": [
         "has",
@@ -515,7 +515,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "CrystalOptimizer",
+      "monchi": "CrystalOptimizer",
       "source": "dll/src/modules/combat/Pvp.hpp",
       "game_calls": [
         "events",
@@ -530,7 +530,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "DamageIndicator",
+      "monchi": "DamageIndicator",
       "source": "dll/src/modules/combat/Feedback.hpp",
       "game_calls": [
         "events"
@@ -543,7 +543,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "DayCounter",
+      "monchi": "DayCounter",
       "source": "dll/src/modules/hud/GameInfo.hpp",
       "game_calls": [
         "state"
@@ -558,7 +558,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "DeathLogger",
+      "monchi": "DeathLogger",
       "source": "dll/src/modules/comfort/Chat.hpp",
       "game_calls": [
         "events",
@@ -581,7 +581,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "DebugMenu",
+      "monchi": "DebugMenu",
       "source": "dll/src/modules/hud/Compose.hpp",
       "game_calls": [
         "demo",
@@ -618,7 +618,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "Deepfry",
+      "monchi": "Deepfry",
       "source": "dll/src/modules/post/FunEffects.hpp",
       "game_calls": [],
       "effects": [],
@@ -636,7 +636,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "DepthOfField",
+      "monchi": "DepthOfField",
       "source": "dll/src/modules/post/Effects.hpp",
       "game_calls": [],
       "effects": [],
@@ -656,7 +656,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "DirectionHud",
+      "monchi": "DirectionHud",
       "source": "dll/src/modules/hud/GameInfo.hpp",
       "game_calls": [
         "distance",
@@ -679,7 +679,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "DiscordPresence",
+      "monchi": "DiscordPresence",
       "source": "dll/src/modules/platform/Presence.hpp",
       "game_calls": [
         "state"
@@ -690,7 +690,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "DurabilityWarning",
+      "monchi": "DurabilityWarning",
       "source": "dll/src/modules/hud/Inventory.hpp",
       "game_calls": [
         "state"
@@ -712,7 +712,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "DvdScreen",
+      "monchi": "DvdScreen",
       "source": "dll/src/modules/fun/DvdScreen.hpp",
       "game_calls": [],
       "effects": [],
@@ -730,7 +730,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "EntityCounter",
+      "monchi": "EntityCounter",
       "source": "dll/src/modules/combat/Counters.hpp",
       "game_calls": [
         "state"
@@ -752,7 +752,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "ExperienceInfo",
+      "monchi": "ExperienceInfo",
       "source": "dll/src/modules/hud/GameInfo.hpp",
       "game_calls": [
         "state"
@@ -774,7 +774,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "EyeBreak",
+      "monchi": "EyeBreak",
       "source": "dll/src/modules/fun/EyeBreak.hpp",
       "game_calls": [],
       "effects": [],
@@ -783,7 +783,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "FallPredictor",
+      "monchi": "FallPredictor",
       "source": "dll/src/modules/hud/Extras.hpp",
       "game_calls": [
         "state"
@@ -796,7 +796,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "Flappy",
+      "monchi": "Flappy",
       "source": "dll/src/modules/fun/Flappy.hpp",
       "game_calls": [],
       "effects": [],
@@ -805,7 +805,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "FovChanger",
+      "monchi": "FovChanger",
       "source": "dll/src/modules/camera/Camera.hpp",
       "game_calls": [
         "state"
@@ -830,7 +830,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "Fps",
+      "monchi": "Fps",
       "source": "dll/src/modules/hud/Fps.hpp",
       "game_calls": [],
       "effects": [],
@@ -848,7 +848,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "FrameLimiter",
+      "monchi": "FrameLimiter",
       "source": "dll/src/modules/perf/FrameLimiter.hpp",
       "game_calls": [],
       "effects": [],
@@ -857,7 +857,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "Freelook",
+      "monchi": "Freelook",
       "source": "dll/src/modules/camera/Camera.hpp",
       "game_calls": [
         "freeCamera",
@@ -890,7 +890,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "Fullbright",
+      "monchi": "Fullbright",
       "source": "dll/src/modules/camera/Camera.hpp",
       "game_calls": [
         "has",
@@ -913,7 +913,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "GamemodeHotkeys",
+      "monchi": "GamemodeHotkeys",
       "source": "dll/src/modules/input/Gamemode.hpp",
       "game_calls": [],
       "effects": [],
@@ -922,7 +922,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "HealthAbove",
+      "monchi": "HealthAbove",
       "source": "dll/src/modules/world/HealthAbove.hpp",
       "game_calls": [
         "distance",
@@ -937,7 +937,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "HealthDisplay",
+      "monchi": "HealthDisplay",
       "source": "dll/src/modules/hud/GameInfo.hpp",
       "game_calls": [
         "state"
@@ -950,7 +950,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "HeldItem",
+      "monchi": "HeldItem",
       "source": "dll/src/modules/hud/GameInfo.hpp",
       "game_calls": [
         "state"
@@ -963,7 +963,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "HideHand",
+      "monchi": "HideHand",
       "source": "dll/src/modules/world/World.hpp",
       "game_calls": [
         "has",
@@ -978,7 +978,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "HitCounter",
+      "monchi": "HitCounter",
       "source": "dll/src/modules/combat/Counters.hpp",
       "game_calls": [
         "resetCombat",
@@ -993,7 +993,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "HitEffects",
+      "monchi": "HitEffects",
       "source": "dll/src/modules/combat/Feedback.hpp",
       "game_calls": [
         "events"
@@ -1007,7 +1007,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "HitInfo",
+      "monchi": "HitInfo",
       "source": "dll/src/modules/combat/Counters.hpp",
       "game_calls": [
         "state"
@@ -1020,7 +1020,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "HitMarker",
+      "monchi": "HitMarker",
       "source": "dll/src/modules/combat/Feedback.hpp",
       "game_calls": [
         "events",
@@ -1034,7 +1034,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "HitPing",
+      "monchi": "HitPing",
       "source": "dll/src/modules/combat/Counters.hpp",
       "game_calls": [
         "events",
@@ -1059,7 +1059,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "HitSound",
+      "monchi": "HitSound",
       "source": "dll/src/modules/combat/Feedback.hpp",
       "game_calls": [
         "events"
@@ -1073,7 +1073,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "Hitbox",
+      "monchi": "Hitbox",
       "source": "dll/src/modules/combat/Tweaks.hpp",
       "game_calls": [
         "project",
@@ -1100,7 +1100,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "HiveLeaderboard",
+      "monchi": "HiveLeaderboard",
       "source": "dll/src/modules/server/HiveStats.hpp",
       "game_calls": [
         "demo",
@@ -1112,7 +1112,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "HiveStats",
+      "monchi": "HiveStats",
       "source": "dll/src/modules/server/HiveStats.hpp",
       "game_calls": [
         "demo",
@@ -1137,7 +1137,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "HiveUtils",
+      "monchi": "HiveUtils",
       "source": "dll/src/modules/server/Hive.hpp",
       "game_calls": [
         "events",
@@ -1162,7 +1162,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "HotbarAnimation",
+      "monchi": "HotbarAnimation",
       "source": "dll/src/modules/hud/HotbarAnim.hpp",
       "game_calls": [
         "state"
@@ -1175,7 +1175,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "HotbarArmor",
+      "monchi": "HotbarArmor",
       "source": "dll/src/modules/hud/Extras.hpp",
       "game_calls": [
         "state"
@@ -1188,7 +1188,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "HotbarKeys",
+      "monchi": "HotbarKeys",
       "source": "dll/src/modules/input/HotbarKeys.hpp",
       "game_calls": [],
       "effects": [],
@@ -1197,7 +1197,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "InventoryLock",
+      "monchi": "InventoryLock",
       "source": "dll/src/modules/comfort/Lock.hpp",
       "game_calls": [
         "state"
@@ -1222,7 +1222,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "InventoryView",
+      "monchi": "InventoryView",
       "source": "dll/src/modules/hud/Extras.hpp",
       "game_calls": [
         "state"
@@ -1235,7 +1235,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "IpDisplay",
+      "monchi": "IpDisplay",
       "source": "dll/src/modules/hud/GameInfo.hpp",
       "game_calls": [],
       "effects": [],
@@ -1251,7 +1251,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "ItemCounter",
+      "monchi": "ItemCounter",
       "source": "dll/src/modules/hud/Inventory.hpp",
       "game_calls": [],
       "effects": [],
@@ -1273,7 +1273,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "ItemTracker",
+      "monchi": "ItemTracker",
       "source": "dll/src/modules/hud/ItemTracker.hpp",
       "game_calls": [
         "state"
@@ -1286,7 +1286,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "JavaDynamicFov",
+      "monchi": "JavaDynamicFov",
       "source": "dll/src/modules/camera/Camera.hpp",
       "game_calls": [
         "has",
@@ -1312,7 +1312,7 @@
       ]
     },
     {
-      "mochi": "JavaInventoryHotkeys",
+      "monchi": "JavaInventoryHotkeys",
       "source": "dll/src/modules/comfort/Lock.hpp",
       "game_calls": [],
       "effects": [],
@@ -1333,7 +1333,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "Keystrokes",
+      "monchi": "Keystrokes",
       "source": "dll/src/modules/hud/Keystrokes.hpp",
       "game_calls": [],
       "effects": [],
@@ -1351,7 +1351,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "KillCleanup",
+      "monchi": "KillCleanup",
       "source": "dll/src/modules/combat/Pvp.hpp",
       "game_calls": [
         "demo",
@@ -1366,7 +1366,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "KillEffects",
+      "monchi": "KillEffects",
       "source": "dll/src/modules/combat/Feedback.hpp",
       "game_calls": [
         "events"
@@ -1379,7 +1379,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "LatencyBlame",
+      "monchi": "LatencyBlame",
       "source": "dll/src/modules/network/LatencyBlame.hpp",
       "game_calls": [],
       "effects": [],
@@ -1388,7 +1388,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "LatencyHud",
+      "monchi": "LatencyHud",
       "source": "dll/src/modules/hud/Latency.hpp",
       "game_calls": [],
       "effects": [],
@@ -1397,7 +1397,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "LookAngles",
+      "monchi": "LookAngles",
       "source": "dll/src/modules/hud/GameInfo.hpp",
       "game_calls": [
         "state"
@@ -1410,7 +1410,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "LowHealth",
+      "monchi": "LowHealth",
       "source": "dll/src/modules/hud/Inventory.hpp",
       "game_calls": [
         "state"
@@ -1433,7 +1433,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "LowLatency",
+      "monchi": "LowLatency",
       "source": "dll/src/modules/perf/LowLatency.hpp",
       "game_calls": [],
       "effects": [],
@@ -1442,7 +1442,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "LuaScripts",
+      "monchi": "LuaScripts",
       "source": "dll/src/modules/platform/Scripts.hpp",
       "game_calls": [],
       "effects": [],
@@ -1451,7 +1451,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "MatchSummary",
+      "monchi": "MatchSummary",
       "source": "dll/src/modules/server/MatchSummary.hpp",
       "game_calls": [
         "resetCombat",
@@ -1465,7 +1465,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "Memory",
+      "monchi": "Memory",
       "source": "dll/src/modules/hud/Memory.hpp",
       "game_calls": [],
       "effects": [],
@@ -1481,7 +1481,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "MessageLogger",
+      "monchi": "MessageLogger",
       "source": "dll/src/modules/comfort/Chat.hpp",
       "game_calls": [
         "events",
@@ -1505,8 +1505,8 @@
       "flarial_options": []
     },
     {
-      "mochi": "MochiOnline",
-      "source": "dll/src/modules/online/MochiOnline.hpp",
+      "monchi": "MonchiOnline",
+      "source": "dll/src/modules/online/MonchiOnline.hpp",
       "game_calls": [
         "demo",
         "state"
@@ -1517,7 +1517,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "ModernKeybinds",
+      "monchi": "ModernKeybinds",
       "source": "dll/src/modules/comfort/Lock.hpp",
       "game_calls": [],
       "effects": [],
@@ -1526,7 +1526,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "MotionBlur",
+      "monchi": "MotionBlur",
       "source": "dll/src/modules/post/Effects.hpp",
       "game_calls": [],
       "effects": [],
@@ -1549,7 +1549,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "MouseStrokes",
+      "monchi": "MouseStrokes",
       "source": "dll/src/modules/hud/MouseStrokes.hpp",
       "game_calls": [],
       "effects": [],
@@ -1567,7 +1567,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "MouseSync",
+      "monchi": "MouseSync",
       "source": "dll/src/modules/perf/MouseSync.hpp",
       "game_calls": [],
       "effects": [
@@ -1578,7 +1578,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "MumbleLink",
+      "monchi": "MumbleLink",
       "source": "dll/src/modules/comfort/Link.hpp",
       "game_calls": [
         "state"
@@ -1598,7 +1598,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "MusicControl",
+      "monchi": "MusicControl",
       "source": "dll/src/modules/comfort/Music.hpp",
       "game_calls": [],
       "effects": [],
@@ -1607,7 +1607,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "Network",
+      "monchi": "Network",
       "source": "dll/src/modules/network/Network.hpp",
       "game_calls": [],
       "effects": [],
@@ -1616,7 +1616,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "Nick",
+      "monchi": "Nick",
       "source": "dll/src/modules/comfort/Nick.hpp",
       "game_calls": [],
       "effects": [],
@@ -1636,7 +1636,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "NightShift",
+      "monchi": "NightShift",
       "source": "dll/src/modules/post/Effects.hpp",
       "game_calls": [],
       "effects": [],
@@ -1645,7 +1645,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "NoHurtCam",
+      "monchi": "NoHurtCam",
       "source": "dll/src/modules/camera/Camera.hpp",
       "game_calls": [],
       "effects": [
@@ -1668,7 +1668,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "NoScroll",
+      "monchi": "NoScroll",
       "source": "dll/src/modules/input/NoScroll.hpp",
       "game_calls": [],
       "effects": [],
@@ -1687,7 +1687,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "NoViewBobbing",
+      "monchi": "NoViewBobbing",
       "source": "dll/src/modules/camera/Camera.hpp",
       "game_calls": [
         "state"
@@ -1701,7 +1701,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "NullMovement",
+      "monchi": "NullMovement",
       "source": "dll/src/modules/combat/Tweaks.hpp",
       "game_calls": [],
       "effects": [],
@@ -1720,7 +1720,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "OpponentReach",
+      "monchi": "OpponentReach",
       "source": "dll/src/modules/combat/Counters.hpp",
       "game_calls": [
         "distance",
@@ -1745,7 +1745,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "PackChanger",
+      "monchi": "PackChanger",
       "source": "dll/src/modules/comfort/Packs.hpp",
       "game_calls": [],
       "effects": [],
@@ -1754,7 +1754,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "PackDisplay",
+      "monchi": "PackDisplay",
       "source": "dll/src/modules/hud/GameInfo.hpp",
       "game_calls": [
         "demo",
@@ -1766,7 +1766,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "Paperdoll",
+      "monchi": "Paperdoll",
       "source": "dll/src/modules/hud/Paperdoll.hpp",
       "game_calls": [
         "events",
@@ -1790,7 +1790,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "PerformanceLock",
+      "monchi": "PerformanceLock",
       "source": "dll/src/modules/perf/PerformanceLock.hpp",
       "game_calls": [],
       "effects": [],
@@ -1799,7 +1799,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "Pet",
+      "monchi": "Pet",
       "source": "dll/src/modules/fun/Pets.hpp",
       "game_calls": [
         "events",
@@ -1811,7 +1811,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "Petals",
+      "monchi": "Petals",
       "source": "dll/src/modules/fun/Pets.hpp",
       "game_calls": [],
       "effects": [],
@@ -1820,7 +1820,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "PingCounter",
+      "monchi": "PingCounter",
       "source": "dll/src/modules/network/PingCounter.hpp",
       "game_calls": [],
       "effects": [],
@@ -1836,7 +1836,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "PlayerNotifier",
+      "monchi": "PlayerNotifier",
       "source": "dll/src/modules/comfort/Chat.hpp",
       "game_calls": [
         "state"
@@ -1859,7 +1859,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "Pomodoro",
+      "monchi": "Pomodoro",
       "source": "dll/src/modules/hud/Pomodoro.hpp",
       "game_calls": [],
       "effects": [],
@@ -1868,7 +1868,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "PotCounter",
+      "monchi": "PotCounter",
       "source": "dll/src/modules/hud/Inventory.hpp",
       "game_calls": [],
       "effects": [],
@@ -1886,7 +1886,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "PotionHud",
+      "monchi": "PotionHud",
       "source": "dll/src/modules/hud/Inventory.hpp",
       "game_calls": [
         "state"
@@ -1910,7 +1910,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "ProfileHotkeys",
+      "monchi": "ProfileHotkeys",
       "source": "dll/src/modules/comfort/Toggles.hpp",
       "game_calls": [],
       "effects": [],
@@ -1919,7 +1919,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "ReachCounter",
+      "monchi": "ReachCounter",
       "source": "dll/src/modules/combat/Counters.hpp",
       "game_calls": [
         "state"
@@ -1943,7 +1943,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "RenderOptions",
+      "monchi": "RenderOptions",
       "source": "dll/src/modules/perf/RenderOptions.hpp",
       "game_calls": [],
       "effects": [
@@ -1996,7 +1996,7 @@
       ]
     },
     {
-      "mochi": "SaturationHue",
+      "monchi": "SaturationHue",
       "source": "dll/src/modules/post/Effects.hpp",
       "game_calls": [],
       "effects": [],
@@ -2005,7 +2005,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "ScoreboardPlus",
+      "monchi": "ScoreboardPlus",
       "source": "dll/src/modules/comfort/Chat.hpp",
       "game_calls": [
         "state"
@@ -2020,7 +2020,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "ScreenTint",
+      "monchi": "ScreenTint",
       "source": "dll/src/modules/post/Effects.hpp",
       "game_calls": [],
       "effects": [],
@@ -2029,7 +2029,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "Screenshot",
+      "monchi": "Screenshot",
       "source": "dll/src/modules/comfort/Screenshot.hpp",
       "game_calls": [],
       "effects": [],
@@ -2038,7 +2038,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "SensMultiplier",
+      "monchi": "SensMultiplier",
       "source": "dll/src/modules/combat/Tweaks.hpp",
       "game_calls": [
         "state"
@@ -2063,7 +2063,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "ServerInfo",
+      "monchi": "ServerInfo",
       "source": "dll/src/modules/hud/ServerInfo.hpp",
       "game_calls": [],
       "effects": [],
@@ -2072,7 +2072,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "ServerProfiles",
+      "monchi": "ServerProfiles",
       "source": "dll/src/modules/server/ServerProfiles.hpp",
       "game_calls": [],
       "effects": [],
@@ -2081,7 +2081,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "SessionStats",
+      "monchi": "SessionStats",
       "source": "dll/src/modules/combat/Counters.hpp",
       "game_calls": [
         "resetCombat",
@@ -2095,7 +2095,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "SessionTimer",
+      "monchi": "SessionTimer",
       "source": "dll/src/modules/hud/SessionTimer.hpp",
       "game_calls": [],
       "effects": [],
@@ -2104,7 +2104,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "ShaderPacks",
+      "monchi": "ShaderPacks",
       "source": "dll/src/modules/post/Effects.hpp",
       "game_calls": [],
       "effects": [],
@@ -2113,7 +2113,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "Sharpen",
+      "monchi": "Sharpen",
       "source": "dll/src/modules/post/Effects.hpp",
       "game_calls": [],
       "effects": [],
@@ -2122,7 +2122,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "SigStatus",
+      "monchi": "SigStatus",
       "source": "dll/src/modules/client/SigStatus.hpp",
       "game_calls": [
         "demo",
@@ -2137,7 +2137,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "Snake",
+      "monchi": "Snake",
       "source": "dll/src/modules/fun/Snake.hpp",
       "game_calls": [],
       "effects": [],
@@ -2146,7 +2146,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "SnapLook",
+      "monchi": "SnapLook",
       "source": "dll/src/modules/combat/Tweaks.hpp",
       "game_calls": [],
       "effects": [
@@ -2168,7 +2168,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "SpeedDisplay",
+      "monchi": "SpeedDisplay",
       "source": "dll/src/modules/hud/GameInfo.hpp",
       "game_calls": [
         "state"
@@ -2190,7 +2190,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "StatsHud",
+      "monchi": "StatsHud",
       "source": "dll/src/modules/hud/Compose.hpp",
       "game_calls": [
         "has",
@@ -2205,7 +2205,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "Stopwatch",
+      "monchi": "Stopwatch",
       "source": "dll/src/modules/hud/Stopwatch.hpp",
       "game_calls": [],
       "effects": [],
@@ -2224,7 +2224,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "StreamerMode",
+      "monchi": "StreamerMode",
       "source": "dll/src/modules/comfort/Streamer.hpp",
       "game_calls": [],
       "effects": [],
@@ -2233,7 +2233,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "SystemBoost",
+      "monchi": "SystemBoost",
       "source": "dll/src/modules/perf/SystemBoost.hpp",
       "game_calls": [],
       "effects": [],
@@ -2242,7 +2242,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "TabList",
+      "monchi": "TabList",
       "source": "dll/src/modules/comfort/Chat.hpp",
       "game_calls": [
         "state"
@@ -2266,7 +2266,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "TargetHud",
+      "monchi": "TargetHud",
       "source": "dll/src/modules/combat/Target.hpp",
       "game_calls": [
         "state"
@@ -2279,7 +2279,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "TextHotkey",
+      "monchi": "TextHotkey",
       "source": "dll/src/modules/comfort/Toggles.hpp",
       "game_calls": [],
       "effects": [],
@@ -2297,7 +2297,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "ThirdPersonNametag",
+      "monchi": "ThirdPersonNametag",
       "source": "dll/src/modules/world/Entities.hpp",
       "game_calls": [
         "distance",
@@ -2324,7 +2324,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "TntTimer",
+      "monchi": "TntTimer",
       "source": "dll/src/modules/world/Entities.hpp",
       "game_calls": [
         "project",
@@ -2347,7 +2347,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "ToggleSneak",
+      "monchi": "ToggleSneak",
       "source": "dll/src/modules/comfort/Toggles.hpp",
       "game_calls": [],
       "effects": [],
@@ -2356,7 +2356,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "ToggleSprint",
+      "monchi": "ToggleSprint",
       "source": "dll/src/modules/comfort/Toggles.hpp",
       "game_calls": [],
       "effects": [],
@@ -2365,7 +2365,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "TotemCounter",
+      "monchi": "TotemCounter",
       "source": "dll/src/modules/hud/Inventory.hpp",
       "game_calls": [
         "state"
@@ -2385,7 +2385,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "TotemPop",
+      "monchi": "TotemPop",
       "source": "dll/src/modules/combat/Feedback.hpp",
       "game_calls": [
         "events",
@@ -2399,7 +2399,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "UpsideDown",
+      "monchi": "UpsideDown",
       "source": "dll/src/modules/post/FunEffects.hpp",
       "game_calls": [],
       "effects": [],
@@ -2417,7 +2417,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "ViewModel",
+      "monchi": "ViewModel",
       "source": "dll/src/modules/world/World.hpp",
       "game_calls": [],
       "effects": [
@@ -2441,7 +2441,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "Waila",
+      "monchi": "Waila",
       "source": "dll/src/modules/combat/Target.hpp",
       "game_calls": [
         "state"
@@ -2463,7 +2463,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "Watermark",
+      "monchi": "Watermark",
       "source": "dll/src/modules/hud/Compose.hpp",
       "game_calls": [],
       "effects": [],
@@ -2472,7 +2472,7 @@
       "status": "source comparison; in-game effect unverified"
     },
     {
-      "mochi": "Waypoints",
+      "monchi": "Waypoints",
       "source": "dll/src/modules/world/Waypoints.hpp",
       "game_calls": [
         "distance",
@@ -2502,7 +2502,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "ZeqaUtils",
+      "monchi": "ZeqaUtils",
       "source": "dll/src/modules/server/Zeqa.hpp",
       "game_calls": [
         "events",
@@ -2526,7 +2526,7 @@
       "flarial_options": []
     },
     {
-      "mochi": "Zoom",
+      "monchi": "Zoom",
       "source": "dll/src/modules/camera/Camera.hpp",
       "game_calls": [
         "has",

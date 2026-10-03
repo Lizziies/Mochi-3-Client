@@ -1,4 +1,4 @@
-# Mochi
+# Monchi
 
 A free PvP client for Minecraft Bedrock Edition on Windows (GDK builds). It comes as a small launcher plus a DLL that gets injected into the game. Working title, the name will change before the first real release.
 
@@ -15,11 +15,11 @@ It's an alpha. The menu, the HUD, the post effects, the latency tools and the se
 
 ## Using it
 
-1. Download `MochiLauncher.exe` from the releases page.
+1. Download `MonchiLauncher.exe` from the releases page.
 2. Press Play. The launcher updates the client, starts Minecraft and injects it.
 3. Press Right Shift in game to open the menu. Ctrl+L unloads the client.
 
-Older Minecraft versions: the Versions page can download and start [LeviLauncher](https://github.com/LiteLDev/LeviLauncher), which installs and switches game versions with your own Minecraft license. Mochi attaches to whatever version is running. We don't ship or host any Minecraft files.
+Older Minecraft versions: the Versions page can download and start [LeviLauncher](https://github.com/LiteLDev/LeviLauncher), which installs and switches game versions with your own Minecraft license. Monchi attaches to whatever version is running. We don't ship or host any Minecraft files.
 
 ## Building
 
@@ -40,7 +40,7 @@ tools/cross.sh build
 tools/cross.sh shots
 ```
 
-`MOCHI_SELFTEST=1` makes the client switch every module on with demo data, poke its settings and report anything that breaks or has no German text.
+`MONCHI_SELFTEST=1` makes the client switch every module on with demo data, poke its settings and report anything that breaks or has no German text.
 
 ## Docs
 

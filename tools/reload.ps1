@@ -18,7 +18,7 @@ Add-Type -Namespace Reload -Name Native -MemberDefinition @'
 [DllImport("user32.dll")] public static extern bool SetForegroundWindow(System.IntPtr h);
 [DllImport("user32.dll")] public static extern void keybd_event(byte vk, byte scan, uint flags, System.UIntPtr extra);
 '@
-$loaded = { ($mc.Refresh()); @($mc.Modules | Where-Object { $_.ModuleName -like 'Mochi*.dll' }).Count -gt 0 }
+$loaded = { ($mc.Refresh()); @($mc.Modules | Where-Object { $_.ModuleName -like 'Monchi*.dll' }).Count -gt 0 }
 if (& $loaded) {
     [Reload.Native]::SetForegroundWindow($mc.MainWindowHandle) | Out-Null
     Start-Sleep -Milliseconds 300
@@ -31,7 +31,7 @@ if (& $loaded) {
     if (& $loaded) { Write-Host 'client did not unload'; exit 1 }
 }
 
-if ($UnloadOnly) { Write-Host 'Mochi unloaded; no injection'; exit 0 }
+if ($UnloadOnly) { Write-Host 'Monchi unloaded; no injection'; exit 0 }
 
 $inj = @('-NoProfile', '-File', (Join-Path $PSScriptRoot 'inject.ps1'), '-ProcessId', $mc.Id)
 if ($Dev) { $inj += '-Dev' }

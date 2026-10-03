@@ -3,7 +3,7 @@
 namespace {
 
 const i18n::Entry entries[] = {
-    {"Mochi connects to whichever Minecraft version you start.", "Mochi verbindet sich mit jeder Minecraft-Version, die du startest."},
+    {"Monchi connects to whichever Minecraft version you start.", "Monchi verbindet sich mit jeder Minecraft-Version, die du startest."},
     {"Version manager", "Versionsverwaltung"},
     {"LeviLauncher installs and switches Minecraft versions, including older ones.", "LeviLauncher installiert und wechselt Minecraft-Versionen, auch ältere."},
     {"Free open source tool by LiteLDev (GPL-3.0). You need a legitimate Minecraft license.", "Kostenloses Open-Source-Tool von LiteLDev (GPL-3.0). Du brauchst eine eigene Minecraft-Lizenz."},
@@ -32,11 +32,11 @@ const i18n::Entry entries[] = {
     {"Untested", "Nicht getestet"},
     {"Which Minecraft version do you want to play?", "Mit welcher Minecraft-Version möchtest du spielen?"},
     {"Installed", "Installiert"},
-    {"Mochi compatible", "Mochi-kompatibel"},
-    {"Pick the Minecraft version Mochi starts. It is remembered for next time.", "Wähle die Minecraft-Version, die Mochi startet. Sie wird für das nächste Mal gemerkt."},
+    {"Monchi compatible", "Monchi-kompatibel"},
+    {"Pick the Minecraft version Monchi starts. It is remembered for next time.", "Wähle die Minecraft-Version, die Monchi startet. Sie wird für das nächste Mal gemerkt."},
     {"Download older versions", "Ältere Versionen laden"},
     {"LeviLauncher downloads versions with your own license.", "LeviLauncher lädt Versionen mit deiner eigenen Lizenz."},
-    {"Free tool by LiteLDev (GPL-3.0). Mochi finds what it installs.", "Kostenloses Tool von LiteLDev (GPL-3.0). Mochi findet, was es installiert."},
+    {"Free tool by LiteLDev (GPL-3.0). Monchi finds what it installs.", "Kostenloses Tool von LiteLDev (GPL-3.0). Monchi findet, was es installiert."},
     {"Installed on this PC", "Auf diesem PC installiert"},
     {"Rescan", "Neu suchen"},
     {"Add folder", "Ordner hinzufügen"},
@@ -60,7 +60,7 @@ const i18n::Entry entries[] = {
     {"Leave empty for the normal version.", "Leer lassen für die normale Version."},
     {"Browse", "Suchen"},
     {"Free PvP client for Minecraft Bedrock on Windows.", "Kostenloser PvP-Client für Minecraft Bedrock auf Windows."},
-    {"Mochi is an independent project and is not affiliated with Mojang or Microsoft.", "Mochi ist ein unabhängiges Projekt und gehört nicht zu Mojang oder Microsoft."},
+    {"Monchi is an independent project and is not affiliated with Mojang or Microsoft.", "Monchi ist ein unabhängiges Projekt und gehört nicht zu Mojang oder Microsoft."},
     {"The client only adds helpful displays and gives no unfair advantage.", "Der Client zeigt nur Hilfen an und gibt keine unfairen Vorteile."},
     {"Your antivirus may warn about injectors. That is normal, only download from the official page.", "Dein Antivirus kann bei Injektoren warnen. Das ist normal, lade nur von der offiziellen Seite."},
     {"Open logs", "Logs öffnen"},

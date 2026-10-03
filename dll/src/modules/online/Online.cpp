@@ -112,7 +112,7 @@ Reply post(const std::string& base, const std::string& path, const json& body, c
     std::wstring target = prefix + logger::widen(path);
     bool secure = parts.nScheme == INTERNET_SCHEME_HTTPS;
 
-    HINTERNET session = WinHttpOpen(L"Mochi", WINHTTP_ACCESS_TYPE_AUTOMATIC_PROXY, WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0);
+    HINTERNET session = WinHttpOpen(L"Monchi", WINHTTP_ACCESS_TYPE_AUTOMATIC_PROXY, WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0);
     if (!session) return r;
     WinHttpSetTimeouts(session, 4000, 4000, 4000, 4000);
     HINTERNET conn = WinHttpConnect(session, host.c_str(), parts.nPort, 0);
@@ -203,7 +203,7 @@ User userFrom(const json& j) {
 const uint32_t demoColors[] = {0xff7eb6, 0x7ec8ff, 0xffd27e, 0x8be8b0, 0xc77dff, 0xff6b6b};
 
 bool demoMember(const std::string& name) {
-    static const char* fixed[] = {"luna", "kiki", "teammate", "finn", "mochiplayer"};
+    static const char* fixed[] = {"luna", "kiki", "teammate", "finn", "monchiplayer"};
     std::string n = lower(name);
     return std::any_of(std::begin(fixed), std::end(fixed), [&](const char* f) { return n == f; }) || fnv(n) % 6 == 0;
 }
@@ -229,7 +229,7 @@ void rebuildDemo(const Snapshot& s) {
     std::scoped_lock g(lock);
     known = std::move(fresh);
     current = State::Demo;
-    detail = i18n::tr("Showing made-up Mochi users, nothing is sent.");
+    detail = i18n::tr("Showing made-up Monchi users, nothing is sent.");
 }
 
 struct Net {
@@ -246,7 +246,7 @@ struct Net {
 
 void fail(Net& net, int status, int backoff) {
     if (status == 401) net.token.clear();
-    if (status == 403) setState(State::Claimed, i18n::tr("This gamertag is registered by another Mochi install."));
+    if (status == 403) setState(State::Claimed, i18n::tr("This gamertag is registered by another Monchi install."));
     else setState(State::Offline, status ? i18n::fmt("Service answered {}.", status) : i18n::tr("Service not reachable."));
     net.nextTry = Clock::now() + std::chrono::seconds(backoff);
 }

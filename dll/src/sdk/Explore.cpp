@@ -1,7 +1,7 @@
 #include "Explore.hpp"
 #include "Memory.hpp"
 
-#ifdef MOCHI_DEV
+#ifdef MONCHI_DEV
 
 #include "core/Log.hpp"
 #include "core/Paths.hpp"
@@ -857,10 +857,10 @@ void work(std::string name) {
 
 void run(const std::string& name) {
     if (scriptDir.empty()) {
-        std::ifstream in(paths::dllDir() / L"Mochi.explore");
+        std::ifstream in(paths::dllDir() / L"Monchi.explore");
         std::string dir;
         if (!in || !std::getline(in, dir) || dir.empty()) {
-            logger::warn("explore: no Mochi.explore marker next to the dll");
+            logger::warn("explore: no Monchi.explore marker next to the dll");
             return;
         }
         while (!dir.empty() && (dir.back() == '\r' || dir.back() == ' ')) dir.pop_back();

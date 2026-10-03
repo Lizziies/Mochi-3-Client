@@ -255,7 +255,7 @@ void sidebar(ImDrawList* dl, State& s, Events& ev) {
     dl->AddRectFilled({0, 0}, {232.f, height}, col(side));
     dl->AddLine({232.f, 0.f}, {232.f, height}, col(border, 0.7f));
     pixelHeart(dl, {28.f, 26.f}, 4.f);
-    label(dl, bold, 28.f, {84.f, 28.f}, col(text), "Mochi");
+    label(dl, bold, 28.f, {84.f, 28.f}, col(text), "Monchi");
 
     struct Item { const char* name; Icon icon; Page page; };
     const Item items[] = {
@@ -363,7 +363,7 @@ void infoCard(ImDrawList* dl, State& s, Events& ev) {
     label(dl, bold, 18.f, {min.x + 22.f, min.y + 18.f}, col(text), "Status");
 
     float y = min.y + 62.f;
-    label(dl, regular, 14.f, {min.x + 22.f, y}, col(dim), "Mochi");
+    label(dl, regular, 14.f, {min.x + 22.f, y}, col(dim), "Monchi");
     label(dl, bold, 18.f, {min.x + 22.f, y + 20.f}, col(text), s.clientVersion.c_str());
     if (s.updateAvailable) chip(dl, {max.x - 22.f - chipWidth("Update"), y + 8.f}, "Update", warn);
     else chip(dl, {max.x - 22.f - chipWidth(tr("Current")), y + 8.f}, tr("Current"), ok);
@@ -417,7 +417,7 @@ std::string shortPath(const std::string& path, float width) {
 void versions(ImDrawList* dl, State& s, Events& ev) {
     {
         Reveal r(dl, 0);
-        header(dl, tr("Versions"), tr("Pick the Minecraft version Mochi starts. It is remembered for next time."));
+        header(dl, tr("Versions"), tr("Pick the Minecraft version Monchi starts. It is remembered for next time."));
     }
 
     {
@@ -427,7 +427,7 @@ void versions(ImDrawList* dl, State& s, Events& ev) {
         icon(dl, Icon::Layers, {min.x + 36.f, min.y + 32.f}, col(accent2));
         label(dl, bold, 18.f, {min.x + 62.f, min.y + 12.f}, col(text), tr("Download older versions"));
         label(dl, regular, 13.f, {min.x + 62.f, min.y + 38.f}, col(dim), tr("LeviLauncher downloads versions with your own license."));
-        label(dl, regular, 13.f, {min.x + 62.f, min.y + 58.f}, col(dim), tr("Free tool by LiteLDev (GPL-3.0). Mochi finds what it installs."));
+        label(dl, regular, 13.f, {min.x + 62.f, min.y + 58.f}, col(dim), tr("Free tool by LiteLDev (GPL-3.0). Monchi finds what it installs."));
 
         float by = min.y + 26.f;
         if (s.managerBusy) {
@@ -470,7 +470,7 @@ void versions(ImDrawList* dl, State& s, Events& ev) {
             chip(dl, {cx, min.y + 28.f}, "Preview", accent2);
             cx += chipWidth("Preview") + 6.f;
         }
-        if (v.supported) chip(dl, {cx, min.y + 28.f}, tr("Mochi compatible"), ok);
+        if (v.supported) chip(dl, {cx, min.y + 28.f}, tr("Monchi compatible"), ok);
         else chip(dl, {cx, min.y + 28.f}, tr("Untested"), warn);
         if (!v.path.empty()) {
             float x = min.x + 22.f + measure(bold, 18.f, name.c_str()).x + 14.f;
@@ -595,8 +595,8 @@ void settings(ImDrawList* dl, State& s, Events& ev) {
         ImVec2 min{264.f, 496.f}, max{928.f, 580.f};
         card(dl, min, max);
         pixelHeart(dl, {min.x + 20.f, min.y + 14.f}, 3.f);
-        label(dl, bold, 16.f, {min.x + 62.f, min.y + 10.f}, col(text), (std::string("Mochi Launcher ") + build::version).c_str());
-        label(dl, regular, 13.f, {min.x + 62.f, min.y + 31.f}, col(dim), tr("Mochi is an independent project and is not affiliated with Mojang or Microsoft."));
+        label(dl, bold, 16.f, {min.x + 62.f, min.y + 10.f}, col(text), (std::string("Monchi Launcher ") + build::version).c_str());
+        label(dl, regular, 13.f, {min.x + 62.f, min.y + 31.f}, col(dim), tr("Monchi is an independent project and is not affiliated with Mojang or Microsoft."));
         if (button("logs", {min.x + 22.f, max.y - 32.f}, {min.x + 162.f, max.y - 8.f}, tr("Open logs"), false)) ev.openLogs = true;
         if (button("folder", {min.x + 172.f, max.y - 32.f}, {min.x + 312.f, max.y - 8.f}, tr("Open folder"), false)) ev.openFolder = true;
     }

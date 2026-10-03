@@ -182,7 +182,7 @@ private:
     Setting& style_ = choice("style", "Style", {"Text", "Pill", "Gradient"}, 2);
     Setting& heart_ = toggleSetting("heart", "Heart", true);
     Setting& custom_ = toggleSetting("custom", "Custom text", false);
-    Setting& text_ = textSetting("text", "Text", "Mochi");
+    Setting& text_ = textSetting("text", "Text", "Monchi");
     Setting& version_ = toggleSetting("version", "Version", true);
     Setting& fps_ = toggleSetting("fps", "FPS behind it", false);
     double frameMs_ = 0.0;
@@ -199,7 +199,7 @@ public:
         graphAnchor_.visible = [this] { return graph_.b; };
         graphLines_.visible = [this] { return graph_.b; };
         graphFrames_.visible = [this] { return graph_.b; };
-        channels_.visible = [this] { return mochi_.b; };
+        channels_.visible = [this] { return monchi_.b; };
     }
 
     void onKey(KeyEvent& ev) override {
@@ -322,10 +322,10 @@ public:
             right.push_back(std::format("{:02}:{:02}:{:02}", tm.tm_hour, tm.tm_min, tm.tm_sec));
             right.push_back(i18n::fmt("Game running for {}", text::clock(float(sysinfo::processUptimeSeconds()))));
         }
-        if (mochi_.b) {
+        if (monchi_.b) {
             auto stats = sigs::stats();
             gap(right);
-            head(right, "Mochi");
+            head(right, "Monchi");
             right.push_back(std::format("Minecraft {}", stats.gameVersion));
             right.push_back(i18n::fmt("Signatures: {}/{} ({})", stats.found, stats.total, stats.source));
             if (game::demo()) right.push_back(i18n::tr("Demo data on"));
@@ -404,7 +404,7 @@ private:
     Setting& system_ = toggleSetting("system", "System block", true);
     Setting& server_ = toggleSetting("serverBlock", "Server block", true);
     Setting& times_ = toggleSetting("times", "Time block", true);
-    Setting& mochi_ = toggleSetting("mochi", "Mochi block", true);
+    Setting& monchi_ = toggleSetting("mochi", "Monchi block", true);
     Setting& channels_ = toggleSetting("channels", "Show active effect channels", true);
     Setting& graph_ = toggleSetting("graph", "Frametime graph", true);
     Setting& graphWidth_ = slider("graphWidth", "Graph width", 240.f, 100.f, 600.f, "%.0f");

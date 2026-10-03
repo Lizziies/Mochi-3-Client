@@ -1,4 +1,5 @@
 #include "Paths.hpp"
+#include "DataDir.hpp"
 
 #include <windows.h>
 #include <shlobj.h>
@@ -21,7 +22,7 @@ void init(void* module) {
     GetModuleFileNameW(static_cast<HMODULE>(module), buf, MAX_PATH);
     moduleDir = fs::path(buf).parent_path();
 
-    std::wifstream override(moduleDir / L"Mochi.root");
+    std::wifstream override(moduleDir / L"Monchi.root");
     std::wstring custom;
     if (override && std::getline(override, custom) && !custom.empty()) {
         rootDir = fs::path(custom);
@@ -29,13 +30,8 @@ void init(void* module) {
         return;
     }
 
-    PWSTR local = nullptr;
-    if (SUCCEEDED(SHGetKnownFolderPath(FOLDERID_LocalAppData, 0, nullptr, &local))) {
-        rootDir = fs::path(local) / L"Mochi";
-        CoTaskMemFree(local);
-    } else {
-        rootDir = moduleDir / L"MochiData";
-    }
+    rootDir = dataDir();
+    if (rootDir.empty()) rootDir = moduleDir / L"MonchiData";
     ensure(rootDir);
 }
 

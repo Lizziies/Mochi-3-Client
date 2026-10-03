@@ -71,7 +71,7 @@ std::vector<Install> scan(const std::vector<std::filesystem::path>& extra) {
     std::vector<std::filesystem::path> roots = extra;
     for (auto& base : {known(FOLDERID_LocalAppData, L"Programs\\LeviLauncher"), known(FOLDERID_LocalAppData, L"LeviLauncher"),
                        known(FOLDERID_RoamingAppData, L"LeviLauncher"), known(FOLDERID_Documents, L"LeviLauncher"),
-                       known(FOLDERID_LocalAppData, L"Mochi\\versions")})
+                       known(FOLDERID_LocalAppData, L"Monchi\\versions")})
         if (!base.empty()) roots.push_back(base);
 
     std::vector<Install> out;

@@ -92,7 +92,7 @@ private:
     }
 
     Setting& tag_ = toggleSetting("tag", "Client tag behind my name", true);
-    Setting& tagText_ = textSetting("tagText", "Tag text", "Mochi <3");
+    Setting& tagText_ = textSetting("tagText", "Tag text", "Monchi <3");
     Setting& tagColor_ = colorSetting("tagColor", "Tag color", {0.23f, 0.65f, 0.93f, 1.f});
     Setting& tagPos_ = choice("tagPos", "Tag position", {"Inside the name brackets", "Before the message"});
     Setting& brackets_ = toggleSetting("brackets", "Tag in brackets", true);

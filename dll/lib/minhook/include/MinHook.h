@@ -99,7 +99,7 @@ extern "C" {
     // ONCE at the end of your program.
     MH_STATUS WINAPI MH_Uninitialize(VOID);
 
-    // Mochi: disables all hooks and points every relay at its trampoline,
+    // Monchi: disables all hooks and points every relay at its trampoline,
     // keeping the memory, so jumps copied by other hookers stay valid.
     MH_STATUS WINAPI MH_Park(VOID);
 

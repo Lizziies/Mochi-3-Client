@@ -15,7 +15,7 @@
 class Screenshot : public Module {
 public:
     Screenshot()
-        : Module("Screenshot+", "Screenshot on a key, with or without the Mochi HUD, as PNG or JPEG.",
+        : Module("Screenshot+", "Screenshot on a key, with or without the Monchi HUD, as PNG or JPEG.",
                  Category::Comfort, {"cosmetic"}) {
         sub("Capture");
         quality_.visible = [this] { return format_.i == 1; };
@@ -69,7 +69,7 @@ private:
         if (!folder_.text.empty()) return std::filesystem::path(logger::widen(folder_.text));
         wchar_t home[MAX_PATH]{};
         GetEnvironmentVariableW(L"USERPROFILE", home, MAX_PATH);
-        return std::filesystem::path(home) / L"Pictures" / L"Mochi";
+        return std::filesystem::path(home) / L"Pictures" / L"Monchi";
     }
 
     void finish(capture::Image img) {
@@ -81,22 +81,22 @@ private:
         SYSTEMTIME t;
         GetLocalTime(&t);
         std::string stamp = std::format("{:04}-{:02}-{:02}_{:02}-{:02}-{:02}", t.wYear, t.wMonth, t.wDay, t.wHour, t.wMinute, t.wSecond);
-        std::string base = name_.text.empty() ? "Mochi" : name_.text;
+        std::string base = name_.text.empty() ? "Monchi" : name_.text;
         const char* ext = format_.i == 1 ? ".jpg" : ".png";
         capture::save(std::move(img), folder() / std::filesystem::path(base + "_" + stamp + ext),
                       format_.i == 1 ? capture::Format::Jpeg : capture::Format::Png, quality_.i);
     }
 
     Setting& key_ = keySetting("shot", "Capture key", VK_F9);
-    Setting& stage_ = choice("stage", "Content", {"With Mochi HUD", "Without Mochi HUD"});
+    Setting& stage_ = choice("stage", "Content", {"With Monchi HUD", "Without Monchi HUD"});
     Setting& format_ = choice("format", "Format", {"PNG", "JPEG"});
     Setting& quality_ = intSlider("quality", "JPEG quality", 92, 50, 100);
     Setting& delay_ = slider("delay", "Delay (s)", 0.f, 0.f, 10.f, "%.1f s");
     Setting& file_ = toggleSetting("file", "Save as file", true);
     Setting& clipboard_ = toggleSetting("clipboard", "Copy to the clipboard", false);
     Setting& toast_ = toggleSetting("toast", "Show notice", true);
-    Setting& folder_ = textSetting("folder", "Folder (empty = Pictures\\Mochi)", "");
-    Setting& name_ = textSetting("name", "File name", "Mochi");
+    Setting& folder_ = textSetting("folder", "Folder (empty = Pictures\\Monchi)", "");
+    Setting& name_ = textSetting("name", "File name", "Monchi");
     double due_ = 0.0;
     bool armed_ = false;
 };

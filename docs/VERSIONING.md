@@ -41,11 +41,11 @@ Beim Start Version aus der Exe-Ressource (`VS_FIXEDFILEINFO`) lesen, zusätzlich
 - `rel: "func"` liefert diese Funktion, `rel: "vtable"` die vtable (Adresse von Slot 0), in der die Funktion an Position `slot` steht. `slot` ist der Index, den die Analyse ergeben hat. So braucht es keine Heuristik für den Anfang der vtable.
 - `vtable` und `index`: die Funktion in Slot `index` einer vtable, die ein anderer Eintrag geliefert hat.
 - `occurrence`: welcher Treffer, wenn der Anker nicht eindeutig ist (sortiert nach Adresse, Standard 0, es kommt eine Warnung). `add`: Verschiebung am Ergebnis.
-- Gefunden, gecacht und geloggt wie die Byte-Muster. Unter Wine ist der Auflöser mit `selftest: image resolver ok` abgesichert (`dll/src/sig/ImageCheck.cpp` prüft ihn an einer Klasse mit bekannter Anordnung in der DLL selbst). `MOCHI_SIGCHECK=1` (Umgebungsvariable vor dem Start) schreibt für jeden Eintrag eine Zeile `sigcheck <Name>: ok, rva ...` oder `not found` ins Log, damit sich eine neue `sigs/<version>.json` ehrlich prüfen lässt. Ob er an der echten Minecraft-Exe dieselben Funktionen findet wie der Dev-Explorer, ist am PC zu prüfen.
+- Gefunden, gecacht und geloggt wie die Byte-Muster. Unter Wine ist der Auflöser mit `selftest: image resolver ok` abgesichert (`dll/src/sig/ImageCheck.cpp` prüft ihn an einer Klasse mit bekannter Anordnung in der DLL selbst). `MONCHI_SIGCHECK=1` (Umgebungsvariable vor dem Start) schreibt für jeden Eintrag eine Zeile `sigcheck <Name>: ok, rva ...` oder `not found` ins Log, damit sich eine neue `sigs/<version>.json` ehrlich prüfen lässt. Ob er an der echten Minecraft-Exe dieselben Funktionen findet wie der Dev-Explorer, ist am PC zu prüfen.
 
 ### 3. Laden
 1. Mitgelieferte `sigs/` im DLL-Ordner.
-2. Cache `%LOCALAPPDATA%\Mochi\cache\sigs\`.
+2. Cache `%LOCALAPPDATA%\Monchi\cache\sigs\`.
 3. GitHub raw (`https://raw.githubusercontent.com/<user>/<repo>/main/sigs/<version>.json`), wenn neuer, mit SHA256-Prüfung gegen eine signierte Indexdatei.
 
 Ein Sig-Fix ist damit ein Commit in `sigs/`. Alle Spieler bekommen ihn beim nächsten Start, ohne neues Release.
@@ -80,12 +80,12 @@ Weil alle alten Versionen in `sigs/` bleiben und sich vererben, funktioniert der
   - Jede Version in eigenem Ordner, optional getrennte Welten/Configs (Isolation).
   - Gepinnte Versionen vor Zwangs-Updates schützen.
   - Release und Preview.
-  - Im Launcher pro Version anzeigen, ob Mochi sie unterstützt (gibt es `sigs/<version>.json`?).
+  - Im Launcher pro Version anzeigen, ob Monchi sie unterstützt (gibt es `sigs/<version>.json`?).
 
 ## Auto-Update des Clients
 
 - Launcher fragt beim Start `GET https://api.github.com/repos/<user>/<repo>/releases/latest`.
-- Neuer Tag → Assets `Mochi.dll`, `MochiLauncher.exe`, `checksums.txt` laden, SHA256 prüfen.
-- DLL ersetzen. Launcher: neue Exe als `MochiLauncher.new.exe` speichern, neu starten, die alte im neuen Prozess löschen.
+- Neuer Tag → Assets `Monchi.dll`, `MonchiLauncher.exe`, `checksums.txt` laden, SHA256 prüfen.
+- DLL ersetzen. Launcher: neue Exe als `MonchiLauncher.new.exe` speichern, neu starten, die alte im neuen Prozess löschen.
 - Kanal-Wahl: Stable / Beta (Pre-Releases).
 - Die DLL prüft zusätzlich nur `sigs/` (siehe oben), lädt aber nie selbst Code nach.

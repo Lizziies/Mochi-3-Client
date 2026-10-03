@@ -41,8 +41,8 @@ std::optional<Release> parse(const json& j) {
     for (auto& a : j.value("assets", json::array())) {
         std::string name = a.value("name", "");
         std::string url = a.value("browser_download_url", "");
-        if (name == "Mochi.dll") r.dllUrl = url;
-        else if (name == "MochiLauncher.exe") r.launcherUrl = url;
+        if (name == "Monchi.dll") r.dllUrl = url;
+        else if (name == "MonchiLauncher.exe") r.launcherUrl = url;
         else if (name == "checksums.txt") r.sumsUrl = url;
     }
     return r;
@@ -124,8 +124,8 @@ std::string installedTag() {
 
 bool installDll(const Release& r, const std::function<void(float)>& progress, std::string& error) {
     std::string sums = r.sumsUrl.empty() ? std::string() : net::get(r.sumsUrl).value_or("");
-    auto tmp = files::bin() / L"Mochi.dll.part";
-    if (!fetch(r.dllUrl, "Mochi.dll", sums, tmp, progress, error)) return false;
+    auto tmp = files::bin() / L"Monchi.dll.part";
+    if (!fetch(r.dllUrl, "Monchi.dll", sums, tmp, progress, error)) return false;
 
     if (!MoveFileExW(tmp.c_str(), files::dll().c_str(), MOVEFILE_REPLACE_EXISTING)) {
         std::error_code ec;
@@ -139,8 +139,8 @@ bool installDll(const Release& r, const std::function<void(float)>& progress, st
 
 bool swapLauncher(const Release& r, const std::function<void(float)>& progress, std::string& error) {
     std::string sums = r.sumsUrl.empty() ? std::string() : net::get(r.sumsUrl).value_or("");
-    auto next = files::root() / L"MochiLauncher.new.exe";
-    if (!fetch(r.launcherUrl, "MochiLauncher.exe", sums, next, progress, error)) return false;
+    auto next = files::root() / L"MonchiLauncher.new.exe";
+    if (!fetch(r.launcherUrl, "MonchiLauncher.exe", sums, next, progress, error)) return false;
 
     wchar_t self[MAX_PATH] = {};
     GetModuleFileNameW(nullptr, self, MAX_PATH);

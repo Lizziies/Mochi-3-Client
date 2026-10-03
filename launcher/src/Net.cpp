@@ -37,7 +37,7 @@ bool open(Request& r, const std::string& url, int timeoutMs) {
     uc.dwUrlPathLength = 2048;
     if (!WinHttpCrackUrl(wurl.c_str(), 0, 0, &uc)) return false;
 
-    r.session.h = WinHttpOpen(L"MochiLauncher", WINHTTP_ACCESS_TYPE_AUTOMATIC_PROXY, WINHTTP_NO_PROXY_NAME,
+    r.session.h = WinHttpOpen(L"MonchiLauncher", WINHTTP_ACCESS_TYPE_AUTOMATIC_PROXY, WINHTTP_NO_PROXY_NAME,
                               WINHTTP_NO_PROXY_BYPASS, 0);
     if (!r.session) return false;
     WinHttpSetTimeouts(r.session.h, timeoutMs, timeoutMs, timeoutMs, timeoutMs);

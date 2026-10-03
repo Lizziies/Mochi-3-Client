@@ -67,7 +67,7 @@
 #include "network/Network.hpp"
 #include "network/PingCounter.hpp"
 #include "network/Probe.hpp"
-#include "online/MochiOnline.hpp"
+#include "online/MonchiOnline.hpp"
 #include "perf/Auto.hpp"
 #include "perf/FrameLimiter.hpp"
 #include "perf/LowLatency.hpp"
@@ -242,7 +242,7 @@ void init() {
     add<DiscordPresence>();
     add<LuaScripts>();
     add<ConfigSharing>();
-    add<MochiOnline>();
+    add<MonchiOnline>();
     add<HotbarArmor>();
     add<FallPredictor>();
     add<InventoryView>();
@@ -282,7 +282,7 @@ void init() {
     for (auto& m : list)
         if (m->alwaysOn()) m->setEnabled(true);
 
-    if (const char* dump = std::getenv("MOCHI_DUMP_MODULES")) {
+    if (const char* dump = std::getenv("MONCHI_DUMP_MODULES")) {
         nlohmann::json out = nlohmann::json::array();
         for (auto& m : list) {
             int visible = 0;

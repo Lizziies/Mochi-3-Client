@@ -1,4 +1,4 @@
-# Mochi Client: Gesamtübersicht
+# Monchi Client: Gesamtübersicht
 
 Diese Datei ist der Einstieg. Wer neu in das Projekt kommt (Claude Code am PC, eine andere Session, ein Mensch), liest zuerst sie, dann `CLAUDE.md` und die Detail-Docs.
 
@@ -7,7 +7,7 @@ Diese Datei ist der Einstieg. Wer neu in das Projekt kommt (Claude Code am PC, e
 Der beste Minecraft-Bedrock-PvP-Client, den es gibt. Kostenlos, später auf GitHub veröffentlicht. Er soll Flarial, Onix, Latite und alle anderen in jedem Punkt übertreffen: Input-Latenz, UI, Animationen, Anzahl und Tiefe der Module, Updates, Stabilität.
 
 - Onix (bezahlt, 90+ eingebaute Module plus 125 Community-Module per Lua) soll in Funktionen und Gefühl nachgebaut werden, aber gratis. Name, Logo und Design von Onix nicht übernehmen.
-- Flarial (gratis, 140+ Module, AGPL-3.0): ansehen, verstehen, aber keinen Code kopieren. Sonst müsste Mochi auch AGPL sein.
+- Flarial (gratis, 140+ Module, AGPL-3.0): ansehen, verstehen, aber keinen Code kopieren. Sonst müsste Monchi auch AGPL sein.
 - Latite: gratis, JS-Plugins, Vergleichswert.
 - Maßstab für jedes Feature: "Ist das besser als bei den anderen?" Nur "funktioniert" reicht nicht.
 
@@ -27,7 +27,7 @@ Der beste Minecraft-Bedrock-PvP-Client, den es gibt. Kostenlos, später auf GitH
 - Version-Switcher im Launcher: jede Minecraft-Version installieren und umschalten. Siehe `VERSIONING.md`.
 - Auto-Update: Der Launcher prüft GitHub-Releases, lädt neue DLL und neue Launcher-Version selbst. Felix lädt nur ein Release hoch.
 - Pro Server werden verbotene Module automatisch gesperrt. Siehe `SERVERS.md`.
-- Clientname ist vorläufig "Mochi", vor dem Release umbenennen (global suchen/ersetzen).
+- Clientname ist vorläufig "Monchi", vor dem Release umbenennen (global suchen/ersetzen).
 - Alles Wichtige gehört in die Projektdateien, damit nichts verloren geht.
 
 ## Arbeitsteilung
@@ -45,7 +45,7 @@ Der beste Minecraft-Bedrock-PvP-Client, den es gibt. Kostenlos, später auf GitH
 - Jeder Hook läuft im Crash-Guard. Ein Modul mit Fehler wird abgeschaltet, nicht das Spiel.
 - Signaturen liegen als `sigs/<version>.json` auf GitHub und werden beim Start nachgeladen. Ein Fix nach einem MC-Update ist ein Commit, kein neues Release.
 - Launcher: C# .NET 8, Single-File-Exe, Injection per `LoadLibraryW` + `CreateRemoteThread`.
-- Config: `%LOCALAPPDATA%\Mochi\` (`configs/`, `themes/`, `scripts/`, `logs/`, `cache/sigs/`).
+- Config: `%LOCALAPPDATA%\Monchi\` (`configs/`, `themes/`, `scripts/`, `logs/`, `cache/sigs/`).
 
 Ordner im Repo:
 
@@ -98,7 +98,7 @@ Ordner im Repo:
 
 1. VS 2022 Build Tools, CMake, Git, .NET 8 installieren (siehe Phase 0 in `PLAN.md`).
 2. DLL bauen: siehe Build-Abschnitt in `CLAUDE.md`. Müssen Compile-Fehler behoben werden, das ist normal, da der Code hier nie mit MSVC gebaut wurde.
-3. Minecraft starten, per `tools/inject.ps1` oder Launcher injizieren. `%LOCALAPPDATA%\Mochi\logs\latest.log` lesen.
+3. Minecraft starten, per `tools/inject.ps1` oder Launcher injizieren. `%LOCALAPPDATA%\Monchi\logs\latest.log` lesen.
 4. Prüfen: Overlay sichtbar, Rechts-Shift öffnet Menü, Strg+L entlädt ohne Crash. Zuerst DX12, dann DX11 erzwingen.
 5. Alle Overlay-Module einzeln an- und ausschalten, HUD-Editor testen.
 6. Latenz-Overlay vorher/nachher mit den Optionen aus `INPUT.md` vergleichen.

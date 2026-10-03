@@ -78,7 +78,7 @@ std::string encode(const std::string& s) {
 std::wstring widen(const std::string& s) { return std::wstring(s.begin(), s.end()); }
 
 int fetch(const std::string& path, std::string& body) {
-    HINTERNET session = WinHttpOpen(L"Mochi", WINHTTP_ACCESS_TYPE_AUTOMATIC_PROXY, WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0);
+    HINTERNET session = WinHttpOpen(L"Monchi", WINHTTP_ACCESS_TYPE_AUTOMATIC_PROXY, WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0);
     if (!session) return 0;
     WinHttpSetTimeouts(session, 2000, 2000, 2000, 3000);
     int status = 0;

@@ -3,10 +3,10 @@
 ## Flarial-Quellbasis 2026-10-03
 
 Auf ausdrücklichen Nutzerwunsch wurde der Modulcode aus `flarialmc/dll-oss` kopiert;
-Commit und AGPL-3.0-Lizenz liegen in `vendor/flarial`. Der Nutzer möchte Mochis UI und
+Commit und AGPL-3.0-Lizenz liegen in `vendor/flarial`. Der Nutzer möchte Monchis UI und
 eigene Erweiterungen erhalten und die nativen Modul-Anbindungen aus Flarial adaptieren.
 
-- NametagModifier öffnet eine sechs Byte lange Self-Tag-Branch. Für Mochis Standardmodus
+- NametagModifier öffnet eine sechs Byte lange Self-Tag-Branch. Für Monchis Standardmodus
   genügt die native Freigabe: kein eigener Text und keine globalen Farb-Overrides. Damit
   bleibt die Server-Formatierung in Minecrafts Renderer. Ein eigener Overlay-Stil ist optional.
 - Freelook nutzt einen Drei-Argument-UpdatePlayer-Hook plus Yaw-Store-Patches. Der neue
@@ -14,7 +14,7 @@ eigene Erweiterungen erhalten und die nativen Modul-Anbindungen aus Flarial adap
   diese Länge und rollt bei Teilfehlern zurück. Die Kamerarückgabe sichert zusätzlich die Winkel.
 - Flarials RawInputBuffer ist in diesem Quellstand ein Platzhalter. Der Quellbestand allein
   ist kein Nachweis eines besseren Inputs oder vollständig funktionierender Version-Hooks.
-- Flarials PingCounter fragt SDK::getLastPing/getServerPing ab; Mochis Ping Counter nutzt
+- Flarials PingCounter fragt SDK::getLastPing/getServerPing ab; Monchis Ping Counter nutzt
   den separaten Probe-Dienst. Unterschiedliche Messquellen erklären unterschiedliche Werte;
   die Spiel-Ping-Anbindung bleibt eine spätere Aufgabe nach den Modulports.
 

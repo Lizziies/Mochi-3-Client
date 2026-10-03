@@ -53,7 +53,7 @@ def main():
     for name in registered:
         local = own.get(name, {"source": "", "code": ""})
         folder = directories.get(normalize(aliases.get(name, name)))
-        row = {"mochi": name, "source": local["source"],
+        row = {"monchi": name, "source": local["source"],
                "game_calls": calls(local["code"], r"\bgame::(\w+)\s*\("),
                "effects": calls(local["code"], r"fx::Id::(\w+)"),
                "requirements": calls(local["code"], r'need::(?:have|sigs)\(.*?"([\w.]+)"'),
@@ -75,7 +75,7 @@ def main():
                         "signatures": calls(code, r'GET_SIG_ADDRESS\("([^"]+)"\)')})
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps({"modules": rows, "without_direct_match": missing}, indent=2), encoding="utf-8")
-    print(f"{len(rows)} Mochi modules, {len(used)} direct source matches, {len(missing)} Flarial folders without a direct match")
+    print(f"{len(rows)} Monchi modules, {len(used)} direct source matches, {len(missing)} Flarial folders without a direct match")
 
 
 if __name__ == "__main__":

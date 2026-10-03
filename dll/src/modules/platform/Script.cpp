@@ -437,7 +437,10 @@ void bind(lua_State* L, Script* s) {
     lua_setfield(L, -2, "hud");
     lua_pushstring(L, "1");
     lua_setfield(L, -2, "api");
+    // scripts written before the rename still say "mochi"
+    lua_pushvalue(L, -1);
     lua_setglobal(L, "mochi");
+    lua_setglobal(L, "monchi");
     lua_pushlightuserdata(L, s);
     lua_pushcclosure(L, apiLog, 1);
     lua_setglobal(L, "print");

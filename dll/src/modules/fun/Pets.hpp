@@ -18,7 +18,7 @@
 class Pet : public HudModule {
 public:
     Pet()
-        : HudModule("Pet", "A little Mochi pet in the HUD: bounces, cheers on hits, sleeps when idle.", {"cosmetic"},
+        : HudModule("Pet", "A little Monchi pet in the HUD: bounces, cheers on hits, sleeps when idle.", {"cosmetic"},
                     {0.845f, 0.84f}) {
         sub("Games");
         background_.b = false;

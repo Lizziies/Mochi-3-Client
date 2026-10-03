@@ -537,7 +537,7 @@ MH_STATUS WINAPI MH_Initialize(VOID)
 }
 
 //-------------------------------------------------------------------------
-// Mochi: unhook for good while leaving the relay and trampoline memory in place.
+// Monchi: unhook for good while leaving the relay and trampoline memory in place.
 // Other hookers (overlays) may have copied a jump to a relay; after this call
 // such a jump lands on the original function instead of freed memory.
 MH_STATUS WINAPI MH_Park(VOID)

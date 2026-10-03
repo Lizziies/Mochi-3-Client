@@ -8,9 +8,9 @@ Kostenlose Cosmetics für alle: Flügel, Capes, Bandanas und mehr. Dieses Dokume
 |---|---|---|---|
 | 1. Menü-Vorschau | Cosmetic dreht sich im Menü an einer Spielfigur, Farben einstellbar | eigener kleiner 3D-Renderer im Overlay (ImGui-Zeichenliste), keine Spiel-Signaturen | wird gebaut |
 | 2. Eigene Figur im Spiel | Du siehst dein Cosmetic in der 3. Person und im Inventar | Position und Haltung des eigenen Spielers (Signaturen `LocalPlayer`, Kamera, Skelett), Overlay zeichnet das Modell an die richtige Stelle | braucht PC-Test |
-| 3. Andere sehen es | Andere Mochi-Nutzer sehen dein Cosmetic | ein kleiner Server (wer trägt was) plus Stufe 2 für fremde Spieler | später, eigenes Projekt |
+| 3. Andere sehen es | Andere Monchi-Nutzer sehen dein Cosmetic | ein kleiner Server (wer trägt was) plus Stufe 2 für fremde Spieler | später, eigenes Projekt |
 
-Nicht-Mochi-Spieler sehen nichts. Wir ändern keine Pakete, das Cosmetic ist reine Anzeige auf deinem Bildschirm. Wie Flarial (Capes über eigene Server) ist Stufe 3 nur mit eigenem Backend möglich.
+Nicht-Monchi-Spieler sehen nichts. Wir ändern keine Pakete, das Cosmetic ist reine Anzeige auf deinem Bildschirm. Wie Flarial (Capes über eigene Server) ist Stufe 3 nur mit eigenem Backend möglich.
 
 ## Ideenliste
 
@@ -19,18 +19,18 @@ Priorität 1 (zuerst bauen, je Slot mehrere Varianten, damit das Menü sofort vo
 | Slot | Ideen |
 |---|---|
 | **Flügel** | Sakura-Flügel (rosa, Blütenblätter, Flügelschlag), Engelsflügel (weiß, Federn), Dämonenflügel (dunkel, Glühen), Schmetterlingsflügel (Muster, langsam), Pixel-Flügel (einfarbig, Regenbogen-Verlauf), Drachenflügel |
-| **Capes** | Mochi-Cape (rosa mit Herz), Verlauf-Cape (zwei Farben, einstellbar), Sternenhimmel-Cape (dunkel, Sterne funkeln), Flammen-Cape, Königs-Cape mit Pelzkragen, Pixel-Cape mit eigenem Motiv, Mini-Umhang kurz |
+| **Capes** | Monchi-Cape (rosa mit Herz), Verlauf-Cape (zwei Farben, einstellbar), Sternenhimmel-Cape (dunkel, Sterne funkeln), Flammen-Cape, Königs-Cape mit Pelzkragen, Pixel-Cape mit eigenem Motiv, Mini-Umhang kurz |
 | **Bandanas / Stirnbänder** | Bandana mit Knoten und flatternden Enden (Farbe einstellbar), Stirnband mit Herz, Ninja-Stirnband, Piraten-Kopftuch, Sport-Schweißband |
 | **Kopf** | Heiligenschein (schwebt), Katzenohren (zucken), Hasenohren, Krone (funkelt), Kopfhörer, Sonnenbrille, Hörner, Blumenkranz, Mütze mit Bommel, Tiara |
 | **Rücken** | Mini-Rucksack, Schwert auf dem Rücken, Köcher mit Pfeilen, Gitarre, Kuschel-Plüsch |
 | **Körper / Hüfte** | Flauschiger Schwanz (wedelt), Fuchsschwanz mit mehreren Schwänzen, Gürtel mit Herz, Schal (weht), Ketten |
-| **Details** | Schulter-Pet (kleines Mochi-Wesen), Schmetterlinge, die um dich fliegen, Funken-Spur beim Sprinten, Herzchen bei Treffern (Anzeige, nicht im Spiel) |
+| **Details** | Schulter-Pet (kleines Monchi-Wesen), Schmetterlinge, die um dich fliegen, Funken-Spur beim Sprinten, Herzchen bei Treffern (Anzeige, nicht im Spiel) |
 
 Priorität 2: Saison-Sets (Halloween, Winter, Sakura-Fest), Sets mit passenden Teilen (Engel-Set: Flügel, Heiligenschein, Cape), Farbvarianten und Muster-Editor, Community-Einsendungen.
 
 Alle Cosmetics sind eigene Entwürfe, keine Marken, keine bekannten Figuren, keine Minecraft-Originalassets.
 
-## Technischer Rahmen: Format `MochiCosmetic`
+## Technischer Rahmen: Format `MonchiCosmetic`
 
 Kein Blender nötig. Die Modelle sind Quader (wie Minecraft selbst), beschrieben in JSON, mit einer PNG-Textur. Ein Python-Skript erzeugt beides und rendert Vorschaubilder. Der Client lädt die Ordner direkt.
 
@@ -75,12 +75,12 @@ Regeln:
 
 ### Festlegungen des Client-Ladecodes (`dll/src/cosmetics/`)
 
-- Ordner: `%LOCALAPPDATA%\Mochi\cosmetics\index.json` mit `{"items": [{"id", "name", "slot"}]}` und je Cosmetic ein Ordner `<id>/item.json` + `tex.png` (nur PNG, RGBA).
+- Ordner: `%LOCALAPPDATA%\Monchi\cosmetics\index.json` mit `{"items": [{"id", "name", "slot"}]}` und je Cosmetic ein Ordner `<id>/item.json` + `tex.png` (nur PNG, RGBA).
 - Koordinaten: X nach rechts, Y nach oben, Z nach vorn (Vorderseite der Figur ist +Z, der Rücken -Z). Die Figur steht auf Y = 0, Kopf ab Y = 24 bis 32, Körper 12 bis 24, Beine 0 bis 12.
 - UV wie bei Minecraft-Quadern (Würfel mit Größe w, h, d und Ursprung u, v in der Textur): erste Reihe Oberseite (`u+d`, `v`, Breite w, Höhe d) und Unterseite (`u+d+w`, `v`), zweite Reihe Höhe h ab `v+d`: rechte Seite (-X) bei `u`, Vorderseite (+Z) bei `u+d`, linke Seite (+X) bei `u+d+w`, Rückseite (-Z) bei `u+2d+w`.
 - `tint`: Name aus der `tint`-Liste des Items. Die Texturfarbe wird mit der Farbe multipliziert, deshalb Texturen hell/weiß-nah halten, wenn der Spieler die Farbe ändern soll.
 - `anim.axis` ist `"x"`, `"y"` oder `"z"`, `anim.type` einer von `flap`, `sway`, `bob`, `wag`, `twitch`, `float`, `spin`. Winkel in Grad, `speed` in Schwingungen pro Sekunde.
-- Beispiele zum Testen: `tools/testdata/cosmetics/` (Flügel, Cape, Bandana). Zum Ausprobieren den Ordner nach `%LOCALAPPDATA%\Mochi\cosmetics` kopieren.
+- Beispiele zum Testen: `tools/testdata/cosmetics/` (Flügel, Cape, Bandana). Zum Ausprobieren den Ordner nach `%LOCALAPPDATA%\Monchi\cosmetics` kopieren.
 
 ### Erweiterungen des Formats (alle optional)
 
@@ -93,10 +93,10 @@ Regeln:
 
 ## Cosmetics im Spiel (Stufe 2 und 3, braucht den PC)
 
-Die Menü-Vorschau ist fertig. Damit jeder Mochi-Nutzer die Cosmetics im Spiel sieht, braucht es zwei Teile, die sich nur am PC bauen lassen:
+Die Menü-Vorschau ist fertig. Damit jeder Monchi-Nutzer die Cosmetics im Spiel sieht, braucht es zwei Teile, die sich nur am PC bauen lassen:
 
 1. **Zeichnen an der Spielfigur.** Als Overlay über das Bild zu malen geht nicht sauber: Das Overlay kennt keine Wände und würde Spieler hinter Blöcken zeigen, das wäre ein Wallhack und ist verboten. Der richtige Weg ist, die Teile in die Figur selbst zu geben, also in die Skin-Geometrie des Spielers, den das Spiel zeichnet (Skin-Daten oder Render-Aufruf der Figur hooken). Dann sortiert das Spiel selbst, Sneaken, Schwimmen und Sichtbarkeit stimmen automatisch. Dafür fehlen Signaturen für das Laden der Skin-Geometrie.
-2. **Wer trägt was.** Der Mochi-Online-Dienst (`server/`) kennt zu jedem Gamertag die `worn`-Liste. Der Client liest sie für die Spieler in der Tab-Liste und übergibt sie an Punkt 1. Der Dienst ist gebaut und getestet, aber noch nicht veröffentlicht (Cloudflare-Konto).
+2. **Wer trägt was.** Der Monchi-Online-Dienst (`server/`) kennt zu jedem Gamertag die `worn`-Liste. Der Client liest sie für die Spieler in der Tab-Liste und übergibt sie an Punkt 1. Der Dienst ist gebaut und getestet, aber noch nicht veröffentlicht (Cloudflare-Konto).
 
 Eigener Name über dem Kopf in der dritten Person liefert das Modul "Third Person Nametag", Leben über dem Kopf "Health Above Head".
 
@@ -104,11 +104,11 @@ Eigener Name über dem Kopf in der dritten Person liefert das Modul "Third Perso
 
 Kopiere den folgenden Text in den Cowork-Chat.
 
-> Du baust kostenlose Cosmetics für den Minecraft-Bedrock-PvP-Client "Mochi". Es gibt kein Blender. Du arbeitest in einem Ordner `cosmetics/` im Repo `Lizziies/Mochi-3-Client` auf einer eigenen Branch `claude/cosmetics` und pushst nur dorthin. Lies zuerst `docs/COSMETICS.md` (Ideenliste und Format `MochiCosmetic`) und `CLAUDE.md`.
+> Du baust kostenlose Cosmetics für den Minecraft-Bedrock-PvP-Client "Monchi". Es gibt kein Blender. Du arbeitest in einem Ordner `cosmetics/` im Repo `Lizziies/Mochi-3-Client` auf einer eigenen Branch `claude/cosmetics` und pushst nur dorthin. Lies zuerst `docs/COSMETICS.md` (Ideenliste und Format `MonchiCosmetic`) und `CLAUDE.md`.
 >
 > Baue als Erstes das Werkzeug: `cosmetics/tools/build.py` (Python 3, Pillow und numpy sind erlaubt, sonst nichts). Es liest eine kurze Python-Beschreibung pro Cosmetic (`cosmetics/src/<id>.py`, mit Hilfsfunktionen für Quader, Spiegeln, Farbverläufe, Pixel-Muster) und schreibt `cosmetics/<id>/item.json`, `tex.png` und `preview.png`. `preview.png` kommt von einem eigenen kleinen Software-Renderer (Quader mit Textur, Beleuchtung, Blick von vorn, hinten und schräg, auf einer 32 Pixel hohen Spielfigur in Rosa). Prüfe jedes Ergebnis selbst an den Vorschaubildern und verbessere, bis es gut aussieht.
 >
-> Dann baue in dieser Reihenfolge: Sakura-Flügel, Engelsflügel, Mochi-Cape, Verlauf-Cape, Bandana mit flatternden Enden, Heiligenschein, Katzenohren, flauschiger Schwanz, Mini-Rucksack, Krone. Danach der Rest aus Priorität 1. Jedes Cosmetic soll hübsch, klar erkennbar und im Pixel-Stil des Spiels sein, mit zwei bis drei Farben, die der Spieler ändern kann (`tint`). Halte die Grenzen aus dem Dokument ein.
+> Dann baue in dieser Reihenfolge: Sakura-Flügel, Engelsflügel, Monchi-Cape, Verlauf-Cape, Bandana mit flatternden Enden, Heiligenschein, Katzenohren, flauschiger Schwanz, Mini-Rucksack, Krone. Danach der Rest aus Priorität 1. Jedes Cosmetic soll hübsch, klar erkennbar und im Pixel-Stil des Spiels sein, mit zwei bis drei Farben, die der Spieler ändern kann (`tint`). Halte die Grenzen aus dem Dokument ein.
 >
 > Schreibe `cosmetics/README.md` (wie man ein neues Cosmetic hinzufügt) und `cosmetics/index.json` (Liste aller Cosmetics mit Slot, Name, Tags). Committe kurz und klein (kleingeschrieben, Imperativ). Frage nur, wenn du wirklich blockiert bist. Gib mir am Ende ein Sammelbild (alle Vorschauen in einem Raster).
 

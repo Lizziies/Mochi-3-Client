@@ -45,7 +45,7 @@ Schrift: rund und gut lesbar, z. B. "Nunito" oder "Quicksand" (OFL-Lizenz, einbe
 - Fenster ca. 960×600, randlos, eigene Titelleiste, gleiche Farben.
 - Links: Logo, Navigation (Start, Versionen, Einstellungen, Über).
 - Start: großer Button "Spielen ♡" mit Zustand (Spiel startet → injiziert → fertig), darunter Version und News/Changelog aus dem GitHub-Release.
-- Versionen: Liste mit installiert/verfügbar, Badge "Mochi-kompatibel".
+- Versionen: Liste mit installiert/verfügbar, Badge "Monchi-kompatibel".
 - Einstellungen: Update-Kanal, Auto-Inject, DLL-Pfad (für Entwickler), Sprache (DE/EN).
 
 ## Neues Menü (Entscheidung Felix)
@@ -65,7 +65,7 @@ Basis ist Vorschlag A (Palette) mit einem Schalter oben rechts, der auf B (Panel
 - Oben nur noch vier Tabs: Modules, Favorites, Cosmetics, Settings. Keine Aufteilung in PvP, HUD usw. als Tabs.
 - Modules ist eine lange Liste mit Abschnitten (PvP, HUD, Visual, Comfort, Performance, Server), wie bei Onix. Eine Sprungleiste oben springt zum Abschnitt. Bild `i_list_long.png`.
 - Panels-Ansicht: jede Kategorie ist eine verschiebbare Spalte. Bild `k_panels_new.png`.
-- Mochi-Nutzer in Tab-Liste und Chat erkennbar (rotes Herz, Namensfarbe, Regenbogen, Tag). Bild `l_players.png`, Konzept in `docs/ONLINE.md`.
+- Monchi-Nutzer in Tab-Liste und Chat erkennbar (rotes Herz, Namensfarbe, Regenbogen, Tag). Bild `l_players.png`, Konzept in `docs/ONLINE.md`.
 
 ### Zweite Änderung (Felix): schlichte Liste
 
@@ -111,4 +111,4 @@ Die Leiste am Rand sah zu sehr nach Minecraft aus. Felix hat vier Onix-Screensho
 - Akzent wählbar: 8 Farbpunkte unter Global Settings → Appearance (Blau #1E7CB5, Cyan #13899A, Grün #23905A, Lila #6E4FC4, Pink #B83D80, Rot #B8342D, Orange #C2702A, Grau #5F626B, jeweils mit hellerer Zweitfarbe). Die Theme-Presets sind nur noch dunkle Onix-Looks (Slate, Onyx, Steel, Glass) und behalten den gewählten Akzent. Keine Verläufe, Glitzer oder Herzchen mehr im Menü.
 - Einstellungen-Tabs als Pillen über dem Inhalt statt seitlicher Leiste. Toasts unten rechts im Panel-Stil.
 - Launcher im selben Look: Hintergrund #1C1D21, Seitenleiste #17181B, Karten #26272C mit Rand #393B42, flache Knöpfe, kleinere Schalter. Logo und Icon: blaues Pixel-Herz. Unter Settings dieselben 8 Akzentfarben; ohne eigene Wahl nimmt der Launcher die Farbe aus dem Client.
-- Owner-Abzeichen: hinter `vlisya` steht in Tab-Liste und Chat `[Owner]` in Blau (#3BA7EC), vergeben über die Rolle in Mochi Online. `[Team]` für Staff ist vorbereitet.
+- Owner-Abzeichen: hinter `vlisya` steht in Tab-Liste und Chat `[Owner]` in Blau (#3BA7EC), vergeben über die Rolle in Monchi Online. `[Team]` für Staff ist vorbereitet.

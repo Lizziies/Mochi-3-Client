@@ -544,7 +544,7 @@ void drawDetails(ImVec2 origin, ImVec2 size) {
         sub = i18n::tr("Change global settings for the client.");
     } else if (v == Page::Cosmetics) {
         title = i18n::tr("Cosmetics");
-        sub = i18n::tr("Wings, capes and more. Only you and other Mochi players see them.");
+        sub = i18n::tr("Wings, capes and more. Only you and other Monchi players see them.");
     } else if (group) {
         title = i18n::tr(group->name.c_str());
         sub = i18n::tr(group->blurb.c_str());
@@ -629,7 +629,7 @@ void drawDetails(ImVec2 origin, ImVec2 size) {
     theme::setFade(base);
 }
 
-// MOCHI_PROFILE: opens the menu, picks a group and opens and closes its parts one after the other, so frame
+// MONCHI_PROFILE: opens the menu, picks a group and opens and closes its parts one after the other, so frame
 // times can be compared run to run without clicking.
 void profileDrive() {
     if (!profile::recording()) return;

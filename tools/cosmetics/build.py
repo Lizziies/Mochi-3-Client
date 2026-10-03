@@ -1,4 +1,4 @@
-"""Builds the Mochi cosmetics (item.json) without Blender.
+"""Builds the Monchi cosmetics (item.json) without Blender.
 
 The items are made of smooth swept tubes (ears, tails, hats, cloth) instead of boxes.
 Wings and capes come from tools/cosmetics_hd and get copied into the same folder.

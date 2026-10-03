@@ -29,21 +29,21 @@ jobs:
           set(CMAKE_RC_COMPILER x86_64-w64-mingw32-windres)
           set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
           EOF
-          cmake -S dll -B build/dll -DCMAKE_TOOLCHAIN_FILE=$PWD/mingw.cmake -DCMAKE_BUILD_TYPE=Release -DMOCHI_VERSION="$version"
+          cmake -S dll -B build/dll -DCMAKE_TOOLCHAIN_FILE=$PWD/mingw.cmake -DCMAKE_BUILD_TYPE=Release -DMONCHI_VERSION="$version"
           cmake --build build/dll -j"$(nproc)"
-          cmake -S launcher -B build/launcher -DCMAKE_TOOLCHAIN_FILE=$PWD/mingw.cmake -DCMAKE_BUILD_TYPE=Release -DMOCHI_VERSION="$version" \
-            -DMOCHI_DLL=$PWD/build/dll/Mochi.dll -DMOCHI_COSMETICS=$PWD/cosmetics
+          cmake -S launcher -B build/launcher -DCMAKE_TOOLCHAIN_FILE=$PWD/mingw.cmake -DCMAKE_BUILD_TYPE=Release -DMONCHI_VERSION="$version" \
+            -DMONCHI_DLL=$PWD/build/dll/Monchi.dll -DMONCHI_COSMETICS=$PWD/cosmetics
           cmake --build build/launcher -j"$(nproc)"
           mkdir out
-          cp build/launcher/MochiLauncher.exe out/
+          cp build/launcher/MonchiLauncher.exe out/
           cd out
-          sha256sum MochiLauncher.exe > checksums.txt
+          sha256sum MonchiLauncher.exe > checksums.txt
 
       - name: publish
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            out/MochiLauncher.exe
+            out/MonchiLauncher.exe
             out/checksums.txt
           prerelease: ${{ contains(github.ref_name, '-') }}
           generate_release_notes: true

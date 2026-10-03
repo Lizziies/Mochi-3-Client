@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-// Adapted from Flarial src/Scripting/ScriptManager.hpp: Mochi runs its own Lua scripts, so Flarial's script
+// Adapted from Flarial src/Scripting/ScriptManager.hpp: Monchi runs its own Lua scripts, so Flarial's script
 // runtime is not built and this keeps only the calls the rest of Flarial makes, all doing nothing.
 #pragma once
 

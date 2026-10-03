@@ -223,14 +223,14 @@ static void drawMenu() {
 
     float a = stage(0);
     ImVec2 sp{x, top + lift(a)}, ss{listW, 30 * s};
-    beginPanel("##mochi_search", sp, ss, draw::easeOutCubic(a));
+    beginPanel("##monchi_search", sp, ss, draw::easeOutCubic(a));
     searchBar(sp, ss);
     endPanel();
 
     a = stage(1);
     float foot = 26 * s;
     ImVec2 lp{x, top + 38 * s + lift(a)}, ls{listW, bottom - top - 38 * s};
-    beginPanel("##mochi", lp, ls, draw::easeOutCubic(a));
+    beginPanel("##monchi", lp, ls, draw::easeOutCubic(a));
     double t0 = profile::stamp();
     drawModulesPage(lp + ImVec2(8 * s, 8 * s), {ls.x - 10 * s, ls.y - 8 * s - foot});
     double listUs = profile::since(t0);
@@ -239,7 +239,7 @@ static void drawMenu() {
 
     a = stage(2);
     ImVec2 dp{dx, top + lift(a)}, dsz{detailsW, bottom - top};
-    beginPanel("##mochi_details", dp, dsz, draw::easeOutCubic(a));
+    beginPanel("##monchi_details", dp, dsz, draw::easeOutCubic(a));
     t0 = profile::stamp();
     drawDetails(dp, dsz);
     profile::menu(float(listUs), float(profile::since(t0)));

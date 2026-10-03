@@ -177,11 +177,11 @@ bool waitReady(DWORD pid, int timeoutMs) {
     return ready;
 }
 
-bool injected(DWORD pid) { return hasModule(pid, L"Mochi.dll"); }
+bool injected(DWORD pid) { return hasModule(pid, L"Monchi.dll"); }
 
 bool inject(DWORD pid, const std::filesystem::path& dll, std::string& error) {
     if (!std::filesystem::exists(dll)) {
-        error = "The client file is missing. Put Mochi.dll next to the launcher.";
+        error = "The client file is missing. Put Monchi.dll next to the launcher.";
         return false;
     }
     grantAppPackages(dll);

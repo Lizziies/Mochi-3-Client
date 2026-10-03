@@ -5,9 +5,9 @@ set -uo pipefail
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
 dir="${1:-$root/tour}"
-build="${MOCHI_BUILD:-/tmp/mochi-build}"
+build="${MONCHI_BUILD:-/tmp/monchi-build}"
 export PATH="$PATH:/usr/lib/wine"
-export WINEPREFIX="${WINEPREFIX:-$HOME/.wine-mochi}" WINEDEBUG=-all WINEARCH=win64
+export WINEPREFIX="${WINEPREFIX:-$HOME/.wine-monchi}" WINEDEBUG=-all WINEARCH=win64
 mkdir -p "$dir"
 wineserver -k 2>/dev/null
 
@@ -16,10 +16,10 @@ wineserver -k 2>/dev/null
 sleep 2
 export DISPLAY=:78
 
-data() { ls -d "$WINEPREFIX"/drive_c/users/*/AppData/Local/Mochi 2>/dev/null | head -1; }
+data() { ls -d "$WINEPREFIX"/drive_c/users/*/AppData/Local/Monchi 2>/dev/null | head -1; }
 log() { echo "$(data)/logs/latest.log"; }
 
-[ -n "$(data)" ] || { echo "no Mochi data folder, run the client once first"; exit 1; }
+[ -n "$(data)" ] || { echo "no Monchi data folder, run the client once first"; exit 1; }
 python3 - "$(data)" <<'PY'
 import json, os, sys
 data = sys.argv[1]
@@ -27,17 +27,17 @@ on = ["Keystrokes", "CPS", "FPS", "Armor HUD", "Potion HUD", "Coordinates", "Rea
       "Ping Counter", "Clock", "Toggle Sprint", "Low Latency", "Custom Crosshair", "Block Outline"]
 mods = {n: {"enabled": True, "settings": {}} for n in on}
 mods["Game Support"] = {"enabled": True, "settings": {"demo": True}}
-mods["Client Settings"] = {"enabled": True, "settings": {"cosmetics": "sakura_wings,mochi_cape"}}
+mods["Client Settings"] = {"enabled": True, "settings": {"cosmetics": "sakura_wings,monchi_cape"}}
 os.makedirs(os.path.join(data, "configs"), exist_ok=True)
 json.dump({"modules": mods}, open(os.path.join(data, "configs", "default.json"), "w"))
 PY
 rm -rf "$(data)/cosmetics"
 cp -r "$root/cosmetics" "$(data)/cosmetics"
-touch "$build/dll/Mochi.root"
+touch "$build/dll/Monchi.root"
 rm -f "$(log)"
 
 cd "$build"
-(TESTHOST_MANUAL=1 TESTHOST_SIZE=1920x1080 timeout 300 wine64 testhost.exe dll/Mochi.dll 240 > "$dir/host.txt" 2>&1 &)
+(TESTHOST_MANUAL=1 TESTHOST_SIZE=1920x1080 timeout 300 wine64 testhost.exe dll/Monchi.dll 240 > "$dir/host.txt" 2>&1 &)
 for i in $(seq 1 600); do
     grep -q "\] \[info\] ready" "$(log)" 2>/dev/null && break
     sleep 0.1
@@ -91,14 +91,14 @@ if command -v xdotool >/dev/null; then
 fi
 cp "$(log)" "$dir/client.log"
 wineserver -k 2>/dev/null
-rm -f "$build/dll/Mochi.root"
+rm -f "$build/dll/Monchi.root"
 rm -rf "$(data)/configs"
 
 # the launcher opens centred, 960x600 on a 1920x1080 screen
 (Xvfb :79 -screen 0 1920x1080x24 >/dev/null 2>&1 &)
 sleep 2
 export DISPLAY=:79
-exe="$(ls "$build"/launcher/MochiLauncher.exe 2>/dev/null | head -1)"
+exe="$(ls "$build"/launcher/MonchiLauncher.exe 2>/dev/null | head -1)"
 [ -n "$exe" ] || exit 0
 (timeout 60 wine64 "$exe" > "$dir/launcher.txt" 2>&1 &)
 sleep 10

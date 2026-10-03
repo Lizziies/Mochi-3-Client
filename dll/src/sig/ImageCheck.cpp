@@ -17,7 +17,7 @@ struct Probe {
 #else
     __attribute__((noinline))
 #endif
-    virtual const char* mark() { return "mochi image check anchor 4f1c"; }
+    virtual const char* mark() { return "monchi image check anchor 4f1c"; }
     virtual int last() { return 3; }
 };
 
@@ -25,7 +25,7 @@ struct Probe {
 
 // the resolver run against this very dll: string, function and vtable of a class with a known layout
 bool selfCheck(std::string& why) {
-    auto base = reinterpret_cast<uintptr_t>(GetModuleHandleW(L"Mochi.dll"));
+    auto base = reinterpret_cast<uintptr_t>(GetModuleHandleW(L"Monchi.dll"));
     if (!base) base = reinterpret_cast<uintptr_t>(GetModuleHandleW(nullptr));
     Image img(base);
 
@@ -33,7 +33,7 @@ bool selfCheck(std::string& why) {
     volatile const char* keep = probe.mark();
     (void)keep;
     auto vtable = *reinterpret_cast<uintptr_t*>(&probe);
-    const std::string anchor = "mochi image check anchor 4f1c";
+    const std::string anchor = "monchi image check anchor 4f1c";
 
     auto funcs = anchorFuncs(img, anchor);
     if (funcs.empty()) {

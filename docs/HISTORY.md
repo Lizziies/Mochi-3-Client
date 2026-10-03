@@ -7,7 +7,7 @@ Kurze Chronik, damit jede neue Session weiß, was schon passiert ist.
 - Flarial und Onix recherchiert, Plan und Docs geschrieben.
 - DLL-Kern, Renderer (DX11/DX12), ClickGUI, HUD-Editor, Themes, Input-Grundlagen, Server-Regeln und 20 Overlay-Module gebaut. Getestet nur unter Wine mit dem Testhost.
 - Danach sollten 8 parallele Helfer die restlichen ca. 115 Module schreiben (Kampf-Info, Welt-Info, Kamera, Welt-Visuals, Oberfläche und Chat, Steuerung und Server, Overlay-Tools und Spiele, Post-Effekte) und das Onix-Layout einbauen. Die Session lief ins Limit, deren Ergebnisse sind nicht in der ZIP.
-- Ergebnis: `mochi-client.zip`, Stand ca. 15 %.
+- Ergebnis: `monchi-client.zip`, Stand ca. 15 %.
 
 ## Session 2 (zweiter Account, Claude Code Cloud)
 
@@ -33,6 +33,6 @@ Kurze Chronik, damit jede neue Session weiß, was schon passiert ist.
 - Phase 6: Hotbar Armor, Fall Predictor, Inventory Viewer, Arrow Trail, Black Bars, Left Hand, Gamemode Hotkeys, Third Person Nametag.
 - Phase 7: Politur, Modul-Dump und Doku-Generator, `tools/cross.sh tour`, Nachträge in PARITY.md und FEATURES.md.
 - Merge von main in modules-b (Client Settings, HUD-Editor-Einrasten, Self-Test, "Info displays"), Konflikte in Chat/Clock/Compose/Cps/GameInfo/Keystrokes aufgelöst, Self-Test grün, fehlende deutsche Texte ergänzt, MODULES.md neu erzeugt.
-- Mochi Online: Client-Modul mit Herz, Namensstilen und Tags in Tab-Liste und Chat, Dienst in `server/` mit Tests, Strg+L-Fix in `hook/Input.cpp`.
-- Merge des neuen Menüs, Cosmetics-Modul entfernt, Mochi Online ohne freien Text, HD-Cosmetics-Generator nach tools/cosmetics_hd.
-- 2026-10-02 (claude/onix-ui-input-fixes): Menü wie Onix mit Akzentfarben, Launcher im selben Look mit Pixel-Herz, Rollen und Owner-Abzeichen in Mochi Online, tote Einstellungen repariert, nichts lädt neu, Item Tracker, CI-Tour mit Screenshots, Übergabe in `docs/HOME_TODO.md`.
+- Monchi Online: Client-Modul mit Herz, Namensstilen und Tags in Tab-Liste und Chat, Dienst in `server/` mit Tests, Strg+L-Fix in `hook/Input.cpp`.
+- Merge des neuen Menüs, Cosmetics-Modul entfernt, Monchi Online ohne freien Text, HD-Cosmetics-Generator nach tools/cosmetics_hd.
+- 2026-10-02 (claude/onix-ui-input-fixes): Menü wie Onix mit Akzentfarben, Launcher im selben Look mit Pixel-Herz, Rollen und Owner-Abzeichen in Monchi Online, tote Einstellungen repariert, nichts lädt neu, Item Tracker, CI-Tour mit Screenshots, Übergabe in `docs/HOME_TODO.md`.

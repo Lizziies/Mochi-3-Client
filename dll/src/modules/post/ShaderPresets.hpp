@@ -81,7 +81,7 @@ float4 ps(VOut i) : SV_Target
 )";
 
 inline constexpr const char* userReadme =
-    "Mochi shader packs\r\n"
+    "Monchi shader packs\r\n"
     "\r\n"
     "Put .hlsl files in this folder. Each file defines one function:\r\n"
     "\r\n"

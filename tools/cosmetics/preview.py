@@ -9,7 +9,7 @@ import sys
 
 here = os.path.dirname(__file__)
 src = sys.argv[1] if len(sys.argv) > 1 else os.path.join(here, "..", "..", "cosmetics")
-out = sys.argv[2] if len(sys.argv) > 2 else "mochi_cosmetics.html"
+out = sys.argv[2] if len(sys.argv) > 2 else "monchi_cosmetics.html"
 
 entries = []
 for name in sorted(os.listdir(src)):

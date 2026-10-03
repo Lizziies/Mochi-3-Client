@@ -6,7 +6,7 @@ Ein kostenloser Bedrock-PvP-Client, der mehr kann als Flarial (ca. 120 Module, g
 
 Wo wir besser werden:
 
-| Bereich | Flarial / Onix | Mochi |
+| Bereich | Flarial / Onix | Monchi |
 |---|---|---|
 | Nach MC-Updates | DLL muss neu gebaut werden, Tage Wartezeit | Signaturen liegen als `sigs.json` auf GitHub und werden beim Start nachgeladen. Ein Fix ist ein Commit, kein neues Release |
 | Fehlende Signatur | Crash oder Modul kaputt | Modul wird grau, Rest läuft weiter |
@@ -21,7 +21,7 @@ Wo wir besser werden:
 ## Repo-Struktur
 
 ```
-mochi/
+monchi/
   dll/                 C++ Client
     src/
       core/            Entry, Guard, Log, Config, Events, Hotkeys
@@ -47,7 +47,7 @@ mochi/
 - **DLL**: C++20, MSVC, CMake. MinHook für Hooks, ImGui für alle UI, libhat (MIT) für Pattern-Scanning, nlohmann/json für Configs.
 - **Rendering**: Minecraft nutzt standardmäßig DX12. Hook auf `IDXGISwapChain::Present` und `ResizeBuffers`. Für DX12 entweder ImGui-DX12-Backend (Command Queue über `ExecuteCommandLists` abgreifen) oder D3D11On12. Fallback DX11, falls der Spieler DX11 erzwingt.
 - **Launcher**: C# .NET 8 WPF, Single-File-Exe. Injection via `LoadLibraryW` + `CreateRemoteThread`. Vor dem Inject ACL auf der DLL für `ALL APPLICATION PACKAGES` setzen (nötig bei UWP-Builds, schadet bei GDK nicht).
-- **Configs**: `%LOCALAPPDATA%\Mochi\` mit `configs/`, `themes/`, `scripts/`, `logs/`, `cache/sigs/`.
+- **Configs**: `%LOCALAPPDATA%\Monchi\` mit `configs/`, `themes/`, `scripts/`, `logs/`, `cache/sigs/`.
 
 Aktueller Fortschritt: siehe `docs/STATUS.md`. Recherche und Wünsche: `docs/RESEARCH.md`.
 

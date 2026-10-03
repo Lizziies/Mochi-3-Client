@@ -1,4 +1,4 @@
-# Mochi Client
+# Monchi Client
 
 Free PvP client for Minecraft Bedrock Edition (Windows, GDK builds). Launcher (.exe) + injected DLL.
 
@@ -8,11 +8,11 @@ This must become the best Minecraft Bedrock PvP client ever made. Best input lat
 
 Every decision is measured against this. "Works" is not done — done means it beats the best existing version of that feature: smoother, faster, prettier, more configurable. Before building a module, check how Flarial/Onix do it and name what ours does better. Measure input and performance changes, don't guess.
 
-Arbeitstitel "Mochi" — vor dem ersten Release umbenennen (global suchen/ersetzen).
+Der Client heißt **Monchi**, Logo und Icon sind das blaue Pixel-Herz. Nicht umbenannt sind nur Dinge, an denen fremde Daten hängen: der GitHub-Repo-Name `Mochi-3-Client`, die Adresse des Online-Dienstes `mochi-online.lisawer008.workers.dev`, die Cosmetics-IDs `mochi_*` und gespeicherte Config-Schlüssel.
 
 ## Stand 2026-10-02: zuerst lesen
 
-Am 2. Oktober wurde in der Cloud weit mehr als die Oberfläche umgebaut: neues Menü und neuer Launcher, dazu Eingabe, Config, DX-Hooks, Live-Leser, HUD, rund 30 Module, Mochi Online (Rollen) und ein Absturz-Fix. Weitergearbeitet wird nur auf dem Stand von `origin/claude/onix-ui-input-fixes` (enthält `main`). Ein älterer Stand auf dem PC ist veraltet; eigene, nicht gepushte Arbeit von dort in diesen Stand übernehmen, nicht umgekehrt. Die Arbeitsliste ist `docs/HOME_TODO.md`, Schritt 0 erklärt das Umsteigen.
+Am 2. Oktober wurde in der Cloud weit mehr als die Oberfläche umgebaut: neues Menü und neuer Launcher, dazu Eingabe, Config, DX-Hooks, Live-Leser, HUD, rund 30 Module, Monchi Online (Rollen) und ein Absturz-Fix. Weitergearbeitet wird nur auf dem Stand von `origin/claude/onix-ui-input-fixes` (enthält `main`). Ein älterer Stand auf dem PC ist veraltet; eigene, nicht gepushte Arbeit von dort in diesen Stand übernehmen, nicht umgekehrt. Die Arbeitsliste ist `docs/HOME_TODO.md`, Schritt 0 erklärt das Umsteigen.
 
 ## Read first
 
@@ -27,13 +27,13 @@ Am 2. Oktober wurde in der Cloud weit mehr als die Oberfläche umgebaut: neues M
 - `docs/STATUS.md` — what works, percent done, next steps. Update after every work step.
 - `docs/RESEARCH.md` — other clients, Felix's wishes. Put every new insight here.
 - `docs/UPDATES.md` — how client, launcher, signatures and Minecraft updates work, downgrade plan.
-- `docs/LAUNCH.md` — what makes Mochi stand out, release checklist, open risks.
+- `docs/LAUNCH.md` — what makes Monchi stand out, release checklist, open risks.
 
 ## Hard rules
 
 1. Per-server rules from `docs/SERVERS.md` are enforced: a module blocked on a server cannot be turned on there.
 2. Legit only. No reach, killaura, aim assist, autoclicker, velocity, scaffold, ESP through walls, or anything that sends packets the vanilla client wouldn't. Modules marked `server-rules` in MODULES.md ship disabled by default with a warning in their description.
-3. Mochi is licensed under AGPL-3.0 (`LICENSE`), so code from Flarial (AGPL-3.0, github.com/flarialmc/dll-oss) may be used. The untouched upstream stays in `vendor/flarial` with its commit in `vendor/flarial/UPSTREAM.json`; an adapted file starts with `// SPDX-License-Identifier: AGPL-3.0-only` and a line naming what it was adapted from. Ported code follows every other rule here (crash guard, a missing signature never crashes, verified in game before it counts). Flarial's signatures are candidates until they are confirmed on the running version. Never use decompiled Onix or any other closed-source client.
+3. Monchi is licensed under AGPL-3.0 (`LICENSE`), so code from Flarial (AGPL-3.0, github.com/flarialmc/dll-oss) may be used. The untouched upstream stays in `vendor/flarial` with its commit in `vendor/flarial/UPSTREAM.json`; an adapted file starts with `// SPDX-License-Identifier: AGPL-3.0-only` and a line naming what it was adapted from. Ported code follows every other rule here (crash guard, a missing signature never crashes, verified in game before it counts). Flarial's signatures are candidates until they are confirmed on the running version. Never use decompiled Onix or any other closed-source client.
 4. Never distribute Minecraft files. The version switcher downloads only through the user's own Microsoft entitlement.
 5. A missing signature must never crash the game. The module goes grey in the GUI with "not available on this version". Grey is only the safety net. At release no module may still be grey: fix it, solve it another way or remove it (`docs/PLAN_HOME.md`).
 6. Every hook body runs inside the crash guard (see PLAN.md, core/guard).
@@ -55,7 +55,7 @@ The code must read like a hand-written open-source project.
 
 ## Languages
 
-English is the default, German is the second language. The client and launcher follow the Windows UI language unless the user picks one (stored in `%LOCALAPPDATA%\Mochi\lang.txt`, shared by both).
+English is the default, German is the second language. The client and launcher follow the Windows UI language unless the user picks one (stored in `%LOCALAPPDATA%\Monchi\lang.txt`, shared by both).
 
 - All user-visible text in code is written in English. The English text is the key.
 - Show text through `i18n::tr("English text")`, or `i18n::fmt("Hello {}", x)` for format strings. Module names, descriptions and setting labels are stored as English literals and translated where they are drawn (`gui/`).
@@ -72,17 +72,17 @@ tools/cross.sh shots    # runs the dll in the test host under Wine, takes screen
 # on Windows
 cmake -S dll -B build -G "Visual Studio 17 2022" -A x64
 cmake --build build --config Release
-cmake -S launcher -B build-launcher -G "Visual Studio 17 2022" -A x64 -DMOCHI_DLL=%CD%\build\Release\Mochi.dll -DMOCHI_COSMETICS=%CD%\cosmetics
+cmake -S launcher -B build-launcher -G "Visual Studio 17 2022" -A x64 -DMONCHI_DLL=%CD%\build\Release\Monchi.dll -DMONCHI_COSMETICS=%CD%\cosmetics
 cmake --build build-launcher --config Release
 ```
 
-With `MOCHI_DLL` set the launcher embeds the client and the cosmetics, so the release is one exe. Without it the launcher looks for `Mochi.dll` next to itself.
+With `MONCHI_DLL` set the launcher embeds the client and the cosmetics, so the release is one exe. Without it the launcher looks for `Monchi.dll` next to itself.
 
 ## Test loop
 
 1. Build DLL.
 2. Start Minecraft, run `tools/inject.ps1` (dev injector) or the launcher.
-3. Read `%LOCALAPPDATA%\Mochi\logs\latest.log`.
+3. Read `%LOCALAPPDATA%\Monchi\logs\latest.log`.
 4. Unload with the eject hotkey (Ctrl+L) before rebuilding — the DLL file is locked while loaded.
 
 Ask the user to verify in-game behaviour; you cannot see the game. Ask for screenshots when a visual changes.

@@ -14,7 +14,7 @@
 class DiscordPresence : public Module {
 public:
     DiscordPresence()
-        : Module("Discord Rich Presence", "Shows on your Discord profile that you play Minecraft with Mochi, with server, mode and play time. You can turn off every part.",
+        : Module("Discord Rich Presence", "Shows on your Discord profile that you play Minecraft with Monchi, with server, mode and play time. You can turn off every part.",
                  Category::Client, {"cosmetic"}) {
         sub("Platform");
         stateText_.visible = [this] { return !hideAll_.b; };
@@ -73,8 +73,8 @@ private:
     discord::Presence build() const {
         discord::Presence p;
         p.active = true;
-        p.largeImage = "mochi";
-        p.largeText = std::string("Mochi ") + build::version;
+        p.largeImage = "monchi";
+        p.largeText = std::string("Monchi ") + build::version;
         if (smallImage_.b) {
             p.smallImage = "heart";
             p.smallText = "Minecraft Bedrock";

@@ -6,7 +6,7 @@ Stand: 2026-10-01. Die Prozentzahlen sind grobe Schätzungen, keine Messwerte.
 
 ## Die sechs Kriterien
 
-| Kriterium | Flarial | Mochi heute | Mochi nach Plan B | Anmerkung |
+| Kriterium | Flarial | Monchi heute | Monchi nach Plan B | Anmerkung |
 |---|---|---|---|---|
 | **1. Umfang** (Module) | 129 in der Registrierung, Webseite nennt 104 für Windows | 138 registriert, davon viele Extras | ca. 170 mit allen Standard-Modulen | Umfang ist das kleinste Problem |
 | **2. Tiefe** (Einstellungen wie das Original) | voll | ca. 55 % bei den Kern-Modulen (Hitbox, Keystrokes, Coordinates, Tab List flach) | ca. 95 % | Plan B Phase 3 und 4 |
@@ -38,7 +38,7 @@ Wie wir das Tempo hinbekommen können:
 3. Beim Start der DLL fehlende Signaturen melden (Log), damit Felix nur die kaputten neu findet.
 4. Mit der Zeit eine Muster-Bibliothek anlegen, die Funktionen nach Namen oder Strukturen wiederfindet.
 
-## Wann dürfen wir sagen "Mochi ist ein Ersatz"?
+## Wann dürfen wir sagen "Monchi ist ein Ersatz"?
 
 Alle fünf Punkte müssen erfüllt sein:
 
@@ -48,7 +48,7 @@ Alle fünf Punkte müssen erfüllt sein:
 4. **Gemessene Eingabe-Latenz:** vorher/nachher-Zahlen mit dem Latenz-Overlay, die belegen, dass wir mindestens so gut wie Flarial sind.
 5. **Zehn externe Tester** (Freunde, Discord) spielen eine Woche und finden nichts Gravierendes.
 
-Bis dahin gilt: Mochi ist **Alpha**, gedacht als Ergänzung, nicht als Ersatz.
+Bis dahin gilt: Monchi ist **Alpha**, gedacht als Ergänzung, nicht als Ersatz.
 
 ## Was ich dir zum Starten empfehle
 

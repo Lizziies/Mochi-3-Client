@@ -77,7 +77,7 @@ static std::string callers(uintptr_t sp) {
     for (uintptr_t p = sp & ~uintptr_t(7); p + 8 <= top && p < sp + 0x4000 && found < 10; p += 8) {
         uintptr_t v = *reinterpret_cast<uintptr_t*>(p);
         if (v <= base + 0x1000 || v >= end) continue;
-        out += std::format("{}mochi+0x{:X}", found ? " " : "", v - base);
+        out += std::format("{}monchi+0x{:X}", found ? " " : "", v - base);
         found++;
     }
     return out;

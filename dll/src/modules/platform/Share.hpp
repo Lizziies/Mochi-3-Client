@@ -103,7 +103,7 @@ private:
         while (!trimmed.empty() && std::isspace((unsigned char)trimmed.back())) trimmed.pop_back();
         std::string raw;
         if (trimmed.rfind(prefix, 0) != 0 || !decode(trimmed.substr(5), raw)) {
-            status_ = i18n::tr("This is not a Mochi settings code.");
+            status_ = i18n::tr("This is not a Monchi settings code.");
             return;
         }
         auto j = nlohmann::json::parse(raw, nullptr, false);
