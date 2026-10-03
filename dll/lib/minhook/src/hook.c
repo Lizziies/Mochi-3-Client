@@ -537,6 +537,36 @@ MH_STATUS WINAPI MH_Initialize(VOID)
 }
 
 //-------------------------------------------------------------------------
+// Mochi: unhook for good while leaving the relay and trampoline memory in place.
+// Other hookers (overlays) may have copied a jump to a relay; after this call
+// such a jump lands on the original function instead of freed memory.
+MH_STATUS WINAPI MH_Park(VOID)
+{
+    MH_STATUS status = MH_OK;
+    UINT i;
+
+    EnterSpinLock();
+
+    if (g_hHeap == NULL)
+    {
+        LeaveSpinLock();
+        return MH_ERROR_NOT_INITIALIZED;
+    }
+
+    status = EnableAllHooksLL(FALSE);
+#if defined(_M_X64) || defined(__x86_64__)
+    for (i = 0; i < g_hooks.size; ++i)
+    {
+        PJMP_ABS relay = (PJMP_ABS)g_hooks.pItems[i].pDetour;
+        relay->address = (UINT64)(ULONG_PTR)g_hooks.pItems[i].pTrampoline;
+    }
+#endif
+
+    LeaveSpinLock();
+    return status;
+}
+
+//-------------------------------------------------------------------------
 MH_STATUS WINAPI MH_Uninitialize(VOID)
 {
     MH_STATUS status = MH_OK;

@@ -19,9 +19,12 @@ bool init() {
     return true;
 }
 
+// Overlays such as RTSS copy our patched prologue (a jump to a MinHook relay) into their own trampolines. Freeing
+// the relays on unload sent those copies into freed memory; parked relays forward to the original instead, at the
+// cost of a few kilobytes that stay allocated.
 void shutdown() {
     disableAll();
-    MH_Uninitialize();
+    MH_Park();
     targets.clear();
 }
 
