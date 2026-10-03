@@ -2,6 +2,8 @@
 
 #include "gui/Gui.hpp"
 #include "gui/Theme.hpp"
+#include "gui/Widgets.hpp"
+#include "core/Log.hpp"
 #include "hook/OwnNametag.hpp"
 #include "modules/Module.hpp"
 #include "modules/common/Colors.hpp"
@@ -22,19 +24,38 @@ public:
     ThirdPersonNametag()
         : Module("Third Person Nametag", "Shows your own name tag above your head when you play in third person.", Category::Visual, {"cosmetic"}) {
         sub("World");
-        require(need::player | need::camera, need::sigs({"LocalPlayer", "OwnNametagGate"}));
+        require(need::player | need::camera, need::sigs({"LocalPlayer", "TargetBox"}));
         always_.visible = [this] { return custom_.b; };
     }
 
+    // The game's own tag keeps server titles, colors and the pack font. When it cannot be switched on (signature
+    // missing or the gate looks different) the overlay draws the name instead, so the module never does nothing.
     void onFrame() override {
         auto& s = game::state();
-        ownNametag::show(s.inWorld && !custom_.b && s.player.view != game::View::First);
+        bool want = s.inWorld && !custom_.b && s.player.view != game::View::First;
+        if (!want) {
+            ownNametag::show(false);
+            fallback_ = false;
+            return;
+        }
+        fallback_ = !ownNametag::show(true);
+        if (fallback_ && !reported_) logger::info("third person nametag: the game's own tag is not available, drawing it ourselves");
+        reported_ = reported_ || fallback_;
     }
 
-    void onDisable() override { ownNametag::show(false); }
+    void onDisable() override {
+        ownNametag::show(false);
+        fallback_ = false;
+    }
+
+    void drawSettings() override {
+        if (!fallback_) return;
+        ImGui::Spacing();
+        widgets::hint("The game's own name tag is not available on this version, so Mochi draws it. Server colors still show, the pack font does not.");
+    }
 
     void onRender(ImDrawList* dl) override {
-        if (!custom_.b) return;
+        if (!custom_.b && !fallback_) return;
         auto& me = game::state().player;
         if (!game::state().inWorld || me.name.empty() || !me.hasBox) return;
         if (me.view == game::View::First && !always_.b) return;
@@ -55,6 +76,8 @@ public:
 private:
     Setting& custom_ = toggleSetting("customStyle", "Custom nametag overlay", false);
     Setting& always_ = toggleSetting("always", "Also in first person", false);
+    bool fallback_ = false;
+    bool reported_ = false;
 };
 
 class TntTimer : public Module {

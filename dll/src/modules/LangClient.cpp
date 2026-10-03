@@ -129,6 +129,7 @@ const i18n::Entry entries[] = {
     {"Also teammates", "Auch Teammitglieder"},
     {"Also mobs", "Auch Mobs"},
     {"Switch to third person", "In die dritte Person wechseln"},
+    {"The game's own name tag is not available on this version, so Mochi draws it. Server colors still show, the pack font does not.", "Das Namensschild des Spiels ist auf dieser Version nicht verfügbar, darum zeichnet Mochi es selbst. Server-Farben bleiben, die Pack-Schrift nicht."},
     {"Points", "Punkte"},
     {"Bar and number", "Balken und Zahl"},
     {"Points of max", "Punkte von Maximum"},
