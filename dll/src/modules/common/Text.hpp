@@ -111,6 +111,8 @@ inline std::string strip(const std::string& s) {
 struct Segment {
     std::string text;
     ImU32 color;
+    bool bold = false;
+    bool italic = false;
 };
 
 inline std::vector<Segment> colored(const std::string& in, ImU32 base) {
@@ -120,9 +122,11 @@ inline std::vector<Segment> colored(const std::string& in, ImU32 base) {
                                       IM_COL32(255, 85, 85, 255),   IM_COL32(255, 85, 255, 255),  IM_COL32(255, 255, 85, 255), IM_COL32(255, 255, 255, 255)};
     std::vector<Segment> out;
     ImU32 color = base;
+    bool bold = false, italic = false;
+    ImU32 alpha = base & IM_COL32_A_MASK;
     std::string cur;
     auto flush = [&] {
-        if (!cur.empty()) out.push_back({cur, color});
+        if (!cur.empty()) out.push_back({cur, color, bold, italic});
         cur.clear();
     };
     for (size_t i = 0; i < in.size(); i++) {
@@ -131,13 +135,29 @@ inline std::vector<Segment> colored(const std::string& in, ImU32 base) {
             flush();
             if (rgbCode(in, i)) {
                 unsigned rgb = (unsigned)std::strtoul(in.substr(i + 3, 6).c_str(), nullptr, 16);
-                color = IM_COL32((rgb >> 16) & 255, (rgb >> 8) & 255, rgb & 255, 255);
+                color = IM_COL32((rgb >> 16) & 255, (rgb >> 8) & 255, rgb & 255, 0) | alpha;
                 i += 9;
                 continue;
             }
             int idx = code >= '0' && code <= '9' ? code - '0' : code >= 'a' && code <= 'f' ? code - 'a' + 10 : -1;
-            if (idx >= 0) color = palette[idx];
-            else if (code == 'r') color = base;
+            if (idx >= 0) color = (palette[idx] & ~IM_COL32_A_MASK) | alpha;
+            else if (code == 'g') color = IM_COL32(221, 214, 5, 0) | alpha;
+            else if (code == 'h') color = IM_COL32(227, 212, 209, 0) | alpha;
+            else if (code == 'i') color = IM_COL32(206, 202, 202, 0) | alpha;
+            else if (code == 'j') color = IM_COL32(68, 58, 59, 0) | alpha;
+            else if (code == 'm') color = IM_COL32(151, 22, 7, 0) | alpha;
+            else if (code == 'n') color = IM_COL32(180, 104, 77, 0) | alpha;
+            else if (code == 'p') color = IM_COL32(222, 177, 45, 0) | alpha;
+            else if (code == 'q') color = IM_COL32(71, 160, 54, 0) | alpha;
+            else if (code == 's') color = IM_COL32(44, 186, 168, 0) | alpha;
+            else if (code == 't') color = IM_COL32(33, 73, 123, 0) | alpha;
+            else if (code == 'u') color = IM_COL32(154, 92, 198, 0) | alpha;
+            else if (code == 'l') bold = true;
+            else if (code == 'o') italic = true;
+            else if (code == 'r') {
+                color = base;
+                bold = italic = false;
+            }
             i += 2;
             continue;
         }

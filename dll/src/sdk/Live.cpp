@@ -4,6 +4,7 @@
 #include "core/Client.hpp"
 #include "core/Log.hpp"
 #include "hook/Hook.hpp"
+#include "hook/FreeCamera.hpp"
 #include "hook/Input.hpp"
 #include "hook/Net.hpp"
 #include "render/Ui.hpp"
@@ -86,6 +87,7 @@ template <class Fn>
 void eachPrivateWord(Fn&& fn) {
     std::vector<uint8_t> buf(1 << 20);
     MEMORY_BASIC_INFORMATION mbi{};
+    size_t scanned = 0;
     for (uintptr_t at = 0x10000; !client::unloading() && VirtualQuery(reinterpret_cast<void*>(at), &mbi, sizeof(mbi));) {
         uintptr_t start = reinterpret_cast<uintptr_t>(mbi.BaseAddress), next = start + mbi.RegionSize;
         bool ok = mbi.State == MEM_COMMIT && mbi.Type == MEM_PRIVATE && (mbi.Protect & PAGE_READWRITE) && !(mbi.Protect & PAGE_GUARD);
@@ -96,6 +98,11 @@ void eachPrivateWord(Fn&& fn) {
                 uintptr_t v;
                 std::memcpy(&v, buf.data() + i, 8);
                 fn(chunk + i, v);
+            }
+            scanned += n;
+            if (scanned >= 8 << 20) {
+                Sleep(1);
+                scanned = 0;
             }
         }
         if (next <= at) break;
@@ -114,6 +121,10 @@ uintptr_t mostReferenced(std::vector<uintptr_t>& cands, std::vector<int>& refs) 
 }
 
 void sweep() {
+    struct Done {
+        ~Done() { sweeping = false; }
+    } done;
+    SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_BELOW_NORMAL);
     uintptr_t handVt = imageBase() + uintptr_t(off("hand.vtable")), armorVt = imageBase() + uintptr_t(off("armor.vtable"));
     uintptr_t attrVt = imageBase() + uintptr_t(off("attr.vtable")), hungerDef = attrDef("hunger");
     int handTag = off("hand.tag"), attrSize = off("attr.size");
@@ -181,7 +192,7 @@ public:
 
     void use(unsigned mask) override {
         wantAttack_ = (mask & unsigned(Domain::Combat)) != 0;
-        if (wantAttack_ && !hooked_ && (supports() & unsigned(Domain::Combat))) {
+        if (wantAttack_ && !hooked_ && sigs::address("AttackEntity")) {
             hooked_ = hook::create("AttackEntity", reinterpret_cast<void*>(sigs::address("AttackEntity")), attack, &originalAttack);
             if (hooked_) hook::enableAll();
         }
@@ -679,43 +690,32 @@ private:
         std::stable_sort(board.lines.begin(), board.lines.end(), [&](auto& a, auto& b) { return ascending ? a.second < b.second : a.second > b.second; });
     }
 
-    // Cameras are entities too. A system turns the player to match every camera that has an
-    // UpdatePlayerFromCameraComponent; it finds them through an entt view, which checks membership by comparing the
-    // version bits of the pool's sparse entry with the entity. Flipping one version bit makes the view skip the
-    // camera while plain lookups (which only use the position bits) still work, so the camera keeps turning with
-    // the mouse and the player stays put. Before the link comes back, the cameras get their old angles back
-    // (CameraDirectLookComponent: yaw, pitch in radians), otherwise the player would snap to where the camera looked.
+    // Restore DirectLook yaw/pitch before resuming the native player-update function,
+    // otherwise the player snaps to the freely rotated camera on release.
 public:
     bool detach(bool on) {
         uintptr_t reg = playerPtr_ ? mem::pointer(playerPtr_ + off("player.registry")) : 0;
-        if (detached_.reg && detached_.reg != reg) detached_ = {};
+        if (detached_.reg && detached_.reg != reg) {
+            freecam::set(false);
+            detached_ = {};
+        }
         if (!on) {
-            if (!detached_.reg) return false;
+            if (!detached_.reg) return freecam::set(false);
             for (auto& [at, angles] : detached_.angles) mem::write(at, angles);
-            for (auto& [at, entry] : detached_.entries) mem::write(at, entry);
+            freecam::set(false);
             detached_ = {};
             return false;
         }
-        uintptr_t link = pool(reg, "pool.cameraLink");
-        if (!reg || !link) return false;
+        if (!reg) return freecam::set(false);
         uintptr_t look = pool(reg, "pool.cameraLook");
         if (!detached_.reg) {
-            detached_.reg = reg;
             eachEntity(look, [&](uint32_t id) {
                 if (uintptr_t c = component(look, id, off("cameraLook.size"))) detached_.angles.push_back({c, mem::get<uint64_t>(c)});
             });
+            if (detached_.angles.empty()) return false;
+            detached_.reg = reg;
         }
-        eachEntity(link, [&](uint32_t id) {
-            uintptr_t at = sparseEntry(link, id);
-            if (!at) return;
-            uint32_t entry = mem::get<uint32_t>(at);
-            auto known = std::find_if(detached_.entries.begin(), detached_.entries.end(), [&](auto& e) { return e.first == at; });
-            if (known == detached_.entries.end()) detached_.entries.push_back({at, entry});
-            else if (entry == (known->second ^ (1u << 18))) return;
-            else known->second = entry;
-            mem::write(at, entry ^ (1u << 18));
-        });
-        return true;
+        return freecam::set(true);
     }
 
     // Hiding an entity sets its invisible status flag (ActorDataFlagComponent, a bitset; bit 5 is INVISIBLE) on
@@ -758,7 +758,6 @@ private:
 
     struct Detached {
         uintptr_t reg = 0;
-        std::vector<std::pair<uintptr_t, uint32_t>> entries;
         std::vector<std::pair<uintptr_t, uint64_t>> angles;
     };
     Detached detached_;
@@ -811,7 +810,7 @@ private:
     // +0x22 count. Item: +0x128 full name ("minecraft:arrow"), +0x150 max damage.
     static std::string text(uintptr_t at) {
         size_t len = mem::get<size_t>(at + 16), cap = mem::get<size_t>(at + 24);
-        if (len == 0 || len > 128) return {};
+        if (len == 0 || len > 4096 || cap < len || (cap <= 15 && len > 15)) return {};
         uintptr_t p = cap > 15 ? mem::pointer(at) : at;
         std::string out(len, '\0');
         return p && mem::readBytes(p, out.data(), len) ? out : std::string{};
@@ -968,8 +967,8 @@ private:
         auto& pl = s.player;
         int size = off("stack.size");
         uintptr_t hand = handObj, armor = armorObj;
-        bool lost = !validHand(hand) || !validArmor(armor) || !validAttrs(attrArray);
-        if (lost && !sweeping && now - sweptAt_ > 3000) {
+        bool lost = !validHand(hand) || !validArmor(armor) || !pl.statsKnown;
+        if (lost && !sweeping && (!sweptAt_ || now - sweptAt_ > 30000)) {
             sweptAt_ = now;
             sweeping = true;
             bg::run(sweep);

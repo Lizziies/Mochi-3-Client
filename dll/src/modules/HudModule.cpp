@@ -5,6 +5,7 @@
 #include "modules/common/Context.hpp"
 #include "modules/post/PostFx.hpp"
 #include "render/Fonts.hpp"
+#include "render/GameText.hpp"
 #include "render/Ui.hpp"
 
 #include <algorithm>
@@ -185,19 +186,19 @@ void HudModule::onRender(ImDrawList* dl) {
     dl->ChannelsSetCurrent(1);
     ImVec2 inner = content(dl, pos + pad, s);
     ImVec2 size = inner + pad * 2;
+    ImVec2 pv = pivot();
+    ImVec2 shift{(lastSize_.x - size.x) * pv.x, (lastSize_.y - size.y) * pv.y};
 
     dl->ChannelsSetCurrent(0);
     ImVec2 end = pos + size;
     float r = rounding_.f * s;
     if (dropShadow_.b) ringGlow(dl, pos, end, r, dropShadowColor_.color, dropShadowSize_.f * s, {0.f, 3.f * s});
     if (glow_.b) ringGlow(dl, pos, end, r, glowColor_.color, glowSize_.f * s, {0.f, 0.f});
-    if (blur_.b && rotation_.f == 0.f) post::blur(dl, pos, end, r, blurRadius_.f * s, {0.f, 0.f, 0.f, 0.f});
+    if (blur_.b && rotation_.f == 0.f) post::blur(dl, pos + shift, end + shift, r, blurRadius_.f * s, {0.f, 0.f, 0.f, 0.f});
     if (background_.b) dl->AddRectFilled(pos, end, ImGui::GetColorU32(bgColor_.color), r);
     if (border_.b) dl->AddRect(pos, end, ImGui::GetColorU32(borderColor_.color), r, 0, borderWidth_.f * s);
     dl->ChannelsMerge();
 
-    ImVec2 pv = pivot();
-    ImVec2 shift{(lastSize_.x - size.x) * pv.x, (lastSize_.y - size.y) * pv.y};
     if (shift.x != 0.f || shift.y != 0.f)
         for (int i = firstVtx; i < dl->VtxBuffer.Size; i++) dl->VtxBuffer[i].pos = dl->VtxBuffer[i].pos + shift;
     if (rotation_.f != 0.f) {
@@ -214,15 +215,13 @@ void HudModule::onRender(ImDrawList* dl) {
 
 ImVec2 HudModule::textSize(float scale, const std::string& text) const {
     ImFont* f = fonts::hud();
-    return f->CalcTextSizeA(fonts::hudSize() * scale, FLT_MAX, 0.f, text.c_str());
+    return gameText::size(f, fonts::hudSize() * scale, text);
 }
 
 ImVec2 HudModule::drawText(ImDrawList* dl, ImVec2 at, float scale, const std::string& text, ImU32 color) {
     ImFont* f = fonts::hud();
     float size = fonts::hudSize() * scale;
-    if (shadow_.b) dl->AddText(f, size, at + ImVec2(shadowOffset_.f * scale, shadowOffset_.f * scale), IM_COL32(0, 0, 0, 140), text.c_str());
-    dl->AddText(f, size, at, color, text.c_str());
-    return f->CalcTextSizeA(size, FLT_MAX, 0.f, text.c_str());
+    return gameText::draw(dl, f, size, at, color, text, shadow_.b ? shadowOffset_.f * scale : 0.f);
 }
 
 ImU32 HudModule::textColor() const { return ImGui::GetColorU32(textColor_.color); }

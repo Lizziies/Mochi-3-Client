@@ -621,8 +621,8 @@ static void blurPass(ID3D11Device* dev, ID3D11DeviceContext* ctx, const BlurJob&
     back->GetDesc(&bd);
     if (bd.SampleDesc.Count == 1 && ensure(dev, bd, gpu.last != nullptr)) {
         if (!gpu.blurCopied) {
-            ctx->CopyResource(gpu.copy, back);
-            gpu.blurCopied = true;
+            back->Release();
+            return;
         }
         D3D11_MAPPED_SUBRESOURCE m{};
         if (SUCCEEDED(ctx->Map(gpu.cbBlur, 0, D3D11_MAP_WRITE_DISCARD, 0, &m))) {
@@ -630,6 +630,9 @@ static void blurPass(ID3D11Device* dev, ID3D11DeviceContext* ctx, const BlurJob&
                            job.tint[0], job.tint[1], job.tint[2], job.tint[3], 1.f / bd.Width, 1.f / bd.Height, 0.f, 0.f};
             std::memcpy(m.pData, k, sizeof(k));
             ctx->Unmap(gpu.cbBlur, 0);
+        } else {
+            back->Release();
+            return;
         }
         D3D11_VIEWPORT vp{0.f, 0.f, (float)bd.Width, (float)bd.Height, 0.f, 1.f};
         ctx->RSSetViewports(1, &vp);
@@ -660,6 +663,33 @@ static void blurCallback(const ImDrawList*, const ImDrawCmd* cmd) {
     if (!state || !state->Device || !state->DeviceContext || !cmd->UserCallbackData) return;
     const auto& job = *static_cast<const BlurJob*>(cmd->UserCallbackData);
     guard::call("blur", [&] { blurPass(state->Device, state->DeviceContext, job); });
+}
+
+// Capture before any Mochi HUD or menu geometry. All blur rectangles in this frame
+// sample the same game image, regardless of draw order or which panel uses blur first.
+static void backdropCallback(const ImDrawList*, const ImDrawCmd*) {
+    if (blurJobs.empty()) return;
+    auto* state = static_cast<ImGui_ImplDX11_RenderState*>(ImGui::GetPlatformIO().Renderer_RenderState);
+    if (!state || !state->Device || !state->DeviceContext) return;
+    guard::call("blur backdrop", [&] {
+        ID3D11RenderTargetView* rtv = nullptr;
+        state->DeviceContext->OMGetRenderTargets(1, &rtv, nullptr);
+        if (!rtv) return;
+        ID3D11Resource* res = nullptr;
+        rtv->GetResource(&res);
+        rtv->Release();
+        ID3D11Texture2D* back = nullptr;
+        if (res) res->QueryInterface(IID_PPV_ARGS(&back));
+        release(res);
+        if (!back) return;
+        D3D11_TEXTURE2D_DESC bd{};
+        back->GetDesc(&bd);
+        if (bd.SampleDesc.Count == 1 && ensure(state->Device, bd, gpu.last != nullptr)) {
+            state->DeviceContext->CopyResource(gpu.copy, back);
+            gpu.blurCopied = true;
+        }
+        back->Release();
+    });
 }
 
 static void callback(const ImDrawList*, const ImDrawCmd*) {
@@ -696,10 +726,12 @@ void submit(ImDrawList* dl) {
     clock = std::fmod(clock + ui::dt(), 1000.f);
     if (!frameParams.active()) {
         gpu.lastValid = false;
-        return;
+    } else {
+        current = frameParams;
+        dl->AddCallback(callback, nullptr);
+        dl->AddCallback(ImGui::GetPlatformIO().DrawCallback_ResetRenderState, nullptr);
     }
-    current = frameParams;
-    dl->AddCallback(callback, nullptr);
+    dl->AddCallback(backdropCallback, nullptr);
     dl->AddCallback(ImGui::GetPlatformIO().DrawCallback_ResetRenderState, nullptr);
 }
 

@@ -103,7 +103,7 @@ public:
 protected:
     ImVec2 content(ImDrawList* dl, ImVec2 o, float s) override {
         auto& t = game::state().target;
-        std::string name = t.kind == game::Target::Kind::None ? "Block" : text::pretty(t.name);
+        std::string name = t.kind == game::Target::Kind::None ? "Block" : t.isPlayer ? t.name : text::pretty(t.name);
         float y = drawText(dl, o, s, name, accentColor()).y;
         float w = textSize(s, name).x;
         auto line = [&](const std::string& str) {

@@ -429,15 +429,15 @@ protected:
             if (n++ >= max_.i) break;
             rows.push_back({text, numbers_.b ? std::to_string(score) : ""});
         }
-        std::string title = text::strip(sb.title);
+        std::string title = sb.title;
         if (titleOn_.b && !title.empty()) w = textSize(s, title).x;
-        for (auto& r : rows) w = std::max(w, textSize(s, text::strip(r.first)).x + (r.second.empty() ? 0.f : textSize(s, r.second).x + 16 * s));
+        for (auto& r : rows) w = std::max(w, textSize(s, r.first).x + (r.second.empty() ? 0.f : textSize(s, r.second).x + 16 * s));
         if (titleOn_.b && !title.empty()) {
             drawText(dl, o + ImVec2((w - textSize(s, title).x) * 0.5f, 0), s, title, accentColor());
             y += fonts::hudSize() * s * 1.3f;
         }
         for (auto& r : rows) {
-            drawText(dl, o + ImVec2(0, y), s, text::strip(r.first), textColor());
+            drawText(dl, o + ImVec2(0, y), s, r.first, textColor());
             if (!r.second.empty()) drawText(dl, o + ImVec2(w - textSize(s, r.second).x, y), s, r.second, ImGui::GetColorU32(numberColor_.color));
             y += fonts::hudSize() * s * 1.12f;
         }

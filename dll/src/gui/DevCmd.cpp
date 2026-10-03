@@ -5,6 +5,7 @@
 #include "modules/Manager.hpp"
 #include "modules/post/Capture.hpp"
 #include "sdk/Explore.hpp"
+#include "sdk/Game.hpp"
 
 #include <filesystem>
 #include <fstream>
@@ -90,6 +91,14 @@ void pollDevCommands() {
             if (auto* support = modules::find("Game Support"))
                 for (auto& st : support->settings())
                     if (st.id == "demo") st.b = rest != "off";
+        } else if (cmd == "audit") {
+            std::ofstream out(paths::root() / L"out" / L"modules.txt");
+            out << "inWorld=" << game::state().inWorld << " demo=" << game::demo() << '\n';
+            for (auto& m : modules::all()) {
+                out << (m->available() ? "available" : "locked") << '\t' << m->name();
+                for (auto& sig : m->missingSigs()) out << "\tmissing:" << sig;
+                out << '\n';
+            }
         } else if (cmd == "enable") {
             if (auto* m = modules::find(rest)) m->setEnabled(true);
         } else if (cmd == "disable") {

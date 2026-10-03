@@ -258,8 +258,8 @@ static void limit() {
     if (remaining > spin && limiterTimer) {
         LARGE_INTEGER due;
         due.QuadPart = -((remaining - spin) * 10000000 / qpf.QuadPart);
-        SetWaitableTimer(limiterTimer, &due, 0, nullptr, nullptr, FALSE);
-        WaitForSingleObject(limiterTimer, INFINITE);
+        if (SetWaitableTimer(limiterTimer, &due, 0, nullptr, nullptr, FALSE))
+            WaitForSingleObject(limiterTimer, DWORD((remaining * 1000) / qpf.QuadPart + 2));
     }
     while (now() < target) YieldProcessor();
 }
