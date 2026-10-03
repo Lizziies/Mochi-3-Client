@@ -1,12 +1,22 @@
 rt.run("lib")
-local player = rt.u64(BASE + 0x11d61a70)
-local o = rt.u64(rt.u64(player + 0x4e0) + 0x7e0)
-local lines = {string.format("obj %x", o)}
-for k = 0, 0x7f8, 8 do
-    local q = rt.u64(o + k) or 0
-    local txt = ""
-    if q > 0x10000 then local s = rt.cstr(q, 24); if s and #s > 2 and s:match("^[%w_:%.]+$") then txt = " str:" .. s end end
-    lines[#lines + 1] = string.format("+0x%03x %016x%s", k, q, txt)
+local er = rt.u64(rt.u64(BASE + 0x11d61a70) + 0x320)
+local function poolOf(key)
+    local b, e = rt.u64(er + 0x98), rt.u64(er + 0xa0)
+    for n = b, e - 32, 32 do if rt.u32(n + 8) == key then return rt.u64(n + 0x10) end end
 end
-rt.out("inv.txt", table.concat(lines, "\n"))
-rt.log("inv done")
+local function snap()
+    local out = {}
+    for _, k in ipairs({0xc67426f3, 0xe642016b}) do
+        local p = poolOf(k)
+        local t = {}
+        for a = rt.u64(p + 0x20), rt.u64(p + 0x28) - 4, 4 do t[#t + 1] = string.format("%x", rt.u32(a)) end
+        local pg = rt.u64(rt.u64(p + 0x50))
+        out[#out + 1] = string.format("%08x %s %s", k, table.concat(t, ","), rt.hex(pg, 0x100) or "?")
+    end
+    return out
+end
+local a = snap()
+rt.sleep(9000)
+local b = snap()
+for i = 1, #a do rt.log("inv A " .. a[i]) rt.log("inv B " .. b[i]) end
+-- synched data item 0 of every entity (flags)

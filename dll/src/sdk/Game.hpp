@@ -37,6 +37,8 @@ bool chatHidden(const std::string& text);
 
 bool ready(unsigned mask);
 bool freeCamera(bool on);
+void hide(uintptr_t entity, float seconds);
+int hidden();
 bool has(Domain d);
 void lease(unsigned mask, int delta);
 

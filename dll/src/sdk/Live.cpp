@@ -205,6 +205,7 @@ public:
         if (playerPtr_ && (have & unsigned(Domain::Others))) readEntities(s);
         if (playerPtr_ && (have & unsigned(Domain::Effects))) readEffects(s);
         if (playerPtr_ && (have & unsigned(Domain::Scoreboard))) readScoreboard(s);
+        if (playerPtr_) applyHidden();
         if (have & unsigned(Domain::World)) readWorld(s);
         if (playerPtr_ && (have & unsigned(Domain::Chat))) readChat(ev);
         else chatPrimed_ = false;
@@ -368,6 +369,7 @@ private:
         Event e{EventKind::Hit};
         e.reach = t.distance;
         e.crit = !onGround_ && fallSpeed_ < 0.f && !sprinting_;
+        e.crystal = t.name == "ender_crystal";
         e.actor = id;
         e.hasPos = true;
         e.pos = at;
@@ -667,7 +669,44 @@ public:
         return true;
     }
 
+    // Hiding an entity sets its invisible status flag (ActorDataFlagComponent, a bitset; bit 5 is INVISIBLE) on
+    // this client only, every frame until the time is up, then puts the old bit back.
+    void hide(uint32_t id, uint64_t ms) {
+        auto& h = hidden_[id];
+        h.until = std::max(h.until, GetTickCount64() + ms);
+    }
+
+    int hiddenCount() const { return int(hidden_.size()); }
+
 private:
+    struct Hidden {
+        uint64_t until = 0;
+        int was = -1;
+    };
+    std::map<uint32_t, Hidden> hidden_;
+
+    void applyHidden() {
+        if (hidden_.empty()) return;
+        uintptr_t reg = mem::pointer(playerPtr_ + off("player.registry"));
+        uintptr_t flags = pool(reg, "pool.flags");
+        int bit = off("flags.invisible");
+        uint64_t now = GetTickCount64();
+        for (auto it = hidden_.begin(); it != hidden_.end();) {
+            uintptr_t c = component(flags, it->first, off("flags.size"));
+            if (!c) {
+                it = hidden_.erase(it);
+                continue;
+            }
+            uintptr_t at = c + uintptr_t(bit / 8);
+            uint8_t v = mem::get<uint8_t>(at), mask = uint8_t(1u << (bit % 8));
+            if (it->second.was < 0) it->second.was = (v & mask) != 0;
+            bool done = now >= it->second.until;
+            uint8_t want = done && !it->second.was ? uint8_t(v & ~mask) : uint8_t(v | mask);
+            if (want != v) mem::write(at, want);
+            it = done ? hidden_.erase(it) : std::next(it);
+        }
+    }
+
     struct Detached {
         uintptr_t reg = 0;
         std::vector<std::pair<uintptr_t, uint32_t>> entries;
@@ -1007,5 +1046,11 @@ private:
 std::unique_ptr<Provider> makeLive() { return std::make_unique<Live>(); }
 
 bool freeCamera(bool on) { return self && self->detach(on); }
+
+void hide(uintptr_t entity, float seconds) {
+    if (self && entity) self->hide(uint32_t(entity), uint64_t(std::max(0.f, seconds) * 1000.f));
+}
+
+int hidden() { return self ? self->hiddenCount() : 0; }
 
 }
