@@ -76,7 +76,7 @@ cmake -S launcher -B build-launcher -G "Visual Studio 17 2022" -A x64 -DMONCHI_D
 cmake --build build-launcher --config Release
 ```
 
-With `MONCHI_DLL` set the launcher embeds the client and the cosmetics, so the release is one exe. Without it the launcher looks for `Monchi.dll` next to itself.
+With `MONCHI_DLL` set the launcher embeds the client and the cosmetics, so the release is one exe. `-DMONCHI_CORE=C:\mfb\Release\MonchiFlarial.dll` adds the Flarial core, built with `cmake -S dll -B C:\mfb -G "Visual Studio 17 2022" -A x64 -DMONCHI_FLARIAL=ON` and `cmake --build C:\mfb --config Release --target flarial_core`. It is its own dll because both code bases use the same global class names, it needs MSVC, and it builds in a short path because its object paths get too long otherwise. Without it the launcher looks for `Monchi.dll` next to itself.
 
 ## Test loop
 
