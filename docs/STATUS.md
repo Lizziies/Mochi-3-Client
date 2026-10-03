@@ -1,5 +1,30 @@
 # Status
 
+## Arbeitsstand 2026-10-03: Flarial-Modulbasis
+
+Alle 117 Flarial-Modulordner sowie SDK, Events, Hooks und Signaturdefinitionen sind als
+getrennte, lizenzierte Quelle unter `vendor/flarial` übernommen. 814 importierte Dateien
+wurden per SHA-256 mit dem festgehaltenen Upstream verglichen. Mochis UI und eigene Module
+bleiben erhalten, `Desktop/mochi-ui` bleibt unverändert.
+
+Erste Ports: Freelook mit nativem Kamera-/Spieler-Update-Hook und vollständigen Yaw-Patches;
+eigenes Third-Person-Nametag standardmäßig über Minecrafts Renderer, ohne dessen Farben und
+Formatierung zu ersetzen. Das alte Nametag-Overlay ist eine ausdrückliche Option. Lokale
+Native-Binding-Tests bestehen; die Signaturen und sichtbaren Spielwirkungen sind noch nicht
+geprüft. Die importierten 117 Module sind **nicht alle fertig angebunden**.
+
+Der vorherige Stand hatte 26 Module mit fehlenden Hooks entfernt. Seine Angabe „153 nutzbar,
+0 grau“ ist daher kein Nachweis des vollständigen gewünschten Umfangs. Arbeitsliste und
+Quellvergleich: `docs/FLARIAL_PORT.md`, `docs/flarial-module-comparison.json`.
+
+Weitere Korrekturen: HUD-Blur nutzt den Spielhintergrund vor dem Menü und folgt der
+HUD-Ausrichtung; Text-HUDs behalten Bedrock-Formatierung; begrenztes Timer-Warten und
+gedrosselte Heap-Suche; eingebettete Signaturdateien; keine fremden Offsets bei unbekannter
+Spielversion. Performanceverbesserungen sind noch nicht durch einen Vergleich im Spiel belegt.
+
+Mochi ist aus Minecraft entladen. Nur Flarial war bei der abschließenden Prüfung geladen.
+Seit der Untersagung keine weitere Injektion. Details und Prüfgrenzen stehen im Testlog.
+
 Stand: 2026-10-02 abends. Wird nach jedem Arbeitsschritt aktualisiert. Die Arbeitsliste für zuhause steht in `docs/HOME_TODO.md`.
 
 ## Überblick

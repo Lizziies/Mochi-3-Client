@@ -1,0 +1,2947 @@
+{
+  "modules": [
+    {
+      "mochi": "ArmorHud",
+      "source": "dll/src/modules/hud/Inventory.hpp",
+      "game_calls": [
+        "state"
+      ],
+      "effects": [],
+      "requirements": [
+        "LocalPlayer"
+      ],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "ArrowCounter",
+      "source": "dll/src/modules/hud/Inventory.hpp",
+      "game_calls": [
+        "state"
+      ],
+      "effects": [],
+      "requirements": [],
+      "flarial": "ArrowCounter",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/ArrowCounter/ArrowCounter.cpp",
+        "src/Client/Module/Modules/ArrowCounter/ArrowCounter.hpp"
+      ],
+      "flarial_events": [
+        "TickEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "ArrowTrail",
+      "source": "dll/src/modules/visual/Trail.hpp",
+      "game_calls": [
+        "distance",
+        "projectLine",
+        "state"
+      ],
+      "effects": [],
+      "requirements": [
+        "LocalPlayer"
+      ],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "AutoGG",
+      "source": "dll/src/modules/comfort/Chat.hpp",
+      "game_calls": [
+        "events",
+        "state"
+      ],
+      "effects": [],
+      "requirements": [
+        "ChatEvents"
+      ],
+      "flarial": "AutoGG",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/AutoGG/AutoGG.cpp",
+        "src/Client/Module/Modules/AutoGG/AutoGG.hpp"
+      ],
+      "flarial_events": [
+        "PacketEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "AutoPerspective",
+      "source": "dll/src/modules/camera/Camera.hpp",
+      "game_calls": [
+        "state"
+      ],
+      "effects": [
+        "Perspective"
+      ],
+      "requirements": [],
+      "flarial": "AutoPerspective",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/AutoPerspective/AutoPerspective.cpp",
+        "src/Client/Module/Modules/AutoPerspective/AutoPerspective.hpp"
+      ],
+      "flarial_events": [
+        "PerspectiveEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "AutoProfile",
+      "source": "dll/src/modules/perf/Auto.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "BackgroundLoad",
+      "source": "dll/src/modules/perf/Auto.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "BetterHunger",
+      "source": "dll/src/modules/hud/Inventory.hpp",
+      "game_calls": [
+        "state"
+      ],
+      "effects": [],
+      "requirements": [
+        "LocalPlayer"
+      ],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "BlackBars",
+      "source": "dll/src/modules/visual/Trail.hpp",
+      "game_calls": [
+        "state"
+      ],
+      "effects": [],
+      "requirements": [],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "BlockGame",
+      "source": "dll/src/modules/fun/BlockGame.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "BlockOutline",
+      "source": "dll/src/modules/world/World.hpp",
+      "game_calls": [
+        "project",
+        "projectLine",
+        "state"
+      ],
+      "effects": [
+        "BlockOutline"
+      ],
+      "requirements": [
+        "LocalPlayer"
+      ],
+      "flarial": "BlockOutline",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/BlockOutline/BlockOutline.cpp",
+        "src/Client/Module/Modules/BlockOutline/BlockOutline.hpp"
+      ],
+      "flarial_events": [
+        "RenderOutlineSelectionEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "Blur",
+      "source": "dll/src/modules/post/Effects.hpp",
+      "game_calls": [
+        "state"
+      ],
+      "effects": [],
+      "requirements": [],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "BowCharge",
+      "source": "dll/src/modules/combat/Target.hpp",
+      "game_calls": [
+        "state"
+      ],
+      "effects": [],
+      "requirements": [
+        "LocalPlayer"
+      ],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "BowSensitivity",
+      "source": "dll/src/modules/combat/Tweaks.hpp",
+      "game_calls": [
+        "state"
+      ],
+      "effects": [
+        "Sensitivity"
+      ],
+      "requirements": [
+        "LocalPlayer"
+      ],
+      "flarial": "BowSensitivity",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/BowSensitivity/BowSensitivity.cpp",
+        "src/Client/Module/Modules/BowSensitivity/BowSensitivity.hpp"
+      ],
+      "flarial_events": [
+        "TickEvent",
+        "TurnDeltaEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "BreakProgress",
+      "source": "dll/src/modules/hud/GameInfo.hpp",
+      "game_calls": [
+        "state"
+      ],
+      "effects": [],
+      "requirements": [
+        "LocalPlayer"
+      ],
+      "flarial": "BlockBreakIndicator",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/BlockBreakIndicator/BlockBreakIndicator.cpp",
+        "src/Client/Module/Modules/BlockBreakIndicator/BlockBreakIndicator.hpp"
+      ],
+      "flarial_events": [],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "BrightnessContrast",
+      "source": "dll/src/modules/post/Effects.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "ChatPlus",
+      "source": "dll/src/modules/comfort/Chat.hpp",
+      "game_calls": [
+        "events",
+        "state"
+      ],
+      "effects": [
+        "HideChat"
+      ],
+      "requirements": [
+        "ChatEvents"
+      ],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "ChunkBorder",
+      "source": "dll/src/modules/world/World.hpp",
+      "game_calls": [
+        "projectLine",
+        "state"
+      ],
+      "effects": [],
+      "requirements": [
+        "LocalPlayer"
+      ],
+      "flarial": "ChunkBorder",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/ChunkBorder/ChunkBorder.cpp",
+        "src/Client/Module/Modules/ChunkBorder/ChunkBorder.hpp"
+      ],
+      "flarial_events": [
+        "KeyEvent",
+        "Render3DEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "CinematicCamera",
+      "source": "dll/src/modules/camera/Camera.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": "CinematicCamera",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/CinematicCamera/CinematicCamera.cpp",
+        "src/Client/Module/Modules/CinematicCamera/CinematicCamera.hpp"
+      ],
+      "flarial_events": [
+        "KeyEvent",
+        "RenderEvent",
+        "TurnDeltaEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "ClickGui",
+      "source": "dll/src/modules/client/ClickGui.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": "ClickGUI",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/ClickGUI/ClickGUI.cpp",
+        "src/Client/Module/Modules/ClickGUI/ClickGUI.hpp",
+        "src/Client/Module/Modules/ClickGUI/Elements/ClickGUIElements.hpp"
+      ],
+      "flarial_events": [
+        "DrawTextEvent",
+        "FOVEvent",
+        "KeyEvent",
+        "MouseEvent",
+        "PacketEvent",
+        "RenderEvent",
+        "SetupAndRenderEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "ClientSettings",
+      "source": "dll/src/modules/client/ClientSettings.hpp",
+      "game_calls": [
+        "state"
+      ],
+      "effects": [],
+      "requirements": [],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "Clock",
+      "source": "dll/src/modules/hud/Clock.hpp",
+      "game_calls": [
+        "state"
+      ],
+      "effects": [],
+      "requirements": [
+        "WorldTime"
+      ],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "ColorFilter",
+      "source": "dll/src/modules/post/Effects.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "ComboCounter",
+      "source": "dll/src/modules/combat/Counters.hpp",
+      "game_calls": [
+        "events",
+        "state"
+      ],
+      "effects": [],
+      "requirements": [
+        "LocalPlayer"
+      ],
+      "flarial": "ComboCounter",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/ComboCounter/ComboCounter.cpp",
+        "src/Client/Module/Modules/ComboCounter/ComboCounter.hpp"
+      ],
+      "flarial_events": [
+        "AttackEvent",
+        "TickEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "CommandHotkey",
+      "source": "dll/src/modules/comfort/Toggles.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": "CommandHotkey",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/CommandHotkey/CommandHotkey.cpp",
+        "src/Client/Module/Modules/CommandHotkey/CommandHotkey.hpp"
+      ],
+      "flarial_events": [
+        "KeyEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "ConfigSharing",
+      "source": "dll/src/modules/platform/Share.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "CooldownIndicator",
+      "source": "dll/src/modules/combat/Target.hpp",
+      "game_calls": [
+        "events"
+      ],
+      "effects": [],
+      "requirements": [
+        "LocalPlayer"
+      ],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "Coordinates",
+      "source": "dll/src/modules/hud/GameInfo.hpp",
+      "game_calls": [
+        "state"
+      ],
+      "effects": [
+        "HideCoordinates"
+      ],
+      "requirements": [
+        "Biome",
+        "Dimension",
+        "LocalPlayer"
+      ],
+      "flarial": "Coordinates",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/Coordinates/Coordinates.cpp",
+        "src/Client/Module/Modules/Coordinates/Coordinates.hpp"
+      ],
+      "flarial_events": [
+        "KeyEvent",
+        "RenderEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "Cps",
+      "source": "dll/src/modules/hud/Cps.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": "CPS",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/CPS/CPSCounter.cpp",
+        "src/Client/Module/Modules/CPS/CPSCounter.hpp"
+      ],
+      "flarial_events": [
+        "RenderEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "CpsLimiter",
+      "source": "dll/src/modules/input/CpsLimiter.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": "CPSLimiter",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/CPSLimiter/CPSLimiter.cpp",
+        "src/Client/Module/Modules/CPSLimiter/CPSLimiter.hpp"
+      ],
+      "flarial_events": [],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "Crosshair",
+      "source": "dll/src/modules/visual/Crosshair.hpp",
+      "game_calls": [
+        "has",
+        "state"
+      ],
+      "effects": [
+        "HideCrosshair"
+      ],
+      "requirements": [
+        "TargetInfo"
+      ],
+      "flarial": "Crosshair",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/Crosshair/Crosshair.cpp",
+        "src/Client/Module/Modules/Crosshair/Crosshair.hpp"
+      ],
+      "flarial_events": [],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "CrystalOptimizer",
+      "source": "dll/src/modules/combat/Pvp.hpp",
+      "game_calls": [
+        "events",
+        "hidden",
+        "hide"
+      ],
+      "effects": [],
+      "requirements": [
+        "Target"
+      ],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "DamageIndicator",
+      "source": "dll/src/modules/combat/Feedback.hpp",
+      "game_calls": [
+        "events"
+      ],
+      "effects": [],
+      "requirements": [
+        "LocalPlayer"
+      ],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "DayCounter",
+      "source": "dll/src/modules/hud/GameInfo.hpp",
+      "game_calls": [
+        "state"
+      ],
+      "effects": [
+        "HideDayCounter"
+      ],
+      "requirements": [
+        "WorldTime"
+      ],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "DeathLogger",
+      "source": "dll/src/modules/comfort/Chat.hpp",
+      "game_calls": [
+        "events",
+        "state"
+      ],
+      "effects": [],
+      "requirements": [
+        "LocalPlayer"
+      ],
+      "flarial": "DeathLogger",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/DeathLogger/DeathLogger.cpp",
+        "src/Client/Module/Modules/DeathLogger/DeathLogger.hpp"
+      ],
+      "flarial_events": [
+        "TickEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "DebugMenu",
+      "source": "dll/src/modules/hud/Compose.hpp",
+      "game_calls": [
+        "demo",
+        "has",
+        "state"
+      ],
+      "effects": [
+        "Count"
+      ],
+      "requirements": [
+        "HurtEvents",
+        "PlayerStats"
+      ],
+      "flarial": "DebugMenu",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/DebugMenu/DebugMenu.cpp",
+        "src/Client/Module/Modules/DebugMenu/DebugMenu.hpp",
+        "src/Client/Module/Modules/DebugMenu/Tags.hpp"
+      ],
+      "flarial_events": [
+        "HudCursorRendererRenderEvent",
+        "KeyEvent",
+        "MouseEvent",
+        "PerspectiveEvent",
+        "RenderEvent",
+        "SetTopScreenNameEvent",
+        "SetupAndRenderEvent",
+        "SomeCameraRelatedEvent",
+        "SoundEnginePlayEvent",
+        "TickEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "Deepfry",
+      "source": "dll/src/modules/post/FunEffects.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": "Deepfry",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/Deepfry/Deepfry.cpp",
+        "src/Client/Module/Modules/Deepfry/Deepfry.hpp"
+      ],
+      "flarial_events": [
+        "RenderEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "DepthOfField",
+      "source": "dll/src/modules/post/Effects.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": "DepthOfField",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/DepthOfField/DepthOfField.cpp",
+        "src/Client/Module/Modules/DepthOfField/DepthOfField.hpp",
+        "src/Client/Module/Modules/DepthOfField/DepthOfFieldHelper.cpp",
+        "src/Client/Module/Modules/DepthOfField/DepthOfFieldHelper.hpp"
+      ],
+      "flarial_events": [
+        "RenderUnderUIEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "DirectionHud",
+      "source": "dll/src/modules/hud/GameInfo.hpp",
+      "game_calls": [
+        "distance",
+        "state"
+      ],
+      "effects": [],
+      "requirements": [
+        "LocalPlayer"
+      ],
+      "flarial": "DirectionHUD",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/DirectionHUD/DirectionHUD.cpp",
+        "src/Client/Module/Modules/DirectionHUD/DirectionHUD.hpp"
+      ],
+      "flarial_events": [
+        "RenderEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "DiscordPresence",
+      "source": "dll/src/modules/platform/Presence.hpp",
+      "game_calls": [
+        "state"
+      ],
+      "effects": [],
+      "requirements": [],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "DurabilityWarning",
+      "source": "dll/src/modules/hud/Inventory.hpp",
+      "game_calls": [
+        "state"
+      ],
+      "effects": [],
+      "requirements": [
+        "LocalPlayer"
+      ],
+      "flarial": "DurabilityWarning",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/DurabilityWarning/DurabilityWarning.cpp",
+        "src/Client/Module/Modules/DurabilityWarning/DurabilityWarning.hpp"
+      ],
+      "flarial_events": [
+        "TickEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "DvdScreen",
+      "source": "dll/src/modules/fun/DvdScreen.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": "DVD Screen",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/DVD Screen/dvd.cpp",
+        "src/Client/Module/Modules/DVD Screen/dvd.hpp"
+      ],
+      "flarial_events": [
+        "RenderEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "EntityCounter",
+      "source": "dll/src/modules/combat/Counters.hpp",
+      "game_calls": [
+        "state"
+      ],
+      "effects": [],
+      "requirements": [
+        "EntityList"
+      ],
+      "flarial": "EntityCounter",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/EntityCounter/EntityCounter.cpp",
+        "src/Client/Module/Modules/EntityCounter/EntityCounter.hpp"
+      ],
+      "flarial_events": [
+        "SetupAndRenderEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "ExperienceInfo",
+      "source": "dll/src/modules/hud/GameInfo.hpp",
+      "game_calls": [
+        "state"
+      ],
+      "effects": [],
+      "requirements": [
+        "LocalPlayer"
+      ],
+      "flarial": "ExperienceInfo",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/ExperienceInfo/ExperienceInfo.cpp",
+        "src/Client/Module/Modules/ExperienceInfo/ExperienceInfo.hpp"
+      ],
+      "flarial_events": [
+        "TickEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "EyeBreak",
+      "source": "dll/src/modules/fun/EyeBreak.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "FallPredictor",
+      "source": "dll/src/modules/hud/Extras.hpp",
+      "game_calls": [
+        "state"
+      ],
+      "effects": [],
+      "requirements": [
+        "LocalPlayer"
+      ],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "Flappy",
+      "source": "dll/src/modules/fun/Flappy.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "FovChanger",
+      "source": "dll/src/modules/camera/Camera.hpp",
+      "game_calls": [
+        "state"
+      ],
+      "effects": [
+        "Fov",
+        "FovEffects"
+      ],
+      "requirements": [
+        "MoveState"
+      ],
+      "flarial": "FOVChanger",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/FOVChanger/FOVChanger.cpp",
+        "src/Client/Module/Modules/FOVChanger/FOVChanger.hpp"
+      ],
+      "flarial_events": [
+        "FOVEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "Fps",
+      "source": "dll/src/modules/hud/Fps.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": "FPS",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/FPS/FPS.cpp",
+        "src/Client/Module/Modules/FPS/FPS.hpp"
+      ],
+      "flarial_events": [
+        "RenderUnderUIEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "FrameLimiter",
+      "source": "dll/src/modules/perf/FrameLimiter.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "Freelook",
+      "source": "dll/src/modules/camera/Camera.hpp",
+      "game_calls": [
+        "freeCamera",
+        "state"
+      ],
+      "effects": [
+        "Perspective"
+      ],
+      "requirements": [
+        "LocalPlayer"
+      ],
+      "flarial": "Freelook",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/Freelook/Freelook.cpp",
+        "src/Client/Module/Modules/Freelook/Freelook.hpp"
+      ],
+      "flarial_events": [
+        "KeyEvent",
+        "MouseEvent",
+        "PerspectiveEvent",
+        "UpdatePlayerEvent"
+      ],
+      "flarial_signatures": [
+        "CameraMovement",
+        "CameraPitch",
+        "CameraYaw",
+        "CameraYaw2"
+      ],
+      "flarial_options": []
+    },
+    {
+      "mochi": "Fullbright",
+      "source": "dll/src/modules/camera/Camera.hpp",
+      "game_calls": [
+        "has",
+        "state"
+      ],
+      "effects": [
+        "Gamma"
+      ],
+      "requirements": [],
+      "flarial": "Fullbright",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/Fullbright/Fullbright.cpp",
+        "src/Client/Module/Modules/Fullbright/Fullbright.hpp"
+      ],
+      "flarial_events": [
+        "GammaEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "GamemodeHotkeys",
+      "source": "dll/src/modules/input/Gamemode.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "HealthAbove",
+      "source": "dll/src/modules/world/HealthAbove.hpp",
+      "game_calls": [
+        "distance",
+        "project",
+        "state"
+      ],
+      "effects": [],
+      "requirements": [
+        "LocalPlayer"
+      ],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "HealthDisplay",
+      "source": "dll/src/modules/hud/GameInfo.hpp",
+      "game_calls": [
+        "state"
+      ],
+      "effects": [],
+      "requirements": [
+        "LocalPlayer"
+      ],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "HeldItem",
+      "source": "dll/src/modules/hud/GameInfo.hpp",
+      "game_calls": [
+        "state"
+      ],
+      "effects": [],
+      "requirements": [
+        "LocalPlayer"
+      ],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "HideHand",
+      "source": "dll/src/modules/world/World.hpp",
+      "game_calls": [
+        "has",
+        "state"
+      ],
+      "effects": [
+        "HideHand",
+        "HideOffhand"
+      ],
+      "requirements": [],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "HitCounter",
+      "source": "dll/src/modules/combat/Counters.hpp",
+      "game_calls": [
+        "resetCombat",
+        "state"
+      ],
+      "effects": [],
+      "requirements": [
+        "LocalPlayer",
+        "MoveState"
+      ],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "HitEffects",
+      "source": "dll/src/modules/combat/Feedback.hpp",
+      "game_calls": [
+        "events"
+      ],
+      "effects": [],
+      "requirements": [
+        "LocalPlayer",
+        "MoveState"
+      ],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "HitInfo",
+      "source": "dll/src/modules/combat/Counters.hpp",
+      "game_calls": [
+        "state"
+      ],
+      "effects": [],
+      "requirements": [
+        "LocalPlayer"
+      ],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "HitMarker",
+      "source": "dll/src/modules/combat/Feedback.hpp",
+      "game_calls": [
+        "events",
+        "ready"
+      ],
+      "effects": [],
+      "requirements": [
+        "MoveState"
+      ],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "HitPing",
+      "source": "dll/src/modules/combat/Counters.hpp",
+      "game_calls": [
+        "events",
+        "state"
+      ],
+      "effects": [],
+      "requirements": [
+        "LocalPlayer"
+      ],
+      "flarial": "HitPing",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/HitPing/HitPing.cpp",
+        "src/Client/Module/Modules/HitPing/HitPing.hpp"
+      ],
+      "flarial_events": [
+        "AttackEvent",
+        "PacketEvent",
+        "TickEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "HitSound",
+      "source": "dll/src/modules/combat/Feedback.hpp",
+      "game_calls": [
+        "events"
+      ],
+      "effects": [],
+      "requirements": [
+        "LocalPlayer",
+        "MoveState"
+      ],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "Hitbox",
+      "source": "dll/src/modules/combat/Tweaks.hpp",
+      "game_calls": [
+        "project",
+        "projectLine",
+        "state"
+      ],
+      "effects": [],
+      "requirements": [
+        "Target"
+      ],
+      "flarial": "Hitbox",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/Hitbox/Hitbox.cpp",
+        "src/Client/Module/Modules/Hitbox/Hitbox.hpp"
+      ],
+      "flarial_events": [
+        "KeyEvent",
+        "PerspectiveEvent",
+        "RenderEvent",
+        "SetupAndRenderEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "HiveLeaderboard",
+      "source": "dll/src/modules/server/HiveStats.hpp",
+      "game_calls": [
+        "demo",
+        "state"
+      ],
+      "effects": [],
+      "requirements": [],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "HiveStats",
+      "source": "dll/src/modules/server/HiveStats.hpp",
+      "game_calls": [
+        "demo",
+        "state"
+      ],
+      "effects": [],
+      "requirements": [
+        "TabListData"
+      ],
+      "flarial": "HiveStat",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/HiveStat/HiveStat.cpp",
+        "src/Client/Module/Modules/HiveStat/HiveStat.hpp"
+      ],
+      "flarial_events": [
+        "KeyEvent",
+        "PacketEvent",
+        "RenderEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "HiveUtils",
+      "source": "dll/src/modules/server/Hive.hpp",
+      "game_calls": [
+        "events",
+        "filterChat",
+        "state"
+      ],
+      "effects": [],
+      "requirements": [
+        "ChatEvents"
+      ],
+      "flarial": "HiveUtils",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/HiveUtils/HiveUtils.cpp",
+        "src/Client/Module/Modules/HiveUtils/HiveUtils.hpp"
+      ],
+      "flarial_events": [
+        "KeyEvent",
+        "PacketEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "HotbarAnimation",
+      "source": "dll/src/modules/hud/HotbarAnim.hpp",
+      "game_calls": [
+        "state"
+      ],
+      "effects": [],
+      "requirements": [
+        "LocalPlayer"
+      ],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "HotbarArmor",
+      "source": "dll/src/modules/hud/Extras.hpp",
+      "game_calls": [
+        "state"
+      ],
+      "effects": [],
+      "requirements": [
+        "LocalPlayer"
+      ],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "HotbarKeys",
+      "source": "dll/src/modules/input/HotbarKeys.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "InventoryLock",
+      "source": "dll/src/modules/comfort/Lock.hpp",
+      "game_calls": [
+        "state"
+      ],
+      "effects": [],
+      "requirements": [
+        "LocalPlayer"
+      ],
+      "flarial": "InventoryLock",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/InventoryLock/InventoryLock.cpp",
+        "src/Client/Module/Modules/InventoryLock/InventoryLock.hpp"
+      ],
+      "flarial_events": [
+        "ContainerScreenControllerTickEvent",
+        "ContainerSlotHoveredEvent",
+        "ItemDropEvent",
+        "KeyEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "InventoryView",
+      "source": "dll/src/modules/hud/Extras.hpp",
+      "game_calls": [
+        "state"
+      ],
+      "effects": [],
+      "requirements": [
+        "LocalPlayer"
+      ],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "IpDisplay",
+      "source": "dll/src/modules/hud/GameInfo.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": "IPDisplay",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/IPDisplay/IPDisplay.cpp",
+        "src/Client/Module/Modules/IPDisplay/IPDisplay.hpp"
+      ],
+      "flarial_events": [],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "ItemCounter",
+      "source": "dll/src/modules/hud/Inventory.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [
+        "LocalPlayer"
+      ],
+      "flarial": "ItemCounter",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/ItemCounter/ItemCounter.cpp",
+        "src/Client/Module/Modules/ItemCounter/ItemCounter.hpp"
+      ],
+      "flarial_events": [
+        "RenderEvent",
+        "SetupAndRenderEvent",
+        "TickEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "ItemTracker",
+      "source": "dll/src/modules/hud/ItemTracker.hpp",
+      "game_calls": [
+        "state"
+      ],
+      "effects": [],
+      "requirements": [
+        "LocalPlayer"
+      ],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "JavaDynamicFov",
+      "source": "dll/src/modules/camera/Camera.hpp",
+      "game_calls": [
+        "has",
+        "state"
+      ],
+      "effects": [
+        "Fov",
+        "FovEffects"
+      ],
+      "requirements": [],
+      "flarial": "JavaDynamicFOV",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/JavaDynamicFOV/JavaDynamicFOV.cpp",
+        "src/Client/Module/Modules/JavaDynamicFOV/JavaDynamicFOV.hpp"
+      ],
+      "flarial_events": [
+        "FOVEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": [
+        "fov.toggle"
+      ]
+    },
+    {
+      "mochi": "JavaInventoryHotkeys",
+      "source": "dll/src/modules/comfort/Lock.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": "JavaInventoryHotkeys",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/JavaInventoryHotkeys/JavaInventoryHotkeys.cpp",
+        "src/Client/Module/Modules/JavaInventoryHotkeys/JavaInventoryHotkeys.hpp"
+      ],
+      "flarial_events": [
+        "ContainerScreenControllerTickEvent",
+        "ContainerSlotHoveredEvent",
+        "KeyEvent",
+        "MouseEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "Keystrokes",
+      "source": "dll/src/modules/hud/Keystrokes.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": "Keystrokes",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/Keystrokes/Keystrokes.cpp",
+        "src/Client/Module/Modules/Keystrokes/Keystrokes.hpp"
+      ],
+      "flarial_events": [
+        "RenderEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "KillCleanup",
+      "source": "dll/src/modules/combat/Pvp.hpp",
+      "game_calls": [
+        "demo",
+        "events",
+        "hidden",
+        "hide",
+        "state"
+      ],
+      "effects": [],
+      "requirements": [],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "KillEffects",
+      "source": "dll/src/modules/combat/Feedback.hpp",
+      "game_calls": [
+        "events"
+      ],
+      "effects": [],
+      "requirements": [
+        "LocalPlayer"
+      ],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "LatencyBlame",
+      "source": "dll/src/modules/network/LatencyBlame.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "LatencyHud",
+      "source": "dll/src/modules/hud/Latency.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "LookAngles",
+      "source": "dll/src/modules/hud/GameInfo.hpp",
+      "game_calls": [
+        "state"
+      ],
+      "effects": [],
+      "requirements": [
+        "LocalPlayer"
+      ],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "LowHealth",
+      "source": "dll/src/modules/hud/Inventory.hpp",
+      "game_calls": [
+        "state"
+      ],
+      "effects": [],
+      "requirements": [
+        "LocalPlayer"
+      ],
+      "flarial": "LowHealthIndicator",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/LowHealthIndicator/LowHealthIndicator.cpp",
+        "src/Client/Module/Modules/LowHealthIndicator/LowHealthIndicator.hpp"
+      ],
+      "flarial_events": [
+        "RenderEvent",
+        "TickEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "LowLatency",
+      "source": "dll/src/modules/perf/LowLatency.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "LuaScripts",
+      "source": "dll/src/modules/platform/Scripts.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "MatchSummary",
+      "source": "dll/src/modules/server/MatchSummary.hpp",
+      "game_calls": [
+        "resetCombat",
+        "state"
+      ],
+      "effects": [],
+      "requirements": [
+        "LocalPlayer"
+      ],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "Memory",
+      "source": "dll/src/modules/hud/Memory.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": "Memory",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/Memory/Memory.cpp",
+        "src/Client/Module/Modules/Memory/Memory.hpp"
+      ],
+      "flarial_events": [],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "MessageLogger",
+      "source": "dll/src/modules/comfort/Chat.hpp",
+      "game_calls": [
+        "events",
+        "state"
+      ],
+      "effects": [],
+      "requirements": [
+        "ChatEvents"
+      ],
+      "flarial": "MessageLogger",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/MessageLogger/MessageLogger.cpp",
+        "src/Client/Module/Modules/MessageLogger/MessageLogger.hpp"
+      ],
+      "flarial_events": [
+        "PacketEvent",
+        "TickEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "MochiOnline",
+      "source": "dll/src/modules/online/MochiOnline.hpp",
+      "game_calls": [
+        "demo",
+        "state"
+      ],
+      "effects": [],
+      "requirements": [],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "ModernKeybinds",
+      "source": "dll/src/modules/comfort/Lock.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "MotionBlur",
+      "source": "dll/src/modules/post/Effects.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": "MotionBlur",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/MotionBlur/AvgPixelMotionBlurHelper.cpp",
+        "src/Client/Module/Modules/MotionBlur/AvgPixelMotionBlurHelper.hpp",
+        "src/Client/Module/Modules/MotionBlur/MotionBlur.cpp",
+        "src/Client/Module/Modules/MotionBlur/MotionBlur.hpp",
+        "src/Client/Module/Modules/MotionBlur/RealMotionBlurHelper.cpp",
+        "src/Client/Module/Modules/MotionBlur/RealMotionBlurHelper.hpp"
+      ],
+      "flarial_events": [
+        "RenderEvent",
+        "RenderUnderUIEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "MouseStrokes",
+      "source": "dll/src/modules/hud/MouseStrokes.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": "Mousestrokes",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/Mousestrokes/Mousestrokes.cpp",
+        "src/Client/Module/Modules/Mousestrokes/Mousestrokes.hpp"
+      ],
+      "flarial_events": [
+        "RenderEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "MouseSync",
+      "source": "dll/src/modules/perf/MouseSync.hpp",
+      "game_calls": [],
+      "effects": [
+        "Sensitivity"
+      ],
+      "requirements": [],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "MumbleLink",
+      "source": "dll/src/modules/comfort/Link.hpp",
+      "game_calls": [
+        "state"
+      ],
+      "effects": [],
+      "requirements": [
+        "LocalPlayer"
+      ],
+      "flarial": "MumbleLink",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/MumbleLink/MumbleLink.cpp",
+        "src/Client/Module/Modules/MumbleLink/MumbleLink.hpp"
+      ],
+      "flarial_events": [],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "MusicControl",
+      "source": "dll/src/modules/comfort/Music.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "Network",
+      "source": "dll/src/modules/network/Network.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "Nick",
+      "source": "dll/src/modules/comfort/Nick.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": "Nick",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/Nick/NickModule.cpp",
+        "src/Client/Module/Modules/Nick/NickModule.hpp"
+      ],
+      "flarial_events": [
+        "DrawTextEvent",
+        "RaknetTickEvent",
+        "TickEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "NightShift",
+      "source": "dll/src/modules/post/Effects.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "NoHurtCam",
+      "source": "dll/src/modules/camera/Camera.hpp",
+      "game_calls": [],
+      "effects": [
+        "HurtCam"
+      ],
+      "requirements": [],
+      "flarial": "NoHurtCam",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/NoHurtCam/NoHurtCam.cpp",
+        "src/Client/Module/Modules/NoHurtCam/NoHurtCam.hpp"
+      ],
+      "flarial_events": [
+        "RaknetTickEvent",
+        "TickEvent"
+      ],
+      "flarial_signatures": [
+        "CameraAssignAngle"
+      ],
+      "flarial_options": []
+    },
+    {
+      "mochi": "NoScroll",
+      "source": "dll/src/modules/input/NoScroll.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": "DisableMouseWheel",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/DisableMouseWheel/DisableMouseWheel.cpp",
+        "src/Client/Module/Modules/DisableMouseWheel/DisableMouseWheel.hpp"
+      ],
+      "flarial_events": [
+        "KeyEvent",
+        "MouseEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "NoViewBobbing",
+      "source": "dll/src/modules/camera/Camera.hpp",
+      "game_calls": [
+        "state"
+      ],
+      "effects": [
+        "HandBob",
+        "ViewBob"
+      ],
+      "requirements": [],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "NullMovement",
+      "source": "dll/src/modules/combat/Tweaks.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": "NullMovement",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/NullMovement/NullMovement.cpp",
+        "src/Client/Module/Modules/NullMovement/NullMovement.hpp"
+      ],
+      "flarial_events": [
+        "KeyEvent",
+        "TickEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "OpponentReach",
+      "source": "dll/src/modules/combat/Counters.hpp",
+      "game_calls": [
+        "distance",
+        "events",
+        "state"
+      ],
+      "effects": [],
+      "requirements": [
+        "LocalPlayer"
+      ],
+      "flarial": "OpponentReach",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/OpponentReach/OpponentReach.cpp",
+        "src/Client/Module/Modules/OpponentReach/OpponentReach.hpp"
+      ],
+      "flarial_events": [
+        "PacketEvent",
+        "TickEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "PackChanger",
+      "source": "dll/src/modules/comfort/Packs.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "PackDisplay",
+      "source": "dll/src/modules/hud/GameInfo.hpp",
+      "game_calls": [
+        "demo",
+        "state"
+      ],
+      "effects": [],
+      "requirements": [],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "Paperdoll",
+      "source": "dll/src/modules/hud/Paperdoll.hpp",
+      "game_calls": [
+        "events",
+        "state"
+      ],
+      "effects": [],
+      "requirements": [
+        "LocalPlayer"
+      ],
+      "flarial": "PaperDoll",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/PaperDoll/PaperDoll.cpp",
+        "src/Client/Module/Modules/PaperDoll/PaperDoll.hpp"
+      ],
+      "flarial_events": [
+        "RenderEvent",
+        "SetupAndRenderEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "PerformanceLock",
+      "source": "dll/src/modules/perf/PerformanceLock.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "Pet",
+      "source": "dll/src/modules/fun/Pets.hpp",
+      "game_calls": [
+        "events",
+        "has"
+      ],
+      "effects": [],
+      "requirements": [],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "Petals",
+      "source": "dll/src/modules/fun/Pets.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "PingCounter",
+      "source": "dll/src/modules/network/PingCounter.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": "PingCounter",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/PingCounter/PingCounter.cpp",
+        "src/Client/Module/Modules/PingCounter/PingCounter.hpp"
+      ],
+      "flarial_events": [],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "PlayerNotifier",
+      "source": "dll/src/modules/comfort/Chat.hpp",
+      "game_calls": [
+        "state"
+      ],
+      "effects": [],
+      "requirements": [
+        "TabListData"
+      ],
+      "flarial": "PlayerNotifier",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/PlayerNotifier/PlayerNotifier.cpp",
+        "src/Client/Module/Modules/PlayerNotifier/PlayerNotifier.hpp"
+      ],
+      "flarial_events": [
+        "KeyEvent",
+        "TickEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "Pomodoro",
+      "source": "dll/src/modules/hud/Pomodoro.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "PotCounter",
+      "source": "dll/src/modules/hud/Inventory.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": "PotCounter",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/PotCounter/PotCounter.cpp",
+        "src/Client/Module/Modules/PotCounter/PotCounter.hpp"
+      ],
+      "flarial_events": [
+        "TickEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "PotionHud",
+      "source": "dll/src/modules/hud/Inventory.hpp",
+      "game_calls": [
+        "state"
+      ],
+      "effects": [],
+      "requirements": [
+        "LocalPlayer"
+      ],
+      "flarial": "PotionHUD",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/PotionHUD/PotionHUD.cpp",
+        "src/Client/Module/Modules/PotionHUD/PotionHUD.hpp"
+      ],
+      "flarial_events": [
+        "RenderEvent",
+        "RenderPotionHUDEvent",
+        "SetupAndRenderEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "ProfileHotkeys",
+      "source": "dll/src/modules/comfort/Toggles.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "ReachCounter",
+      "source": "dll/src/modules/combat/Counters.hpp",
+      "game_calls": [
+        "state"
+      ],
+      "effects": [],
+      "requirements": [
+        "LocalPlayer"
+      ],
+      "flarial": "ReachCounter",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/ReachCounter/ReachCounter.cpp",
+        "src/Client/Module/Modules/ReachCounter/ReachCounter.hpp"
+      ],
+      "flarial_events": [
+        "AttackEvent",
+        "RenderEvent",
+        "TickEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "RenderOptions",
+      "source": "dll/src/modules/perf/RenderOptions.hpp",
+      "game_calls": [],
+      "effects": [
+        "BlockEntities",
+        "Clouds",
+        "Fog",
+        "HideHand",
+        "HideHud",
+        "Particles",
+        "Rain",
+        "RenderEntities",
+        "RenderTerrain",
+        "Shadows",
+        "Sky",
+        "Thunder",
+        "Vignette"
+      ],
+      "requirements": [],
+      "flarial": "RenderOptions",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/RenderOptions/RenderOptions.cpp",
+        "src/Client/Module/Modules/RenderOptions/RenderOptions.hpp"
+      ],
+      "flarial_events": [
+        "SetupAndRenderEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": [
+        "dev_achievementsAlwaysEnabled",
+        "dev_disableRenderBlockEntities",
+        "dev_disableRenderEntities",
+        "dev_disableRenderHud",
+        "dev_disableRenderItemInHand",
+        "dev_disableRenderMainMenuCubemap",
+        "dev_disableRenderParticles",
+        "dev_disableRenderSky",
+        "dev_disableRenderTerrain",
+        "dev_disableRenderWeather",
+        "dev_enableDebugHudOverlay",
+        "dev_renderBoundingBox",
+        "dev_renderGoalState",
+        "dev_renderMobInfoState",
+        "dev_renderPaths",
+        "dev_renderSchedulerData",
+        "dev_showBuildInfo",
+        "dev_showChunkMap",
+        "dev_showDevConsoleButton",
+        "dev_showLatencyGraph"
+      ]
+    },
+    {
+      "mochi": "SaturationHue",
+      "source": "dll/src/modules/post/Effects.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "ScoreboardPlus",
+      "source": "dll/src/modules/comfort/Chat.hpp",
+      "game_calls": [
+        "state"
+      ],
+      "effects": [
+        "HideScoreboard"
+      ],
+      "requirements": [
+        "ScoreboardData"
+      ],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "ScreenTint",
+      "source": "dll/src/modules/post/Effects.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "Screenshot",
+      "source": "dll/src/modules/comfort/Screenshot.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "SensMultiplier",
+      "source": "dll/src/modules/combat/Tweaks.hpp",
+      "game_calls": [
+        "state"
+      ],
+      "effects": [
+        "Sensitivity"
+      ],
+      "requirements": [
+        "MoveState",
+        "UseState"
+      ],
+      "flarial": "SensMultiplier",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/SensMultiplier/SensMultiplier.cpp",
+        "src/Client/Module/Modules/SensMultiplier/SensMultiplier.hpp"
+      ],
+      "flarial_events": [
+        "TurnDeltaEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "ServerInfo",
+      "source": "dll/src/modules/hud/ServerInfo.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "ServerProfiles",
+      "source": "dll/src/modules/server/ServerProfiles.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "SessionStats",
+      "source": "dll/src/modules/combat/Counters.hpp",
+      "game_calls": [
+        "resetCombat",
+        "state"
+      ],
+      "effects": [],
+      "requirements": [
+        "LocalPlayer"
+      ],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "SessionTimer",
+      "source": "dll/src/modules/hud/SessionTimer.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "ShaderPacks",
+      "source": "dll/src/modules/post/Effects.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "Sharpen",
+      "source": "dll/src/modules/post/Effects.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "SigStatus",
+      "source": "dll/src/modules/client/SigStatus.hpp",
+      "game_calls": [
+        "demo",
+        "setDemo",
+        "setDemoServer"
+      ],
+      "effects": [
+        "Count"
+      ],
+      "requirements": [],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "Snake",
+      "source": "dll/src/modules/fun/Snake.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "SnapLook",
+      "source": "dll/src/modules/combat/Tweaks.hpp",
+      "game_calls": [],
+      "effects": [
+        "Perspective"
+      ],
+      "requirements": [],
+      "flarial": "SnapLook",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/SnapLook/SnapLook.cpp",
+        "src/Client/Module/Modules/SnapLook/SnapLook.hpp"
+      ],
+      "flarial_events": [
+        "KeyEvent",
+        "MouseEvent",
+        "PerspectiveEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "SpeedDisplay",
+      "source": "dll/src/modules/hud/GameInfo.hpp",
+      "game_calls": [
+        "state"
+      ],
+      "effects": [],
+      "requirements": [
+        "LocalPlayer"
+      ],
+      "flarial": "SpeedDisplay",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/SpeedDisplay/SpeedDisplay.cpp",
+        "src/Client/Module/Modules/SpeedDisplay/SpeedDisplay.hpp"
+      ],
+      "flarial_events": [
+        "TickEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "StatsHud",
+      "source": "dll/src/modules/hud/Compose.hpp",
+      "game_calls": [
+        "has",
+        "state"
+      ],
+      "effects": [],
+      "requirements": [
+        "HurtEvents",
+        "PlayerStats"
+      ],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "Stopwatch",
+      "source": "dll/src/modules/hud/Stopwatch.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": "Stopwatch",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/Stopwatch/Stopwatch.cpp",
+        "src/Client/Module/Modules/Stopwatch/Stopwatch.hpp"
+      ],
+      "flarial_events": [
+        "KeyEvent",
+        "RenderEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "StreamerMode",
+      "source": "dll/src/modules/comfort/Streamer.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "SystemBoost",
+      "source": "dll/src/modules/perf/SystemBoost.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "TabList",
+      "source": "dll/src/modules/comfort/Chat.hpp",
+      "game_calls": [
+        "state"
+      ],
+      "effects": [],
+      "requirements": [
+        "TabListData"
+      ],
+      "flarial": "TabList",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/TabList/TabList.cpp",
+        "src/Client/Module/Modules/TabList/TabList.hpp"
+      ],
+      "flarial_events": [
+        "KeyEvent",
+        "MouseEvent",
+        "RenderEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "TargetHud",
+      "source": "dll/src/modules/combat/Target.hpp",
+      "game_calls": [
+        "state"
+      ],
+      "effects": [],
+      "requirements": [
+        "LocalPlayer"
+      ],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "TextHotkey",
+      "source": "dll/src/modules/comfort/Toggles.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": "TextHotkey",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/TextHotkey/TextHotkey.cpp",
+        "src/Client/Module/Modules/TextHotkey/TextHotkey.hpp"
+      ],
+      "flarial_events": [
+        "KeyEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "ThirdPersonNametag",
+      "source": "dll/src/modules/world/Entities.hpp",
+      "game_calls": [
+        "distance",
+        "project",
+        "state"
+      ],
+      "effects": [],
+      "requirements": [
+        "LocalPlayer"
+      ],
+      "flarial": "NametagModifier",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/NametagModifier/NametagModifier.cpp",
+        "src/Client/Module/Modules/NametagModifier/NametagModifier.hpp"
+      ],
+      "flarial_events": [
+        "DrawNameTagEvent",
+        "PerspectiveEvent"
+      ],
+      "flarial_signatures": [
+        "ThirdPersonNametag"
+      ],
+      "flarial_options": []
+    },
+    {
+      "mochi": "TntTimer",
+      "source": "dll/src/modules/world/Entities.hpp",
+      "game_calls": [
+        "project",
+        "state"
+      ],
+      "effects": [],
+      "requirements": [
+        "Target"
+      ],
+      "flarial": "TNTTimer",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/TNTTimer/TNTTimer.cpp",
+        "src/Client/Module/Modules/TNTTimer/TNTTimer.hpp"
+      ],
+      "flarial_events": [
+        "TickEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "ToggleSneak",
+      "source": "dll/src/modules/comfort/Toggles.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "ToggleSprint",
+      "source": "dll/src/modules/comfort/Toggles.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "TotemCounter",
+      "source": "dll/src/modules/hud/Inventory.hpp",
+      "game_calls": [
+        "state"
+      ],
+      "effects": [],
+      "requirements": [],
+      "flarial": "TotemCounter",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/TotemCounter/TotemCounter.cpp",
+        "src/Client/Module/Modules/TotemCounter/TotemCounter.hpp"
+      ],
+      "flarial_events": [
+        "TickEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "TotemPop",
+      "source": "dll/src/modules/combat/Feedback.hpp",
+      "game_calls": [
+        "events",
+        "state"
+      ],
+      "effects": [],
+      "requirements": [
+        "LocalPlayer"
+      ],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "UpsideDown",
+      "source": "dll/src/modules/post/FunEffects.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": "UpsideDown",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/UpsideDown/UpsideDown.cpp",
+        "src/Client/Module/Modules/UpsideDown/UpsideDown.hpp"
+      ],
+      "flarial_events": [
+        "FOVEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "ViewModel",
+      "source": "dll/src/modules/world/World.hpp",
+      "game_calls": [],
+      "effects": [
+        "HandMatrix",
+        "HandMatrixThird",
+        "ItemFov"
+      ],
+      "requirements": [],
+      "flarial": "ViewModel",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/ViewModel/ViewModel.cpp",
+        "src/Client/Module/Modules/ViewModel/ViewModel.hpp"
+      ],
+      "flarial_events": [
+        "FOVEvent",
+        "PerspectiveEvent",
+        "RenderItemInHandEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "Waila",
+      "source": "dll/src/modules/combat/Target.hpp",
+      "game_calls": [
+        "state"
+      ],
+      "effects": [],
+      "requirements": [
+        "LocalPlayer"
+      ],
+      "flarial": "Waila",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/Waila/Waila.cpp",
+        "src/Client/Module/Modules/Waila/Waila.hpp"
+      ],
+      "flarial_events": [
+        "SetupAndRenderEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "Watermark",
+      "source": "dll/src/modules/hud/Compose.hpp",
+      "game_calls": [],
+      "effects": [],
+      "requirements": [],
+      "flarial": null,
+      "status": "source comparison; in-game effect unverified"
+    },
+    {
+      "mochi": "Waypoints",
+      "source": "dll/src/modules/world/Waypoints.hpp",
+      "game_calls": [
+        "distance",
+        "events",
+        "project",
+        "projectLine",
+        "state"
+      ],
+      "effects": [],
+      "requirements": [
+        "Dimension",
+        "HurtEvents",
+        "LocalPlayer"
+      ],
+      "flarial": "Waypoints",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/Waypoints/Waypoints.cpp",
+        "src/Client/Module/Modules/Waypoints/Waypoints.hpp"
+      ],
+      "flarial_events": [
+        "KeyEvent",
+        "Render3DEvent",
+        "RenderEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "ZeqaUtils",
+      "source": "dll/src/modules/server/Zeqa.hpp",
+      "game_calls": [
+        "events",
+        "filterChat",
+        "state"
+      ],
+      "effects": [],
+      "requirements": [
+        "ChatEvents"
+      ],
+      "flarial": "ZeqaUtils",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/ZeqaUtils/ZeqaUtils.cpp",
+        "src/Client/Module/Modules/ZeqaUtils/ZeqaUtils.hpp"
+      ],
+      "flarial_events": [
+        "PacketEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": []
+    },
+    {
+      "mochi": "Zoom",
+      "source": "dll/src/modules/camera/Camera.hpp",
+      "game_calls": [
+        "has",
+        "state"
+      ],
+      "effects": [
+        "Fov",
+        "FovEffects",
+        "HideHand",
+        "Sensitivity"
+      ],
+      "requirements": [],
+      "flarial": "Zoom",
+      "status": "source comparison; in-game effect unverified",
+      "flarial_sources": [
+        "src/Client/Module/Modules/Zoom/Zoom.cpp",
+        "src/Client/Module/Modules/Zoom/Zoom.hpp"
+      ],
+      "flarial_events": [
+        "FOVEvent",
+        "KeyEvent",
+        "MouseEvent",
+        "RenderEvent",
+        "SensitivityEvent",
+        "SetTopScreenNameEvent",
+        "TurnDeltaEvent"
+      ],
+      "flarial_signatures": [],
+      "flarial_options": [
+        "dev_disableRenderItemInHand"
+      ]
+    }
+  ],
+  "without_direct_match": [
+    {
+      "flarial": "202020",
+      "events": [
+        "RenderEvent"
+      ],
+      "signatures": []
+    },
+    {
+      "flarial": "Animations",
+      "events": [
+        "DrawImageEvent",
+        "GetTextureEvent"
+      ],
+      "signatures": []
+    },
+    {
+      "flarial": "BetterHungerBar",
+      "events": [
+        "SetupAndRenderEvent",
+        "TickEvent"
+      ],
+      "signatures": []
+    },
+    {
+      "flarial": "BlockHit",
+      "events": [
+        "PerspectiveEvent",
+        "RenderItemInHandEvent"
+      ],
+      "signatures": []
+    },
+    {
+      "flarial": "ClearChat",
+      "events": [
+        "SetupAndRenderEvent"
+      ],
+      "signatures": []
+    },
+    {
+      "flarial": "ClearScoreboard",
+      "events": [
+        "SetupAndRenderEvent"
+      ],
+      "signatures": []
+    },
+    {
+      "flarial": "CompactChat",
+      "events": [
+        "ChatScreenControllerTickEvent",
+        "PacketEvent"
+      ],
+      "signatures": []
+    },
+    {
+      "flarial": "CustomCrosshair",
+      "events": [
+        "HudCursorRendererRenderEvent",
+        "PerspectiveEvent",
+        "RenderEvent"
+      ],
+      "signatures": []
+    },
+    {
+      "flarial": "Doom",
+      "events": [
+        "KeyEvent",
+        "RenderEvent"
+      ],
+      "signatures": []
+    },
+    {
+      "flarial": "FasterInventory",
+      "events": [
+        "PacketEvent",
+        "PacketSendEvent",
+        "RaknetTickEvent",
+        "TickEvent"
+      ],
+      "signatures": []
+    },
+    {
+      "flarial": "FogColor",
+      "events": [
+        "FogColorEvent"
+      ],
+      "signatures": []
+    },
+    {
+      "flarial": "ForceCoords",
+      "events": [
+        "RenderEvent"
+      ],
+      "signatures": [
+        "ForceCoordsOption"
+      ]
+    },
+    {
+      "flarial": "GlintColor",
+      "events": [
+        "ActorShaderParamsEvent"
+      ],
+      "signatures": []
+    },
+    {
+      "flarial": "GuiScale",
+      "events": [
+        "SetupAndRenderEvent"
+      ],
+      "signatures": []
+    },
+    {
+      "flarial": "HueChanger",
+      "events": [
+        "RenderEvent"
+      ],
+      "signatures": []
+    },
+    {
+      "flarial": "HurtColor",
+      "events": [
+        "HurtColorEvent"
+      ],
+      "signatures": []
+    },
+    {
+      "flarial": "InstantHurtAnimation",
+      "events": [
+        "AttackEvent",
+        "PacketEvent"
+      ],
+      "signatures": []
+    },
+    {
+      "flarial": "ItemPhysics",
+      "events": [
+        "ItemRendererEvent",
+        "SetupAndRenderEvent"
+      ],
+      "signatures": []
+    },
+    {
+      "flarial": "ItemUseDelayFix",
+      "events": [],
+      "signatures": [
+        "ClientInputCallbacks::handleBuildAction_onAttack_setNoBlockBreakUntil_CallPatch"
+      ]
+    },
+    {
+      "flarial": "JavaViewBobbing",
+      "events": [
+        "BobHurtEvent",
+        "RenderEvent"
+      ],
+      "signatures": []
+    },
+    {
+      "flarial": "Lewis",
+      "events": [
+        "RenderEvent"
+      ],
+      "signatures": []
+    },
+    {
+      "flarial": "MaterialBinLoader",
+      "events": [
+        "ReadFileEvent"
+      ],
+      "signatures": []
+    },
+    {
+      "flarial": "MinimalViewBobbing",
+      "events": [],
+      "signatures": [
+        "MinimalViewBobbing"
+      ]
+    },
+    {
+      "flarial": "Misc",
+      "events": [
+        "AfterSettingsScreenOnExitEvent",
+        "BeforeSettingsScreenOnExitEvent",
+        "GeneralSettingsScreenControllerOnCreateEvent",
+        "HandleVisibilityUpdatesEvent",
+        "KeyEvent",
+        "MouseEvent",
+        "PacketEvent",
+        "PacksLoadEvent",
+        "ProtocolEvent",
+        "RenderEvent",
+        "RenderOrderExecuteEvent",
+        "SetTopScreenNameEvent",
+        "SetupAndRenderEvent",
+        "TickEvent",
+        "isPreGameEvent"
+      ],
+      "signatures": [
+        "MinecraftGame::_onActiveResourcePacksChanged_Patch",
+        "ResourcePackManager::_composeFullStack_Patch",
+        "SettingsScreenOnExit_Patch"
+      ]
+    },
+    {
+      "flarial": "ModernKeybindHandling",
+      "events": [
+        "KeyEvent",
+        "SetTopScreenNameEvent",
+        "TickEvent"
+      ],
+      "signatures": []
+    },
+    {
+      "flarial": "MovableBossbar",
+      "events": [
+        "RenderEvent",
+        "SetupAndRenderEvent",
+        "UIControlGetPositionEvent"
+      ],
+      "signatures": []
+    },
+    {
+      "flarial": "MovableChat",
+      "events": [
+        "PacketEvent",
+        "RenderEvent",
+        "SetupAndRenderEvent",
+        "UIControlGetPositionEvent"
+      ],
+      "signatures": []
+    },
+    {
+      "flarial": "MovableCoordinates",
+      "events": [
+        "RenderEvent",
+        "SetupAndRenderEvent",
+        "UIControlGetPositionEvent"
+      ],
+      "signatures": []
+    },
+    {
+      "flarial": "MovableDayCounter",
+      "events": [
+        "RenderEvent",
+        "SetupAndRenderEvent",
+        "UIControlGetPositionEvent"
+      ],
+      "signatures": []
+    },
+    {
+      "flarial": "MovableHotbar",
+      "events": [
+        "RenderEvent",
+        "SetupAndRenderEvent",
+        "UIControlGetPositionEvent"
+      ],
+      "signatures": []
+    },
+    {
+      "flarial": "MovableHUD",
+      "events": [],
+      "signatures": []
+    },
+    {
+      "flarial": "MovableScoreboard",
+      "events": [
+        "RenderEvent",
+        "SetupAndRenderEvent",
+        "UIControlGetPositionEvent"
+      ],
+      "signatures": []
+    },
+    {
+      "flarial": "MovableTitle",
+      "events": [
+        "RenderEvent",
+        "SetupAndRenderEvent",
+        "UIControlGetPositionEvent"
+      ],
+      "signatures": []
+    },
+    {
+      "flarial": "ParticleMultiplier",
+      "events": [
+        "AttackEvent",
+        "PacketEvent",
+        "RenderEvent"
+      ],
+      "signatures": []
+    },
+    {
+      "flarial": "PatarHD",
+      "events": [
+        "RenderEvent"
+      ],
+      "signatures": []
+    },
+    {
+      "flarial": "PitchDisplay",
+      "events": [],
+      "signatures": []
+    },
+    {
+      "flarial": "RawInputBuffer",
+      "events": [],
+      "signatures": []
+    },
+    {
+      "flarial": "SkinStealer",
+      "events": [
+        "KeyEvent",
+        "MouseEvent",
+        "TickEvent"
+      ],
+      "signatures": []
+    },
+    {
+      "flarial": "Sneak",
+      "events": [
+        "KeyEvent",
+        "MouseEvent",
+        "TickEvent"
+      ],
+      "signatures": []
+    },
+    {
+      "flarial": "Sprint",
+      "events": [
+        "KeyEvent",
+        "MouseEvent",
+        "TickEvent"
+      ],
+      "signatures": []
+    },
+    {
+      "flarial": "Subtitles",
+      "events": [
+        "RenderEvent",
+        "SoundEnginePlayEvent",
+        "TickEvent"
+      ],
+      "signatures": []
+    },
+    {
+      "flarial": "SwingAnimations",
+      "events": [
+        "PerspectiveEvent",
+        "RenderItemInHandEvent",
+        "SwingDurationEvent"
+      ],
+      "signatures": [
+        "FluxSwing",
+        "SwingAngle"
+      ]
+    },
+    {
+      "flarial": "Time",
+      "events": [
+        "TimeEvent"
+      ],
+      "signatures": []
+    },
+    {
+      "flarial": "TimeChanger",
+      "events": [
+        "TimeEvent"
+      ],
+      "signatures": []
+    },
+    {
+      "flarial": "Twerk",
+      "events": [
+        "TickEvent"
+      ],
+      "signatures": []
+    },
+    {
+      "flarial": "WeatherChanger",
+      "events": [
+        "RenderEvent",
+        "TickEvent"
+      ],
+      "signatures": []
+    }
+  ]
+}

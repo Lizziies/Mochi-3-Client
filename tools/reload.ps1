@@ -1,11 +1,11 @@
-﻿param([switch]$Dev, [switch]$NoBuild)
+param([switch]$Dev, [switch]$NoBuild, [switch]$UnloadOnly)
 
 # Builds the client, unloads the running copy with Ctrl+L and injects the new one into the same game process.
 $root = Resolve-Path (Join-Path $PSScriptRoot '..')
 Set-Location $root
 $dir = if ($Dev) { 'build-dev' } else { 'build' }
 
-if (-not $NoBuild) {
+if (-not $NoBuild -and -not $UnloadOnly) {
     $log = cmake --build $dir --config Release -- /m /nologo /v:m /clp:NoSummary 2>&1
     $errors = $log | Select-String 'error (C|LNK)\d+'
     if ($errors) { $errors | Select-Object -First 20 | ForEach-Object { $_.Line }; exit 1 }
@@ -30,6 +30,8 @@ if (& $loaded) {
     for ($i = 0; $i -lt 60 -and (& $loaded); $i++) { Start-Sleep -Milliseconds 250 }
     if (& $loaded) { Write-Host 'client did not unload'; exit 1 }
 }
+
+if ($UnloadOnly) { Write-Host 'Mochi unloaded; no injection'; exit 0 }
 
 $inj = @('-NoProfile', '-File', (Join-Path $PSScriptRoot 'inject.ps1'), '-ProcessId', $mc.Id)
 if ($Dev) { $inj += '-Dev' }

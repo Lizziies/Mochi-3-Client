@@ -1,5 +1,24 @@
 # Testlog
 
+## 2026-10-03 — Modulbasis und native Adapter (Codex)
+
+- Aktuelle Minecraft-Version aus Paket, Client-UI und Log: 1.26.52.3.
+- Vor den neuen nativen Adaptern: Runtime-Audit in einer Welt, Demo aus: 153 verfügbare
+  Module. Verfügbarkeit ist kein Nachweis der sichtbaren Spielwirkung.
+- Flarial-Quellbasis: 117 Modulordner, 814 importierte Dateien stimmen per SHA-256 mit
+  `40ad187` überein. Vergleich aller 153 registrierten Mochi-Klassen erzeugt.
+- MSVC-Release-DLL gebaut. Bereits vorhandene Warnungen in Link/Auto/getenv bleiben.
+- Lokale `native_bindings`-Tests: 1/1 bestanden. Prüfen Titel-Farbe/Fett/Kursiv/Alpha,
+  Bedrock-Materialfarben und Reset; bekannte/unbekannte Versionen; fehlende Kamera-Signaturen;
+  Hook-Enable-Fehler und Wiederholung; Weitergabe aller nativen Argumente; komplette 4-/5-Byte-Yaw-Patches;
+  Rollback beim fehlerhaften zweiten Patch; Wiederherstellung der Nametag-Branch und des
+  Seitenschutzes; keine Übernahme oder Überschreibung einer fremden Patch-Änderung.
+- Testlauf: `cmake -S tools/tests -B build-native-tests`, Build Release, anschließend
+  `ctest --test-dir build-native-tests -C Release --output-on-failure`.
+- Mochi sauber entladen, danach in Minecraft nur `Flarial.Client.Release.dll` geladen.
+  Die neue DLL wurde nicht injiziert. Neue native Signaturen, sichtbare Nametags/Freelook,
+  CPS-Blur und Performance im Spiel sind noch nicht verifiziert.
+
 Jeder Eintrag: Datum, Minecraft-Version, was getestet wurde, Ergebnis, Beleg.
 
 ## Neu installierte Werkzeuge (PC von Felix)

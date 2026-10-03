@@ -1,5 +1,25 @@
 # Recherche und Wünsche
 
+## Flarial-Quellbasis 2026-10-03
+
+Auf ausdrücklichen Nutzerwunsch wurde der Modulcode aus `flarialmc/dll-oss` kopiert;
+Commit und AGPL-3.0-Lizenz liegen in `vendor/flarial`. Der Nutzer möchte Mochis UI und
+eigene Erweiterungen erhalten und die nativen Modul-Anbindungen aus Flarial adaptieren.
+
+- NametagModifier öffnet eine sechs Byte lange Self-Tag-Branch. Für Mochis Standardmodus
+  genügt die native Freigabe: kein eigener Text und keine globalen Farb-Overrides. Damit
+  bleibt die Server-Formatierung in Minecrafts Renderer. Ein eigener Overlay-Stil ist optional.
+- Freelook nutzt einen Drei-Argument-UpdatePlayer-Hook plus Yaw-Store-Patches. Der neue
+  1.26-Head-Store enthält einen REX-Präfix und ist fünf Bytes lang. Der Port berücksichtigt
+  diese Länge und rollt bei Teilfehlern zurück. Die Kamerarückgabe sichert zusätzlich die Winkel.
+- Flarials RawInputBuffer ist in diesem Quellstand ein Platzhalter. Der Quellbestand allein
+  ist kein Nachweis eines besseren Inputs oder vollständig funktionierender Version-Hooks.
+- Flarials PingCounter fragt SDK::getLastPing/getServerPing ab; Mochis Ping Counter nutzt
+  den separaten Probe-Dienst. Unterschiedliche Messquellen erklären unterschiedliche Werte;
+  die Spiel-Ping-Anbindung bleibt eine spätere Aufgabe nach den Modulports.
+
+Vollständiger Quellen-/Abhängigkeitsvergleich und offene Arbeiten: `docs/FLARIAL_PORT.md`.
+
 Hier landen alle Infos zu anderen Clients und Wünsche von Felix, damit nichts verloren geht.
 
 ## Wünsche von Felix (UI)
