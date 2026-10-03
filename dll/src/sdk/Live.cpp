@@ -158,7 +158,10 @@ void sweep() {
 class Live : public Provider {
 public:
     Live() { self = this; }
-    ~Live() override { self = nullptr; }
+    ~Live() override {
+        detach(false);
+        self = nullptr;
+    }
 
     unsigned supports() const override {
         unsigned m = 0;
@@ -625,6 +628,69 @@ private:
         std::stable_sort(board.lines.begin(), board.lines.end(), [&](auto& a, auto& b) { return ascending ? a.second < b.second : a.second > b.second; });
     }
 
+    // Cameras are entities too. A system turns the player to match every camera that has an
+    // UpdatePlayerFromCameraComponent; it finds them through an entt view, which checks membership by comparing the
+    // version bits of the pool's sparse entry with the entity. Flipping one version bit makes the view skip the
+    // camera while plain lookups (which only use the position bits) still work, so the camera keeps turning with
+    // the mouse and the player stays put. Before the link comes back, the cameras get their old angles back
+    // (CameraDirectLookComponent: yaw, pitch in radians), otherwise the player would snap to where the camera looked.
+public:
+    bool detach(bool on) {
+        uintptr_t reg = playerPtr_ ? mem::pointer(playerPtr_ + off("player.registry")) : 0;
+        if (detached_.reg && detached_.reg != reg) detached_ = {};
+        if (!on) {
+            if (!detached_.reg) return false;
+            for (auto& [at, angles] : detached_.angles) mem::write(at, angles);
+            for (auto& [at, entry] : detached_.entries) mem::write(at, entry);
+            detached_ = {};
+            return false;
+        }
+        uintptr_t link = pool(reg, "pool.cameraLink");
+        if (!reg || !link) return false;
+        uintptr_t look = pool(reg, "pool.cameraLook");
+        if (!detached_.reg) {
+            detached_.reg = reg;
+            eachEntity(look, [&](uint32_t id) {
+                if (uintptr_t c = component(look, id, off("cameraLook.size"))) detached_.angles.push_back({c, mem::get<uint64_t>(c)});
+            });
+        }
+        eachEntity(link, [&](uint32_t id) {
+            uintptr_t at = sparseEntry(link, id);
+            if (!at) return;
+            uint32_t entry = mem::get<uint32_t>(at);
+            auto known = std::find_if(detached_.entries.begin(), detached_.entries.end(), [&](auto& e) { return e.first == at; });
+            if (known == detached_.entries.end()) detached_.entries.push_back({at, entry});
+            else if (entry == (known->second ^ (1u << 18))) return;
+            else known->second = entry;
+            mem::write(at, entry ^ (1u << 18));
+        });
+        return true;
+    }
+
+private:
+    struct Detached {
+        uintptr_t reg = 0;
+        std::vector<std::pair<uintptr_t, uint32_t>> entries;
+        std::vector<std::pair<uintptr_t, uint64_t>> angles;
+    };
+    Detached detached_;
+
+    static uintptr_t sparseEntry(uintptr_t p, uint32_t id) {
+        uint32_t idx = id & 0x3ffff;
+        uintptr_t sparse = mem::pointer(p + 8), sparseEnd = mem::pointer(p + 0x10);
+        if (!sparse || (idx / 4096) * 8 >= sparseEnd - sparse) return 0;
+        uintptr_t page = mem::pointer(sparse + (idx / 4096) * 8);
+        return page ? page + (idx % 4096) * 4 : 0;
+    }
+
+    template <class Fn>
+    static void eachEntity(uintptr_t p, Fn&& fn) {
+        if (!p) return;
+        uintptr_t packed = mem::pointer(p + 0x20), end = mem::pointer(p + 0x28);
+        for (uintptr_t a = packed; a && a < end && a < packed + 4 * 256; a += 4)
+            if (uint32_t id = mem::get<uint32_t>(a, 0xffffffff); (id >> 18) != 0x3fff) fn(id);
+    }
+
     // a hit counts as landed when the struck entity loses health shortly after; down to zero is a kill
     void followHits(uintptr_t reg, std::vector<Event>& ev) {
         if (!hitId_ || !reg) return;
@@ -939,5 +1005,7 @@ private:
 }
 
 std::unique_ptr<Provider> makeLive() { return std::make_unique<Live>(); }
+
+bool freeCamera(bool on) { return self && self->detach(on); }
 
 }

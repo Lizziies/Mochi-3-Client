@@ -31,7 +31,7 @@ const i18n::Entry entries[] = {
     {"A little Mochi pet in the HUD: bounces, cheers on hits, sleeps when idle.", "Kleines Mochi-Haustier im HUD: wippt, freut sich über Treffer, schläft bei Ruhe."},
     {"A rain of hearts and text on screen when you get a kill. Local only.", "Herzchen-Regen und Text auf dem Bildschirm, wenn du einen Kill machst. Nur lokal."},
     {"A red, pulsing screen edge when your health is low.", "Roter, pulsierender Rand am Bildschirm, wenn dein Leben niedrig ist."},
-    {"A short look behind or to the side on a key, without changing your aim.", "Kurzer Blick nach hinten oder zur Seite per Taste, ohne die Blickrichtung zu ändern."},
+    {"A short look behind you on a key, without changing your aim.", "Kurzer Blick nach hinten per Taste, ohne die Blickrichtung zu ändern."},
     {"A short marker at the crosshair when you hit. Display only, changes nothing in the game.", "Kurzer Marker am Fadenkreuz, wenn du triffst. Nur eine Anzeige, ändert nichts am Spiel."},
     {"A small figure in the HUD that wears your armor, sneaks, sprints and flashes red when you are hit.", "Kleine Figur im HUD, die deine Rüstung trägt, schleicht, sprintet und bei Treffern rot aufblitzt."},
     {"A smooth selection frame that glides between hotbar slots, with a small pop when you switch.", "Ein weicher Auswahlrahmen, der zwischen den Hotbar-Plätzen gleitet und beim Wechseln kurz hüpft."},

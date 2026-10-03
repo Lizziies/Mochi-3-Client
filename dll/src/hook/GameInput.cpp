@@ -103,8 +103,10 @@ const Known* knownOf(void* self) {
 std::mutex overlayLock;
 std::bitset<256> pendingHold, pendingDrop, activeHold, activeDrop;
 float pendingScale = 1.f;
+float pendingSmooth = 1.f;
 bool pendingWheel = false;
 std::atomic<float> activeScale{1.f};
+std::atomic<float> activeSmooth{1.f};
 std::atomic<bool> activeWheel{false};
 
 std::mutex keyLock;
@@ -209,6 +211,8 @@ struct Mouse {
     int64_t raw[4]{};
     int64_t out[4]{};
     double frac[2]{};
+    double held[2]{};
+    int64_t readAt = 0;
     uint32_t stale = 0;
 };
 
@@ -237,8 +241,15 @@ void adjust(void* id, uint8_t* state, int wheel) {
                      reinterpret_cast<int64_t*>(state + wheel), reinterpret_cast<int64_t*>(state + wheel + 8)};
     bool blocked = blockedNow();
     bool wheelHeld = blocked || activeWheel.load();
-    float scale = activeScale.load();
+    float scale = activeScale.load(), smooth = activeSmooth.load();
     Mouse& m = mouseFor(id);
+    LARGE_INTEGER now, freq;
+    QueryPerformanceCounter(&now);
+    QueryPerformanceFrequency(&freq);
+    double dt = m.readAt ? std::clamp(double(now.QuadPart - m.readAt) / double(freq.QuadPart), 0.0, 0.1) : 0.0;
+    m.readAt = now.QuadPart;
+    // smoothing holds back motion and lets out a share of it per 1/60 s, so it glides the same at any frame rate
+    double release = smooth >= 1.f ? 1.0 : 1.0 - std::pow(1.0 - double(smooth), dt * 60.0);
     if (!m.used) {
         m.used = true;
         for (int i = 0; i < 4; i++) m.raw[i] = m.out[i] = *v[i];
@@ -251,8 +262,12 @@ void adjust(void* id, uint8_t* state, int wheel) {
         }
         m.raw[i] = *v[i];
         if (blocked || (i >= 2 && wheelHeld)) delta = 0;
-        else if (i < 2 && scale != 1.f) {
-            double f = double(delta) * scale + m.frac[i];
+        else if (i < 2 && (scale != 1.f || release < 1.0 || m.held[i] != 0.0)) {
+            m.held[i] += double(delta) * scale;
+            double out = release >= 1.0 ? m.held[i] : m.held[i] * release;
+            m.held[i] -= out;
+            if (std::fabs(m.held[i]) < 0.01) m.held[i] = 0.0;
+            double f = out + m.frac[i];
             delta = int64_t(std::floor(f));
             m.frac[i] = f - double(delta);
         }
@@ -442,6 +457,11 @@ void scaleMouse(float factor) {
     pendingScale *= factor;
 }
 
+void smoothMouse(float factor) {
+    std::scoped_lock g(overlayLock);
+    pendingSmooth = std::min(pendingSmooth, std::clamp(factor, 0.02f, 1.f));
+}
+
 void holdWheel() {
     std::scoped_lock g(overlayLock);
     pendingWheel = true;
@@ -452,6 +472,7 @@ void beginFrame() {
     pendingHold.reset();
     pendingDrop.reset();
     pendingScale = 1.f;
+    pendingSmooth = 1.f;
     pendingWheel = false;
 }
 
@@ -460,6 +481,7 @@ void publish() {
     activeHold = pendingHold;
     activeDrop = pendingDrop;
     activeScale = pendingScale;
+    activeSmooth = pendingSmooth;
     activeWheel = pendingWheel;
 }
 

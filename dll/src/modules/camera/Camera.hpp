@@ -213,7 +213,7 @@ public:
     Freelook()
         : Module("Freelook", "Turn the camera freely around you while your body and walking direction stay. Banned on some servers.", Category::Visual, {"camera"}) {
         sub("Camera");
-        require(need::player, {fx::sig(fx::Id::LookCamera), fx::sig(fx::Id::LookTurn), "LocalPlayer"});
+        require(need::player, need::sigs({"LocalPlayer", "FreeCamera"}));
     }
 
     void onKey(KeyEvent& ev) override {
@@ -226,43 +226,26 @@ public:
     }
 
     void onFrame() override {
+        ctx::freelook = active_ && game::freeCamera(true);
         if (!active_) {
-            ctx::freelook = false;
+            game::freeCamera(false);
             return;
         }
-        if (gui::open()) return;
-        auto d = modules::mouseDelta();
-        float k = 0.12f * sens_.f;
-        yaw_ += float(d.x) * k;
-        pitch_ += float(d.y) * k * (invert_.b ? -1.f : 1.f);
-        pitch_ = std::clamp(pitch_, -90.f, 90.f);
-        ctx::freelook = true;
-        fx::skip(fx::Id::LookTurn);
-        fx::out(fx::Id::LookCamera, {pitch_, yaw_});
+        if (thirdPerson_.b) fx::setInt(fx::Id::Perspective, 1);
     }
 
     void onDisable() override {
         active_ = false;
         ctx::freelook = false;
+        game::freeCamera(false);
     }
 
 private:
-    void press(bool down) {
-        bool next = mode_.i == 0 ? down : (down ? !active_ : active_);
-        if (next && !active_) {
-            auto& p = game::state().player;
-            yaw_ = p.yaw;
-            pitch_ = p.pitch;
-        }
-        active_ = next;
-    }
+    void press(bool down) { active_ = mode_.i == 0 ? down : (down ? !active_ : active_); }
 
     Setting& key_ = keySetting("freelookKey", "Freelook key", VK_LMENU);
     Setting& mode_ = choice("mode", "Mode", {"Hold", "Toggle"});
-    Setting& sens_ = slider("sens", "Sensitivity", 1.f, 0.2f, 3.f, "%.2fx");
-    Setting& invert_ = toggleSetting("invert", "Invert Y axis", false);
-    float yaw_ = 0.f;
-    float pitch_ = 0.f;
+    Setting& thirdPerson_ = toggleSetting("thirdPerson", "Switch to third person", true);
     bool active_ = false;
 };
 
@@ -403,13 +386,12 @@ public:
     CinematicCamera()
         : Module("Cinematic Camera", "Soft, gliding camera movement like in film shots, with black bars. Optionally only while zooming.", Category::Visual, {"camera"}) {
         sub("Camera");
-        require(0, {fx::sig(fx::Id::LookDelta)});
     }
 
     void onFrame() override {
         bool on = !onlyZoom_.b || ctx::zooming;
         shown_ += ((on ? 1.f : 0.f) - shown_) * std::min(1.f, ui::dt() * 6.f);
-        if (on) fx::smooth(fx::Id::LookDelta, 1.f - smoothing_.f);
+        if (on) gameinput::smoothMouse(1.f - smoothing_.f);
     }
 
     void onRender(ImDrawList* dl) override { bars::draw(dl, bars_.f * shown_); }

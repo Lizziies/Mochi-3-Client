@@ -233,10 +233,10 @@ private:
 class SnapLook : public Module {
 public:
     SnapLook()
-        : Module("Snap Look", "A short look behind or to the side on a key, without changing your aim.",
+        : Module("Snap Look", "A short look behind you on a key, without changing your aim.",
                  Category::Pvp, {"camera"}) {
         sub("Input");
-        require(need::player, {fx::sig(fx::Id::LookCamera), "LocalPlayer"});
+        require(0, {fx::sig(fx::Id::Perspective)});
     }
 
     void onKey(KeyEvent& ev) override {
@@ -245,12 +245,10 @@ public:
         else if (ev.down) active_ = !active_;
     }
 
+    // the front view puts the camera ahead of the player looking back, so it shows what is behind while the
+    // player keeps facing forward
     void onFrame() override {
-        ctx::freelook = false;
-        if (!active_) return;
-        static const float yaws[] = {180.f, 90.f, -90.f};
-        auto& p = game::state().player;
-        fx::out(fx::Id::LookCamera, {keepPitch_.b ? p.pitch : 0.f, p.yaw + yaws[dir_.i]});
+        if (active_) fx::setInt(fx::Id::Perspective, 2);
     }
 
     void onDisable() override { active_ = false; }
@@ -258,8 +256,6 @@ public:
 private:
     Setting& key_ = keySetting("snapKey", "Look key", 'V');
     Setting& mode_ = choice("mode", "Mode", {"Hold", "Toggle"});
-    Setting& dir_ = choice("dir", "Direction", {"Behind", "Left", "Right"});
-    Setting& keepPitch_ = toggleSetting("keepPitch", "Keep pitch", true);
     bool active_ = false;
 };
 

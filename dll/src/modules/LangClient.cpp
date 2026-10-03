@@ -128,6 +128,7 @@ const i18n::Entry entries[] = {
     {"Height above feet", "Höhe über den Füßen"},
     {"Also teammates", "Auch Teammitglieder"},
     {"Also mobs", "Auch Mobs"},
+    {"Switch to third person", "In die dritte Person wechseln"},
     {"Points", "Punkte"},
     {"Bar and number", "Balken und Zahl"},
     {"Points of max", "Punkte von Maximum"},

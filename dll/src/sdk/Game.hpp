@@ -36,6 +36,7 @@ void filterChat(std::function<bool(const std::string&)> hide);
 bool chatHidden(const std::string& text);
 
 bool ready(unsigned mask);
+bool freeCamera(bool on);
 bool has(Domain d);
 void lease(unsigned mask, int delta);
 

@@ -9,6 +9,7 @@ const char* status();
 void hold(int vk);
 void drop(int vk);
 void scaleMouse(float factor);
+void smoothMouse(float factor);
 void holdWheel();
 
 void beginFrame();
