@@ -17,6 +17,7 @@
 #include "server/Rules.hpp"
 #include "sig/Sigs.hpp"
 #include "system/Tweaks.hpp"
+#include "system/GpuLatency.hpp"
 
 #include <atomic>
 
@@ -64,6 +65,9 @@ static bool teardown() {
     net::waitIdle(6000);
     modules::shutdown();
     bool drained = bg::drain(8000);
+    bool latencyRestored = false;
+    guard::call("GPU latency shutdown", [&] { latencyRestored = gpuLatency::shutdown(); });
+    if (!latencyRestored) logger::warn("GPU latency reset failed; keeping the DLL loaded");
     if (drained) post::releaseCompiled();
     tweaks::restore();
     dx::uninstall();
@@ -72,7 +76,7 @@ static bool teardown() {
     if (drained) logger::info("bye");
     else logger::warn("unload incomplete, staying loaded until the game closes");
     logger::close();
-    return drained;
+    return drained && latencyRestored;
 }
 
 static DWORD WINAPI mainThread(LPVOID) {

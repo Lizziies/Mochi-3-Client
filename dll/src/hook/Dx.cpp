@@ -4,6 +4,7 @@
 #include "core/Log.hpp"
 #include "modules/post/Capture.hpp"
 #include "render/Ui.hpp"
+#include "system/GpuLatency.hpp"
 
 #include <d3d11.h>
 #include <d3d11on12.h>
@@ -204,6 +205,11 @@ static bool setup(IDXGISwapChain* sc) {
     info.tearingSupported = (desc.Flags & DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING) != 0;
 
     uiReady = ui::init(hwnd, d11, ctx);
+    if (uiReady) {
+        gpuLatency::attach(current == Api::Dx12 ? static_cast<IUnknown*>(device12) : static_cast<IUnknown*>(d11));
+        auto gpu = gpuLatency::adapter(current == Api::Dx12 ? static_cast<IUnknown*>(device12) : static_cast<IUnknown*>(d11));
+        logger::info("latency adapter: vendor=0x{:X}, device=0x{:X}", gpu.vendorId, gpu.deviceId);
+    }
     return uiReady;
 }
 
@@ -353,7 +359,9 @@ static void draw(IDXGISwapChain* sc) {
 }
 
 static void beforePresent(IDXGISwapChain* sc, UINT& sync, UINT& flags) {
+    if (flags & DXGI_PRESENT_TEST) return;
     guard::call("present", [&] { draw(sc); });
+    if (sc != chain) return;
 
     if (tune.allowTearing && info.tearingSupported && !(flags & DXGI_PRESENT_TEST)) {
         BOOL fullscreen = FALSE;
@@ -365,7 +373,8 @@ static void beforePresent(IDXGISwapChain* sc, UINT& sync, UINT& flags) {
     }
 }
 
-static void afterPresent() {
+static void afterPresent(IDXGISwapChain* sc, UINT flags, HRESULT result) {
+    if (sc != chain || flags & DXGI_PRESENT_TEST || result != S_OK) return;
     int64_t t = now();
     if (lastPresent) info.frameMs = double(t - lastPresent) * 1000.0 / double(qpf.QuadPart);
     lastPresent = t;
@@ -378,7 +387,7 @@ static HRESULT presentVia(PresentFn next, IDXGISwapChain* sc, UINT sync, UINT fl
     inPresent = true;
     beforePresent(sc, sync, flags);
     HRESULT hr = next(sc, sync, flags);
-    afterPresent();
+    afterPresent(sc, flags, hr);
     inPresent = false;
     return hr;
 }
@@ -388,7 +397,7 @@ static HRESULT present1Via(Present1Fn next, IDXGISwapChain1* sc, UINT sync, UINT
     inPresent = true;
     beforePresent(sc, sync, flags);
     HRESULT hr = next(sc, sync, flags, params);
-    afterPresent();
+    afterPresent(sc, flags, hr);
     inPresent = false;
     return hr;
 }

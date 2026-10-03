@@ -5,6 +5,8 @@
 #include "hook/Dx.hpp"
 #include "hook/Input.hpp"
 #include "modules/Module.hpp"
+#include "system/GpuLatency.hpp"
+#include "system/FrameStats.hpp"
 
 #include <windows.h>
 
@@ -17,9 +19,17 @@ public:
                  Category::Performance, {"performance"}) {
         sub("Frame timing");
         limit_.visible = [this] { return useLimit_.b; };
+        driver_.visible = [] {
+            const auto status = gpuLatency::status();
+            return status.vendor == gpuLatency::Vendor::Nvidia && status.stage != gpuLatency::Stage::Unsupported ||
+                   status.vendor == gpuLatency::Vendor::Amd && status.frameStartVerified;
+        };
     }
 
-    void onDisable() override { restore(); }
+    void onDisable() override {
+        restore();
+        gpuLatency::set(gpuLatency::Mode::Off);
+    }
 
     void onFrame() override {
         if (queue_.b) perf::lowLatency();
@@ -27,17 +37,40 @@ public:
         if (useLimit_.b) perf::limit(limit_.f);
         if (priority_.b) boost();
         else restore();
+        gpuLatency::set(static_cast<gpuLatency::Mode>(driver_.i));
         track();
     }
 
     void drawSettings() override {
         auto& fi = dx::frame();
+        const auto frames = frames_.summary();
         ImGui::Spacing();
+        if (frames.count)
+            ImGui::TextDisabled(i18n::tr("Frame intervals: %.2f ms average, %.2f ms P95, %.2f ms P99"),
+                                frames.mean, frames.p95, frames.p99);
+        const auto driver = gpuLatency::status();
+        const char* state = "GPU latency unavailable";
+        switch (driver.stage) {
+        case gpuLatency::Stage::Off: state = "GPU latency off"; break;
+        case gpuLatency::Stage::DriverOnly: state = "NVIDIA driver latency active; input pacing not connected"; break;
+        case gpuLatency::Stage::BeforeInput: state = "GPU pacing connected before input"; break;
+        case gpuLatency::Stage::Failed: state = "GPU latency driver rejected the request"; break;
+        default: break;
+        }
+        ImGui::TextDisabled("%s", i18n::tr(state));
+        if (driver.vendor == gpuLatency::Vendor::Amd && !driver.frameStartVerified)
+            ImGui::TextDisabled("%s", i18n::tr("AMD Anti-Lag 2 needs a verified frame start hook"));
+        if (driver.error) ImGui::TextDisabled(i18n::tr("Driver error: %d"), driver.error);
         ImGui::TextDisabled(i18n::tr("Status: %s, %s"), i18n::tr(fi.lowLatencyActive ? "short queue active" : "default queue"),
                             i18n::tr(fi.tearingSupported ? "tearing possible" : "tearing not allowed by the game"));
-        if (count_) ImGui::TextDisabled(i18n::tr("Click to frame: %.1f ms on average (%d clicks)"), sum_ / count_, count_);
+        if (count_) ImGui::TextDisabled(i18n::tr("Click event to Present return: %.1f ms (%d samples)"), sum_ / count_, count_);
         else ImGui::TextDisabled(i18n::tr("Click to measure the latency."));
-        if (ImGui::SmallButton(i18n::tr("Reset measurement"))) sum_ = 0, count_ = 0;
+        ImGui::TextDisabled("%s", i18n::tr("This does not measure input to the displayed image."));
+        if (ImGui::SmallButton(i18n::tr("Reset measurement"))) {
+            sum_ = 0;
+            count_ = 0;
+            frames_.clear();
+        }
     }
 
 private:
@@ -58,6 +91,10 @@ private:
 
     void track() {
         auto& fi = dx::frame();
+        if (fi.presentQpc != frameSeen_) {
+            frameSeen_ = fi.presentQpc;
+            frames_.add(fi.frameMs);
+        }
         int64_t click = input::lastClickQpc();
         if (!click || click == seen_ || fi.presentQpc <= click) return;
         seen_ = click;
@@ -71,6 +108,7 @@ private:
     }
 
     Setting& queue_ = toggleSetting("queue", "Short frame queue", true);
+    Setting& driver_ = choice("gpuLatency", "GPU latency mode", {"Off", "On", "On + NVIDIA Boost"});
     Setting& tearing_ = toggleSetting("tearing", "Allow tearing (VSync off)", false);
     Setting& priority_ = toggleSetting("priority", "Render thread with higher priority", true);
     Setting& useLimit_ = toggleSetting("limit", "Custom FPS limiter", false);
@@ -78,6 +116,8 @@ private:
     HANDLE thread_ = nullptr;
     int base_ = 0;
     int64_t seen_ = 0;
+    int64_t frameSeen_ = 0;
+    timing::FrameStats frames_;
     float sum_ = 0.f;
     int count_ = 0;
 };

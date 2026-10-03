@@ -1,5 +1,17 @@
 # Testlog
 
+## 2026-10-03 — GPU-Latenz, getrennter Codex-Worktree
+
+- MSVC Release-DLL gebaut, MOCHI_FLARIAL=OFF.
+- Standalone CTest latency_control: 1/1 bestanden; Hook-Gating, Frame-ID-Deduplizierung,
+  Fehler-Abschaltung, Restore-Wiederholung und Frame-Perzentile.
+- Separate DX12-Geräte: RTX 5070 und AMD Radeon Graphics korrekt nach Geräteadapter erkannt.
+- NVIDIA GetSleepStatus erfolgreich; On/Off auf dem separaten Gerät erfolgreich, Probe Exit 0.
+- Frühe Probe crashte nach NvAPI_Unload beim späteren DX12-Geräteabbau. Prozesslebensdauer
+  der NVAPI-Initialisierung beibehalten; Probe danach erfolgreich. Tradeoff in GPU_LATENCY.md.
+- AMD-Extension und Before-Input-Pacing noch nicht im Spiel geprüft. Keine Verbesserung gemessen.
+- Minecraft/Flarial-Session unangetastet, keine Mochi-Injection.
+
 ## 2026-10-03 — Modulbasis und native Adapter (Codex)
 
 - Aktuelle Minecraft-Version aus Paket, Client-UI und Log: 1.26.52.3.

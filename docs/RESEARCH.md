@@ -1,5 +1,16 @@
 # Recherche und Wünsche
 
+## GPU-Latenz 2026-10-03, separater Codex-Branch
+
+Direkte NVAPI- und AMD-Anti-Lag-2-SDK-Aufrufe benötigen kein RTSS. DX12 allein stellt aber
+keinen Hook vor Bedrocks Eingabeabfrage bereit. Genau einmal pro Renderframe vor der Eingabe
+warten; weder Actor-Ticks noch einzelne Mauspakete ersetzen diesen Frame-Start.
+NVIDIA dokumentiert auch einen Treibermodus ohne Sleep mit ungünstigerer Warteposition.
+Dieser Teil ist angebunden und separat getestet; die volle Engine-Anbindung ist offen.
+Flarials öffentliches RawInputBuffer bleibt ein Platzhalter, MouseHook verarbeitet echte Pakete,
+liefert aber keine Reflex-/Anti-Lag-Integration. Keine Pakete zusätzlich zum GameInput-Pfad replayen.
+SDK-Quellen, Hardwareprobe, NVAPI-Lebensdauerproblem und Messplan: `GPU_LATENCY.md`.
+
 ## Flarial-Quellbasis 2026-10-03
 
 Auf ausdrücklichen Nutzerwunsch wurde der Modulcode aus `flarialmc/dll-oss` kopiert;
