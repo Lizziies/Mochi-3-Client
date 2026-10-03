@@ -1,7 +1,9 @@
 #include "Sigs.hpp"
+#include "Version.hpp"
 #include "Image.hpp"
 #include "Scanner.hpp"
 #include "core/Bg.hpp"
+#include "core/Client.hpp"
 #include "core/Http.hpp"
 #include "core/Log.hpp"
 #include "core/Paths.hpp"
@@ -28,20 +30,6 @@ static std::map<std::string, uintptr_t> addresses;
 static std::map<std::string, int> offsets;
 static Stats current;
 static std::atomic<bool> changed{false};
-
-static std::vector<int> parseVersion(const std::string& v) {
-    std::vector<int> out;
-    std::stringstream ss(v);
-    std::string part;
-    while (std::getline(ss, part, '.')) {
-        try {
-            out.push_back(std::stoi(part));
-        } catch (...) {
-            out.push_back(0);
-        }
-    }
-    return out;
-}
 
 static std::vector<std::string> versionKeys(std::string& display) {
     wchar_t exe[MAX_PATH]{};
@@ -87,8 +75,30 @@ static std::filesystem::path cacheDir() {
     return p;
 }
 
+static std::optional<json> embedded(const std::wstring& file) {
+    if (HRSRC res = FindResourceW(client::module(), file.c_str(), RT_RCDATA)) {
+        HGLOBAL data = LoadResource(client::module(), res);
+        const char* bytes = data ? static_cast<const char*>(LockResource(data)) : nullptr;
+        DWORD size = SizeofResource(client::module(), res);
+        if (bytes && size) {
+            auto j = json::parse(bytes, bytes + size, nullptr, false);
+            if (!j.is_discarded()) {
+                return j;
+            }
+        }
+    }
+    return std::nullopt;
+}
+
 static std::optional<json> fetch(const std::string& file, std::string& source) {
     auto wfile = logger::widen(file);
+    std::error_code ec;
+    if (std::filesystem::exists(paths::dllDir() / L"Mochi.root", ec)) {
+        if (auto j = readJson(paths::dllDir() / L"sigs" / wfile)) {
+            source = "bundled";
+            return j;
+        }
+    }
     if (auto body = http::get(L"raw.githubusercontent.com", http::repoRawPath(L"sigs/" + wfile))) {
         auto j = json::parse(*body, nullptr, false);
         if (!j.is_discarded()) {
@@ -105,7 +115,9 @@ static std::optional<json> fetch(const std::string& file, std::string& source) {
         source = "bundled";
         return j;
     }
-    return std::nullopt;
+    auto j = embedded(wfile);
+    if (j) source = "embedded";
+    return j;
 }
 
 static std::string pickVersion(const std::vector<std::string>& keys, const json& index) {
@@ -114,23 +126,7 @@ static std::string pickVersion(const std::vector<std::string>& keys, const json&
         for (auto& v : index["versions"])
             if (v.is_string()) known.push_back(v.get<std::string>());
 
-    for (auto& k : keys)
-        for (auto& v : known)
-            if (v == k) return v;
-
-    if (keys.empty() || known.empty()) return known.empty() ? "" : known.back();
-
-    auto game = parseVersion(keys.front());
-    std::string best;
-    std::vector<int> bestV;
-    for (auto& v : known) {
-        auto pv = parseVersion(v);
-        if (pv <= game && pv > bestV) {
-            best = v;
-            bestV = pv;
-        }
-    }
-    return best.empty() ? known.back() : best;
+    return supportedVersion(keys, known);
 }
 
 struct Entry {
@@ -210,6 +206,7 @@ static void load() {
     std::string indexSource;
     json index = fetch("index.json", indexSource).value_or(json::object());
     std::string version = pickVersion(keys, index);
+    if (version.empty()) logger::warn("no compatible signatures for Minecraft {}", display);
 
     std::map<std::string, Entry> entries;
     std::map<std::string, int> offs;

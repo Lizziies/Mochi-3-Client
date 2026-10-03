@@ -43,6 +43,15 @@ set(IMGUI_SOURCES
 
 add_library(Mochi SHARED ${SOURCES} ${MINHOOK_SOURCES} ${LUA_SOURCES} ${IMGUI_SOURCES} res/resources.rc)
 
+file(GLOB SIG_FILES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../sigs/*.json")
+set(SIG_RESOURCES "")
+foreach(SIG_FILE IN LISTS SIG_FILES)
+    get_filename_component(SIG_NAME "${SIG_FILE}" NAME)
+    string(APPEND SIG_RESOURCES "\"${SIG_NAME}\" RCDATA \"${SIG_FILE}\"\n")
+endforeach()
+file(GENERATE OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/signatures.rc" CONTENT "${SIG_RESOURCES}")
+target_sources(Mochi PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/signatures.rc")
+
 target_include_directories(Mochi PRIVATE
     src
     ../common
@@ -74,6 +83,10 @@ target_link_libraries(Mochi PRIVATE d3d11 d3d12 dxgi d3dcompiler ws2_32 winhttp 
 if(MSVC)
     set_property(TARGET Mochi PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
     target_compile_options(Mochi PRIVATE /utf-8 /W3 /permissive- /EHa /bigobj)
+    if(MOCHI_DEV)
+        target_compile_options(Mochi PRIVATE /Zi)
+        target_link_options(Mochi PRIVATE /DEBUG /OPT:REF /OPT:ICF)
+    endif()
 else()
     target_compile_options(Mochi PRIVATE -Wall -Wno-unknown-pragmas -Wno-missing-field-initializers)
     target_link_options(Mochi PRIVATE -static -static-libgcc -static-libstdc++)

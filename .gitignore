@@ -13,3 +13,4 @@ dev-data/
 build-*/
 ci-out/
 build-host/
+.reference/
