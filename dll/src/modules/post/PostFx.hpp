@@ -49,5 +49,6 @@ Params& params();
 void begin();
 void submit(ImDrawList* dl);
 void shutdown();
+void releaseCompiled();
 
 }

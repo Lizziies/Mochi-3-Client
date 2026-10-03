@@ -276,6 +276,8 @@ static void dropTextures() {
     gpu.width = gpu.height = 0;
 }
 
+static void releaseCustomCompiles();
+
 static void dropAll() {
     dropTextures();
     release(gpu.vs);
@@ -467,6 +469,7 @@ void reloadShaders() {
     for (auto& [k, p] : gpu.custom) release(p);
     gpu.custom.clear();
     gpu.customError.clear();
+    releaseCustomCompiles();
     shadersLoaded = true;
 }
 
@@ -480,24 +483,64 @@ std::string shaderError(int index) {
     return it == gpu.customError.end() ? std::string() : it->second;
 }
 
+// Custom shaders compile on a worker like the built-in one; the frame skips the effect until the bytecode is in.
+// A reload bumps the generation so a compile started for the old list is dropped when it finishes.
+struct CustomCompile {
+    ID3DBlob* blob = nullptr;
+    std::string error;
+    bool done = false;
+};
+static std::mutex customLock;
+static std::map<int, CustomCompile> customCompiles;
+static int customGeneration = 0;
+
+static void releaseCustomCompiles() {
+    std::scoped_lock g(customLock);
+    for (auto& [k, c] : customCompiles) release(c.blob);
+    customCompiles.clear();
+    customGeneration++;
+}
+
+static void compileCustom(int index) {
+    std::string code = std::string(prelude) + shaderList[size_t(index)].source, name = shaderList[size_t(index)].name;
+    int generation = customGeneration;
+    customCompiles[index] = {};
+    bg::run([code = std::move(code), name = std::move(name), index, generation] {
+        ID3DBlob *blob = nullptr, *err = nullptr;
+        HRESULT hr;
+        {
+            std::scoped_lock g(compileLock);
+            hr = D3DCompile(code.c_str(), code.size(), name.c_str(), nullptr, nullptr, "ps", "ps_5_0", D3DCOMPILE_OPTIMIZATION_LEVEL3, 0, &blob, &err);
+        }
+        std::string msg = FAILED(hr) ? (err ? (const char*)err->GetBufferPointer() : "compile failed") : "";
+        release(err);
+        if (!msg.empty()) logger::error("shader {}: {}", name, msg);
+        std::scoped_lock g(customLock);
+        if (generation != customGeneration) {
+            release(blob);
+            return;
+        }
+        customCompiles[index] = {blob, msg, true};
+    });
+}
+
 static ID3D11PixelShader* customShader(ID3D11Device* dev, int index) {
     if (auto it = gpu.custom.find(index); it != gpu.custom.end()) return it->second;
     if (gpu.customError.count(index) || index < 0 || index >= (int)shaderList.size()) return nullptr;
-    std::unique_lock g(compileLock, std::try_to_lock);
-    if (!g) return nullptr;
-    std::string code = std::string(prelude) + shaderList[size_t(index)].source;
-    ID3DBlob *blob = nullptr, *err = nullptr;
-    HRESULT hr = D3DCompile(code.c_str(), code.size(), shaderList[size_t(index)].name.c_str(), nullptr, nullptr, "ps", "ps_5_0",
-                            D3DCOMPILE_OPTIMIZATION_LEVEL3, 0, &blob, &err);
-    ID3D11PixelShader* ps = nullptr;
-    if (SUCCEEDED(hr)) hr = dev->CreatePixelShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, &ps);
-    if (FAILED(hr)) {
-        std::string msg = err ? (const char*)err->GetBufferPointer() : "compile failed";
-        logger::error("shader {}: {}", shaderList[size_t(index)].name, msg);
-        gpu.customError[index] = msg;
+    std::scoped_lock g(customLock);
+    auto it = customCompiles.find(index);
+    if (it == customCompiles.end()) {
+        compileCustom(index);
+        return nullptr;
     }
-    release(blob);
-    release(err);
+    if (!it->second.done) return nullptr;
+    ID3D11PixelShader* ps = nullptr;
+    std::string msg = it->second.error;
+    if (it->second.blob && FAILED(dev->CreatePixelShader(it->second.blob->GetBufferPointer(), it->second.blob->GetBufferSize(), nullptr, &ps)))
+        msg = "the shader compiled but the device refused it";
+    release(it->second.blob);
+    customCompiles.erase(it);
+    if (!msg.empty()) gpu.customError[index] = msg;
     gpu.custom[index] = ps;
     return ps;
 }
@@ -749,6 +792,13 @@ void shutdown() {
     if (compileState == Compile::Running) return;
     for (auto*& b : blobs) release(b);
     compileState = Compile::Idle;
+}
+
+// after the background workers are joined: whatever a compile finished during shutdown is released here
+void releaseCompiled() {
+    for (auto*& b : blobs) release(b);
+    compileState = Compile::Idle;
+    releaseCustomCompiles();
 }
 
 }
