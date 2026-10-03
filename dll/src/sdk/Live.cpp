@@ -168,7 +168,8 @@ public:
         if ((m & unsigned(Domain::Player)) && sigs::address("AttackEntity")) m |= unsigned(Domain::Combat);
         if ((m & unsigned(Domain::Player)) && off("hand.vtable") >= 0) m |= unsigned(Domain::Inventory);
         if ((m & unsigned(Domain::Player)) && off("chat.via0") >= 0) m |= unsigned(Domain::Chat);
-        if ((m & unsigned(Domain::Player)) && off("player.registry") >= 0) m |= unsigned(Domain::Others);
+        if ((m & unsigned(Domain::Player)) && off("player.registry") >= 0) m |= unsigned(Domain::Others) | unsigned(Domain::Tab);
+        if ((m & unsigned(Domain::Player)) && off("scoreboard.via0") >= 0) m |= unsigned(Domain::Scoreboard);
         if ((m & unsigned(Domain::Player)) && off("pool.effects") != -1) m |= unsigned(Domain::Effects);
         return m;
     }
@@ -200,6 +201,7 @@ public:
         }
         if (playerPtr_ && (have & unsigned(Domain::Others))) readEntities(s);
         if (playerPtr_ && (have & unsigned(Domain::Effects))) readEffects(s);
+        if (playerPtr_ && (have & unsigned(Domain::Scoreboard))) readScoreboard(s);
         if (have & unsigned(Domain::World)) readWorld(s);
         if (playerPtr_ && (have & unsigned(Domain::Chat))) readChat(ev);
         else chatPrimed_ = false;
@@ -479,6 +481,8 @@ private:
         if (std::string me = playerName(reg, self); !me.empty()) s.player.name = me;
         s.others.clear();
         s.shots.clear();
+        s.tab.clear();
+        if (!s.player.name.empty()) s.tab.push_back(TabEntry{s.player.name});
         s.world.entities = 0;
         s.world.players = 0;
         uintptr_t ids = pool(reg, "pool.identifier");
@@ -531,7 +535,10 @@ private:
             o.pos = pos;
             o.health = hp;
             o.maxHealth = max;
-            if (o.isPlayer) s.world.players++;
+            if (o.isPlayer) {
+                s.world.players++;
+                if (!o.name.empty()) s.tab.push_back(TabEntry{o.name});
+            }
             s.others.push_back(std::move(o));
         }
         firstSeen_ = std::move(seen);
@@ -583,6 +590,40 @@ private:
         std::erase_if(effectTotal_, [&](auto& kv) { return std::none_of(list.begin(), list.end(), [&](auto& e) { return e.id == names[kv.first]; }); });
     }
 
+
+    // The client scoreboard (1.26.52: player+0x490) keeps its display slots in an unordered_map at +0x18 (list head,
+    // nodes: next, prev, slot name at +0x10, objective at +0x30, sort order at +0x38). An objective has its scores
+    // in an unordered_map whose list head is at +0x20 (nodes: scoreboard id at +0x10, identity at +0x18, score at
+    // +0x20), its name at +0x58 and its display name at +0x78. A fake player identity holds its name at +0x28.
+    template <class Fn>
+    static void eachNode(uintptr_t head, Fn&& fn) {
+        if (!head) return;
+        uintptr_t n = mem::pointer(head);
+        for (int k = 0; n && n != head && k < 256; k++, n = mem::pointer(n)) fn(n);
+    }
+
+    void readScoreboard(State& s) {
+        auto& board = s.scoreboard;
+        board.title.clear();
+        board.lines.clear();
+        uintptr_t sb = follow(playerPtr_, "scoreboard");
+        if (!sb) return;
+        uintptr_t objective = 0;
+        bool ascending = false;
+        eachNode(mem::pointer(sb + off("scoreboard.slots")), [&](uintptr_t n) {
+            if (objective || text(n + 0x10) != "sidebar") return;
+            objective = mem::pointer(n + 0x30);
+            ascending = mem::get<uint8_t>(n + 0x38) == 0;
+        });
+        if (!objective) return;
+        board.title = text(objective + off("objective.title"));
+        eachNode(mem::pointer(objective + off("objective.scores")), [&](uintptr_t n) {
+            uintptr_t id = mem::pointer(n + 0x18);
+            std::string name = id ? text(id + off("identity.name")) : std::string();
+            if (!name.empty()) board.lines.push_back({std::move(name), mem::get<int>(n + 0x20)});
+        });
+        std::stable_sort(board.lines.begin(), board.lines.end(), [&](auto& a, auto& b) { return ascending ? a.second < b.second : a.second > b.second; });
+    }
 
     // a hit counts as landed when the struck entity loses health shortly after; down to zero is a kill
     void followHits(uintptr_t reg, std::vector<Event>& ev) {

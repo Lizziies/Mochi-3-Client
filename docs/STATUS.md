@@ -42,11 +42,15 @@ Ohne Spieldaten: 75 Module. Pro Datenquelle dazugekommen:
 | Entity-Liste aus dem Identifier-Pool (Position, Hitbox, Leben, Projektile, TNT) | StateVector/RenderPosition/AABBShape/Attributes | +5 (Opponent Reach, Entity Counter, Health Above Head, Arrow Trail, TNT Timer) | 140 |
 | MobEffectsComponent (Trank-Effekte) | Vektor nach Effekt-ID, 0x90 Byte | +1 (Potion HUD) | 141 |
 | GameMode (Abbaufortschritt) | Actor (ActorOwnerComponent) +0xaa0, Block +0x10, Fortschritt +0x24 | +1 (Break Progress) | 142 |
+| Client-Scoreboard (Sidebar) | player+0x490, Anzeige-Slots +0x18, Objective: Punkte +0x20, Titel +0x78, Name der Identität +0x28 | +2 (Scoreboard, Hive Utils) | 144 |
+| Tabliste aus den Spieler-Entities im Registry (Namensschild) | SynchedActorData Element 4 | +3 (Tab List, Player Notifier, Hive Stats) | 147 |
 
 AttackEntity: nicht gesucht, die Treffer kommen schon aus dem HitResult; ein Hook bringt nur den Schadenswert, den das Spiel dort ohnehin nicht kennt.
 Komponenten-Pools: Der Schlüssel jedes Pools ist der FNV-1a-32-Hash des nackten Typnamens (`ActorDefinitionIdentifierComponent` = 0xdeb6534f). Damit lässt sich jede Komponente direkt finden, ohne Suche: StateVectorComponent (0x24 Byte: Position, vorige Position, Bewegung), RenderPositionComponent (12), AABBShapeComponent (0x20), ActorRotationComponent (0x10), MobEffectsComponent, SynchedActorDataComponent (Namensschild = Datenelement 4), ActorOwnerComponent (Actor-Zeiger), LocalPlayerComponent (nur wir). Spielerleben kommt jetzt auch aus dem Registry (vorher konnte die Heap-Suche eine veraltete Kopie mit 20 Leben erwischen).
 
-Noch grau: Skin Stealer, Tabliste/Scoreboard (Tab List, Player Notifier, Scoreboard, Hive Utils, Hive Stats), Render-Hooks (Freelook, Cinematic, Bobbing-Stärke, Smooth Sneak, Time/Weather/Environment, Fog/Water Color, Animations, Hitbox, Hurt/Glint Color, Low Fire, Particles, Snap Look, Block Hit, Crystal Optimizer, Kill Cleanup, Item Use Delay, Faster Inventory, Insta Hurt, GUI Scale, Item Physics, Nametags, Light Overlay, Subtitles, Movable Hotbar/Title/Bossbar, Left Hand).
+Tabliste: Die Level-Spielerliste (alle Spieler auf dem Server, mit Ping) ist noch nicht gefunden, ihr Container ist kein sauberer std::unordered_map-Ring. Bis dahin zeigt die Tab List die Spieler, die das Registry kennt (alle in Sichtweite), ohne Ping. Hive Stats und Player Notifier reichen damit, weil Mitspieler in der Lobby und im Match in Sichtweite sind.
+
+Noch grau: Skin Stealer, Render-Hooks (Freelook, Cinematic, Bobbing-Stärke, Smooth Sneak, Time/Weather/Environment, Fog/Water Color, Animations, Hitbox, Hurt/Glint Color, Low Fire, Particles, Snap Look, Block Hit, Crystal Optimizer, Kill Cleanup, Item Use Delay, Faster Inventory, Insta Hurt, GUI Scale, Item Physics, Nametags, Light Overlay, Subtitles, Movable Hotbar/Title/Bossbar, Left Hand).
 
 Werkzeuge: `tools/reload.ps1` baut, entlädt mit Strg+L und injiziert neu, ohne das Spiel neu zu starten. Der Probe-Befehl ist der Dev-Explorer (`explore <skript>`, Lua in `tools/explore/`).
 
