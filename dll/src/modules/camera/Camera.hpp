@@ -124,6 +124,13 @@ public:
             seenZoom_ = zoom_.f;
             level_ = zoom_.f;
         }
+        // a release can get lost (menu took the keyboard, alt-tab), so hold mode follows the key's real state
+        bool playing = input::grabbed() && !gui::wantsInput() && game::state().inWorld;
+        if (mode_.i == 0) {
+            bool held = playing && key_.i && input::down(key_.i);
+            if (held && !active_ && !remember_.b) level_ = zoom_.f;
+            active_ = held;
+        }
         float target = active_ ? level_ : 1.f;
         if ((snap_ || instant_.b) && active_) current_ = target;
         if (instant_.b && !active_) current_ = 1.f;

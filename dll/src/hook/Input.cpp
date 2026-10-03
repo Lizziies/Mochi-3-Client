@@ -84,6 +84,8 @@ static bool dispatchMouse(MouseEvent ev) {
     if (ev.button == MouseButton::Left) keys[VK_LBUTTON] = ev.down;
     if (ev.button == MouseButton::Right) keys[VK_RBUTTON] = ev.down;
     if (ev.button == MouseButton::Middle) keys[VK_MBUTTON] = ev.down;
+    if (ev.button == MouseButton::X1) keys[VK_XBUTTON1] = ev.down;
+    if (ev.button == MouseButton::X2) keys[VK_XBUTTON2] = ev.down;
 
     modules::dispatchMouse(ev);
     if (ev.cancel) return true;
