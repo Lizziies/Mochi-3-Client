@@ -16,11 +16,8 @@ set(FMT_MODULE OFF CACHE BOOL "" FORCE)
 set(SAFETYHOOK_FETCH_ZYDIS ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(entt nes libhat fmt magic_enum safetyhook jsoncpp)
 
-file(GLOB_RECURSE FLARIAL_SOURCES CONFIGURE_DEPENDS
-    "${FLARIAL_DIR}/src/SDK/*.cpp"
-    "${FLARIAL_DIR}/src/Utils/Memory/*.cpp"
-    "${FLARIAL_DIR}/src/Client/Hook/*.cpp"
-    "${FLARIAL_DIR}/src/Client/Events/*.cpp")
+file(GLOB_RECURSE FLARIAL_SOURCES CONFIGURE_DEPENDS "${FLARIAL_DIR}/src/*.cpp")
+list(FILTER FLARIAL_SOURCES EXCLUDE REGEX "/src/Scripting/|/Modules/Doom/|/Modules/Lewis/|/src/PCH\.cpp$")
 
 add_library(flarial_core STATIC ${FLARIAL_SOURCES})
 set_target_properties(flarial_core PROPERTIES CXX_STANDARD 23 MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
