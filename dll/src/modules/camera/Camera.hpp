@@ -48,7 +48,7 @@ public:
 
 private:
     Setting& fov_ = slider("fov", "Field of view", 90.f, 30.f, 140.f, "%.0f");
-    Setting& noEffects_ = toggleSetting("noEffects", "Sprint and potion effects off", true);
+    Setting& noEffects_ = needs(toggleSetting("noEffects", "Sprint and potion effects off", true), fx::Id::FovEffects);
     Setting& sprintBonus_ = slider("sprintBonus", "Extra while sprinting", 6.f, 0.f, 30.f, "%.0f");
     Setting& smooth_ = slider("smooth", "Transition speed", 12.f, 1.f, 30.f, "%.0f");
     float current_ = 0.f;
@@ -268,27 +268,8 @@ public:
 
 private:
     Setting& camera_ = toggleSetting("camera", "Camera bobbing off", true);
-    Setting& hand_ = toggleSetting("hand", "Hand bobbing off", true);
+    Setting& hand_ = needs(toggleSetting("hand", "Hand bobbing off", true), fx::Id::HandBob);
     Setting& when_ = choice("when", "When", {"Always", "Only while sprinting", "Only underwater", "Only while walking"});
-};
-
-class MinimalViewBobbing : public Module {
-public:
-    MinimalViewBobbing()
-        : Module("Minimal View Bobbing", "Weakens the bobbing while walking. You set the strength yourself.", Category::Visual, {"camera"}) {
-        sub("Camera");
-        require(0, {fx::sig(fx::Id::BobStrength)});
-    }
-
-    void onFrame() override {
-        auto& p = game::state().player;
-        float f = strength_.f * (p.sprinting ? sprint_.f : 1.f);
-        fx::scale(fx::Id::BobStrength, f);
-    }
-
-private:
-    Setting& strength_ = slider("strength", "Strength", 0.3f, 0.f, 1.f, "%.2f");
-    Setting& sprint_ = slider("sprint", "Factor while sprinting", 1.f, 0.f, 2.f, "%.2fx");
 };
 
 class NoHurtCam : public Module {
@@ -306,20 +287,6 @@ public:
 
 private:
     Setting& strength_ = slider("strength", "Remaining strength", 0.f, 0.f, 1.f, "%.2f");
-};
-
-class SmoothSneak : public Module {
-public:
-    SmoothSneak()
-        : Module("Smooth Sneak", "The camera no longer drops when you sneak.", Category::Visual, {"camera"}) {
-        sub("Camera");
-        require(0, {fx::sig(fx::Id::SneakCam)});
-    }
-
-    void onFrame() override { fx::scale(fx::Id::SneakCam, amount_.f); }
-
-private:
-    Setting& amount_ = slider("amount", "Remaining height change", 0.f, 0.f, 1.f, "%.2f");
 };
 
 class AutoPerspective : public Module {

@@ -355,7 +355,7 @@ private:
     Setting& highlightWords_ = textSetting("highlightWords", "Words (comma)", "");
     Setting& highlightColor_ = colorSetting("highlightColor", "Highlight", {1.f, 0.82f, 0.49f, 1.f});
     Setting& filter_ = textSetting("filter", "Only lines containing (empty = all)", "");
-    Setting& hideVanilla_ = toggleSetting("hideVanilla", "Hide the original chat", true);
+    Setting& hideVanilla_ = needs(toggleSetting("hideVanilla", "Hide the original chat", true), fx::Id::HideChat);
 };
 
 class PlayerNotifier : public Module {
@@ -449,7 +449,7 @@ private:
     Setting& numbers_ = toggleSetting("numbers", "Numbers on the right", false);
     Setting& numberColor_ = colorSetting("numberColor", "Number color", {1.f, 0.4f, 0.45f, 1.f});
     Setting& max_ = intSlider("max", "Maximum lines", 15, 3, 20);
-    Setting& hideVanilla_ = toggleSetting("hideVanilla", "Hide the original scoreboard", true);
+    Setting& hideVanilla_ = needs(toggleSetting("hideVanilla", "Hide the original scoreboard", true), fx::Id::HideScoreboard);
 };
 
 class TabList : public HudModule {

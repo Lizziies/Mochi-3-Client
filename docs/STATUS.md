@@ -44,13 +44,37 @@ Ohne Spieldaten: 75 Module. Pro Datenquelle dazugekommen:
 | GameMode (Abbaufortschritt) | Actor (ActorOwnerComponent) +0xaa0, Block +0x10, Fortschritt +0x24 | +1 (Break Progress) | 142 |
 | Client-Scoreboard (Sidebar) | player+0x490, Anzeige-Slots +0x18, Objective: Punkte +0x20, Titel +0x78, Name der Identität +0x28 | +2 (Scoreboard, Hive Utils) | 144 |
 | Tabliste aus den Spieler-Entities im Registry (Namensschild) | SynchedActorData Element 4 | +3 (Tab List, Player Notifier, Hive Stats) | 147 |
+| Kamera-Entities (entt-View-Trick) | Versionsbit im UpdatePlayerFromCameraComponent-Pool, DirectLook-Winkel sichern | +1 (Freelook) | 148 |
+| GameInput-Mausglättung, Perspektiv-Option | eigener Maus-Hook, fx.perspective | +2 (Cinematic Camera, Snap Look) | 150 |
+| Unsichtbar-Flag (ActorDataFlagComponent Bit 5) | nur lokal gesetzt | +2 (Kill Cleanup, Crystal Optimizer) | 152 |
+| Render-Kamera (GameCameraComponent → CameraComponent: Quaternion +0x30, Position +0x40, FOV +0x50) | Projektion für alle Welt-Overlays | +2 (Hitbox des Ziels, Third Person Nametag) | 153 (von 153) |
 
 AttackEntity: nicht gesucht, die Treffer kommen schon aus dem HitResult; ein Hook bringt nur den Schadenswert, den das Spiel dort ohnehin nicht kennt.
 Komponenten-Pools: Der Schlüssel jedes Pools ist der FNV-1a-32-Hash des nackten Typnamens (`ActorDefinitionIdentifierComponent` = 0xdeb6534f). Damit lässt sich jede Komponente direkt finden, ohne Suche: StateVectorComponent (0x24 Byte: Position, vorige Position, Bewegung), RenderPositionComponent (12), AABBShapeComponent (0x20), ActorRotationComponent (0x10), MobEffectsComponent, SynchedActorDataComponent (Namensschild = Datenelement 4), ActorOwnerComponent (Actor-Zeiger), LocalPlayerComponent (nur wir). Spielerleben kommt jetzt auch aus dem Registry (vorher konnte die Heap-Suche eine veraltete Kopie mit 20 Leben erwischen).
 
 Tabliste: Die Level-Spielerliste (alle Spieler auf dem Server, mit Ping) ist noch nicht gefunden, ihr Container ist kein sauberer std::unordered_map-Ring. Bis dahin zeigt die Tab List die Spieler, die das Registry kennt (alle in Sichtweite), ohne Ping. Hive Stats und Player Notifier reichen damit, weil Mitspieler in der Lobby und im Match in Sichtweite sind.
 
-Noch grau: Skin Stealer, Render-Hooks (Freelook, Cinematic, Bobbing-Stärke, Smooth Sneak, Time/Weather/Environment, Fog/Water Color, Animations, Hitbox, Hurt/Glint Color, Low Fire, Particles, Snap Look, Block Hit, Crystal Optimizer, Kill Cleanup, Item Use Delay, Faster Inventory, Insta Hurt, GUI Scale, Item Physics, Nametags, Light Overlay, Subtitles, Movable Hotbar/Title/Bossbar, Left Hand).
+Kein Modul ist mehr grau: 153 nutzbar, 0 gesperrt. Typnamen aller Komponenten stehen im Spiel als `entt::internal::pretty_function() [Type = ...]`-Strings (`tools/explore/types.lua`), damit sind alle 510 Pools benannt.
+
+Entfernt, weil sie einen Render-Hook brauchen, den es noch nicht gibt (eine Zeile pro Modul, zum Wiederaufnehmen):
+- Minimal View Bobbing: das Wackeln steckt in der Render-Matrix, die Kameraposition bleibt beim Laufen gleich (gemessen); No View Bobbing deckt den Normalfall ab.
+- Smooth Sneak: die Kamerahöhe beim Schleichen wird im Render-Code geglättet, keine Daten dazu gefunden.
+- Time Changer, Weather Changer, Environment Changer: Himmel und Licht kommen aus Dimension-Zeit und -Wetter beim Rendern; die Client-Zeit (player+0x90, +0x340) zu überschreiben ändert die Darstellung nicht.
+- Fog Color, Water Color: Shader-Konstanten, brauchen einen Hook im Nebel-Setup.
+- Animations, Block Hit, Left Hand: brauchen die Transform der Hand in der Ego-Perspektive; die Option `ctrl_islefthanded` wirkt nur auf Touch-Steuerung (getestet).
+- Hurt Color, Glint Color: Overlay-Farben im Shader.
+- Low Fire: Transform des Feuer-Overlays.
+- Particle Multiplier: Partikelanzahl im Emitter.
+- Item Use Delay Fix, Faster Inventory: ändern Eingabe-Timing, brauchen Hooks und sind auf vielen Servern ohnehin verboten.
+- Insta Hurt Animation: bräuchte die lokale Hurt-Zeit (MobHurtTimeComponent zählt nicht wie erwartet herunter) und gilt als verboten auf vielen Servern.
+- GUI Scale: das Spiel hat den Regler `gfx_guiscale_offset` selbst; eine feste Größe unabhängig vom Fenster braucht einen Hook in der UI-Skalierung.
+- Item Physics, Nametag Modifier: Render-Hooks für Items und Namensschilder.
+- Light Overlay: braucht die Lichtwerte der Blöcke, die Chunk-Daten sind nicht erschlossen.
+- Subtitles: braucht einen Hook auf Sound-Ereignisse.
+- Movable Hotbar, Movable Title, Movable Bossbar: brauchen die UI-Positionen im Render-Code.
+- Skin Stealer: braucht die Skin-Bilder anderer Spieler aus der Spielerliste, die noch nicht erschlossen ist.
+
+Einstellungen, die nur über einen fehlenden Hook wirken würden (Original-Chat/-Scoreboard/-Koordinaten/-Tageszähler ausblenden, Hand-Bobbing, FOV-Effekte, View-Model-Transform, einzelne Render Options), blendet `Module::needs()` auf dieser Version aus, statt still nichts zu tun.
 
 Werkzeuge: `tools/reload.ps1` baut, entlädt mit Strg+L und injiziert neu, ohne das Spiel neu zu starten. Der Probe-Befehl ist der Dev-Explorer (`explore <skript>`, Lua in `tools/explore/`).
 

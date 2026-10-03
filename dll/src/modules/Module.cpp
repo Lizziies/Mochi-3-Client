@@ -54,6 +54,12 @@ Setting& Module::toggleSetting(std::string id, std::string label, bool def) {
     return add(std::move(s));
 }
 
+Setting& Module::needs(Setting& s, fx::Id id) {
+    auto before = std::move(s.visible);
+    s.visible = [id, before] { return fx::available(id) && (!before || before()); };
+    return s;
+}
+
 Setting& Module::slider(std::string id, std::string label, float def, float min, float max, const char* fmt) {
     Setting s{std::move(id), std::move(label), SettingType::Float};
     s.f = def;

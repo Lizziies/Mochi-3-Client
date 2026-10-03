@@ -122,7 +122,7 @@ private:
     Setting& hideKey_ = keySetting("hideKey", "Hide (streamer)", 0);
     Setting& copyKey_ = keySetting("copyKey", "Copy position to the clipboard", 0);
     Setting& copyFormat_ = choice("copyFormat", "Copy format", {"x y z", "x, y, z", "X: x Y: y Z: z"});
-    Setting& hideOriginal_ = toggleSetting("hideOriginal", "Hide the game's own coordinates", false);
+    Setting& hideOriginal_ = needs(toggleSetting("hideOriginal", "Hide the game's own coordinates", false), fx::Id::HideCoordinates);
     bool hidden_ = false;
 };
 
@@ -427,7 +427,7 @@ private:
     Setting& time_ = toggleSetting("time", "Game time", true);
     Setting& twelve_ = toggleSetting("twelve", "12-hour format", false);
     Setting& phase_ = toggleSetting("phase", "Day or night", false);
-    Setting& hideOriginal_ = toggleSetting("hideOriginal", "Hide the game's own day counter", false);
+    Setting& hideOriginal_ = needs(toggleSetting("hideOriginal", "Hide the game's own day counter", false), fx::Id::HideDayCounter);
 };
 
 class IpDisplay : public TextHud {

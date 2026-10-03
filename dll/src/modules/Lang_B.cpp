@@ -484,7 +484,7 @@ const i18n::Entry entries[] = {
     {"Frames in the graph", "Frames im Graphen"},
     {"Frametime graph", "Frametime-Graph"},
     {"Freelook key", "Freelook-Taste"},
-    {"Freely set position, size and rotation of hand and item in first person.", "Position, Größe und Drehung von Hand und Item in der Ego-Perspektive frei einstellen."},
+    {"Changes the field of view of hand and item in first person, and where the game version allows it their position, size and rotation.", "Ändert das Sichtfeld von Hand und Item in der Ego-Perspektive und, wo die Spielversion es erlaubt, ihre Position, Größe und Drehung."},
     {"Fri", "Fr"},
     {"Friend accept command", "Befehl zum Annehmen von Freunden"},
     {"Friend request words (comma)", "Wörter für Freundschaftsanfragen (Komma)"},

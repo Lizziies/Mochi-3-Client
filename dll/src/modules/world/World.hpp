@@ -91,132 +91,7 @@ private:
     Setting& speed_ = slider("speed", "Speed", 1.f, 0.1f, 5.f, "%.1f");
     Setting& fill_ = toggleSetting("fill", "Fill the faces", false);
     Setting& fillColor_ = colorSetting("fillColor", "Fill color", {0.23f, 0.65f, 0.93f, 0.18f});
-    Setting& hideVanilla_ = toggleSetting("hideVanilla", "Hide the original outline", true);
-};
-
-class TimeChanger : public Module {
-public:
-    TimeChanger()
-        : Module("Time Changer", "Sets the time of day only for you: fixed, running or sunset.",
-                 Category::Visual, {"cosmetic"}) {
-        sub("World");
-        require(0, {fx::sig(fx::Id::TimeOfDay)});
-        hour_.visible = [this] { return mode_.i == 0; };
-        speed_.visible = [this] { return mode_.i == 1; };
-    }
-
-    void onFrame() override {
-        float t = hour_.f;
-        if (mode_.i == 1) {
-            cycle_ = std::fmod(cycle_ + ui::dt() * speed_.f / 60.f * 24.f, 24.f);
-            t = cycle_;
-        } else if (mode_.i == 2) {
-            t = 12.f;
-        }
-        float ticks = std::fmod(t - 6.f + 24.f, 24.f) * 1000.f;
-        fx::set(fx::Id::TimeOfDay, ticks / 24000.f);
-    }
-
-private:
-    Setting& mode_ = choice("mode", "Mode", {"Fixed time", "Running", "Sunset"});
-    Setting& hour_ = slider("hour", "Time of day", 12.f, 0.f, 24.f, "%.1f h");
-    Setting& speed_ = slider("speed", "Minutes per day", 2.f, 0.2f, 20.f, "%.1f");
-    float cycle_ = 6.f;
-};
-
-class WeatherChanger : public Module {
-public:
-    WeatherChanger()
-        : Module("Weather Changer", "Change the weather only for you: turn rain and thunder off or force them.", Category::Visual, {"cosmetic"}) {
-        sub("World");
-        require(0, {fx::sig(fx::Id::Rain)});
-        rainLevel_.visible = [this] { return mode_.i == 2; };
-    }
-
-    void onFrame() override {
-        switch (mode_.i) {
-        case 0:
-            fx::set(fx::Id::Rain, 0.f);
-            fx::set(fx::Id::Thunder, 0.f);
-            break;
-        case 1: fx::set(fx::Id::Thunder, 0.f); break;
-        case 2:
-            fx::set(fx::Id::Rain, rainLevel_.f);
-            break;
-        case 3:
-            fx::set(fx::Id::Rain, 1.f);
-            fx::set(fx::Id::Thunder, 1.f);
-            break;
-        }
-    }
-
-private:
-    Setting& mode_ = choice("mode", "Weather", {"Clear", "Thunder off only", "Rain", "Thunderstorm"});
-    Setting& rainLevel_ = slider("level", "Rain strength", 0.6f, 0.05f, 1.f, "%.2f");
-};
-
-class EnvironmentChanger : public Module {
-public:
-    EnvironmentChanger()
-        : Module("Environment Changer", "Turn off sky, fog and clouds one by one, only for you.", Category::Visual, {"cosmetic"}) {
-        sub("World");
-        require(0, {fx::sig(fx::Id::Fog)});
-    }
-
-    void onFrame() override {
-        if (noFog_.b) fx::force(fx::Id::Fog, false);
-        if (noClouds_.b) fx::force(fx::Id::Clouds, false);
-        if (noSky_.b) fx::force(fx::Id::Sky, false);
-        if (noVignette_.b) fx::force(fx::Id::Vignette, false);
-    }
-
-private:
-    Setting& noFog_ = toggleSetting("noFog", "Fog off", true);
-    Setting& noClouds_ = toggleSetting("noClouds", "Clouds off", false);
-    Setting& noSky_ = toggleSetting("noSky", "Sky off", false);
-    Setting& noVignette_ = toggleSetting("noVignette", "Vignette off", true);
-};
-
-class FogColor : public Module {
-public:
-    FogColor()
-        : Module("Fog Color", "Your own fog color, optionally as a rainbow.", Category::Visual, {"cosmetic"}) {
-        sub("World");
-        require(0, {fx::sig(fx::Id::FogColor)});
-        color_.visible = [this] { return !rainbow_.b; };
-        speed_.visible = [this] { return rainbow_.b; };
-    }
-
-    void onFrame() override {
-        ImVec4 c = rainbow_.b ? rainbow(speed_.f, 0.5f) : color_.color;
-        fx::out(fx::Id::FogColor, {c.x, c.y, c.z});
-    }
-
-private:
-    Setting& color_ = colorSetting("color", "Color", {1.f, 0.7f, 0.85f, 1.f});
-    Setting& rainbow_ = toggleSetting("rainbow", "Rainbow", false);
-    Setting& speed_ = slider("speed", "Speed", 1.f, 0.1f, 5.f, "%.1f");
-};
-
-class WaterColor : public Module {
-public:
-    WaterColor()
-        : Module("Water Color", "Your own water color, for example clear turquoise or pink.", Category::Visual, {"cosmetic"}) {
-        sub("World");
-        require(0, {fx::sig(fx::Id::WaterColor)});
-        color_.visible = [this] { return !rainbow_.b; };
-        speed_.visible = [this] { return rainbow_.b; };
-    }
-
-    void onFrame() override {
-        ImVec4 c = rainbow_.b ? rainbow(speed_.f, 0.45f) : color_.color;
-        fx::out(fx::Id::WaterColor, {c.x, c.y, c.z});
-    }
-
-private:
-    Setting& color_ = colorSetting("color", "Color", {0.45f, 0.85f, 0.95f, 1.f});
-    Setting& rainbow_ = toggleSetting("rainbow", "Rainbow", false);
-    Setting& speed_ = slider("speed", "Speed", 1.f, 0.1f, 5.f, "%.1f");
+    Setting& hideVanilla_ = needs(toggleSetting("hideVanilla", "Hide the original outline", true), fx::Id::BlockOutline);
 };
 
 class ChunkBorder : public Module {
@@ -298,14 +173,14 @@ public:
 
 private:
     Setting& main_ = toggleSetting("main", "Hide main hand", true);
-    Setting& offhand_ = toggleSetting("offhand", "Hide offhand", true);
+    Setting& offhand_ = needs(toggleSetting("offhand", "Hide offhand", true), fx::Id::HideOffhand);
     Setting& onlyEmpty_ = toggleSetting("onlyEmpty", "Only with an empty hand", false);
 };
 
 class ViewModel : public Module {
 public:
     ViewModel()
-        : Module("View Model", "Freely set position, size and rotation of hand and item in first person.", Category::Visual, {"cosmetic"}) {
+        : Module("View Model", "Changes the field of view of hand and item in first person, and where the game version allows it their position, size and rotation.", Category::Visual, {"cosmetic"}) {
         sub("Model");
         requireAny({fx::sig(fx::Id::HandMatrix), fx::sig(fx::Id::ItemFov), fx::sig(fx::Id::HandMatrixThird)});
         itemFov_.visible = [this] { return changeFov_.b; };
@@ -325,55 +200,14 @@ private:
     Setting& changeFov_ = toggleSetting("changeFov", "Change the item field of view", false);
     Setting& itemFov_ = slider("itemFov", "Item field of view", 70.f, 30.f, 140.f, "%.0f");
     Setting& third_ = toggleSetting("third", "Also in third person", false);
-    Setting& x_ = slider("posX", "Position X", 0.f, -1.f, 1.f, "%.2f");
-    Setting& y_ = slider("posY", "Position Y", 0.f, -1.f, 1.f, "%.2f");
-    Setting& z_ = slider("z", "Position Z", 0.f, -1.f, 1.f, "%.2f");
-    Setting& uniform_ = slider("scale", "Overall size", 1.f, 0.3f, 2.f, "%.2fx");
-    Setting& sx_ = slider("sx", "Width", 1.f, 0.3f, 2.f, "%.2fx");
-    Setting& sy_ = slider("sy", "Height", 1.f, 0.3f, 2.f, "%.2fx");
-    Setting& sz_ = slider("sz", "Depth", 1.f, 0.3f, 2.f, "%.2fx");
-    Setting& rx_ = slider("rx", "Rotation X", 0.f, -180.f, 180.f, "%.0f°");
-    Setting& ry_ = slider("ry", "Rotation Y", 0.f, -180.f, 180.f, "%.0f°");
-    Setting& rz_ = slider("rz", "Rotation Z", 0.f, -180.f, 180.f, "%.0f°");
-};
-
-class Animations : public Module {
-public:
-    Animations()
-        : Module("Animations", "1.8-style swing and block animations, smaller item, own swing speed.",
-                 Category::Visual, {"cosmetic"}) {
-        sub("Model");
-        requireAny({fx::sig(fx::Id::HandMatrix), fx::sig(fx::Id::SwingSpeed)});
-        swingAngle_.visible = [] { return fx::available(fx::Id::HandMatrix); };
-        flux_.visible = [] { return fx::available(fx::Id::HandMatrix); };
-    }
-
-    void onFrame() override {
-        auto& p = game::state().player;
-        float s = itemScale_.f;
-        double now = ui::time();
-        for (auto& e : game::events())
-            if (e.kind == game::EventKind::Swing) swingAt_ = now;
-        float t = std::clamp(float((now - swingAt_) / (0.32 / std::max(0.2f, swing_.f))), 0.f, 1.f);
-        float target = (swingAngle_.f - 1.f) * 40.f * std::sin(t * 3.14159f);
-        extra_ = flux_.b ? extra_ + (target - extra_) * std::min(1.f, ui::dt() * 16.f) : target;
-        game::Vec3 move{0.f, 0.f, 0.f}, rot{extra_, 0.f, extra_ * 0.4f};
-        if (lowered_.b) move.y -= 0.12f;
-        if (p.blocking && blockPose_.b) {
-            move = {move.x - 0.1f, move.y + 0.05f, move.z + 0.08f};
-            rot = {-18.f, 28.f, -12.f};
-        }
-        fx::transform(fx::Id::HandMatrix, move, {s, s, s}, rot);
-        if (swing_.f != 1.f) fx::scale(fx::Id::SwingSpeed, 1.f / std::max(0.2f, swing_.f));
-    }
-
-private:
-    Setting& itemScale_ = slider("scale", "Item size", 0.85f, 0.4f, 1.5f, "%.2fx");
-    Setting& lowered_ = toggleSetting("lowered", "Hold the hand lower", true);
-    Setting& blockPose_ = toggleSetting("block", "Block pose while blocking", true);
-    Setting& swing_ = slider("swing", "Swing speed", 1.f, 0.4f, 2.5f, "%.2fx");
-    Setting& swingAngle_ = slider("swingAngle", "Swing angle", 1.f, 0.4f, 2.f, "%.2fx");
-    Setting& flux_ = toggleSetting("flux", "Fluid swing (smooths repeated swings)", false);
-    double swingAt_ = -10.0;
-    float extra_ = 0.f;
+    Setting& x_ = needs(slider("posX", "Position X", 0.f, -1.f, 1.f, "%.2f"), fx::Id::HandMatrix);
+    Setting& y_ = needs(slider("posY", "Position Y", 0.f, -1.f, 1.f, "%.2f"), fx::Id::HandMatrix);
+    Setting& z_ = needs(slider("z", "Position Z", 0.f, -1.f, 1.f, "%.2f"), fx::Id::HandMatrix);
+    Setting& uniform_ = needs(slider("scale", "Overall size", 1.f, 0.3f, 2.f, "%.2fx"), fx::Id::HandMatrix);
+    Setting& sx_ = needs(slider("sx", "Width", 1.f, 0.3f, 2.f, "%.2fx"), fx::Id::HandMatrix);
+    Setting& sy_ = needs(slider("sy", "Height", 1.f, 0.3f, 2.f, "%.2fx"), fx::Id::HandMatrix);
+    Setting& sz_ = needs(slider("sz", "Depth", 1.f, 0.3f, 2.f, "%.2fx"), fx::Id::HandMatrix);
+    Setting& rx_ = needs(slider("rx", "Rotation X", 0.f, -180.f, 180.f, "%.0f°"), fx::Id::HandMatrix);
+    Setting& ry_ = needs(slider("ry", "Rotation Y", 0.f, -180.f, 180.f, "%.0f°"), fx::Id::HandMatrix);
+    Setting& rz_ = needs(slider("rz", "Rotation Z", 0.f, -180.f, 180.f, "%.0f°"), fx::Id::HandMatrix);
 };

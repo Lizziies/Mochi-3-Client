@@ -15,60 +15,6 @@
 #include <cmath>
 #include <format>
 
-class ItemPhysics : public Module {
-public:
-    ItemPhysics()
-        : Module("Item Physics", "Dropped items lie flat on the ground and settle smoothly instead of spinning in the air.", Category::Visual, {"cosmetic"}) {
-        sub("World");
-        require(0, {fx::sig(fx::Id::ItemPhysics)});
-        speed_.visible = [] { return fx::available(fx::Id::ItemPhysicsData); };
-        height_.visible = [] { return fx::available(fx::Id::ItemPhysicsData); };
-        keep_.visible = [] { return fx::available(fx::Id::ItemPhysicsData); };
-        smooth_.visible = [] { return fx::available(fx::Id::ItemPhysicsData); };
-    }
-
-    void onFrame() override {
-        fx::force(fx::Id::ItemPhysics, true);
-        fx::out(fx::Id::ItemPhysicsData, {speed_.f, height_.f, keep_.b ? 1.f : 0.f, smooth_.b ? 1.f : 0.f});
-    }
-
-private:
-    Setting& speed_ = slider("speed", "Rotation speed", 1.f, 0.f, 4.f, "%.2fx");
-    Setting& height_ = slider("height", "Height above the ground", 0.f, -0.2f, 0.4f, "%.2f");
-    Setting& keep_ = toggleSetting("keep", "Keep the rotation when it lands", true);
-    Setting& smooth_ = toggleSetting("smooth", "Smooth movement", true);
-};
-
-class NametagModifier : public Module {
-public:
-    NametagModifier()
-        : Module("Nametag Modifier", "Changes the text and background color of the name tags above players.", Category::Visual, {"cosmetic"}) {
-        sub("World");
-        requireAny({fx::sig(fx::Id::NametagText), fx::sig(fx::Id::NametagBackground)});
-        text_.visible = [this] { return fx::available(fx::Id::NametagText) && !rainbow_.b; };
-        rainbow_.visible = [] { return fx::available(fx::Id::NametagText); };
-        background_.visible = [] { return fx::available(fx::Id::NametagBackground); };
-    }
-
-    void onFrame() override {
-        if (fx::available(fx::Id::NametagText)) {
-            ImVec4 c = text_.color;
-            if (rainbow_.b) {
-                float r, g, b;
-                ImGui::ColorConvertHSVtoRGB(std::fmod(float(ui::time()) * 0.25f, 1.f), 0.65f, 1.f, r, g, b);
-                c = {r, g, b, 1.f};
-            }
-            fx::out(fx::Id::NametagText, {c.x, c.y, c.z, c.w});
-        }
-        if (fx::available(fx::Id::NametagBackground)) fx::out(fx::Id::NametagBackground, {background_.color.x, background_.color.y, background_.color.z, background_.color.w});
-    }
-
-private:
-    Setting& rainbow_ = toggleSetting("rainbow", "Rainbow text", false);
-    Setting& text_ = colorSetting("text", "Text color", {1.f, 1.f, 1.f, 1.f});
-    Setting& background_ = colorSetting("background", "Background color", {0.f, 0.f, 0.f, 0.35f});
-};
-
 class ThirdPersonNametag : public Module {
 public:
     ThirdPersonNametag()

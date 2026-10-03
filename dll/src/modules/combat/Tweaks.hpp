@@ -15,59 +15,6 @@
 
 #include <cmath>
 
-class HurtColor : public Module {
-public:
-    HurtColor()
-        : Module("Hurt Color", "Changes the red tint when you or an opponent take damage.", Category::Pvp, {"cosmetic"}) {
-        sub("Hit visuals");
-        require(0, {fx::sig(fx::Id::HurtColor)});
-        speed_.visible = [this] { return rainbow_.b; };
-        color_.visible = [this] { return !rainbow_.b; };
-    }
-
-    void onFrame() override {
-        ImVec4 c = color_.color;
-        if (rainbow_.b) {
-            float r, g, b;
-            ImGui::ColorConvertHSVtoRGB(std::fmod(float(ui::time()) * speed_.f * 0.2f, 1.f), 0.7f, 1.f, r, g, b);
-            c = {r, g, b, 1.f};
-        }
-        fx::out(fx::Id::HurtColor, {c.x, c.y, c.z, c.w * intensity_.f});
-    }
-
-private:
-    Setting& color_ = colorSetting("color", "Color", {1.f, 0.35f, 0.6f, 1.f});
-    Setting& intensity_ = slider("intensity", "Strength", 0.6f, 0.05f, 1.f, "%.2f");
-    Setting& rainbow_ = toggleSetting("rainbow", "Rainbow", false);
-    Setting& speed_ = slider("speed", "Speed", 1.f, 0.1f, 5.f, "%.1f");
-};
-
-class GlintColor : public Module {
-public:
-    GlintColor()
-        : Module("Glint Color", "Changes the color of the enchantment glint on items and armor.", Category::Pvp, {"cosmetic"}) {
-        sub("Hit visuals");
-        require(0, {fx::sig(fx::Id::GlintColor)});
-        speed_.visible = [this] { return rainbow_.b; };
-        color_.visible = [this] { return !rainbow_.b; };
-    }
-
-    void onFrame() override {
-        ImVec4 c = color_.color;
-        if (rainbow_.b) {
-            float r, g, b;
-            ImGui::ColorConvertHSVtoRGB(std::fmod(float(ui::time()) * speed_.f * 0.2f, 1.f), 0.6f, 1.f, r, g, b);
-            c = {r, g, b, 1.f};
-        }
-        fx::out(fx::Id::GlintColor, {c.x, c.y, c.z, c.w});
-    }
-
-private:
-    Setting& color_ = colorSetting("color", "Color", {0.23f, 0.65f, 0.93f, 1.f});
-    Setting& rainbow_ = toggleSetting("rainbow", "Rainbow", false);
-    Setting& speed_ = slider("speed", "Speed", 1.f, 0.1f, 5.f, "%.1f");
-};
-
 class Hitbox : public Module {
 public:
     Hitbox()
@@ -164,41 +111,6 @@ private:
     Setting& color_ = colorSetting("color", "Color", {0.23f, 0.65f, 0.93f, 1.f});
     Setting& eyeColor_ = colorSetting("eyeColor", "Eye line color", {1.f, 0.3f, 0.3f, 1.f});
     Setting& lookColor_ = colorSetting("lookColor", "Look line color", {0.3f, 0.5f, 1.f, 1.f});
-};
-
-class LowFire : public Module {
-public:
-    LowFire()
-        : Module("Low Fire", "Lowers the fire overlay at the bottom of the screen or hides it completely.", Category::Pvp, {"cosmetic"}) {
-        sub("Hit visuals");
-        require(0, {fx::sig(fx::Id::FireHeight)});
-    }
-
-    void onFrame() override { fx::scale(fx::Id::FireHeight, 1.f - amount_.f); }
-
-private:
-    Setting& amount_ = slider("amount", "Lower", 0.6f, 0.f, 1.f, "%.2f");
-};
-
-class ParticleMultiplier : public Module {
-public:
-    ParticleMultiplier()
-        : Module("Particle Multiplier", "More or fewer particles, and critical hit particles on every hit. Fewer helps FPS, more looks nicer.", Category::Pvp,
-                 {"cosmetic"}) {
-        sub("Hit feedback");
-        requireAny({fx::sig(fx::Id::ParticleScale), fx::sig(fx::Id::CritParticle)});
-        amount_.visible = [] { return fx::available(fx::Id::ParticleScale); };
-        crit_.visible = [] { return fx::available(fx::Id::CritParticle); };
-    }
-
-    void onFrame() override {
-        fx::set(fx::Id::ParticleScale, amount_.f);
-        if (crit_.b) fx::force(fx::Id::CritParticle, true);
-    }
-
-private:
-    Setting& amount_ = slider("amount", "Amount", 0.5f, 0.f, 4.f, "%.2fx");
-    Setting& crit_ = toggleSetting("normalCrit", "Critical hit particles on every hit", false);
 };
 
 class SensMultiplier : public Module {
@@ -371,66 +283,4 @@ private:
     Setting& back_ = keySetting("back", "Back", 'S');
     bool held_[2][2]{};
     bool cut_[2][2]{};
-};
-
-class ItemUseDelayFix : public Module {
-public:
-    ItemUseDelayFix()
-        : Module("Item Use Delay Fix", "Shortens the wait between item uses. Banned on many servers.",
-                 Category::Pvp, {"timing"}) {
-        sub("Input");
-        markRisky();
-        require(0, {fx::sig(fx::Id::UseDelay)});
-    }
-
-    void onFrame() override { fx::scale(fx::Id::UseDelay, factor_.f); }
-
-private:
-    Setting& factor_ = slider("factor", "Remaining wait", 0.5f, 0.f, 1.f, "%.2f");
-};
-
-class FasterInventory : public Module {
-public:
-    FasterInventory()
-        : Module("Faster Inventory", "Faster moving of items in the inventory. Banned on many servers.",
-                 Category::Pvp, {"timing"}) {
-        sub("Input");
-        markRisky();
-        require(0, {fx::sig(fx::Id::InventoryDelay)});
-    }
-
-    void onFrame() override { fx::scale(fx::Id::InventoryDelay, factor_.f); }
-
-private:
-    Setting& factor_ = slider("factor", "Remaining wait", 0.5f, 0.f, 1.f, "%.2f");
-};
-
-class InstaHurtAnimation : public Module {
-public:
-    InstaHurtAnimation()
-        : Module("Insta Hurt Animation", "Plays the hurt animation of the player you hit right away instead of after the server reply. Banned on many servers.",
-                 Category::Pvp, {"timing"}) {
-        sub("Hit feedback");
-        markRisky();
-        require(0, {fx::sig(fx::Id::HurtAnim)});
-        wants(need::target);
-        excludeTeam_.visible = [] { return game::ready(need::target); };
-        fullArmor_.visible = [] { return game::ready(need::target); };
-    }
-
-    void onFrame() override {
-        auto& st = game::state();
-        auto& t = st.target;
-        bool filtered = game::ready(need::target) && (excludeTeam_.b || fullArmor_.b);
-        if (filtered) {
-            if (t.kind != game::Target::Kind::Entity || !t.isPlayer) return;
-            if (excludeTeam_.b && st.player.team && t.team == st.player.team) return;
-            if (fullArmor_.b && t.armor < 4) return;
-        }
-        fx::force(fx::Id::HurtAnim, true);
-    }
-
-private:
-    Setting& excludeTeam_ = toggleSetting("excludeTeam", "Exclude team", true);
-    Setting& fullArmor_ = toggleSetting("fullArmor", "Only against full armor", false);
 };

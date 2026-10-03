@@ -84,38 +84,3 @@ private:
     Linked* mem_ = nullptr;
     HANDLE map_ = nullptr;
 };
-
-class GuiScale : public Module {
-public:
-    GuiScale()
-        : Module("GUI Scale", "Sets the size of the game's interface, for example to 2, independent of the window size. Whole or quarter steps.",
-                 Category::Comfort, {"cosmetic"}) {
-        sub("HUD parts");
-        require(0, {fx::sig(fx::Id::GuiScale)});
-    }
-
-    void onFrame() override { fx::set(fx::Id::GuiScale, value()); }
-
-    void drawSettings() override {
-        static const char* names[] = {"1", "1.5", "2", "2.5", "3", "4"};
-        static const float values[] = {1.f, 1.5f, 2.f, 2.5f, 3.f, 4.f};
-        ImGui::Spacing();
-        for (int i = 0; i < 6; i++) {
-            if (i) ImGui::SameLine();
-            if (widgets::button(names[i], {0, 0}, std::fabs(value() - values[i]) < 0.01f)) {
-                scale_.f = values[i];
-                if (values[i] != std::round(values[i])) whole_.b = false;
-                config::markDirty();
-            }
-        }
-    }
-
-private:
-    float value() const {
-        float v = whole_.b ? std::round(scale_.f) : std::round(scale_.f * 4.f) / 4.f;
-        return std::clamp(v, 1.f, 6.f);
-    }
-
-    Setting& scale_ = slider("scale", "Scale", 2.f, 1.f, 6.f, "%.2f");
-    Setting& whole_ = toggleSetting("whole", "Whole numbers only", true);
-};

@@ -18,7 +18,6 @@
 #include "sig/Sigs.hpp"
 
 #include "camera/Camera.hpp"
-#include "camera/Hand.hpp"
 #include "client/ClickGui.hpp"
 #include "client/ClientSettings.hpp"
 #include "client/SigStatus.hpp"
@@ -32,7 +31,6 @@
 #include "comfort/Link.hpp"
 #include "comfort/Lock.hpp"
 #include "comfort/Nick.hpp"
-#include "comfort/Skin.hpp"
 #include "comfort/Packs.hpp"
 #include "comfort/Screenshot.hpp"
 #include "comfort/Streamer.hpp"
@@ -46,8 +44,6 @@
 #include "hud/Clock.hpp"
 #include "hud/Extras.hpp"
 #include "hud/HotbarAnim.hpp"
-#include "hud/Movable.hpp"
-#include "hud/Subtitles.hpp"
 #include "hud/Cps.hpp"
 #include "hud/Compose.hpp"
 #include "hud/Fps.hpp"
@@ -96,7 +92,6 @@
 #include "visual/Trail.hpp"
 #include "world/Entities.hpp"
 #include "world/HealthAbove.hpp"
-#include "world/LightOverlay.hpp"
 #include "world/Waypoints.hpp"
 #include "world/World.hpp"
 
@@ -179,22 +174,14 @@ void init() {
     add<Freelook>();
     add<CinematicCamera>();
     add<NoViewBobbing>();
-    add<MinimalViewBobbing>();
     add<NoHurtCam>();
-    add<SmoothSneak>();
     add<AutoPerspective>();
     add<Fullbright>();
     add<BlockOutline>();
-    add<TimeChanger>();
-    add<WeatherChanger>();
-    add<EnvironmentChanger>();
-    add<FogColor>();
-    add<WaterColor>();
     add<ChunkBorder>();
     add<Waypoints>();
     add<HideHand>();
     add<ViewModel>();
-    add<Animations>();
 
     add<BreakProgress>();
     add<Crosshair>();
@@ -218,20 +205,12 @@ void init() {
     add<HitSound>();
     add<TotemPop>();
     add<Hitbox>();
-    add<HurtColor>();
-    add<GlintColor>();
-    add<LowFire>();
-    add<ParticleMultiplier>();
     add<SensMultiplier>();
     add<BowSensitivity>();
     add<SnapLook>();
     add<NullMovement>();
-    add<BlockHit>();
     add<CrystalOptimizer>();
     add<KillCleanup>();
-    add<ItemUseDelayFix>();
-    add<FasterInventory>();
-    add<InstaHurtAnimation>();
     add<CpsLimiter>();
     add<NoScroll>();
     add<HotbarKeys>();
@@ -249,7 +228,6 @@ void init() {
     add<ScoreboardPlus>();
     add<TabList>();
     add<MumbleLink>();
-    add<GuiScale>();
     add<StreamerMode>();
 
     add<ServerProfiles>();
@@ -260,15 +238,7 @@ void init() {
     add<PackChanger>();
     add<Nick>();
     add<HotbarAnimation>();
-    add<ItemPhysics>();
-    add<NametagModifier>();
     add<TntTimer>();
-    add<LightOverlay>();
-    add<Subtitles>();
-    add<MovableHotbar>();
-    add<MovableTitle>();
-    add<MovableBossbar>();
-    add<SkinStealer>();
     add<DiscordPresence>();
     add<LuaScripts>();
     add<ConfigSharing>();
@@ -278,7 +248,6 @@ void init() {
     add<InventoryView>();
     add<ArrowTrail>();
     add<BlackBars>();
-    add<LeftHand>();
     add<GamemodeHotkeys>();
     add<ThirdPersonNametag>();
     add<HealthAbove>();

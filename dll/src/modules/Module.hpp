@@ -3,6 +3,7 @@
 #include "I18n.hpp"
 #include "Setting.hpp"
 #include "core/Events.hpp"
+#include "sdk/Effects.hpp"
 #include "sdk/Game.hpp"
 
 #include <imgui.h>
@@ -87,6 +88,8 @@ public:
 
 protected:
     Setting& toggleSetting(std::string id, std::string label, bool def);
+    // a setting that only works through one game hook stays hidden on versions without it
+    static Setting& needs(Setting& s, fx::Id id);
     Setting& slider(std::string id, std::string label, float def, float min, float max, const char* fmt = "%.1f");
     Setting& intSlider(std::string id, std::string label, int def, int min, int max);
     Setting& colorSetting(std::string id, std::string label, ImVec4 def);

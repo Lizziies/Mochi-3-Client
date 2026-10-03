@@ -12,8 +12,10 @@ public:
         requireAny({fx::sig(fx::Id::Clouds), fx::sig(fx::Id::Particles), fx::sig(fx::Id::BlockEntities), fx::sig(fx::Id::Shadows),
                     fx::sig(fx::Id::Sky), fx::sig(fx::Id::Fog), fx::sig(fx::Id::Vignette), fx::sig(fx::Id::Rain), fx::sig(fx::Id::RenderEntities),
                     fx::sig(fx::Id::RenderTerrain), fx::sig(fx::Id::HideHand), fx::sig(fx::Id::HideHud)});
-        for (auto* s : {&clouds_, &particles_, &blockEntities_, &shadows_, &weather_, &fog_, &sky_, &vignette_})
-            s->visible = [this] { return preset_.i == 0; };
+        std::pair<Setting*, fx::Id> own[] = {{&clouds_, fx::Id::Clouds}, {&particles_, fx::Id::Particles}, {&blockEntities_, fx::Id::BlockEntities},
+                                             {&shadows_, fx::Id::Shadows}, {&weather_, fx::Id::Rain}, {&fog_, fx::Id::Fog},
+                                             {&sky_, fx::Id::Sky}, {&vignette_, fx::Id::Vignette}};
+        for (auto [s, id] : own) s->visible = [this, id] { return preset_.i == 0 && fx::available(id); };
         entities_.visible = [] { return fx::available(fx::Id::RenderEntities); };
         terrain_.visible = [] { return fx::available(fx::Id::RenderTerrain); };
         hand_.visible = [] { return fx::available(fx::Id::HideHand); };
