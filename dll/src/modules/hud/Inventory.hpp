@@ -5,6 +5,7 @@
 #include "gui/Theme.hpp"
 #include "modules/common/Colors.hpp"
 #include "modules/common/GameHud.hpp"
+#include "modules/common/VanillaHud.hpp"
 #include "modules/common/Inventory.hpp"
 #include "modules/common/Needs.hpp"
 #include "modules/common/Text.hpp"
@@ -450,6 +451,18 @@ public:
         : GameList("Better Hunger Bar", "Shows hunger and saturation as a bar and previews what the food in your hand gives.", need::player | game::Domain::Inventory,
                    need::sigs({"LocalPlayer"}), {"hud-self"}, {0.135f, 0.93f}) {
         sub("Info displays");
+        for (Setting* st : {&width_, &numbers_, &waste_, &hungerColor_}) st->visible = [this] { return mode_.i == 1; };
+        wasteColor_.visible = [this] { return mode_.i == 1 && waste_.b; };
+    }
+
+    void onRender(ImDrawList* dl) override {
+        if (mode_.i == 1) {
+            GameList::onRender(dl);
+            return;
+        }
+        auto& st = game::state();
+        if (!gameVisible() || gui::editingHud() || st.screen != game::Screen::None) return;
+        overlay(dl, st.player);
     }
 
 protected:
@@ -486,6 +499,52 @@ protected:
     }
 
 private:
+    // 8x8 drumstick as the game draws it: meat at the top right, bone at the bottom left
+    static constexpr const char* drumstick[8] = {".....XX.", "...XXXXX", "..XXXXXX", "..XXXXXX", "..XXXXX.", ".XXXXX..", "XX.XX...", "XX......"};
+
+    static bool solid(int x, int y) { return x >= 0 && y >= 0 && x < 8 && y < 8 && drumstick[y][x] == 'X'; }
+
+    // fill and outline of one drumstick at whole-pixel size; the outline is the mask grown by one pixel
+    static void stick(ImDrawList* dl, ImVec2 at, float k, ImU32 fill, ImU32 edge) {
+        for (int y = -1; y <= 8; y++)
+            for (int x = -1; x <= 8; x++) {
+                bool in = solid(x, y);
+                bool edgeCell = in || solid(x - 1, y) || solid(x + 1, y) || solid(x, y - 1) || solid(x, y + 1);
+                if (!edgeCell) continue;
+                ImVec2 a{at.x + float(x) * k, at.y + float(y) * k};
+                if (in) {
+                    if (fill >> 24) dl->AddRectFilled(a, {a.x + k, a.y + k}, fill);
+                } else if (edge >> 24) {
+                    dl->AddRectFilled(a, {a.x + k, a.y + k}, edge);
+                }
+            }
+    }
+
+    void overlay(ImDrawList* dl, const game::Player& p) {
+        auto hud = vanilla::hud(ImGui::GetIO().DisplaySize, {guiScale_.f, offsetX_.f, offsetY_.f, fine_.f});
+        float k = std::max(1.f, std::floor(hud.k));
+        float gain = 0.f, satGain = 0.f;
+        bool food = preview_.b && foodValue(p.held().name, gain, satGain) && p.hunger < 20.f;
+        float hunger = std::clamp(p.hunger, 0.f, 20.f);
+        float sat = std::clamp(std::min(p.saturation, hunger), 0.f, 20.f);
+        float nextHunger = std::min(20.f, hunger + gain);
+        float nextSat = std::min(p.saturation + satGain, nextHunger);
+        float blink = 0.35f + 0.3f * std::sin(float(ui::time()) * 5.f);
+        ImVec4 gold = withAlpha(satColor_.color, 1.f);
+        for (int i = 0; i < 10; i++) {
+            ImVec2 at = hud.drumstick(i);
+            float lo = 2.f * float(i);
+            float s = std::clamp((sat - lo) / 2.f, 0.f, 1.f);
+            if (food && nextHunger > lo && hunger < lo + 2.f)
+                stick(dl, at, k, ImGui::GetColorU32(withAlpha(hungerColor_.color, blink)), 0);
+            if (s > 0.f) stick(dl, at, k, ImGui::GetColorU32(withAlpha(gold, 0.45f * s)), ImGui::GetColorU32(withAlpha(gold, s)));
+            if (food && satPreview_.b) {
+                float n = std::clamp((nextSat - lo) / 2.f, 0.f, 1.f);
+                if (n > s) stick(dl, at, k, ImGui::GetColorU32(withAlpha(gold, 0.45f * blink)), ImGui::GetColorU32(withAlpha(gold, blink * (n - s))));
+            }
+        }
+    }
+
     static bool foodValue(const std::string& n, float& gain, float& sat) {
         struct F {
             const char* name;
@@ -509,6 +568,11 @@ private:
         return false;
     }
 
+    Setting& mode_ = choice("mode", "Display", {"On the hunger bar", "Bar and text"});
+    Setting& guiScale_ = slider("guiScale", "GUI scale of the game (0 = automatic)", 0.f, 0.f, 6.f, "%.0f");
+    Setting& offsetX_ = slider("offsetX", "Fine tuning: shift X (GUI pixels)", 0.f, -20.f, 20.f, "%.1f");
+    Setting& offsetY_ = slider("offsetY", "Fine tuning: shift Y (GUI pixels)", 0.f, -20.f, 20.f, "%.1f");
+    Setting& fine_ = slider("fine", "Fine tuning: size", 1.f, 0.8f, 1.2f, "%.3fx");
     Setting& width_ = slider("width", "Width", 140.f, 60.f, 300.f, "%.0f");
     Setting& numbers_ = toggleSetting("numbers", "Numbers", true);
     Setting& preview_ = toggleSetting("preview", "Preview for food in hand", true);
@@ -516,5 +580,5 @@ private:
     Setting& waste_ = toggleSetting("waste", "Warn when food would be wasted", true);
     Setting& wasteColor_ = colorSetting("wasteColor", "Waste warning", {1.f, 0.4f, 0.45f, 1.f});
     Setting& hungerColor_ = colorSetting("hunger", "Hunger color", {0.85f, 0.6f, 0.3f, 1.f});
-    Setting& satColor_ = colorSetting("sat", "Saturation color", {1.f, 0.9f, 0.4f, 1.f});
+    Setting& satColor_ = colorSetting("sat", "Saturation color", {1.f, 0.824f, 0.29f, 1.f});
 };

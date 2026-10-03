@@ -346,3 +346,12 @@ Zahlen, 170 Hz, maximaler Sprung einer Zeile pro Bild (Median der vier Teile):
 | CPU pro UI-Frame (Mittel) | 0,18 ms | 0,22 bis 0,30 ms (Szenario jetzt mit allen Teilen offen) |
 
 Offen: bei 60 Hz bleiben es etwa 60 px pro Bild, das ist die Strecke von 1100 px, nicht das Ruckeln. Wer das ruhiger will, kann die Dauer weiter strecken oder sehr hohe Teile ohne Höhenanimation einblenden. Die Teile im Spiel selbst sind nicht gemessen, nur im Testhost.
+
+## 2026-10-03, Branch claude/hotbar-overlay
+
+Ohne Spiel gebaut, nicht angesehen. Gemeinsame Geometrie der Vanilla-HUD in `modules/common/VanillaHud.hpp` (`vanilla::hud`): Hotbar unten mittig 182x22 GUI-Pixel, Slotzelle 20x20 ab x=1 (Innenbereich 16x16 ab x=3), Herzen links und Hunger-Keulen rechts je 10x8 px, Unterkante 39 GUI-Pixel über dem Rand. GUI-Skalierung wie Bedrock aus der Fenstergröße, einstellbar. Beide Module haben "Feinkorrektur" (Versatz X/Y in GUI-Pixeln, Größe).
+
+- Hotbar Animation: Rahmen liegt genau auf der Slotzelle von `player.slot`, gleitet weich, Pop nur 0,5 GUI-Pixel pro Seite (Standard 1).
+- Better Hunger Bar: Standardmodus legt die Sättigung als goldenen Rand mit Füllung (#FFD24A) auf die echten Keulen (Pixelraster 8x8, Rand = Maske plus 1 Pixel); Essen in der Hand lässt die Vorschau von Hunger und Sättigung halbtransparent auf genau diesen Keulen blinken. Der alte Balken mit Text ist der zweite Modus.
+
+Zu prüfen im Spiel: Die Referenz (Hotbar x 830–1910 bei 2560 Breite) liegt etwa 96 px rechts der Mitte, die Formel setzt sie mittig (734–1826). Falls das im Spiel so ist, mit Versatz X korrigieren. Auch die Höhe der Referenz (70 px) passt nicht zu 22*6 = 132 px, die Keulenform ist eine Annäherung.

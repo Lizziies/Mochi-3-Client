@@ -4,6 +4,7 @@
 #include "modules/Module.hpp"
 #include "modules/common/Colors.hpp"
 #include "modules/common/Needs.hpp"
+#include "modules/common/VanillaHud.hpp"
 #include "render/Draw.hpp"
 #include "render/Ui.hpp"
 #include "sdk/Game.hpp"
@@ -24,10 +25,8 @@ public:
     void onRender(ImDrawList* dl) override {
         auto& st = game::state();
         if (gui::editingHud() || st.player.mode == game::Mode::Spectator) return;
-        auto ds = ImGui::GetIO().DisplaySize;
-        float scale = guiScale_.f > 0.f ? guiScale_.f : std::clamp(std::floor(std::min(ds.x / 320.f, ds.y / 240.f)), 1.f, 6.f);
-        float pitch = 20.f * scale, left = (ds.x - 182.f * scale) * 0.5f + 1.f * scale;
-        float top = ds.y - 22.f * scale + bottom_.f;
+        auto hud = vanilla::hud(ImGui::GetIO().DisplaySize, {guiScale_.f, offsetX_.f, offsetY_.f, fine_.f});
+        float scale = hud.k;
 
         int slot = std::clamp(st.player.slot, 0, 8);
         if (last_ < 0) {
@@ -41,21 +40,24 @@ public:
         pos_ = draw::approach(pos_, float(slot), speed_.f);
         pop_ = draw::approach(pop_, 0.f, 9.f);
 
-        float cx = left + 1.f * scale + pitch * (pos_ + 0.5f) - scale * 0.5f, cy = top + 11.f * scale;
-        float half = (12.f + pop_ * (popSize_.f)) * scale;
-        ImVec2 a{cx - half, cy - half}, b{cx + half, cy + half};
+        float grow = pop_ * popSize_.f * 0.5f * scale;
+        ImVec2 base = hud.slotMin(0), end = hud.slotMax(0);
+        float x = base.x + (pos_) * 20.f * scale;
+        ImVec2 a{x - grow, base.y - grow}, b{x + (end.x - base.x) + grow, end.y + grow};
         ImVec4 c = color_.color;
         float r = rounding_.f * scale * 0.5f;
         if (glow_.b) draw::glow(dl, a, b, r, ImGui::GetColorU32(glowColor_.color), glowSize_.f * scale);
-        dl->AddRect(a, b, ImGui::GetColorU32(c), r, 0, thickness_.f * scale * 0.5f);
+        dl->AddRect(a, b, ImGui::GetColorU32(c), r, 0, std::max(1.f, thickness_.f * scale * 0.5f));
         if (fill_.f > 0.f) dl->AddRectFilled(a, b, ImGui::GetColorU32(withAlpha(c, fill_.f)), r);
     }
 
 private:
     Setting& guiScale_ = slider("guiScale", "GUI scale (0 = automatic)", 0.f, 0.f, 6.f, "%.0f");
-    Setting& bottom_ = slider("bottom", "Vertical correction", 0.f, -20.f, 20.f, "%.0f");
+    Setting& offsetX_ = slider("offsetX", "Fine tuning: shift X (GUI pixels)", 0.f, -20.f, 20.f, "%.1f");
+    Setting& offsetY_ = slider("offsetY", "Fine tuning: shift Y (GUI pixels)", 0.f, -20.f, 20.f, "%.1f");
+    Setting& fine_ = slider("fine", "Fine tuning: size", 1.f, 0.8f, 1.2f, "%.3fx");
     Setting& speed_ = slider("speed", "Glide speed", 16.f, 4.f, 40.f, "%.0f");
-    Setting& popSize_ = slider("pop", "Pop when switching", 2.f, 0.f, 6.f, "%.1f");
+    Setting& popSize_ = slider("pop", "Pop when switching", 1.f, 0.f, 6.f, "%.1f");
     Setting& thickness_ = slider("thickness", "Frame thickness", 3.f, 1.f, 8.f, "%.1f");
     Setting& rounding_ = slider("rounding", "Rounding", 3.f, 0.f, 10.f, "%.0f");
     Setting& fill_ = slider("fill", "Fill", 0.f, 0.f, 0.6f, "%.2f");
