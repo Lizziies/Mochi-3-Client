@@ -185,6 +185,8 @@ bool inject(DWORD pid, const std::filesystem::path& dll, std::string& error) {
         return false;
     }
     grantAppPackages(dll);
+    // the client loads the Flarial core from its own folder inside the game process, which needs read access too
+    if (auto core = dll.parent_path() / L"MonchiFlarial.dll"; std::filesystem::exists(core)) grantAppPackages(core);
 
     HANDLE proc = OpenProcess(PROCESS_CREATE_THREAD | PROCESS_QUERY_INFORMATION | PROCESS_VM_OPERATION |
                                   PROCESS_VM_WRITE | PROCESS_VM_READ,

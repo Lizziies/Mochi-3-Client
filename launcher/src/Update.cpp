@@ -42,6 +42,7 @@ std::optional<Release> parse(const json& j) {
         std::string name = a.value("name", "");
         std::string url = a.value("browser_download_url", "");
         if (name == "Monchi.dll") r.dllUrl = url;
+        else if (name == "MonchiFlarial.dll") r.coreUrl = url;
         else if (name == "MonchiLauncher.exe") r.launcherUrl = url;
         else if (name == "checksums.txt") r.sumsUrl = url;
     }
@@ -126,6 +127,14 @@ bool installDll(const Release& r, const std::function<void(float)>& progress, st
     std::string sums = r.sumsUrl.empty() ? std::string() : net::get(r.sumsUrl).value_or("");
     auto tmp = files::bin() / L"Monchi.dll.part";
     if (!fetch(r.dllUrl, "Monchi.dll", sums, tmp, progress, error)) return false;
+    auto coreTmp = files::bin() / L"MonchiFlarial.dll.part";
+    if (!r.coreUrl.empty() && !fetch(r.coreUrl, "MonchiFlarial.dll", sums, coreTmp, progress, error)) return false;
+    if (!r.coreUrl.empty() && !MoveFileExW(coreTmp.c_str(), files::core().c_str(), MOVEFILE_REPLACE_EXISTING)) {
+        std::error_code ec;
+        std::filesystem::remove(coreTmp, ec);
+        error = "Close Minecraft to update the client";
+        return false;
+    }
 
     if (!MoveFileExW(tmp.c_str(), files::dll().c_str(), MOVEFILE_REPLACE_EXISTING)) {
         std::error_code ec;

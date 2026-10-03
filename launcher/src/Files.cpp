@@ -25,6 +25,7 @@ fs::path root() {
 
 fs::path bin() { return ensure(root() / L"bin"); }
 fs::path dll() { return bin() / L"Monchi.dll"; }
+fs::path core() { return bin() / L"MonchiFlarial.dll"; }
 fs::path installedTag() { return bin() / L"version.txt"; }
 fs::path settings() { return root() / L"launcher.json"; }
 fs::path log() { return root() / L"logs" / L"latest.log"; }

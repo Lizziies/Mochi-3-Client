@@ -5,3 +5,4 @@
 #define IDR_FONT_BOLD    102
 #define IDR_CLIENT       201
 #define IDR_COSMETICS    202
+#define IDR_CORE         203

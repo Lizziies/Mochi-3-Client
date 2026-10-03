@@ -10,6 +10,8 @@ namespace fs = std::filesystem;
 fs::path root();
 fs::path bin();
 fs::path dll();
+// the Flarial core, loaded by the client from its own folder
+fs::path core();
 fs::path installedTag();
 fs::path settings();
 fs::path log();

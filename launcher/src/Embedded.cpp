@@ -22,9 +22,9 @@ std::string_view resource(int id) {
     return {static_cast<const char*>(LockResource(loaded)), SizeofResource(nullptr, found)};
 }
 
-std::string fingerprint(std::string_view a, std::string_view b) {
+std::string fingerprint(std::string_view a, std::string_view b, std::string_view c) {
     uint64_t h = 1469598103934665603ull;
-    for (std::string_view part : {a, b})
+    for (std::string_view part : {a, b, c})
         for (unsigned char c : part) h = (h ^ c) * 1099511628211ull;
     char buf[48];
     std::snprintf(buf, sizeof(buf), "%s-%016llx", build::version, static_cast<unsigned long long>(h));
@@ -67,6 +67,17 @@ void unpack(std::string_view pack) {
     }
 }
 
+// written beside and moved over, so a file the game still has loaded is never left half written
+bool place(std::string_view data, const files::fs::path& to) {
+    auto part = to;
+    part += L".part";
+    std::error_code ec;
+    if (!files::write(part, std::string(data))) return false;
+    if (MoveFileExW(part.c_str(), to.c_str(), MOVEFILE_REPLACE_EXISTING)) return true;
+    files::fs::remove(part, ec);
+    return false;
+}
+
 }
 
 bool present() { return !resource(IDR_CLIENT).empty(); }
@@ -75,20 +86,18 @@ bool install(std::string& error) {
     auto dll = resource(IDR_CLIENT);
     if (dll.empty()) return true;
     auto pack = resource(IDR_COSMETICS);
+    auto core = resource(IDR_CORE);
 
     auto marker = files::bin() / L"embedded.txt";
-    std::string want = fingerprint(dll, pack);
+    std::string want = fingerprint(dll, pack, core);
     std::error_code ec;
     if (files::read(marker) == want && files::fs::exists(files::dll(), ec)) return true;
 
-    auto part = files::dll();
-    part += L".part";
-    if (!files::write(part, std::string(dll))) {
-        error = "Could not save the client";
+    if (!place(dll, files::dll())) {
+        error = "Close Minecraft to update the client";
         return false;
     }
-    if (!MoveFileExW(part.c_str(), files::dll().c_str(), MOVEFILE_REPLACE_EXISTING)) {
-        files::fs::remove(part, ec);
+    if (!core.empty() && !place(core, files::core())) {
         error = "Close Minecraft to update the client";
         return false;
     }

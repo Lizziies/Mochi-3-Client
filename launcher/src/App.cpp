@@ -135,6 +135,11 @@ std::filesystem::path clientDll() {
         std::error_code ec;
         files::fs::copy_file(beside, files::dll(), files::fs::copy_options::overwrite_existing, ec);
     }
+    auto core = beside.parent_path() / L"MonchiFlarial.dll";
+    if (!files::fs::exists(files::core()) && files::fs::exists(core)) {
+        std::error_code ec;
+        files::fs::copy_file(core, files::core(), files::fs::copy_options::overwrite_existing, ec);
+    }
     return files::dll();
 }
 

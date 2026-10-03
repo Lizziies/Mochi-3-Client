@@ -11,6 +11,7 @@ struct Release {
     std::string tag;
     std::string notes;
     std::string dllUrl;
+    std::string coreUrl;
     std::string launcherUrl;
     std::string sumsUrl;
 };
