@@ -12,6 +12,7 @@
 #include "gui/Notify.hpp"
 #include "hook/Net.hpp"
 #include "modules/Manager.hpp"
+#include "modules/post/PostFx.hpp"
 #include "sdk/Explore.hpp"
 #include "server/Rules.hpp"
 #include "sig/Sigs.hpp"
@@ -51,7 +52,8 @@ static void boot() {
     logger::info("ready");
 }
 
-static void teardown() {
+// returns false when a background job is still running; the dll then has to stay loaded
+static bool teardown() {
     logger::info("unloading");
     explore::stop();
     config::save();
@@ -61,13 +63,16 @@ static void teardown() {
     Sleep(300);
     net::waitIdle(6000);
     modules::shutdown();
-    bg::drain(8000);
+    bool drained = bg::drain(8000);
+    if (drained) post::releaseCompiled();
     tweaks::restore();
     dx::uninstall();
     hook::shutdown();
     guard::removeNet();
-    logger::info("bye");
+    if (drained) logger::info("bye");
+    else logger::warn("unload incomplete, staying loaded until the game closes");
     logger::close();
+    return drained;
 }
 
 static DWORD WINAPI mainThread(LPVOID) {
@@ -75,8 +80,8 @@ static DWORD WINAPI mainThread(LPVOID) {
 
     while (!leaving) Sleep(50);
 
-    teardown();
-    FreeLibraryAndExitThread(self, 0);
+    if (teardown()) FreeLibraryAndExitThread(self, 0);
+    ExitThread(0);
     return 0;
 }
 

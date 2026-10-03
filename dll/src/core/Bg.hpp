@@ -5,6 +5,6 @@
 namespace bg {
 
 void run(std::function<void()> work);
-void drain(int timeoutMs);
+bool drain(int timeoutMs);
 
 }
