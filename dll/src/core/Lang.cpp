@@ -3,6 +3,18 @@
 namespace {
 
 const i18n::Entry entries[] = {
+    {"Frame intervals: %.2f ms average, %.2f ms P95, %.2f ms P99", "Frame-Abstände: %.2f ms Mittelwert, %.2f ms P95, %.2f ms P99"},
+    {"GPU latency mode", "GPU-Latenzmodus"},
+    {"On + NVIDIA Boost", "Ein + NVIDIA Boost"},
+    {"GPU latency unavailable", "GPU-Latenzsteuerung nicht verfügbar"},
+    {"GPU latency off", "GPU-Latenzsteuerung aus"},
+    {"NVIDIA driver latency active; input pacing not connected", "NVIDIA-Treiberlatenz aktiv; Eingabe-Timing noch nicht angebunden"},
+    {"GPU pacing connected before input", "GPU-Timing vor der Eingabe angebunden"},
+    {"GPU latency driver rejected the request", "GPU-Treiber hat die Latenzanfrage abgelehnt"},
+    {"AMD Anti-Lag 2 needs a verified frame start hook", "AMD Anti-Lag 2 benötigt einen geprüften Frame-Start-Hook"},
+    {"Driver error: %d", "Treiberfehler: %d"},
+    {"Click event to Present return: %.1f ms (%d samples)", "Klickereignis bis Present-Rückkehr: %.1f ms (%d Messwerte)"},
+    {"This does not measure input to the displayed image.", "Dies misst nicht die Zeit bis zum angezeigten Bild."},
     {"Custom nametag overlay", "Eigenes Nametag-Overlay"},
     {"Makes end crystals easier to see and hit: no spin and bobbing, no base, optionally hidden the moment you hit them. Client side only, sends nothing extra.", "Macht End-Crystals leichter sichtbar und treffbar: kein Drehen und Wippen, kein Sockel, auf Wunsch sofort weg, wenn du sie triffst. Nur clientseitig, sendet nichts Zusätzliches."},
     {"No spin and bobbing", "Kein Drehen und Wippen"},

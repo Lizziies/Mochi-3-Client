@@ -1,5 +1,19 @@
 # Status
 
+## Separater Codex-Stand 2026-10-03: GPU-Latenz
+
+Branch `codex/gpu-input-latency`: direkte NVIDIA-NVAPI-Anbindung und AMD-Anti-Lag-2-DX12-Backend,
+Auswahl über den tatsächlichen Grafikadapter, Fehler-/Abschaltbehandlung, P95/P99-Frame-Diagnose.
+NVIDIA On/Off auf einem separaten DX12-Testgerät erfolgreich; lokale Tests bestanden.
+Release-DLL mit MONCHI_FLARIAL=OFF gebaut. Keine Spiel-Injection, keine Messung einer Verbesserung.
+Der geprüfte Bedrock-Hook vor der Eingabe fehlt weiterhin: NVIDIA meldet nur den Treibermodus,
+AMD bleibt bis dahin gesperrt. Vollständiges Reflex/Anti-Lag 2 ist nicht fertig.
+Details und Integration für Claude: `docs/GPU_LATENCY.md`.
+
+AMD-Unterstützungsprüfung ergänzt: Anti-Lag-2-Initialize auf dem separaten Gerät der
+integrierten Radeon erfolgreich (S_OK). Keine Aktivierung ohne geprüften Eingabe-Hook,
+keine Bestätigung der Spielwirkung. Native AMD-API-Verfügbarkeit ist damit geprüft.
+
 ## Arbeitsstand 2026-10-03: Flarial-Modulbasis
 
 Alle 117 Flarial-Modulordner sowie SDK, Events, Hooks und Signaturdefinitionen sind als
