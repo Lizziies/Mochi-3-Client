@@ -95,7 +95,11 @@ float4 psBlur(VOut i) : SV_Target
     float2 px = i.pos.xy;
     float2 mid = (rectPx.xy + rectPx.zw) * 0.5;
     float2 ext = (rectPx.zw - rectPx.xy) * 0.5;
-    float2 q = abs(px - mid) - (ext - shape.y);
+    // shape.w turns the field around its centre; the mask is taken in the field's own unrotated frame
+    float2 d = px - mid;
+    float cs = cos(shape.w), sn = sin(shape.w);
+    float2 local = float2(d.x * cs + d.y * sn, -d.x * sn + d.y * cs);
+    float2 q = abs(local) - (ext - shape.y);
     float dist = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - shape.y;
     float mask = saturate(0.5 - dist);
     if (mask <= 0.0) discard;
@@ -221,6 +225,7 @@ struct BlurJob {
     float rounding;
     float radius;
     float tint[4];
+    float angle;
 };
 
 struct Gpu {
@@ -626,7 +631,7 @@ static void blurPass(ID3D11Device* dev, ID3D11DeviceContext* ctx, const BlurJob&
         }
         D3D11_MAPPED_SUBRESOURCE m{};
         if (SUCCEEDED(ctx->Map(gpu.cbBlur, 0, D3D11_MAP_WRITE_DISCARD, 0, &m))) {
-            float k[16] = {job.rect[0], job.rect[1], job.rect[2], job.rect[3], job.radius, job.rounding, 1.f, 0.f,
+            float k[16] = {job.rect[0], job.rect[1], job.rect[2], job.rect[3], job.radius, job.rounding, 1.f, job.angle,
                            job.tint[0], job.tint[1], job.tint[2], job.tint[3], 1.f / bd.Width, 1.f / bd.Height, 0.f, 0.f};
             std::memcpy(m.pData, k, sizeof(k));
             ctx->Unmap(gpu.cbBlur, 0);
@@ -636,7 +641,11 @@ static void blurPass(ID3D11Device* dev, ID3D11DeviceContext* ctx, const BlurJob&
         }
         D3D11_VIEWPORT vp{0.f, 0.f, (float)bd.Width, (float)bd.Height, 0.f, 1.f};
         ctx->RSSetViewports(1, &vp);
-        D3D11_RECT sc{LONG(job.rect[0]) - 1, LONG(job.rect[1]) - 1, LONG(job.rect[2]) + 1, LONG(job.rect[3]) + 1};
+        float hx = (job.rect[2] - job.rect[0]) * 0.5f, hy = (job.rect[3] - job.rect[1]) * 0.5f;
+        float mx = job.rect[0] + hx, my = job.rect[1] + hy;
+        float cs = std::fabs(std::cos(job.angle)), sn = std::fabs(std::sin(job.angle));
+        float ex = hx * cs + hy * sn, ey = hx * sn + hy * cs;
+        D3D11_RECT sc{LONG(mx - ex) - 1, LONG(my - ey) - 1, LONG(mx + ex) + 2, LONG(my + ey) + 2};
         ctx->RSSetScissorRects(1, &sc);
         ctx->RSSetState(gpu.scissor);
         ctx->OMSetBlendState(gpu.alpha, nullptr, 0xffffffff);
@@ -708,9 +717,9 @@ bool Params::basic() const {
 
 Params& params() { return frameParams; }
 
-void blur(ImDrawList* dl, ImVec2 min, ImVec2 max, float rounding, float radius, ImVec4 tint) {
+void blur(ImDrawList* dl, ImVec2 min, ImVec2 max, float rounding, float radius, ImVec4 tint, float angle) {
     if (max.x - min.x < 2.f || max.y - min.y < 2.f) return;
-    blurJobs.push_back({{min.x, min.y, max.x, max.y}, rounding, radius, {tint.x, tint.y, tint.z, tint.w}});
+    blurJobs.push_back({{min.x, min.y, max.x, max.y}, rounding, radius, {tint.x, tint.y, tint.z, tint.w}, angle});
     dl->AddCallback(blurCallback, &blurJobs.back());
     dl->AddCallback(ImGui::GetPlatformIO().DrawCallback_ResetRenderState, nullptr);
 }

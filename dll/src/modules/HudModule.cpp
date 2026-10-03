@@ -194,7 +194,7 @@ void HudModule::onRender(ImDrawList* dl) {
     float r = rounding_.f * s;
     if (dropShadow_.b) ringGlow(dl, pos, end, r, dropShadowColor_.color, dropShadowSize_.f * s, {0.f, 3.f * s});
     if (glow_.b) ringGlow(dl, pos, end, r, glowColor_.color, glowSize_.f * s, {0.f, 0.f});
-    if (blur_.b && rotation_.f == 0.f) post::blur(dl, pos + shift, end + shift, r, blurRadius_.f * s, {0.f, 0.f, 0.f, 0.f});
+    if (blur_.b) post::blur(dl, pos + shift, end + shift, r, blurRadius_.f * s, {0.f, 0.f, 0.f, 0.f}, rotation_.f * 0.0174533f);
     if (background_.b) dl->AddRectFilled(pos, end, ImGui::GetColorU32(bgColor_.color), r);
     if (border_.b) dl->AddRect(pos, end, ImGui::GetColorU32(borderColor_.color), r, 0, borderWidth_.f * s);
     dl->ChannelsMerge();
