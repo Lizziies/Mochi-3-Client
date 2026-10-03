@@ -69,7 +69,6 @@ Nicht gebaut: nur echte Cheats mit Kampfvorteil (siehe CLAUDE.md, Hard rules).
 | Pack Display | game | 3 | aktives Resource Pack (Onix) |
 | Tab List | game | 1 | Java-Style |
 | Java Debug Menu (F3) | game | 2 | |
-| Subtitles | game | 3 | Audio-Untertitel |
 
 ## Movable Vanilla-HUD
 
@@ -78,11 +77,7 @@ Nicht gebaut: nur echte Cheats mit Kampfvorteil (siehe CLAUDE.md, Hard rules).
 | Movable HUD (alles) | game | 2 |
 | Movable Chat | game | 2 |
 | Movable Scoreboard | game | 1 |
-| Movable Bossbar | game | 2 |
-| Movable Title | game | 2 |
-| Movable Hotbar | game | 2 |
 | Movable Paperdoll | game | 2 |
-| GUI Scale | game | 2 |
 | Clear Scoreboard | game | 3 |
 | Clear Chat (Hintergrund) | game | 2 |
 | Compact Chat | game | 2 |
@@ -109,25 +104,14 @@ Nicht gebaut: nur echte Cheats mit Kampfvorteil (siehe CLAUDE.md, Hard rules).
 | Block Outline | game | 1 | Farbe, Dicke, Füllung |
 | Break Progress | game | 2 | |
 | Hitbox | game | 1 | nur sichtbare Entities |
-| Hurt Color | game | 1 | |
-| Glint Color | game | 2 | |
-| Fog Color | game | 3 | |
-| Time Changer | game | 2 | clientseitig |
-| Weather Changer | game | 3 | clientseitig |
-| Environment Changer | game | 3 | Onix: Himmel/Fog zusammen |
 | Chunk Border | game | 2 | |
-| Light Overlay | game | 3 | Onix |
-| Item Physics | game | 2 | |
-| Particle Multiplier | game | 3 | |
 | Swing Animations | game | 2 | |
 | Block Hit (visuell) | game | 2 | |
 | View Model | game | 2 | |
 | No Hurt Cam | game | 1 | |
-| Minimal View Bobbing | game | 2 | |
 | Java View Bobbing | game | 3 | |
 | Nametag (eigener in F5) | game | 2 | |
 | Nick (clientseitig) | game | 3 | |
-| Skin Stealer | game | 2 | Skin eines anderen Spielers übernehmen, gilt bis zum Verlassen des Servers |
 | Waypoints | game | 2 | mit Beam + Distanz |
 | Render Options | game | 1 | Partikel/Himmel/Block-Entities aus, siehe INPUT.md |
 | MaterialBin Loader | game | 3 | Shader aus Resource Packs |
@@ -155,9 +139,6 @@ Nicht gebaut: nur echte Cheats mit Kampfvorteil (siehe CLAUDE.md, Hard rules).
 | Raw Input Buffer | game | 1 | siehe INPUT.md |
 | CPS Limiter | overlay | – | begrenzt nur nach unten, ok |
 | Null Movement | game | 2 | **server-rules** (Snap-Tap-ähnlich) |
-| Item Use Delay Fix | game | 3 | **server-rules** |
-| Faster Inventory | game | 3 | **server-rules** |
-| Insta Hurt Animation | game | 3 | **server-rules** |
 
 ## Server-Utilities
 
@@ -215,11 +196,7 @@ Alle 178 Module sind in `dll/src/modules/Manager.cpp` registriert, bauen mit Min
 | Background Load | Diagnostics | Extras | 29 | nichts | – |
 | Memory | Diagnostics | Erwartet | 27 | nichts | – |
 | Pet | Games | Extras | 30 | nichts | – |
-| Movable Bossbar | HUD parts | Erwartet | 26 | `fx.bossbarOffset` | – |
-| Movable Hotbar | HUD parts | Erwartet | 26 | `fx.hotbarOffset` | – |
-| Movable Title | HUD parts | Erwartet | 26 | `fx.titleOffset` | – |
 | Scoreboard | HUD parts | Kern | 30 | `ScoreboardData` | – |
-| Subtitles | HUD parts | Erwartet | 38 | `LocalPlayer`, `SoundEvents` | – |
 | Tab List | HUD parts | Erwartet | 45 | `TabListData` | info-others |
 | Better Hunger Bar | Info displays | Erwartet | 33 | `LocalPlayer`, `Inventory` | – |
 | CPS | Info displays | Kern | 27 | nichts | – |
@@ -274,16 +251,12 @@ Alle 178 Module sind in `dll/src/modules/Manager.cpp` registriert, bauen mit Min
 | FOV Changer | Camera | Kern | 5 | `fx.fov` | – |
 | Freelook | Camera | Kern | 5 | `fx.lookCamera`, `fx.lookTurn`, `LocalPlayer` | – |
 | Java Dynamic FOV | Camera | Erwartet | 6 | `fx.fov`, `LocalPlayer` | – |
-| Minimal View Bobbing | Camera | Erwartet | 3 | `fx.bobStrength` | – |
 | No Hurt Cam | Camera | Kern | 2 | `fx.hurtCam` | – |
 | No View Bobbing | Camera | Kern | 4 | `fx.viewBob` | – |
-| Smooth Sneak | Camera | Weitere | 2 | `fx.sneakCam` | – |
 | Zoom | Camera | Kern | 15 | `fx.fov` | – |
 | Custom Crosshair | Crosshair | Kern | 37 | nichts | – |
 | Hotbar Animation | HUD parts | Erwartet | 12 | `LocalPlayer`, `Inventory` | – |
-| Animations | Model | Kern | 7 | einer von `fx.handMatrix`, `fx.swingSpeed` | – |
 | Hide Hand | Model | Erwartet | 4 | `fx.hideHand` | – |
-| Left Hand | Model | Erwartet | 5 | `fx.handMatrix` | – |
 | View Model | Model | Erwartet | 14 | einer von `fx.handMatrix`, `fx.itemFov`, `fx.handMatrixThird` | – |
 | Blur | Post effects | Erwartet | 3 | nichts | – |
 | Brightness / Contrast | Post effects | Extras | 5 | nichts | – |
@@ -299,18 +272,10 @@ Alle 178 Module sind in `dll/src/modules/Manager.cpp` registriert, bauen mit Min
 | Block Outline | World | Kern | 10 | `LocalPlayer`, `Target` | – |
 | Break Progress | World | Erwartet | 9 | `LocalPlayer`, `Target` | – |
 | Chunk Border | World | Erwartet | 10 | `LocalPlayer` | – |
-| Environment Changer | World | Erwartet | 5 | `fx.fog` | – |
-| Fog Color | World | Weitere | 4 | `fx.fogColor` | – |
 | Fullbright | World | Kern | 4 | `fx.gamma` | – |
-| Item Physics | World | Erwartet | 5 | `fx.itemPhysics` | – |
-| Light Overlay | World | Erwartet | 12 | `LocalPlayer`, `LightLevels` | info-others |
-| Nametag Modifier | World | Erwartet | 4 | einer von `fx.nametagText`, `fx.nametagBackground` | – |
 | TNT Timer | World | Erwartet | 13 | `Target`, `TargetFuse` | – |
 | Third Person Nametag | World | Erwartet | 2 | `fx.selfNametag`, `LocalPlayer` | – |
-| Time Changer | World | Erwartet | 4 | `fx.time` | – |
-| Water Color | World | Weitere | 4 | `fx.waterColor` | – |
 | Waypoints | World | Erwartet | 12 | `LocalPlayer` | – |
-| Weather Changer | World | Erwartet | 3 | `fx.rain` | – |
 
 ### PvP (24)
 
@@ -320,23 +285,15 @@ Alle 178 Module sind in `dll/src/modules/Manager.cpp` registriert, bauen mit Min
 | Damage Indicator | Combat displays | Extras | 11 | `LocalPlayer`, `AttackEntity` | info-others |
 | Crystal Optimizer | Crystal PvP | Erwartet | 7 | einer von `fx.crystalSimple`, `fx.crystalNoBase`, `fx.crystalHide`, `fx.ghostRender` | Warnhinweis, info-others, timing |
 | Instant Hit | Crystal PvP | Kern | 4 | nichts | Warnhinweis, input, timing |
-| Block Hit | Hit feedback | Kern | 3 | `fx.handMatrix` | – |
-| Insta Hurt Animation | Hit feedback | Weitere | 3 | `fx.hurtAnim` | Warnhinweis, timing |
 | Kill Cleanup | Hit feedback | Erwartet | 6 | `fx.ghostRender`, `KillEvents` | Warnhinweis, info-others, timing |
-| Particle Multiplier | Hit feedback | Erwartet | 3 | einer von `fx.particleScale`, `fx.critParticle` | – |
-| Glint Color | Hit visuals | Weitere | 4 | `fx.glintColor` | – |
 | Hit Effects | Hit visuals | Extras | 13 | `LocalPlayer`, `AttackEntity` | – |
 | Hit Marker | Hit visuals | Extras | 11 | nichts | – |
 | Hit Sound | Hit visuals | Extras | 5 | `LocalPlayer`, `AttackEntity` | – |
 | Hitbox | Hit visuals | Erwartet | 15 | `fx.hitbox` | info-others |
-| Hurt Color | Hit visuals | Kern | 5 | `fx.hurtColor` | – |
 | Kill Effects | Hit visuals | Extras | 5 | `LocalPlayer`, `KillEvents` | – |
-| Low Fire | Hit visuals | Weitere | 2 | `fx.fire` | – |
 | Totem Pop | Hit visuals | Extras | 7 | `LocalPlayer`, `TotemEvents` | – |
 | Bow Sensitivity | Input | Erwartet | 3 | `fx.sensitivity`, `LocalPlayer` | input |
 | CPS Limiter | Input | Weitere | 3 | nichts | input |
-| Faster Inventory | Input | Weitere | 2 | `fx.inventoryDelay` | Warnhinweis, timing |
-| Item Use Delay Fix | Input | Weitere | 2 | `fx.useDelay` | Warnhinweis, timing |
 | Null Movement | Input | Weitere | 8 | nichts | Warnhinweis, input |
 | Sens Multiplier | Input | Erwartet | 7 | `fx.sensitivity` | input |
 | Snap Look | Input | Erwartet | 5 | `fx.lookCamera`, `LocalPlayer` | – |
@@ -354,14 +311,12 @@ Alle 178 Module sind in `dll/src/modules/Manager.cpp` registriert, bauen mit Min
 | Nick | Chat | Erwartet | 6 | nichts | – |
 | Player Notifier | Chat | Erwartet | 4 | `TabListData` | info-others |
 | Text Hotkey | Chat | Erwartet | 14 | nichts | chat |
-| GUI Scale | HUD parts | Kern | 2 | `fx.guiScale` | – |
 | Disable Mouse Wheel | Input | Erwartet | 3 | nichts | input |
 | Inventory Lock | Inventory | Erwartet | 7 | `Inventory` | input |
 | Java Inventory Hotkeys | Inventory | Erwartet | 1 | nichts | input |
 | Hotbar Keys | Movement | Weitere | 10 | nichts | input |
 | Modern Keybind Handling | Movement | Erwartet | 9 | nichts | input |
 | Pack Changer | Packs | Erwartet | 1 | nichts | – |
-| Skin Stealer | Packs | Erwartet | 3 | `Target`, `TargetSkin` | – |
 | Profile Hotkeys | Profiles | Weitere | 9 | nichts | – |
 | Streamer Mode | Profiles | Erwartet | 4 | nichts | – |
 
@@ -419,3 +374,5 @@ Alle 178 Module sind in `dll/src/modules/Manager.cpp` registriert, bauen mit Min
 - Eigene 2D-Hitboxen und eigene Boxen über den Bildschirm: sie würden durch Wände zeigen. Hitbox nutzt deshalb nur den Zeichenweg des Spiels.
 - Item-Texturen in Zählern und Replay-Clip: brauchen Spieldateien beziehungsweise Render-Zugriff, den der Client nicht hat.
 - DSCP/QoS-Markierung und Bandbreiten-Hinweis pro Programm im Netzwerk-Modul: brauchen Admin-Rechte beziehungsweise ETW, nur nach ausdrücklicher Zustimmung, später.
+
+Entfernt am 2026-10-03 (brauchen Render-Hooks, Gründe in `docs/STATUS.md`): Minimal View Bobbing, Smooth Sneak, Time Changer, Weather Changer, Environment Changer, Fog Color, Water Color, Animations, Hurt Color, Glint Color, Low Fire, Particle Multiplier, Block Hit, Item Use Delay Fix, Faster Inventory, Insta Hurt Animation, GUI Scale, Item Physics, Nametag Modifier, Light Overlay, Subtitles, Movable Hotbar, Movable Title, Movable Bossbar, Skin Stealer, Left Hand.
