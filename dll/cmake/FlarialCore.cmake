@@ -16,8 +16,24 @@ set(FMT_MODULE OFF CACHE BOOL "" FORCE)
 set(SAFETYHOOK_FETCH_ZYDIS ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(entt nes libhat fmt magic_enum safetyhook jsoncpp)
 
-file(GLOB_RECURSE FLARIAL_SOURCES CONFIGURE_DEPENDS "${FLARIAL_DIR}/src/*.cpp")
-list(FILTER FLARIAL_SOURCES EXCLUDE REGEX "/src/Scripting/|/Modules/Doom/|/Modules/Lewis/|/src/PCH\.cpp$")
+# Flarial's files include each other by relative paths, so an adapted copy in another folder would never be
+# picked up. The build compiles a merged tree instead: upstream as it is, with dll/src/flarial laid over it.
+# configure_file makes CMake reconfigure when either side changes.
+set(FLARIAL_ADAPTED "${CMAKE_CURRENT_SOURCE_DIR}/src/flarial")
+set(FLARIAL_TREE "${CMAKE_CURRENT_BINARY_DIR}/flarial/src")
+file(GLOB_RECURSE upstream_files RELATIVE "${FLARIAL_DIR}/src" CONFIGURE_DEPENDS "${FLARIAL_DIR}/src/*")
+file(GLOB_RECURSE adapted_files RELATIVE "${FLARIAL_ADAPTED}" CONFIGURE_DEPENDS "${FLARIAL_ADAPTED}/*")
+foreach(f IN LISTS upstream_files)
+    if(NOT f IN_LIST adapted_files)
+        configure_file("${FLARIAL_DIR}/src/${f}" "${FLARIAL_TREE}/${f}" COPYONLY)
+    endif()
+endforeach()
+foreach(f IN LISTS adapted_files)
+    configure_file("${FLARIAL_ADAPTED}/${f}" "${FLARIAL_TREE}/${f}" COPYONLY)
+endforeach()
+
+file(GLOB_RECURSE FLARIAL_SOURCES "${FLARIAL_TREE}/*.cpp")
+list(FILTER FLARIAL_SOURCES EXCLUDE REGEX "/flarial/src/Scripting/|/flarial/src/Client/Command/|/Modules/Doom/|/Modules/Lewis/|/Modules/Misc/ScriptMarketplace/|/flarial/src/PCH\.cpp$")
 
 add_library(flarial_core STATIC ${FLARIAL_SOURCES})
 set_target_properties(flarial_core PROPERTIES CXX_STANDARD 23 MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
@@ -41,11 +57,13 @@ file(WRITE "${FLARIAL_SHIM}/imgui/stb.h" "#pragma once
 #include \"${FLARIAL_DIR}/lib/ImGui/stb.h\"
 ")
 target_include_directories(flarial_core BEFORE PUBLIC "${FLARIAL_SHIM}" "${CMAKE_CURRENT_SOURCE_DIR}/lib" "${CMAKE_CURRENT_SOURCE_DIR}/lib/imgui")
-target_precompile_headers(flarial_core PRIVATE "${FLARIAL_DIR}/src/PCH.hpp")
+target_precompile_headers(flarial_core PRIVATE "${FLARIAL_TREE}/PCH.hpp")
 target_include_directories(flarial_core PUBLIC
+    "${CMAKE_CURRENT_BINARY_DIR}/flarial"
     "${FLARIAL_DIR}"
-    "${FLARIAL_DIR}/src"
-    "${FLARIAL_DIR}/src/Client"
-    "${FLARIAL_DIR}/src/Client/Module"
+    "${FLARIAL_TREE}"
+    "${FLARIAL_TREE}/Client"
+    "${FLARIAL_TREE}/Client/Module"
+    "${FLARIAL_TREE}/shim"
     "${FLARIAL_DIR}/lib")
 target_link_libraries(flarial_core PUBLIC libhat fmt::fmt EnTT::EnTT NES magic_enum safetyhook jsoncpp)
