@@ -136,7 +136,7 @@ public:
     unsigned supports() const override {
         unsigned m = 0;
         if (sigs::address("LocalPlayer") && off("player.posX") >= 0) m |= unsigned(Domain::Player) | unsigned(Domain::Camera);
-        if (sigs::address("Level") && off("level.time") >= 0) m |= unsigned(Domain::World);
+        if ((sigs::address("Level") || off("level.via0") >= 0) && off("level.time") >= 0) m |= unsigned(Domain::World);
         if ((m & unsigned(Domain::Player)) && off("hit.via0") >= 0) m |= unsigned(Domain::Target) | unsigned(Domain::Combat);
         if ((m & unsigned(Domain::Player)) && sigs::address("AttackEntity")) m |= unsigned(Domain::Combat);
         if ((m & unsigned(Domain::Player)) && off("hand.vtable") >= 0) m |= unsigned(Domain::Inventory);
@@ -427,10 +427,11 @@ private:
     }
 
     void readWorld(State& s) {
-        uintptr_t lv = mem::pointer(sigs::address("Level"));
+        // 1.26.52: the player keeps a pointer to its level, which holds the time of day as an int
+        uintptr_t lv = off("level.via0") >= 0 ? (playerPtr_ ? follow(playerPtr_, "level") : 0) : mem::pointer(sigs::address("Level"));
         if (!lv) return;
-        s.world.time = int(((i(lv, "level.time", s.world.time) % 24000) + 24000) % 24000);
-        s.world.day = i(lv, "level.time", 0) / 24000 + 1;
+        s.world.time = int(((mem::get<int>(lv + off("level.time"), s.world.time) % 24000) + 24000) % 24000);
+        s.world.day = mem::get<int>(lv + off("level.time")) / 24000 + 1;
         s.world.raining = f(lv, "level.rain", 0.f) > 0.05f;
         s.world.thundering = f(lv, "level.thunder", 0.f) > 0.05f;
     }

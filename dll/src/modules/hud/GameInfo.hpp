@@ -400,7 +400,7 @@ private:
 class DayCounter : public GameText {
 public:
     DayCounter()
-        : GameText("Day Counter", "Shows the game day and the world time.", need::world, need::sigs({"Level"}), {"hud-self"}, {0.005f, 0.434f}) {
+        : GameText("Day Counter", "Shows the game day and the world time.", need::world, need::sigs({"WorldTime"}), {"hud-self"}, {0.005f, 0.434f}) {
         sub("Info displays");
     }
 
